@@ -1,0 +1,106 @@
+<SqlClass name="SysconfigData" package="org.openz.sysconfig">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="selectinit" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    SELECT '' AS info, '' AS language, '' AS country, '' AS calendar ,'' AS acctschema, '' AS currency, '' AS tax, '' AS taxincluded FROM dual
+    </Sql>
+  </SqlMethod>
+    
+  <SqlMethod name="orgCreate" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      	SELECT systemconfig(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      ]]></Sql>
+      <Parameter name="orgname"/>
+      <Parameter name="language"/>
+      <Parameter name="email"/>
+      <Parameter name="address"/>
+      <Parameter name="postalcode"/>
+      <Parameter name="city"/>
+      <Parameter name="country"/>
+      <Parameter name="calendar"/>
+      <Parameter name="acctschema"/>
+      <Parameter name="tax"/>
+      <Parameter name="currency"/>
+      <Parameter name="taxincluded"/>
+   </SqlMethod>
+   
+   <SqlMethod name="selectLanguage" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+     <Sql><![CDATA[
+    SELECT name AS language FROM ad_language where ad_language=?
+     ]]></Sql>
+    <Parameter name="language"/>
+  </SqlMethod>
+  
+   <SqlMethod name="selectCountry" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+     <Sql><![CDATA[
+    SELECT name AS country FROM c_country where c_country_id=?
+    ]]></Sql>
+    <Parameter name="country"/>
+   </SqlMethod>
+   
+   <SqlMethod name="selectCalendar" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+    SELECT name AS calendar FROM c_calendar where c_calendar_id=?
+    ]]></Sql>
+    <Parameter name="calendar"/>
+  </SqlMethod>
+  
+  <SqlMethod name="selectAcctschema" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+    SELECT name AS acctschema FROM c_acctschema where c_acctschema_id=?
+    ]]></Sql>
+    <Parameter name="acctschema"/>
+  </SqlMethod>
+  
+  <SqlMethod name="selectCurrency" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+    SELECT description AS currency FROM c_currency where c_currency_id=?
+    ]]></Sql>
+    <Parameter name="currency"/>
+  </SqlMethod>
+  
+  <SqlMethod name="selectTax" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+    SELECT name AS tax FROM c_tax where c_tax_id=?
+    ]]></Sql>
+    <Parameter name="tax"/>
+  </SqlMethod>
+  
+  <SqlMethod name="updateSTDServlet" type="preparedStatement"  return="rowcount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+     UPDATE ad_role SET targetmain = null where ad_role_id= ?
+      ]]></Sql>
+    <Parameter name="adRoleId"/>
+  </SqlMethod>
+  
+    <SqlMethod name="updateSTDMenuServlet" type="preparedStatement"  return="rowcount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+     UPDATE ad_role SET targetmenu = null where ad_role_id= ?
+      ]]></Sql>
+    <Parameter name="adRoleId"/>
+    </SqlMethod>
+    
+    <SqlMethod name="insertPreference" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+     INSERT INTO ad_preference (ad_preference_id, ad_client_id, ad_org_id, isactive, createdby, updatedby, attribute, value, name, isglobal)
+     VALUES (get_uuid(), ?, ?, 'Y', '0', '0', 'SysConfigCncl', 'Y', 'SystemConfig is cancelled', 'N')
+      ]]></Sql>
+    <Parameter name="clientId"/>
+    <Parameter name="orgId"/>
+  </SqlMethod>
+  </SqlClass>
+   
+    

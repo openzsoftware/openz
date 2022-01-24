@@ -1,0 +1,232 @@
+<SqlClass name="InternalLogisticData" package="org.openz.internallogistic">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="selectupperOutbound" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+	    Select '' as pdcmaterialconsumptionavailableqty,'' as pdcmaterialconsumptionproduct,'' as pdcmaterialconsumptionlocator,
+	    '' as pdcmaterialconsumptionreceivedqty,'' as identifier,
+	    v.snr_masterdata_id, zssi_getproductname(v.m_product_id,?) as product,v.username,v.locator_from,v.locator_to,
+	    v.serialnumber,v.shipperinfo,v.vendorinfo
+	    from ils_internaltransport_v v
+	    where workstepid= ? and not exists (select 0 from snr_internal_consumptionline s,m_internal_consumptionline l
+	                                        where l.m_internal_consumptionline_id=s.m_internal_consumptionline_id and
+	                                              l.m_internal_consumption_id=? and v.serialnumber=s.serialnumber and v.workstepid=l.c_projecttask_id) 
+    </Sql>
+    <Parameter name="language"/>
+    <Parameter name="workstep"/>
+    <Parameter name="internalconsumptionid"/>
+  </SqlMethod>
+ 
+  <SqlMethod name="selectlowerOutbound" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+	    Select s.snr_internal_consumptionline_id as snr_masterdata_id, zssi_getproductname(l.m_product_id,?) as product,zssi_getusername (snrm.ad_user_id) as username,
+	    (select value from m_locator where m_locator_id=pt.receiving_locator) as locator_from,
+        (select value from m_locator where m_locator_id=pt.issuing_locator) as locator_to,
+	    snrm.serialnumber,
+	    ils_getshipperfromvendormovement(snrm.serialnumber) as shipperinfo,
+	    ils_getdescriptionfromvendormovement(snrm.serialnumber) as vendorinfo
+	    from snr_masterdata snrm,snr_internal_consumptionline s,m_internal_consumptionline l,m_internal_consumption c,c_projecttask pt
+	    where snrm.serialnumber=s.serialnumber and
+	          l.m_internal_consumptionline_id=s.m_internal_consumptionline_id and
+	          l.m_internal_consumption_id=c.m_internal_consumption_id and
+	          l.c_projecttask_id=pt.c_projecttask_id and
+	    pt.c_projecttask_id= ? and c.m_internal_consumption_id=?
+    </Sql>
+    <Parameter name="language"/>
+    <Parameter name="workstep"/>
+    <Parameter name="consumption"/>
+  </SqlMethod>
+   <SqlMethod name="selectupperInbound" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+	    Select snr.snr_masterdata_id, zssi_getproductname(snr.m_product_id,?) as product,zssi_getusername (snr.ad_user_id) as username,l1.value as locator_from,l2.value as locator_to,
+	    snr.serialnumber,ils_getshipperfromvendormovement(snr.serialnumber) as shipperinfo,ils_getdescriptionfromvendormovement(snr.serialnumber) as vendorinfo
+	    from snr_masterdata snr, c_projecttask p, m_locator l1,m_locator l2,m_internal_consumptionline icl
+	    where p.c_projecttask_id= ? 
+	    and snr.c_projecttask_id=p.c_projecttask_id 
+	    and l1.m_locator_id=p.receiving_locator 
+	    and l2.m_locator_id=p.issuing_locator
+	    and snr.m_internal_consumptionline_id=icl.m_internal_consumptionline_id
+	    and icl.updatedby= ? 
+	    and not exists (select 0 from snr_internal_consumptionline s,m_internal_consumptionline l
+	                                        where l.m_internal_consumptionline_id=s.m_internal_consumptionline_id and
+	                                              l.m_internal_consumption_id=? and snr.serialnumber=s.serialnumber and snr.c_projecttask_id=l.c_projecttask_id)   
+    </Sql>
+    <Parameter name="language"/>
+    <Parameter name="workstep"/>
+    <Parameter name="transportuserid"/>
+    <Parameter name="internalconsumptionid"/>
+  </SqlMethod>
+  <SqlMethod name="selectlowerInbound" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+	    Select snrm.snr_masterdata_id, zssi_getproductname(l.m_product_id,?) as product,zssi_getusername(snrm.ad_user_id) as username,l1.value as locator_from,l2.value as locator_to,
+	    s.serialnumber,ils_getshipperfromvendormovement(snrm.serialnumber) as shipperinfo,ils_getdescriptionfromvendormovement(snrm.serialnumber) as vendorinfo
+	    from snr_internal_consumptionline s,m_internal_consumptionline l,m_internal_consumption c,snr_masterdata snrm,m_locator l1,m_locator l2,c_projecttask p
+	    where l.m_internal_consumptionline_id=s.m_internal_consumptionline_id and
+	          l.m_internal_consumption_id=c.m_internal_consumption_id and
+	          p.issuing_locator=l2.m_locator_id and p.receiving_locator = l1.m_locator_id and
+	          p.c_projecttask_id=l.c_projecttask_id and
+	          snrm.serialnumber=s.serialnumber and
+	          p.c_projecttask_id= ? and
+	          c.m_internal_consumption_id=?
+    </Sql>
+    <Parameter name="language"/>
+    <Parameter name="workstep"/>
+    <Parameter name="consumption"/>
+  </SqlMethod>
+  <SqlMethod name="selectupperConsumptionfromLocator" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT  zssi_getproductname(sd.m_product_id,?) as pdcmaterialconsumptionproduct,
+                l.value as pdcmaterialconsumptionlocator, 
+                sd.qtyonhand-coalesce(co.movementqty,0) as pdcmaterialconsumptionavailableqty,
+                sd.m_storage_detail_id as snr_masterdata_id
+        FROM m_storage_detail sd
+             left join m_internal_consumptionline co on co.m_product_id=sd.m_product_id and co.m_internal_consumption_id=?
+             ,m_locator l 
+             where l.m_locator_id=sd.m_locator_id and
+                sd.m_locator_id = ? and sd.qtyonhand>0
+             order by pdcmaterialconsumptionproduct
+    </Sql>
+    <Parameter name="language"/>
+    <Parameter name="consumption"/>
+    <Parameter name="locator"/>
+  </SqlMethod>
+  <SqlMethod name="selectupperConsumption4User" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       SELECT  zssi_getproductname(snr.m_product_id,?) as pdcmaterialconsumptionproduct,
+          l1.value as pdcmaterialconsumptionlocator, 
+          snr.serialnumber as identifier,
+          zssi_getusername (snr.ad_user_id) as username,
+          ils_getdescriptionfromvendormovement(snr.serialnumber) as vendorinfo,
+          ils_getshipperfromvendormovement(snr.serialnumber) as shipperinfo,
+          snr.snr_masterdata_id
+        FROM 
+          snr_masterdata snr,
+          m_locator l1
+        WHERE l1.m_locator_id=snr.m_locator_id  and
+              l1.islogistic='Y' and
+              snr.m_locator_id=ils_getuserlogisticstoragebin(snr.ad_user_id) and
+              snr.ad_user_id= ?
+              and not exists (select 0 from m_internal_consumptionline co,snr_internal_consumptionline s
+                                       where co.m_internal_consumptionline_id=s.m_internal_consumptionline_id
+                                       and s.serialnumber=snr.serialnumber and co.m_internal_consumption_id=?)
+    </Sql>
+    <Parameter name="language"/>
+    <Parameter name="user"/>
+    <Parameter name="consumption"/>
+  </SqlMethod>
+  <SqlMethod name="selectlowerConsumption" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        Select  coalesce(s.snr_internal_consumptionline_id,l.m_internal_consumptionline_id) as snr_masterdata_id, 
+                zssi_getproductname(l.m_product_id,?) as pdcmaterialconsumptionproduct,
+                (select zssi_getusername(snrm.ad_user_id) from snr_masterdata snrm where snrm.serialnumber=s.serialnumber and snrm.m_product_id=l.m_product_id) as username,
+                l1.value as pdcmaterialconsumptionlocator,
+                s.serialnumber as identifier,case when s.serialnumber is not null then 1 else l.movementqty end as pdcmaterialconsumptionreceivedqty
+        from m_internal_consumptionline l left join snr_internal_consumptionline s on l.m_internal_consumptionline_id=s.m_internal_consumptionline_id,
+             m_internal_consumption c,m_locator l1
+        where l.m_internal_consumption_id=c.m_internal_consumption_id and
+              l.m_locator_id = l1.m_locator_id and
+              c.m_internal_consumption_id=?
+    </Sql>
+    <Parameter name="language"/>
+    <Parameter name="consumption"/>
+  </SqlMethod>
+    <SqlMethod name="selectlowerTransfer" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        Select  coalesce(s.snr_internal_consumptionline_id,l.m_internal_consumptionline_id) as snr_masterdata_id, 
+                zssi_getproductname(l.m_product_id,?) as pdcmaterialconsumptionproduct,
+                (select zssi_getusername(snrm.ad_user_id) from snr_masterdata snrm where snrm.serialnumber=s.serialnumber and snrm.m_product_id=l.m_product_id) as username,
+                l1.value as pdcmaterialconsumptionlocator,
+                s.serialnumber as identifier,case when s.serialnumber is not null then 1 else l.movementqty end as pdcmaterialconsumptionreceivedqty
+        from m_internal_consumptionline l left join snr_internal_consumptionline s on l.m_internal_consumptionline_id=s.m_internal_consumptionline_id,
+             m_internal_consumption c,m_locator l1
+        where l.m_internal_consumption_id=c.m_internal_consumption_id and
+              c.m_internal_consumption_id=? and
+              l1.m_locator_id = ?
+    </Sql>
+    <Parameter name="language"/>
+    <Parameter name="consumption"/>
+    <Parameter name="locator"/>
+  </SqlMethod>
+  <SqlMethod name="ils_addSerialLine2InternalConsumptionWithWorkstepLocator" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ils_addSerialLine2InternalConsumptionWithWorkstepLocator(?,?,?,?)
+      </Sql>
+      <Parameter name="productid"/>
+      <Parameter name="pSerialnumber"/>
+      <Parameter name="pConsumption"/>
+      <Parameter name="pUserID"/>
+   </SqlMethod>
+   <SqlMethod name="ils_addSerialLine2InternalConsumptionOutward" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ils_addSerialLine2InternalConsumptionOutward(?,?,?,?)
+      </Sql>
+      <Parameter name="productid"/>
+      <Parameter name="pSerialnumber"/>
+      <Parameter name="pConsumption"/>
+      <Parameter name="pUserID"/>
+   </SqlMethod>
+   <SqlMethod name="ils_addSerialLine2InternalConsumptionInbound" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ils_addSerialLine2InternalConsumptionInbound(?,?,?,?,?)
+      </Sql>
+      <Parameter name="productid"/>
+      <Parameter name="pSerialnumber"/>
+      <Parameter name="pConsumption"/>
+      <Parameter name="pUserID"/>
+      <Parameter name="pLocatorID"/>
+   </SqlMethod>
+      <SqlMethod name="ils_createtransfer" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ils_createinternaltransfer(?,?)
+      </Sql>
+      <Parameter name="consumption"/>
+      <Parameter name="targetlocator"/>
+   </SqlMethod>
+
+   <SqlMethod name="addLine2InternalConsumption" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ils_addLine2InternalConsumption(?,?,?,?,?,?)
+      </Sql>
+      <Parameter name="productid"/>
+      <Parameter name="pLocator"/>
+      <Parameter name="pQty"/>
+      <Parameter name="pWorkstep"/>
+      <Parameter name="pConsumption"/>
+      <Parameter name="pUserID"/>
+   </SqlMethod>
+   <SqlMethod name="checkmovement" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ils_checkmovement(?,?,?,?)
+      </Sql>
+      <Parameter name="productid"/>
+      <Parameter name="pLocator"/>
+      <Parameter name="pQty"/>
+      <Parameter name="pserial"/>
+   </SqlMethod>
+   <SqlMethod name="getInOutIDfromDocNo" type="preparedStatement" return="string">
+      <Sql><![CDATA[
+        SELECT m_inout_id from m_inout where documentno= case when substr(?,1,1)='<' and substr(?,length(?),1)='>' then substr(?,2,length(?)-2) else ? end
+      ]]></Sql>
+      <Parameter name="docno"/>
+      <Parameter name="docno"/>
+      <Parameter name="docno"/>
+      <Parameter name="docno"/>
+      <Parameter name="docno"/>
+      <Parameter name="docno"/>
+   </SqlMethod>
+   <SqlMethod name="addCode2Employee" type="preparedStatement" return="rowcount">
+      <Sql><![CDATA[
+        update c_bpartner set value = ?, updated=now(),updatedby = ? where c_bpartner_id = (select c_bpartner_id from ad_user where ad_user_id = ?)
+      ]]></Sql>
+      <Parameter name="code"/>
+      <Parameter name="adUserID"/>
+      <Parameter name="adUserID"/>
+   </SqlMethod>
+  </SqlClass>

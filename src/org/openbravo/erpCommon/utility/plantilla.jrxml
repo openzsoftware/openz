@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T13:14:59 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="plantilla" language="groovy" pageWidth="595" pageHeight="842" columnWidth="591" leftMargin="2" rightMargin="2" topMargin="5" bottomMargin="5" uuid="fa7d8b5c-01b1-46a4-82f2-80aaf3224451">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="3.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<parameter name="BaseDir" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{IS_IGNORE_PAGINATION}.booleanValue()?Boolean.FALSE:Boolean.TRUE]]></printWhenExpression>
+		</band>
+	</background>
+	<title>
+		<band height="50" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{IS_IGNORE_PAGINATION}.booleanValue()?Boolean.FALSE:Boolean.TRUE]]></printWhenExpression>
+			<line>
+				<reportElement key="title-bottom-line" x="0" y="49" width="591" height="1" forecolor="#808080" uuid="b275d808-4f3f-4b70-952c-ecc21ddef6fb"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement key="title-top-line" x="0" y="3" width="591" height="1" forecolor="#808080" uuid="f6650571-42ac-4837-9ad0-a7df6e44b9fa"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement key="staticTitle" stretchType="RelativeToTallestObject" x="0" y="6" width="591" height="38" forecolor="#418612" uuid="9c3cf883-417a-498b-9092-9ee710629f88"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font size="14" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{IS_IGNORE_PAGINATION}.booleanValue()?Boolean.FALSE:Boolean.TRUE]]></printWhenExpression>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="25" splitType="Stretch">
+			<line direction="BottomUp">
+				<reportElement key="columnHeader-top-line" x="0" y="0" width="591" height="1" forecolor="#000000" uuid="6ba0bae8-5426-4c4d-b52a-28f40d2252c3">
+					<printWhenExpression><![CDATA[$P{IS_IGNORE_PAGINATION}.booleanValue()?Boolean.FALSE:Boolean.TRUE]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line direction="BottomUp">
+				<reportElement key="columnHeader-bottom-line" x="0" y="23" width="591" height="1" forecolor="#000000" uuid="14dc68a2-550d-483e-9e74-ac91360c9f31">
+					<printWhenExpression><![CDATA[$P{IS_IGNORE_PAGINATION}.booleanValue()?Boolean.FALSE:Boolean.TRUE]]></printWhenExpression>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="18" splitType="Stretch"/>
+	</detail>
+	<columnFooter>
+		<band height="20" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="27" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{IS_IGNORE_PAGINATION}.booleanValue()?Boolean.FALSE:Boolean.TRUE]]></printWhenExpression>
+			<line>
+				<reportElement key="pageFooter-top-line" x="0" y="3" width="591" height="1" forecolor="#000000" uuid="18ea0b2a-f1b0-4278-b132-4bb002af27d4"/>
+				<graphicElement>
+					<pen lineWidth="2.0" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement key="staticText-8" x="391" y="10" width="78" height="9" uuid="de7d3297-6233-444d-b691-a6e0c4fa4ed1"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<text><![CDATA[Page]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-18" x="10" y="10" width="75" height="9" uuid="8006b134-8a67-422d-a5ac-6add09e92672"/>
+				<textElement>
+					<font size="7"/>
+				</textElement>
+				<text><![CDATA[Druckdatum]]></text>
+			</staticText>
+			<textField pattern="dd.MM.yyyy" isBlankWhenNull="false">
+				<reportElement key="textField-25" x="86" y="10" width="74" height="9" uuid="30f21945-a18f-4b16-b047-9ad234faab81"/>
+				<textElement>
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new Date()]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField-55" x="469" y="10" width="42" height="9" uuid="54b54377-ac95-4c5a-88eb-4aa859721638"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}.toString()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" pattern="" isBlankWhenNull="false">
+				<reportElement key="textField-56" x="520" y="10" width="23" height="9" forecolor="#000000" backcolor="#FFFFFF" uuid="3498176a-4e05-48be-86cf-b4877bc8a034"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None">
+					<font fontName="SansSerif" size="7"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}.toString()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-8" x="511" y="10" width="10" height="9" uuid="8121a864-3d47-4146-92c6-75523e05cd34"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<text><![CDATA[/]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{IS_IGNORE_PAGINATION}.booleanValue()?Boolean.FALSE:Boolean.TRUE]]></printWhenExpression>
+		</band>
+	</summary>
+</jasperReport>

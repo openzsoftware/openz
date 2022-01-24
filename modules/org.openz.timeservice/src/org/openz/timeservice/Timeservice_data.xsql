@@ -1,0 +1,47 @@
+<SqlClass name="TimeserviceData" package="org.openz.timeservice">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="getPTaskValidationNamebyTabId" type="preparedStatement" return="string">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select v.name from ad_val_rule v where ad_val_rule_id = (select pad_valrule_id from ad_selecttabfields('de_DE',?) where lower(pname)='c_projecttask_id');
+    </Sql>
+        <Parameter name="TabId"/>
+  </SqlMethod>   
+  <SqlMethod name="getPTaskIdByname" type="preparedStatement" return="string">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select c_projecttask_id from c_projecttask where c_project_id=? and name=?;
+    </Sql>
+        <Parameter name="cProjectID"/>
+        <Parameter name="name"/>
+  </SqlMethod> 
+  <SqlMethod name="getPTaskEndDate" type="preparedStatement" return="string">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select zssi_strDate(coalesce(enddate,trunc(now())),?) as endate from c_projecttask where c_projecttask_id=?;
+    </Sql>
+        <Parameter name="lang"/>
+        <Parameter name="cProjecttaskID"/>
+  </SqlMethod> 
+  <SqlMethod name="getProjectEndDate" type="preparedStatement" return="string">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select zssi_strDate(coalesce(datefinish,trunc(now())),?) as endate from c_project where c_project_id=?;
+    </Sql>
+        <Parameter name="lang"/>
+        <Parameter name="cProjectID"/>
+  </SqlMethod> 
+  <SqlMethod name="getSalaryCategoryOfEmp" type="preparedStatement" return="string">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+     <![CDATA[
+        SELECT coalesce(s.C_Salary_Category_id,b.C_Salary_Category_id)  as defaultvalue 
+        from c_bpartner b left join C_BP_SALCATEGORY s on s.c_bpartner_id=b.c_bpartner_id  and s.isactive='Y' and s.datefrom<=trunc(now()) 
+        WHERE b.c_bpartner_id = (select c_bpartner_id from ad_user where ad_user_id=?)  AND b.isactive='Y'
+        order by s.datefrom desc limit 1
+    ]]>
+    </Sql>
+        <Parameter name="adUserID"/>
+  </SqlMethod> 
+</SqlClass>

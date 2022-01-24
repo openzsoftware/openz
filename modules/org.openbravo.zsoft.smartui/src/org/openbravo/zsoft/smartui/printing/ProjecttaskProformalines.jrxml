@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T08:22:46 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ProjecttaskProformalines" language="groovy" pageWidth="585" pageHeight="842" columnWidth="585" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="7c9e3115-57d7-41cf-8cd3-c0b5f79fc9c4">
+	<property name="ireport.zoom" value="2.357947691000003"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="C_PROJECT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+weight, quantity,cost,
+zssi_getElementTextByColumname('Pos.',$P{LANGUAGE}) as h1,
+zssi_getElementTextByColumname('Amountp',$P{LANGUAGE}) as h2,
+zssi_getElementTextByColumname('Equipment Description',$P{LANGUAGE}) as h3,
+zssi_getElementTextByColumname('kG',$P{LANGUAGE}) as h4,
+zssi_getElementTextByColumname('Price / EURO',$P{LANGUAGE}) as h5,
+zssi_getproductname(m_product_id,$P{LANGUAGE})||snumber as product
+from (
+select
+pr.weight*zb.qtyreceived as weight,
+pr.m_product_id,
+zb.qtyreceived as quantity,
+zb.actualcosamount as cost,
+''::text as snumber
+from
+zspm_projecttaskbom zb ,m_product pr
+where zb.m_product_id=pr.m_product_id
+and not exists (select 0 from snr_masterdata snr,ma_machine ma where ma.snr_masterdata_id=snr.snr_masterdata_id and snr.m_product_id=pr.m_product_id)
+and zb.c_projecttask_id in ($P{C_PROJECT_ID})
+union
+select
+m.weight,
+snr.m_product_id,
+1 as quantity,
+m.assetvalueamt as cost,
+snr.serialnumber as snumber
+from
+zspm_ptaskmachineplan mp,snr_masterdata snr,ma_machine m
+where
+m.snr_masterdata_id=snr.snr_masterdata_id and mp.ma_machine_id=m.ma_machine_id and
+mp.c_projecttask_id in ($P{C_PROJECT_ID})
+union all
+select
+pr.weight*pbom.bomqty as weight,
+pbom.m_productbom_id as m_product_id,
+pbom.bomqty  as quantity,
+round(m_get_product_cost(pbom.m_productbom_id,to_date(now()),null,zb.ad_org_id)*pbom.bomqty,2) as cost,
+''::text as snumber
+from
+zspm_projecttaskbom zb ,m_product pr,
+m_product_bom pbom
+where zb.m_product_id=pr.m_product_id
+and zb.m_product_id=pbom.m_product_id
+and  exists (select 0 from snr_masterdata snr,ma_machine ma where ma.snr_masterdata_id=snr.snr_masterdata_id and snr.m_product_id=pr.m_product_id)
+and zb.c_projecttask_id in ($P{C_PROJECT_ID})) a]]>
+	</queryString>
+	<field name="weight" class="java.math.BigDecimal"/>
+	<field name="quantity" class="java.math.BigDecimal"/>
+	<field name="cost" class="java.math.BigDecimal"/>
+	<field name="h1" class="java.lang.String"/>
+	<field name="h2" class="java.lang.String"/>
+	<field name="h3" class="java.lang.String"/>
+	<field name="h4" class="java.lang.String"/>
+	<field name="h5" class="java.lang.String"/>
+	<field name="product" class="java.lang.String"/>
+	<variable name="SUMQTYPLAN" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMQTY" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{quantity}]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNTPLAN" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNT" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMCOST" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{cost}]]></variableExpression>
+	</variable>
+	<variable name="SUMWEIGHT" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{weight}]]></variableExpression>
+	</variable>
+	<title>
+		<band height="13">
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="37" height="13" isPrintWhenDetailOverflows="true" uuid="a3c900d7-f824-4ba7-9e32-e0a104b9b0a2"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{h1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="37" y="0" width="80" height="13" isPrintWhenDetailOverflows="true" uuid="43871ed0-5f08-4705-9c88-e65f6a5679b9"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="10" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{h2}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="370" y="0" width="80" height="13" isPrintWhenDetailOverflows="true" uuid="77f934b4-fcdf-458e-9c13-8daa604c5bc9"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="10" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{h4}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="450" y="0" width="135" height="13" isPrintWhenDetailOverflows="true" uuid="323e9714-2472-474c-a585-57b1a6835eb4"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="10" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{h5}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="117" y="0" width="253" height="13" isPrintWhenDetailOverflows="true" uuid="c036775d-7dad-49db-824f-3f2a6ac6ecba"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{h3}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="13" splitType="Stretch">
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="117" y="0" width="253" height="13" isPrintWhenDetailOverflows="true" uuid="5c4bbc20-b917-4705-abab-f1bdeaa0da29"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{product}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="37" y="0" width="80" height="13" isPrintWhenDetailOverflows="true" uuid="5cc91b06-f305-4c9d-93d0-9cf95cc58901"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="10" isBold="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="370" y="0" width="80" height="13" isPrintWhenDetailOverflows="true" uuid="6140200e-01e2-4b4a-a084-bd65a4a7d703"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="10" isBold="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{weight}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="450" y="0" width="135" height="13" isPrintWhenDetailOverflows="true" uuid="8d398a3f-e323-44b8-bbe8-fc714efbeb31"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="10" isBold="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0;-###0">
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="37" height="13" isPrintWhenDetailOverflows="true" uuid="b5464a35-7503-4ee9-9636-c12fe71133e5"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{COLUMN_COUNT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ ***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+****************************************************************************************************************************************************
+-->
+
+<SqlClass name="ProductCategoryComboData" package="org.openbravo.erpCommon.info">
+   <SqlClassComment></SqlClassComment>
+   <SqlMethod name="select" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+         select null as m_product_category_id, null as name from dual
+         union
+         select m_product_category_id,name from m_product_category p where
+          p.isactive='Y'
+          AND p.AD_Client_ID IN ('1') 
+          AND p.AD_Org_ID IN ('1','0')
+          order by name
+      ]]></Sql>
+        <Parameter name="adUserClient" type="replace" optional="true" after="p.AD_Client_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="p.AD_Org_ID IN (" text="'1'"/>  
+   </SqlMethod>
+   <SqlMethod name="selectWinSpec" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+         select null as m_product_category_id, null as name from dual
+         union
+         select m_product_category_id,name from m_product_category p where
+          p.isactive='Y'
+          AND p.AD_Client_ID IN ('1') 
+          AND p.AD_Org_ID IN ('1','0')
+          AND zssi_isCategorySelectableinWindow(?,p.m_product_category_id)='Y'
+          order by name
+      ]]></Sql>
+        <Parameter name="adUserClient" type="replace" optional="true" after="p.AD_Client_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="p.AD_Org_ID IN (" text="'1'"/>  
+        <Parameter name="windowId"/>
+   </SqlMethod>
+</SqlClass>

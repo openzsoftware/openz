@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.16.0.final using JasperReports Library version 6.1.1  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Label_Shipment_15x10" language="groovy" pageWidth="71" pageHeight="73" columnWidth="71" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="9f73743e-29dd-4f98-becd-f4bf1953337a">
+	<property name="ireport.zoom" value="6.72749994932561"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<style name="Title" forecolor="#FFFFFF" fontName="Times New Roman" fontSize="50" isBold="false" pdfFontName="Times-Bold"/>
+	<style name="SubTitle" forecolor="#CCCCCC" fontName="Times New Roman" fontSize="18" isBold="false" pdfFontName="Times-Roman"/>
+	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true" pdfFontName="Times-Roman"/>
+	<style name="Detail" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman"/>
+	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="DOCUMENT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select a.qr,a.scn,a.pname,a.pname2,a.pvalue,a.pvalue2,a.foot,a.line
+from (
+select
+         --CASE WHEN (mils.serialnumber is null) then mp.value||'|'||mils.lotnumber else mp.value||'|'||mils.serialnumber end as qr,
+         mp.value||'|'||coalesce(mils.serialnumber,'')||'|'||coalesce(mils.lotnumber,'')||'|'||coalesce(to_char(round(mil.weight/mil.movementqty,4)),'') as qr,
+         --CASE WHEN (mils.serialnumber is null) then substr('ChN:'||mils.lotnumber,1,26) when (mils.serialnumber is not null) then substr('SN:'||mils.serialnumber,1,26) end as scn,
+         coalesce(substr('ChN:'||mils.lotnumber,1,26),'')||coalesce(substr('SN:'||mils.serialnumber,1,26),'')||coalesce('Gew:'||zssi_strNumberPrice(mil.weight/mil.movementqty,'de_DE'),'') as scn,
+         substr(mp.name,1,20) as pname,
+         substr(mp.name,21,20) as pname2,
+         substr(mp.value,1,20) as pvalue,
+         substr(mp.value,21,20) as pvalue2,
+         mil.line,
+         substr(substr(zssi_getbpname(mi.c_bpartner_id),1,15)||'-'||coalesce(mpo.vendorproductno||'-','')||''||to_char(mi.movementdate,'DD.MM.YYYY'),1,43) as foot
+from m_inout mi left join m_inoutline mil on mi.m_inout_id=mil.m_inout_id left join m_product mp on mp.m_product_id=mil.m_product_id left join m_product_po mpo on mp.m_product_id=mpo.m_product_id left join snr_minoutline mils on mil.m_inoutline_id=mils.m_inoutline_id where mi.m_inout_id in ($P{DOCUMENT_ID})  and mpo.c_bpartner_id=mi.c_bpartner_id
+
+
+union
+
+select
+         --CASE WHEN (snr_internal_consumptionline.serialnumber is null) then m_product.value||'|'||snr_internal_consumptionline.lotnumber else m_product.value||'|'||snr_internal_consumptionline.serialnumber end as qr,
+         m_product.value||'|'||coalesce(snr_internal_consumptionline.serialnumber,'')||'|'||coalesce(snr_internal_consumptionline.lotnumber,'')||'|'||coalesce(to_char(round(m_internal_consumptionline.weight/m_internal_consumptionline.movementqty,4)),'') as qr,
+         --CASE WHEN (snr_internal_consumptionline.serialnumber is null) then substr('ChN:'||snr_internal_consumptionline.lotnumber,1,26) when (snr_internal_consumptionline.serialnumber is not null) then substr('SN:'||snr_internal_consumptionline.serialnumber,1,26) end as scn,
+         coalesce(substr('ChN:'||snr_internal_consumptionline.lotnumber,1,26),'')||coalesce(substr('SN:'||snr_internal_consumptionline.serialnumber,1,26),'')||coalesce('Gew:'||zssi_strNumberPrice(m_internal_consumptionline.weight/m_internal_consumptionline.movementqty,'de_DE'),'') as scn,
+         substr(m_product.name,1,20) as pname,
+         substr(m_product.name,21,20) as pname2,
+         substr(m_product.value,1,20) as pvalue,
+         substr(m_product.value,21,20) as pvalue2,
+         m_internal_consumptionline.line,
+ substr(substr(zssi_getbpname(c_project.c_bpartner_id),1,15)||'-'||coalesce(m_product_po.vendorproductno||'-','')||'-'||to_char(m_internal_consumption.created,'DD.MM.YYYY'),1,43) as foot
+from    m_product,
+        m_internal_consumption
+left join c_project
+on c_project.c_project_id=m_internal_consumption.c_project_id
+left join c_bpartner
+on c_bpartner.c_bpartner_id=c_project.c_bpartner_id,
+        m_internal_consumptionline
+                        left join snr_internal_consumptionline
+                     on snr_internal_consumptionline.m_internal_consumptionline_id=m_internal_consumptionline.m_internal_consumptionline_id
+                        left join m_product_po
+                     on m_product_po.m_product_id=m_internal_consumptionline.m_product_id
+where m_internal_consumptionline.m_product_id=m_product.m_product_id
+and m_internal_consumption.m_internal_consumption_id=m_internal_consumptionline.m_internal_consumption_id
+and m_internal_consumption.m_internal_consumption_id IN ($P{DOCUMENT_ID})
+
+union
+
+select
+         mp.value||'|'||mils.serialnumber||'||' as qr,
+         substr('SN:'||mils.serialnumber,1,26) as scn,
+         substr(mp.name,1,20) as pname,
+         substr(mp.name,21,20) as pname2,
+         substr(mp.value,1,20) as pvalue,
+         substr(mp.value,21,20) as pvalue2,
+         10 as line,
+         null as foot
+from snr_masterdata mils left join snr_batchmasterdata bm on mils.snr_batchmasterdata_id=bm.snr_batchmasterdata_id,m_product mp where mils.m_product_id=mp.m_product_id and mils.snr_masterdata_id in ($P{DOCUMENT_ID})
+
+union
+
+select
+         mp.value||'||'||mils.batchnumber||'|' as qr,
+         substr('ChN:'||mils.batchnumber,1,26) as scn,
+         substr(mp.name,1,20) as pname,
+         substr(mp.name,21,20) as pname2,
+         substr(mp.value,1,20) as pvalue,
+         substr(mp.value,21,20) as pvalue2,
+         10 as line,
+         null as foot
+from snr_batchmasterdata mils,m_product mp where mils.m_product_id=mp.m_product_id and mils.snr_batchmasterdata_id in ($P{DOCUMENT_ID})
+
+union
+select
+         mp.value||'|||' as qr,
+         '' as scn,
+         substr(mp.name,1,20) as pname,
+         substr(mp.name,21,20) as pname2,
+         substr(mp.value,1,20) as pvalue,
+         substr(mp.value,21,20) as pvalue2,
+         10 as line,
+         null as foot
+from m_product mp where mp.m_product_id in ($P{DOCUMENT_ID})
+) a
+order by line,qr]]>
+	</queryString>
+	<field name="qr" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="qr"/>
+		<property name="com.jaspersoft.studio.field.label" value="qr"/>
+	</field>
+	<field name="scn" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="scn"/>
+		<property name="com.jaspersoft.studio.field.label" value="scn"/>
+	</field>
+	<field name="pname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="pname"/>
+		<property name="com.jaspersoft.studio.field.label" value="pname"/>
+	</field>
+	<field name="pname2" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="pname2"/>
+		<property name="com.jaspersoft.studio.field.label" value="pname2"/>
+	</field>
+	<field name="pvalue" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="pvalue"/>
+		<property name="com.jaspersoft.studio.field.label" value="pvalue"/>
+	</field>
+	<field name="pvalue2" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="pvalue2"/>
+		<property name="com.jaspersoft.studio.field.label" value="pvalue2"/>
+	</field>
+	<field name="foot" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="foot"/>
+		<property name="com.jaspersoft.studio.field.label" value="foot"/>
+	</field>
+	<field name="line" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="line"/>
+		<property name="com.jaspersoft.studio.field.label" value="line"/>
+	</field>
+	<title>
+		<band/>
+	</title>
+	<detail>
+		<band height="73" splitType="Prevent">
+			<image scaleImage="FillFrame" hAlign="Center" vAlign="Top">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="9" y="5" width="53" height="53" isRemoveLineWhenBlank="true" uuid="0c458db6-4111-479c-a816-5e075afa3c27"/>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{qr},com.google.zxing.BarcodeFormat.QR_CODE,1000,1000))]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="0" y="0" width="71" height="12" uuid="2cf10bc3-ae96-425e-9ab9-be88c11b1365"/>
+				<textElement textAlignment="Center" markup="html">
+					<font fontName="DejaVu Sans" size="5" isBold="false"/>
+					<paragraph lineSpacing="Fixed" lineSpacingSize="3.5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pname}+"<br>"+$F{pname2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="52" width="71" height="12" uuid="1c4d0d25-e5d2-419e-b124-2b656869ae8e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
+					<font fontName="DejaVu Sans" size="5" isBold="false"/>
+					<paragraph lineSpacing="Fixed" lineSpacingSize="3.5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pvalue}+"<br>"+
+$F{pvalue2}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="-1" y="63" width="72" height="5" uuid="6bb8c80a-ce75-4227-8fc5-e1e099c0759b"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
+					<font fontName="DejaVu Sans" size="4" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{scn}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="68" width="71" height="1" uuid="43143cd8-3375-4456-aee3-bc2ef919d99b"/>
+			</line>
+			<textField isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="0" y="69" width="71" height="4" uuid="fcad7ed8-4456-4a3f-b3ac-88caceca4314"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="3" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{foot}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

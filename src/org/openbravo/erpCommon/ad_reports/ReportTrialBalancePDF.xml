@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+*************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License
+* Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this
+* file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html 
+* Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+* License for the specific  language  governing  rights  and  limitations
+* under the License. 
+* The Original Code is Openbravo ERP. 
+* The Initial Developer of the Original Code is Openbravo SL 
+* All portions are Copyright (C) 2001-2009 Openbravo SL 
+* All Rights Reserved. 
+* Contributor(s):  ______________________________________.
+************************************************************************
+-->
+<REPORT>
+  <template file="ReportTrialBalancePDF.fo"/>
+  <!--PARAMETER id="paramDirectory" name="directory" default=""/>
+<PARAMETER id="paramLanguage" name="paramLanguage" default=""/>
+<PARAMETER id="paramDateFrom" name="dateFrom" attribute="value"/>
+<PARAMETER id="paramDateTo" name="dateTo" attribute="value"/>
+<PARAMETER id="parameterReg" name="constantReg" default="-1"/>
+<PARAMETER id="paramReg" name="Reg" boolean="checked" withId="parameterReg"/>
+<PARAMETER id="parameterClose" name="constantClose" default="-1"/>
+<PARAMETER id="paramClose" name="Close" boolean="checked" withId="parameterClose"/>
+<PARAMETER id="parameterOnly" name="constantOnly" default="-1"/>
+<PARAMETER id="paramOnly" name="Only" boolean="checked" withId="parameterOnly"/>
+<PARAMETER id="paramAD_ORGID" name="adOrgId"/>
+<PARAMETER id="paramLevel" name="Level"/
+  <PARAMETER id="fieldCompanyName" name="companyName" replaceCharacters="fo"/>-->
+  <PARAMETER id="fieldOrgName" name="orgName" replaceCharacters="fo"/>
+  <PARAMETER id="fieldDate" name="date" replaceCharacters="fo"/>
+  <PARAMETER id="fieldPeriod" name="period" replaceCharacters="fo"/>
+  <PARAMETER id="fieldAccountingSchema" name="accountingSchema" replaceCharacters="fo"/>
+  <PARAMETER id="fieldAccounting" name="accounting" replaceCharacters="fo"/>
+  <structure name="structure1">
+    <FIELD id="fieldAccount" replaceCharacters="fo">accountId</FIELD>
+    <FIELD id="fieldDescription" replaceCharacters="fo">name</FIELD>
+    <FIELD id="fieldAmtacctdr" format="euroInform">amtacctdr</FIELD>
+    <FIELD id="fieldAmtacctcr" format="euroInform">amtacctcr</FIELD>
+    <FIELD id="fieldSaldoInicial" format="euroInform">saldoInicial</FIELD>
+    <FIELD id="fieldSaldoFinal" format="euroInform">saldoFinal</FIELD>
+    <FIELD id="fieldId" attribute="onclick" replace="xx">id</FIELD>
+    <!--SUBREPORT id="reportAD_ORGID" name="reportAD_ORGID" report="org/openbravo/erpCommon/reference/List">
+    <ARGUMENT name="parameterListSelected" withId="paramAD_ORGID"/></SUBREPORT>
+
+  <SUBREPORT id="reportLevel" name="reportLevel" report="org/openbravo/erpCommon/reference/List">
+    <ARGUMENT name="parameterListSelected" withId="paramLevel"/></SUBREPORT-->
+  <FUNCTION id="fieldTotalAmtacctdr" name="SUM" format="euroInform">amtacctdr</FUNCTION>
+  <FUNCTION id="fieldTotalAmtacctcr" name="SUM" format="euroInform">amtacctcr</FUNCTION>
+  <FUNCTION id="fieldTotalSaldoInicial" name="SUM" format="euroInform">saldoInicial</FUNCTION>
+  <FUNCTION id="fieldTotalSaldoFinal" name="SUM" format="euroInform">saldoFinal</FUNCTION>
+  <DISCARD id="discard"/>
+  <!--SECTION id="sectionDiscard"/-->
+  <SECTION id="sectionDetail"/>
+</structure>
+
+
+<structure name="structure2">
+  <FIELD id="fieldPartner" replaceCharacters="fo">bp</FIELD>
+  <FIELD id="fieldAccount2" replaceCharacters="fo">accountId</FIELD>
+  <FIELD id="fieldDescription2" replaceCharacters="fo">name</FIELD>
+  <FIELD id="fieldAmtacctdr2" format="euroInform">amtacctdr</FIELD>
+  <FIELD id="fieldAmtacctcr2" format="euroInform">amtacctcr</FIELD>
+  <FIELD id="fieldSaldoInicial2" format="euroInform">saldoInicial</FIELD>
+  <FIELD id="fieldSaldoFinal2" format="euroInform">saldoFinal</FIELD>
+  <FIELD id="fieldId2" attribute="onclick" replace="xx">id</FIELD>
+
+  <FUNCTION id="fieldTotalAmtacctdr2" name="SUM" format="euroInform">amtacctdr</FUNCTION>
+  <FUNCTION id="fieldTotalAmtacctcr2" name="SUM" format="euroInform">amtacctcr</FUNCTION>
+  <FUNCTION id="fieldTotalSaldoInicial2" name="SUM" format="euroInform">saldoInicial</FUNCTION>
+  <FUNCTION id="fieldTotalSaldoFinal2" name="SUM" format="euroInform">saldoFinal</FUNCTION>
+  <SECTION id="sectionDetail2"/>
+  <SECTION id="sectionBP" field="bp"/>
+</structure>
+</REPORT>

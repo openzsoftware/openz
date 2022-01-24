@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ ***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+****************************************************************************************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="SessionLoginData" package="org.openbravo.erpCommon.security" accessModifier="public">
+   <SqlClassComment></SqlClassComment>
+   <SqlMethod name="select" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select * from ad_session
+      </Sql>
+      <Field name="supportContact" value=""/>
+   </SqlMethod>
+   <SqlMethod name="insert" type="preparedStatement" return="rowCount">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        INSERT INTO AD_SESSION (AD_SESSION_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE, CREATED, CREATEDBY, UPDATED, UPDATEDBY, 
+        WEBSESSION, REMOTE_ADDR, REMOTE_HOST, PROCESSED, SESSION_ACTIVE, SERVER_URL) 
+        VALUES (?, ?, ?, ?, now(), ?, now(), ?, 
+        ?, ?, ?, ?, 'Y',?)
+      </Sql>
+      <Parameter name="adSessionId"/>
+      <Parameter name="adClientId"/>
+      <Parameter name="adOrgId"/>
+      <Parameter name="isactive"/>
+      <Parameter name="adUserId"/>
+      <Parameter name="adUserId"/>
+      <Parameter name="websession"/>
+      <Parameter name="remoteAddr"/>
+      <Parameter name="remoteHost"/>
+      <Parameter name="processed"/>
+      <Parameter name="serverURL"/>
+   </SqlMethod>
+   <SqlMethod name="update" type="preparedStatement" return="rowCount">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        UPDATE AD_SESSION SET ISACTIVE = ?, UPDATED = now(), UPDATEDBY = ?, 
+        WEBSESSION = ?, REMOTE_ADDR = ?, REMOTE_HOST = ?, PROCESSED = ? 
+        WHERE AD_SESSION_ID = ?
+      </Sql>
+      <Parameter name="isactive"/>
+      <Parameter name="adUserId"/>
+      <Parameter name="websession"/>
+      <Parameter name="remoteAddr"/>
+      <Parameter name="remoteHost"/>
+      <Parameter name="processed"/>
+      <Parameter name="adSessionId"/>
+   </SqlMethod>
+   
+    <SqlMethod name="deactivate" type="preparedStatement" return="rowCount">
+    <Sql><![CDATA[
+        UPDATE AD_Session
+        SET ISACTIVE = 'N'  , UPDATED = now()
+        WHERE AD_Session.AD_Session_ID = ? 
+    ]]></Sql>
+    <Parameter name="adSessionId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="deactivateAll" type="preparedStatement" return="rowCount">
+    <Sql><![CDATA[
+        UPDATE AD_Session
+        SET ISACTIVE = 'N'  , UPDATED = now()
+    ]]></Sql>
+  </SqlMethod>
+  
+  <SqlMethod name="deactivateOtherUserSessions" type="preparedStatement" return="rowCount">
+    <Sql><![CDATA[
+        UPDATE AD_Session
+        SET ISACTIVE = 'N'  , UPDATED = now()
+        WHERE AD_Session.AD_Session_ID != ? and createdby=? 
+    ]]></Sql>
+    <Parameter name="adSessionId"/>
+    <Parameter name="userId"/>
+  </SqlMethod>
+  
+   <SqlMethod name="isAlreadyLoggedIn" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT case when count(*)>1 and (select count(*) from ad_preference where name='UOVRIDE')=0 then 'Y' else 'N' end from ad_session where createdby=? and  ISACTIVE = 'Y'
+           ]]></Sql>
+      <Parameter name="aduserid"/>
+   </SqlMethod>
+  
+   <SqlMethod name="isSessionActive" type="preparedStatement" return="boolean">
+    <Sql><![CDATA[
+        SELECT COUNT(*) 
+          FROM AD_SESSION
+         WHERE AD_SESSION_ID = ?
+           AND ISACTIVE = 'Y'
+    ]]></Sql>
+    <Parameter name="adSessionId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="activeSessions" type="preparedStatement" return="multiple">
+    <Sql><![CDATA[
+        SELECT AD_SESSION_ID, SERVER_URL
+          FROM AD_SESSION
+         WHERE ISACTIVE = 'Y'
+    ]]></Sql>
+  </SqlMethod>
+  
+  <SqlMethod name="isLocalSession" type="preparedStatement" return="string">
+    <Sql><![CDATA[
+        select 'Y' as islocal from ad_session where ISACTIVE = 'Y' and AD_SESSION_ID=? and SERVER_URL = ?
+        union
+        select 'N' as islocal from dual
+        order by islocal desc limit 1
+    ]]></Sql>
+    <Parameter name="adSessionId"/>
+    <Parameter name="serverURL"/>
+  </SqlMethod>
+  
+  <SqlMethod name="selectSupportContact" type="preparedStatement" return="string">
+    <Sql><![CDATA[
+        SELECT SUPPORT_CONTACT
+          FROM AD_SYSTEM_INFO
+    ]]></Sql>
+  </SqlMethod>
+  <SqlMethod name="selectDefaultTheme" type="preparedStatement" return="string">
+    <Sql><![CDATA[
+        SELECT TAD_THEME
+          FROM AD_SYSTEM
+          ]]></Sql>
+            </SqlMethod>
+    <SqlMethod name="selectRoleTheme" type="preparedStatement" return="string">
+    <Sql><![CDATA[
+        SELECT COALESCE(AD_ROLE.THEME, AD_SYSTEM.TAD_THEME)
+          FROM AD_SYSTEM, AD_ROLE 
+          WHERE AD_ROLE.AD_ROLE_ID= ?
+          ]]></Sql>
+          <Parameter name="adRoleId"/>
+  </SqlMethod><SqlMethod name="selectMenuTarget" type="preparedStatement" return="string">
+    <Sql><![CDATA[
+        SELECT targetmenu
+          FROM AD_SYSTEM, AD_ROLE 
+          WHERE AD_ROLE.AD_ROLE_ID= ?
+          ]]></Sql>
+          <Parameter name="adRoleId"/>
+  </SqlMethod>
+  <SqlMethod name="selectMainTarget" type="preparedStatement" return="string">
+    <Sql><![CDATA[
+        SELECT targetmain
+          FROM AD_SYSTEM, AD_ROLE 
+          WHERE AD_ROLE.AD_ROLE_ID= ?
+          ]]></Sql>
+          <Parameter name="adRoleId"/>
+  </SqlMethod>
+  <SqlMethod name="selectVersion" type="preparedStatement" return="string">
+      <Sql>
+        SELECT VERSION_LABEL
+             FROM AD_MODULE
+         WHERE AD_MODULE_ID ='0'
+     </Sql>
+   </SqlMethod>
+   
+   <SqlMethod name="checkPreference" type="preparedStatement"  return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+     SELECT (CASE COUNT(*) WHEN 0 THEN 0 ELSE 1 END) FROM ad_preference WHERE attribute = ? AND value = ?
+      ]]></Sql>
+    <Parameter name="attribute"/>
+    <Parameter name="value"/>
+    </SqlMethod>
+</SqlClass>

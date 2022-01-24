@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RptStd_ShipmentLines" pageWidth="162" pageHeight="38" orientation="Landscape" columnWidth="162" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="4.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="Detail_Line">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Column_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#666666"/>
+	<parameter name="SHIPMENT_ID" class="java.lang.String"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="PAGE_COUNT_MAIN" class="java.lang.Integer" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE2" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="PRODUCT_ID" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+	m_product.name as name,
+	m_product_po.manufacturer as manufacturer,
+	m_product_po.vendorproductno as vendorproductno,
+	c_bpartner.name as vendor
+from
+	m_inout,
+	m_product
+		left join m_product_po
+			on m_product.m_product_id = m_product_po.m_product_id
+		left join c_bpartner
+			on m_product_po.c_bpartner_id=c_bpartner.c_bpartner_id
+where
+	m_product.m_product_id in ($P{PRODUCT_ID})
+	and m_inout.m_inout_id in ($P{SHIPMENT_ID})
+	and m_inout.c_bpartner_id = m_product_po.c_bpartner_id]]>
+	</queryString>
+	<field name="name" class="java.lang.String"/>
+	<field name="manufacturer" class="java.lang.String"/>
+	<field name="vendorproductno" class="java.lang.String"/>
+	<field name="vendor" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="9" splitType="Stretch">
+			<staticText>
+				<reportElement key="textField-16" x="0" y="0" width="81" height="9" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" forecolor="#000000"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font fontName="OpenZ Sans" size="7" isBold="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Vendor]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField-16" x="81" y="0" width="81" height="9" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" forecolor="#000000"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font fontName="OpenZ Sans" size="7" isBold="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Product No.]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<detail>
+		<band height="9" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-16" x="0" y="0" width="81" height="9" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true"/>
+				<box>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="OpenZ Sans" size="7" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{vendor}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-16" x="81" y="0" width="81" height="9" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true"/>
+				<box>
+					<leftPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="OpenZ Sans" size="7" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{vendorproductno}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch">
+			<printWhenExpression><![CDATA[new java.lang.Boolean($P{PAGE_COUNT_MAIN}.intValue() + 1 !=  $V{PAGE_NUMBER}.intValue())]]></printWhenExpression>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

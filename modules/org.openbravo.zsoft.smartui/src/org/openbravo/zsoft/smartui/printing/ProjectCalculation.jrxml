@@ -1,0 +1,1119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.3.1.final using JasperReports Library version 6.3.1  -->
+<!-- 2017-10-17T15:18:54 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ProjectCalculation" language="groovy" pageWidth="595" pageHeight="842" columnWidth="585" leftMargin="5" rightMargin="5" topMargin="5" bottomMargin="5" isIgnorePagination="true" uuid="aed1050c-e3ae-4255-b6d0-96aa0ed47888">
+	<property name="ireport.zoom" value="1.4641000000000008"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="OpenZ.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="0"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="1000"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_ProjectCalculationEMP" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_ProjectCalculationMAP" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_ProjectCalculationMAT" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_ProjectCalculationLL" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SERVCOSP" class="java.math.BigDecimal" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ACTSERVCOSP" class="java.math.BigDecimal" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="MACCOSP" class="java.math.BigDecimal" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ACTMACCOSP" class="java.math.BigDecimal" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="MATCOSP" class="java.math.BigDecimal" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ACTMATCOSP" class="java.math.BigDecimal" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LLCOSP" class="java.math.BigDecimal" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ACTLLCOSP" class="java.math.BigDecimal" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_ProjectCalculationLLF" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_ProjectCalculationINC" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select
+--Main Report
+--Headers
+a.shortcut as org_shortcut,
+zssi_getElementTextByColumname('Project',$P{LANGUAGE}) as ph,
+zssi_getElementTextByColumname('Overviewss',$P{LANGUAGE}) as overs,
+zssi_getElementTextByColumname('Precalculation',$P{LANGUAGE}) as pc,
+zssi_getElementTextByColumname('Postcalculation',$P{LANGUAGE}) as poc,
+zssi_getElementTextByColumname('Start',$P{LANGUAGE}) as start,
+zssi_getElementTextByColumname('End',$P{LANGUAGE}) as end,
+zssi_getElementTextByColumname('Commited Amount',$P{LANGUAGE}) as Auftragswert,
+zssi_getElementTextByColumname('Materialcosts',$P{LANGUAGE}) as Matkost,
+zssi_getElementTextByColumname('Servcosts', $P{LANGUAGE}) as Arbkost,
+zssi_getElementTextByColumname('Del. costs', $P{LANGUAGE}) as Liefkost,
+zssi_getElementTextByColumname('Externalservice', $P{LANGUAGE}) as Fremdleistung,
+zssi_getElementTextByColumname('Machinecosts',$P{LANGUAGE}) as Machkost,
+zssi_getElementTextByColumname('Indirect Costs',$P{LANGUAGE}) as indkost,
+zssi_getElementTextByColumname('Margins',$P{LANGUAGE}) as Margin,
+zssi_getElementTextByColumname('Cost total',$P{LANGUAGE}) as Kostenges,
+zssi_getElementTextByColumname('Fact. Amount',$P{LANGUAGE}) as Fakt,
+zssi_getElementTextByColumname('Sum',$P{LANGUAGE}) as sum,
+zssi_getElementTextByColumname('Personals',$P{LANGUAGE}) as personal,
+zssi_getElementTextByColumname('Machiness', $P{LANGUAGE}) as machines,
+zssi_getElementTextByColumname('Matss',$P{LANGUAGE}) as matss,
+zssi_getElementTextByColumname('expensesplan',$P{LANGUAGE}) as expcosplan,
+zssi_getElementTextByColumname('Externalserviceplan',$P{LANGUAGE}) as Fremdleistungplan,
+zssi_getElementTextByColumname('mobdemob',$P{LANGUAGE}) as mob,
+zssi_getElementTextByColumname('mobdemobplan',$P{LANGUAGE}) as mobplan,
+CASE when $P{LANGUAGE}='de_DE' then 'Std' else 'h' end as omt,
+CASE when $P{LANGUAGE}='de_DE' then 'Stk' else 'Pc' end as omp,
+(select cursymbol from c_currency, ad_client where ad_client.c_currency_id=c_currency.c_currency_id) as curs,
+--Planned Costs
+(select zssi_strnumber(plannedcost,$P{LANGUAGE}) from c_projecttask where c_project_id=  $P{DOCUMENT_ID} and ismobdemob='Y') as mobplanc,
+(select zssi_strnumber(actualcost,$P{LANGUAGE}) from c_projecttask where c_project_id=  $P{DOCUMENT_ID} and ismobdemob='Y') as mobc,
+to_char(zssi_strnumber(CASE WHEN (p.PlannedAmt=0) THEN 0 ELSE (((select plannedcost from c_projecttask where c_project_id=  $P{DOCUMENT_ID} and  ismobdemob='Y')/(p.PlannedAmt/100))) END, $P{LANGUAGE} ))||' %' as planmobp,
+to_char(zssi_strnumber(CASE WHEN (p.PlannedAmt=0) THEN 0 ELSE (((select actualcost from c_projecttask where c_project_id=  $P{DOCUMENT_ID} and  ismobdemob='Y')/(p.PlannedAmt/100))) END, $P{LANGUAGE} ))||' %' as cosmobp,
+p.c_project_id as id,
+p.value||'-'||p.name as name,
+to_char(now(),'DD.MM.YYYY') as now,
+to_char(p.startdate,'DD.MM.YYYY') as startdate,
+to_char(p.datefinish,'DD.MM.YYYY') as datefinish,
+to_char(zssi_strnumber(p.committedamt,$P{LANGUAGE} )) as committedamt,
+to_char(zssi_strnumber(p.plannedmarginamt,$P{LANGUAGE} )) as plannedmarginamt,
+to_char(zssi_strnumber(coalesce((p.plannedmarginpercent),0),$P{LANGUAGE} ))||' %'  as plannedmarginpercent,
+to_char(zssi_strnumber(p.plannedamt,$P{LANGUAGE} )) as plannedamt,
+to_char(zssi_strnumber(CASE WHEN (p.PlannedAmt=0) THEN 0 ELSE ((p.plannedamt/(p.PlannedAmt/100))) END, $P{LANGUAGE} ))||' %' as plancosp,
+to_char(zssi_strnumber(p.estimatedamt,$P{LANGUAGE} )) as estimatedamt,
+to_char(zssi_strnumber(CASE WHEN (p.PlannedAmt=0) THEN 0 ELSE((p.estimatedamt/(p.PlannedAmt/100))) END, $P{LANGUAGE} ))||' %' as estcosp,
+to_char(zssi_strnumber(p.materialcostplan, $P{LANGUAGE}) ) as materialcostplan,
+to_char(zssi_strnumber(CASE WHEN (p.PlannedAmt=0) THEN 0 ELSE((p.materialcostplan/(p.PlannedAmt/100))) END, $P{LANGUAGE} ))||' %' as matcosp,
+to_char(zssi_strnumber(p.machinecostplan, $P{LANGUAGE} )) as machinecostplan,
+to_char(zssi_strnumber(CASE WHEN (p.PlannedAmt=0) THEN 0 ELSE((p.machinecostplan/(p.PlannedAmt/100))) END, $P{LANGUAGE} ))||' %' as maccosp,
+to_char(zssi_strnumber(p.indirectcostplan, $P{LANGUAGE} )) as indirectcostplan,
+to_char(zssi_strnumber(CASE WHEN (p.PlannedAmt=0) THEN 0 ELSE((p.indirectcostplan/(p.PlannedAmt/100))) END, $P{LANGUAGE} ))||' %' as indcosp,
+to_char(zssi_strnumber(p.servcostplan, $P{LANGUAGE} )) as servcostplan,
+to_char(zssi_strnumber(CASE WHEN (p.PlannedAmt=0) THEN 0 ELSE((p.servcostplan/(p.PlannedAmt/100))) END, $P{LANGUAGE} ))||' %' as servcosp,
+to_char(zssi_strnumber(p.expensesplan, $P{LANGUAGE} )) as expensesplan,
+to_char(zssi_strnumber(CASE WHEN (p.PlannedAmt=0) THEN 0 ELSE((p.expensesplan/(p.PlannedAmt/100))) END, $P{LANGUAGE} ))||' %' as expcosp,
+to_char(zssi_strnumber(p.externalserviceplan, $P{LANGUAGE}) ) as externalserviceplan,
+to_char(zssi_strnumber(CASE WHEN (p.PlannedAmt=0) THEN 0 ELSE((p.externalserviceplan/(p.PlannedAmt/100))) END , $P{LANGUAGE} ))||' %' as externalserviceplanpercent,
+--Actual Costs
+to_char(zssi_strnumber(p.percentdoneyet, $P{LANGUAGE} )) as percentdoneyet,
+p.schedulestatus,
+to_char(zssi_strnumber(p.invoicedamt,$P{LANGUAGE} )) as invoicedamt,
+to_char(zssi_strnumber(p.actualcostamount, $P{LANGUAGE} )) as actualcostamount,
+to_char(zssi_strnumber(CASE WHEN (p.Actualcostamount=0) THEN 0 ELSE((p.actualcostamount/(p.Actualcostamount/100))) END, $P{LANGUAGE} ))||' %' as actcosp,
+to_char(zssi_strnumber(p.marginamt, $P{LANGUAGE} ) )as marginamt,
+to_char(zssi_strnumber(CASE WHEN (p.Actualcostamount=0) THEN 0 ELSE(p.marginpercent)  END, $P{LANGUAGE} ))||' %' as marginpercent,
+to_char(zssi_strnumber(p.materialcost, $P{LANGUAGE} )) as materialcost,
+to_char(zssi_strnumber(CASE WHEN (p.Actualcostamount=0) THEN 0 ELSE((p.materialcost/(p.Actualcostamount/100))) END, $P{LANGUAGE} ))||' %' as actmatcosp,
+to_char(zssi_strnumber(p.machinecost,$P{LANGUAGE}) ) as machinecost,
+to_char(zssi_strnumber(CASE WHEN (p.Actualcostamount=0) THEN 0 ELSE((p.machinecost/(p.Actualcostamount/100)))END,  $P{LANGUAGE} ))||' %' as actmaccosp,
+to_char(zssi_strnumber(p.indirectcost, $P{LANGUAGE} )) as indirectcost,
+to_char(zssi_strnumber(CASE WHEN (p.Actualcostamount=0) THEN 0 ELSE((p.indirectcost/(p.Actualcostamount/100))) END, $P{LANGUAGE} ))||' %' as actindcosp,
+to_char(zssi_strnumber(p.servcost, $P{LANGUAGE} )) as servcost,
+to_char(zssi_strnumber(CASE WHEN (p.Actualcostamount=0) THEN 0 ELSE((p.servcost/(p.Actualcostamount/100))) END, $P{LANGUAGE} ))||' %' as actservcosp,
+to_char(zssi_strnumber(p.expenses, $P{LANGUAGE} )) as expenses,
+to_char(zssi_strnumber(CASE WHEN (p.Actualcostamount=0) THEN 0 ELSE((p.expenses/(p.Actualcostamount/100))) END, $P{LANGUAGE} ))||' %' as actexpcosp,
+to_char(zssi_strnumber(p.externalservice, $P{LANGUAGE} )) as externalservice,
+to_char(zssi_strnumber(CASE WHEN (p.Actualcostamount=0) THEN 0 ELSE((p.externalservice/(p.Actualcostamount/100))) END , $P{LANGUAGE} ))||' %' as externalservicepercent
+from c_project p,
+ad_org a
+where p.c_project_id in ($P{DOCUMENT_ID})
+AND p.ad_org_id = a.ad_org_id]]>
+	</queryString>
+	<field name="org_shortcut" class="java.lang.String"/>
+	<field name="ph" class="java.lang.String"/>
+	<field name="overs" class="java.lang.String"/>
+	<field name="pc" class="java.lang.String"/>
+	<field name="poc" class="java.lang.String"/>
+	<field name="start" class="java.lang.String"/>
+	<field name="end" class="java.lang.String"/>
+	<field name="auftragswert" class="java.lang.String"/>
+	<field name="matkost" class="java.lang.String"/>
+	<field name="arbkost" class="java.lang.String"/>
+	<field name="liefkost" class="java.lang.String"/>
+	<field name="fremdleistung" class="java.lang.String"/>
+	<field name="machkost" class="java.lang.String"/>
+	<field name="indkost" class="java.lang.String"/>
+	<field name="margin" class="java.lang.String"/>
+	<field name="kostenges" class="java.lang.String"/>
+	<field name="fakt" class="java.lang.String"/>
+	<field name="sum" class="java.lang.String"/>
+	<field name="personal" class="java.lang.String"/>
+	<field name="machines" class="java.lang.String"/>
+	<field name="matss" class="java.lang.String"/>
+	<field name="expcosplan" class="java.lang.String"/>
+	<field name="fremdleistungplan" class="java.lang.String"/>
+	<field name="mob" class="java.lang.String"/>
+	<field name="mobplan" class="java.lang.String"/>
+	<field name="omt" class="java.lang.String"/>
+	<field name="omp" class="java.lang.String"/>
+	<field name="curs" class="java.lang.String"/>
+	<field name="mobplanc" class="java.lang.String"/>
+	<field name="mobc" class="java.lang.String"/>
+	<field name="planmobp" class="java.lang.String"/>
+	<field name="cosmobp" class="java.lang.String"/>
+	<field name="id" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="now" class="java.lang.String"/>
+	<field name="startdate" class="java.lang.String"/>
+	<field name="datefinish" class="java.lang.String"/>
+	<field name="committedamt" class="java.lang.String"/>
+	<field name="plannedmarginamt" class="java.lang.String"/>
+	<field name="plannedmarginpercent" class="java.lang.String"/>
+	<field name="plannedamt" class="java.lang.String"/>
+	<field name="plancosp" class="java.lang.String"/>
+	<field name="estimatedamt" class="java.lang.String"/>
+	<field name="estcosp" class="java.lang.String"/>
+	<field name="materialcostplan" class="java.lang.String"/>
+	<field name="matcosp" class="java.lang.String"/>
+	<field name="machinecostplan" class="java.lang.String"/>
+	<field name="maccosp" class="java.lang.String"/>
+	<field name="indirectcostplan" class="java.lang.String"/>
+	<field name="indcosp" class="java.lang.String"/>
+	<field name="servcostplan" class="java.lang.String"/>
+	<field name="servcosp" class="java.lang.String"/>
+	<field name="expensesplan" class="java.lang.String"/>
+	<field name="expcosp" class="java.lang.String"/>
+	<field name="externalserviceplan" class="java.lang.String"/>
+	<field name="externalserviceplanpercent" class="java.lang.String"/>
+	<field name="percentdoneyet" class="java.lang.String"/>
+	<field name="schedulestatus" class="java.lang.String"/>
+	<field name="invoicedamt" class="java.lang.String"/>
+	<field name="actualcostamount" class="java.lang.String"/>
+	<field name="actcosp" class="java.lang.String"/>
+	<field name="marginamt" class="java.lang.String"/>
+	<field name="marginpercent" class="java.lang.String"/>
+	<field name="materialcost" class="java.lang.String"/>
+	<field name="actmatcosp" class="java.lang.String"/>
+	<field name="machinecost" class="java.lang.String"/>
+	<field name="actmaccosp" class="java.lang.String"/>
+	<field name="indirectcost" class="java.lang.String"/>
+	<field name="actindcosp" class="java.lang.String"/>
+	<field name="servcost" class="java.lang.String"/>
+	<field name="actservcosp" class="java.lang.String"/>
+	<field name="expenses" class="java.lang.String"/>
+	<field name="actexpcosp" class="java.lang.String"/>
+	<field name="externalservice" class="java.lang.String"/>
+	<field name="externalservicepercent" class="java.lang.String"/>
+	<variable name="SUMHOURSPLANEMP" class="java.math.BigDecimal" calculation="System">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMHOURSEMP" class="java.math.BigDecimal" calculation="System">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNTEMP" class="java.math.BigDecimal" calculation="System"/>
+	<variable name="SUMAMOUNTPLANEMP" class="java.math.BigDecimal" calculation="System">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMHOURSPLANMAP" class="java.math.BigDecimal" calculation="System">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNTPLANMAP" class="java.math.BigDecimal" calculation="System">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNTMAP" class="java.math.BigDecimal" calculation="System"/>
+	<variable name="SUMHOURSMAP" class="java.math.BigDecimal" calculation="System">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMQTYPLANMAT" class="java.math.BigDecimal" calculation="System">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNTPLANMAT" class="java.math.BigDecimal" calculation="System">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNTMAT" class="java.math.BigDecimal" calculation="System"/>
+	<variable name="SUMQTYMAT" class="java.math.BigDecimal" calculation="System">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<title>
+		<band height="218" splitType="Stretch">
+			<textField>
+				<reportElement mode="Opaque" x="-1" y="11" width="78" height="30" backcolor="#FFFF00" uuid="9b80ef94-027d-4070-9757-3525b88dfdc1">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{org_shortcut} + " - " + $F{ph}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement mode="Opaque" x="369" y="11" width="112" height="30" backcolor="#FFFF00" uuid="958b505e-b743-43b1-8f98-27f68d2a66b1"/>
+				<box leftPadding="3">
+					<topPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{start}+": "+($F{startdate} == null ? "" :$F{startdate})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="77" y="11" width="293" height="30" backcolor="#FFFF00" uuid="c72e09f0-6267-404b-90c7-87a1aee34fe6">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="481" y="11" width="104" height="30" backcolor="#FFFF00" uuid="fd9a7941-5b2c-48f4-98cd-a6c90aaf8884"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+					<paragraph rightIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{end}+": "+($F{datefinish} == null ? "" :$F{datefinish})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="117" y="44" width="208" height="14" backcolor="#FFFF00" uuid="6e453c33-d02b-4641-a9bc-5a803b8edead"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pc}]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement x="-1" y="69" width="586" height="141" uuid="1d5d10f8-ace9-4a0c-b038-23d990d69ad1"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</rectangle>
+			<textField>
+				<reportElement mode="Opaque" x="325" y="44" width="260" height="14" backcolor="#FFFF00" uuid="82e29f6c-1b1e-4354-b6c3-c16027e9f0d7"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{poc}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="110" y="154" width="84" height="13" uuid="b704a84e-d64b-4ac5-9edb-22aa2b8ae1af"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{committedamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="110" y="166" width="84" height="13" uuid="03e598a1-48cc-485c-bd0b-15050d20d1b1"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{plannedmarginamt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="193" y="154" width="16" height="13" uuid="e0203954-685e-469e-b401-6bf40c59e7d6"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="193" y="166" width="16" height="13" uuid="4e411674-7737-40fc-95c0-647eacee9bae"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="208" y="166" width="49" height="13" uuid="d98035c9-d9ce-47d6-bf8d-2434b7e31521"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{plannedmarginpercent}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="193" y="101" width="16" height="13" uuid="e37a7a9b-67c6-42a2-898f-85fd65395690"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="110" y="101" width="84" height="13" uuid="4b361308-b5b8-40e1-9a13-4a66e03a38a6"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{materialcostplan}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="193" y="112" width="16" height="13" uuid="61c6c244-ecb4-46b8-b137-d5ae9fdb658a"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="110" y="113" width="84" height="13" uuid="4012d46e-f505-4173-a8c9-e4047e3a9543"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{servcostplan}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="193" y="125" width="16" height="13" uuid="c3165051-63da-4437-a0e6-b74d87d92693"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="110" y="125" width="84" height="13" uuid="130d6c93-c920-4333-839e-375f6424251b"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{machinecostplan}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="110" y="180" width="84" height="13" uuid="a5012e83-0cf5-4b6b-b9c2-fae7535a3aea"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{plannedamt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="193" y="180" width="16" height="13" uuid="0cd18548-98a0-49cb-9fd4-fe38478c5d8f"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="110" y="137" width="84" height="13" uuid="faf1e3be-6a96-4bca-a87d-2b8aa1bb73d3"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{indirectcostplan}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="193" y="137" width="16" height="13" uuid="2bf6e843-14ea-4ac8-a671-142c23b9822f"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="434" y="154" width="84" height="13" uuid="2632171d-5018-4619-b14f-7910a63f788e"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{invoicedamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="434" y="166" width="84" height="13" uuid="7c91eb19-2329-4b3b-94ee-fbb322cc10f3"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{marginamt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="517" y="154" width="16" height="13" uuid="3d4a3af9-c3f5-4544-b405-868a81b0b8d2"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="517" y="166" width="16" height="13" uuid="126dd673-ea86-4234-8fec-79c003bf5aa1"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="532" y="166" width="49" height="13" uuid="0c3f8833-de31-4842-a9fd-aac01fdc58cb"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{marginpercent}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="517" y="101" width="16" height="13" uuid="78a97857-0410-44b4-97e8-1c91b169a651"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="434" y="101" width="84" height="13" uuid="a2f5d4f5-1a38-4e36-a218-d4172aa7a027"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{materialcost}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="517" y="113" width="16" height="13" uuid="44160da0-2eeb-4732-80e3-994ec377828f"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="434" y="113" width="84" height="13" uuid="2476a162-899c-43a6-9f99-a5dc03786363"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{servcost}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="517" y="125" width="16" height="13" uuid="92a7ea90-55da-4d63-9cd4-ba6962425917"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="434" y="125" width="84" height="13" uuid="d4b011a6-26e0-46c6-81a5-964d298a325f"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{machinecost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="434" y="180" width="84" height="13" uuid="38b18a15-7405-4f18-aaf9-1804c0a4899e"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{actualcostamount}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="517" y="180" width="16" height="13" uuid="e0bf68d8-273c-4f6e-9f17-9c2814de9c1e"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="434" y="137" width="84" height="13" uuid="0e8a3ed0-d918-49a7-8762-3ae1763a08f0"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{indirectcost}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="517" y="137" width="16" height="13" uuid="808fa776-923c-455e-9ced-350e48f881fd"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="1" y="154" width="109" height="13" uuid="7f6d2edb-0c01-4060-8086-df638752333f"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{auftragswert}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="1" y="166" width="109" height="13" uuid="7e223f93-03b2-40fc-ac53-700bdd012f73"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{margin}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="1" y="101" width="109" height="13" uuid="6cd9a0ef-5da5-4f84-b29d-4b7c3017d391"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{matkost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="1" y="113" width="109" height="13" uuid="c66a60bd-db4f-475f-bb7b-52cb34871cf2"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{arbkost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="1" y="125" width="109" height="13" uuid="72ef8176-c386-4079-b227-b93caff35d23"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{machkost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="1" y="137" width="109" height="13" uuid="7d5ef38f-440a-4a5a-9cba-b41bff44fdef"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{indkost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="1" y="180" width="109" height="13" uuid="3ded4a80-0b47-4e9c-b2c0-fd8a553a4b42"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{kostenges}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="325" y="154" width="109" height="13" uuid="4a9f4584-7f89-4edf-9366-f7a6f9cef089"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fakt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="325" y="166" width="109" height="13" uuid="b6d6a551-12bb-48ec-9fda-6d776e5e1592"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{margin}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="434" y="75" width="84" height="13" uuid="d12cf82a-ba92-47ae-8416-90459a76191e"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{expenses}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="517" y="75" width="16" height="13" uuid="17004385-c290-4d87-afae-804b60ba4473"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="325" y="75" width="109" height="13" uuid="0a5d3603-81e3-47dc-9358-56379071e816"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{liefkost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="325" y="137" width="109" height="13" uuid="ec6f1e1c-9257-43c5-a83d-339b3fae68fd"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{indkost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="325" y="125" width="109" height="13" uuid="95945a4a-370a-4c49-8657-08f866689969"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{machkost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="325" y="113" width="109" height="13" uuid="0d803d0d-9819-4ec5-8e80-13a9689b8aa3"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{arbkost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="325" y="101" width="109" height="13" uuid="f75e49c5-930c-4bfa-afff-7f153e853ff2"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{matkost}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="325" y="180" width="109" height="13" uuid="ef65f3de-bc07-49cb-a4b7-d9a83460bcc8"/>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{kostenges}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="208" y="101" width="49" height="13" uuid="a84f3db1-a037-4f36-8034-a1e165691a9e"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{matcosp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="208" y="180" width="49" height="13" uuid="9a35bb62-0727-40d7-be43-754ee69e7c29"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{plancosp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="208" y="137" width="49" height="13" uuid="574128bd-65c3-46d4-8175-f4c38878357a"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{indcosp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="208" y="125" width="49" height="13" uuid="8c5e3221-68dd-4544-aee0-c0c8a1ce7b15"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{maccosp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="208" y="113" width="49" height="13" uuid="2a33416c-e803-45a2-b673-f9d22a923e23"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{servcosp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="532" y="75" width="49" height="13" uuid="eb3d6048-edcc-41ea-9275-539d0c4ac2df"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{actexpcosp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="532" y="101" width="49" height="13" uuid="145d11da-3a2a-4568-9208-2fd4a605d27c"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{actmatcosp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="532" y="113" width="49" height="13" uuid="82e8c7f3-266f-4d9a-bbc7-2e104c3e8fc0"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{actservcosp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="532" y="125" width="49" height="13" uuid="6f865c6d-76ff-400d-b695-3208aea8df6d"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{actmaccosp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="532" y="137" width="49" height="13" uuid="4a2a32f0-18ce-4774-9eed-6a8d07d9620a"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{actindcosp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="532" y="180" width="49" height="13" uuid="d4ec3cf5-1593-4873-9530-9ccf15b535e0"/>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{actcosp}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="193" y="75" width="16" height="13" uuid="1f92e363-6a3a-4418-9078-32e4bf369eaa"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="208" y="75" width="49" height="13" uuid="1217045d-c216-4941-b88f-13024375b053"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{expcosp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="1" y="75" width="109" height="13" uuid="8ff0e5d5-6493-43a4-bd53-ba7f1fdbd92d"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{expcosplan}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="110" y="75" width="84" height="13" uuid="2d05af9d-f2b4-4536-8a8e-62b4b4b19b81"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{expensesplan}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="235" y="58" width="149" height="13" isPrintInFirstWholeBand="true" backcolor="#E7E7E7" uuid="97ef4f9f-f9ce-4b3f-b150-f315e0dafef5"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["%"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="-1" y="58" width="167" height="13" isPrintInFirstWholeBand="true" backcolor="#E7E7E7" uuid="a1b12eb4-e5a2-444b-a3bb-fe3014c59146"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="507" y="58" width="78" height="13" isPrintInFirstWholeBand="true" backcolor="#E7E7E7" uuid="e801ece1-6824-47ad-9958-bd577c0bf8c1"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+					<paragraph rightIndent="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA["%"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="166" y="58" width="71" height="13" isPrintInFirstWholeBand="true" backcolor="#E7E7E7" uuid="b9ffab00-a933-48bf-bab3-697174e634e1"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+					<paragraph leftIndent="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="383" y="58" width="124" height="13" isPrintInFirstWholeBand="true" backcolor="#E7E7E7" uuid="e15c4d78-6a08-45cc-9dd1-76185e83955d"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+					<paragraph leftIndent="35"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="-1" y="44" width="118" height="14" isPrintInFirstWholeBand="true" backcolor="#FFFF00" uuid="030c9446-9c15-458c-980d-5949660e4c21"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{overs}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="434" y="0" width="151" height="11" uuid="1ced337a-ecb9-4031-a788-4b66bcd198d1"/>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{now}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="1" y="88" width="109" height="13" uuid="a31395f6-8331-4f26-93b9-551e7f3d1efc"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fremdleistungplan}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="110" y="88" width="84" height="13" uuid="ccd1081e-8c93-4bb2-8491-1112ac44b7e5"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{externalserviceplan}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="192" y="88" width="16" height="13" uuid="f6346b93-3c79-4f86-b4a0-2ca7d5b328dc"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="208" y="88" width="49" height="13" uuid="098d31bc-780b-4b52-bec0-c38e06625f27"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{externalserviceplanpercent}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="325" y="88" width="109" height="13" uuid="2aaa3fca-c5d3-4b97-beba-bae8a8a6e90b"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fremdleistung}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="434" y="88" width="84" height="13" uuid="c32e33e7-886c-4b78-9e02-80aed2455d29"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{externalservice}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="517" y="87" width="16" height="13" uuid="6d6e6945-243d-4e07-b5b6-3a000440e969"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="532" y="87" width="49" height="13" uuid="e2a24232-19dd-4e79-b2b0-3a2fb45d9e07"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{externalservicepercent}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="1" y="194" width="109" height="13" uuid="a8d9478c-b13b-4594-b74f-567eaa070f34">
+					<printWhenExpression><![CDATA[new BigDecimal($F{mobplanc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0") || new BigDecimal($F{mobc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{mobplan}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="110" y="194" width="84" height="13" uuid="bc56cb8b-29a7-4dff-8343-e525386b3c4d">
+					<printWhenExpression><![CDATA[new BigDecimal($F{mobplanc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0") || new BigDecimal($F{mobc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{mobplanc}!=null)?$F{mobplanc}:0.0]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="193" y="194" width="16" height="13" uuid="6cd39733-6e91-4c28-9715-82fd643533e9">
+					<printWhenExpression><![CDATA[new BigDecimal($F{mobplanc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0") || new BigDecimal($F{mobc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="208" y="194" width="49" height="13" uuid="4d03af5e-3f0b-4458-ab90-b08acae80d7c">
+					<printWhenExpression><![CDATA[new BigDecimal($F{mobplanc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0") || new BigDecimal($F{mobc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{planmobp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement x="325" y="194" width="109" height="13" uuid="788eae69-206f-4d35-a6e3-a1d3ee6be3fa">
+					<printWhenExpression><![CDATA[new BigDecimal($F{mobplanc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0") || new BigDecimal($F{mobc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{mob}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement x="434" y="194" width="84" height="13" uuid="1e68a4e3-dceb-464a-b62f-56a2d9def08c">
+					<printWhenExpression><![CDATA[new BigDecimal($F{mobplanc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0") || new BigDecimal($F{mobc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{mobc}!=null)?$F{mobc}:0.00]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="532" y="194" width="49" height="13" uuid="25f38a43-f4cf-47c5-9005-e842fecc218f">
+					<printWhenExpression><![CDATA[new BigDecimal($F{mobplanc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0") || new BigDecimal($F{mobc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cosmobp}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="517" y="194" width="16" height="13" uuid="8a0282c6-87d3-40e1-8191-bb76b437553b">
+					<printWhenExpression><![CDATA[new BigDecimal($F{mobplanc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0") || new BigDecimal($F{mobc}.replace(",","")).compareTo(new BigDecimal("0.0"))!= new Integer("0")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="131" splitType="Stretch">
+			<subreport isUsingCache="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="-1" y="3" width="586" height="20" isRemoveLineWhenBlank="true" uuid="1519bc95-c6d3-42de-8ed9-4b1463e90445"/>
+				<subreportParameter name="ACTSERVCOSP">
+					<subreportParameterExpression><![CDATA[$F{actservcosp}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SERVCOSP">
+					<subreportParameterExpression><![CDATA[$F{servcosp}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="C_PROJECT_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="SUMHOURSPLAN" toVariable="SUMHOURSPLANEMP"/>
+				<returnValue subreportVariable="SUMHOURS" toVariable="SUMHOURSEMP"/>
+				<returnValue subreportVariable="SUMAMOUNT" toVariable="SUMAMOUNTEMP"/>
+				<returnValue subreportVariable="SUMAMOUNTPLAN" toVariable="SUMAMOUNTPLANEMP"/>
+				<subreportExpression><![CDATA[$P{SUBREP_ProjectCalculationEMP}]]></subreportExpression>
+			</subreport>
+			<subreport isUsingCache="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="-1" y="28" width="586" height="20" isRemoveLineWhenBlank="true" uuid="e67bd326-79f6-4a11-a769-ee47a0c1e826"/>
+				<subreportParameter name="ACTMACCOSP">
+					<subreportParameterExpression><![CDATA[$F{actmaccosp}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="MACCOSP">
+					<subreportParameterExpression><![CDATA[$F{maccosp}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="C_PROJECT_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="SUMHOURS" toVariable="SUMHOURSMAP"/>
+				<returnValue subreportVariable="SUMHOURSPLAN" toVariable="SUMHOURSPLANMAP"/>
+				<returnValue subreportVariable="SUMAMOUNT" toVariable="SUMAMOUNTMAP"/>
+				<returnValue subreportVariable="SUMAMOUNTPLAN" toVariable="SUMAMOUNTPLANMAP"/>
+				<subreportExpression><![CDATA[$P{SUBREP_ProjectCalculationMAP}]]></subreportExpression>
+			</subreport>
+			<subreport isUsingCache="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="-1" y="53" width="586" height="20" isRemoveLineWhenBlank="true" uuid="e0200b55-971a-4d50-aeea-5395d3c0e811"/>
+				<subreportParameter name="ACTLLCOSP">
+					<subreportParameterExpression><![CDATA[$F{actindcosp}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ACTMATCOSP">
+					<subreportParameterExpression><![CDATA[$F{indirectcostplan}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="MATCOSP">
+					<subreportParameterExpression><![CDATA[$F{indirectcost}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LLCOSP">
+					<subreportParameterExpression><![CDATA[$F{indcosp}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="C_PROJECT_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="SUMAMOUNT" toVariable="SUMAMOUNTMAT"/>
+				<returnValue subreportVariable="SUMAMOUNTPLAN" toVariable="SUMAMOUNTPLANMAT"/>
+				<subreportExpression><![CDATA[$P{SUBREP_ProjectCalculationINC}]]></subreportExpression>
+			</subreport>
+			<subreport isUsingCache="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="-1" y="78" width="586" height="20" isRemoveLineWhenBlank="true" uuid="56d92313-6dfc-4f22-9c35-1c5c3cd5c061"/>
+				<subreportParameter name="ACTLLCOSP">
+					<subreportParameterExpression><![CDATA[$F{actexpcosp}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LLCOSP">
+					<subreportParameterExpression><![CDATA[$F{expcosp}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="C_PROJECT_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="SUMAMOUNT" toVariable="SUMAMOUNTMAT"/>
+				<returnValue subreportVariable="SUMAMOUNTPLAN" toVariable="SUMAMOUNTPLANMAT"/>
+				<subreportExpression><![CDATA[$P{SUBREP_ProjectCalculationLL}]]></subreportExpression>
+			</subreport>
+			<subreport isUsingCache="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="-1" y="104" width="586" height="20" isRemoveLineWhenBlank="true" uuid="ec623d1e-c68b-4c17-ba7f-76a64fbf5696"/>
+				<subreportParameter name="ACTLLCOSP">
+					<subreportParameterExpression><![CDATA[$F{externalservicepercent}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LLCOSP">
+					<subreportParameterExpression><![CDATA[$F{externalserviceplanpercent}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="C_PROJECT_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="SUMAMOUNT" toVariable="SUMAMOUNTMAT"/>
+				<returnValue subreportVariable="SUMAMOUNTPLAN" toVariable="SUMAMOUNTPLANMAT"/>
+				<subreportExpression><![CDATA[$P{SUBREP_ProjectCalculationLLF}]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<summary>
+		<band height="13"/>
+	</summary>
+</jasperReport>

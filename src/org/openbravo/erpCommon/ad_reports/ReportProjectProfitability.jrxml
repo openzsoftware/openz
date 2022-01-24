@@ -1,0 +1,1273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T12:53:30 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ReportGeneralLedgerJournal" language="groovy" printOrder="Horizontal" pageWidth="842" pageHeight="595" columnWidth="832" leftMargin="5" rightMargin="5" topMargin="5" bottomMargin="5" isFloatColumnFooter="true" uuid="9b3e3107-fc13-44f0-b348-38437a50ab8d">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="3.305785123966945"/>
+	<property name="ireport.x" value="1675"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="default" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="11"/>
+	<style name="Report_Title" fontName="Bitstream Vera Sans" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="Bitstream Vera Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="11" isBold="true">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#5D5D5D" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="11" isBold="true">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="GroupHeader_DarkGray" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="18" isBold="true">
+		<box leftPadding="5"/>
+	</style>
+	<style name="GroupHeader_Gray" mode="Opaque" backcolor="#999999"/>
+	<style name="Detail_Line" fontName="Bitstream Vera Sans" fontSize="11">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Total_Gray" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC"/>
+	<style name="Report_Data_Label" fontName="Bitstream Vera Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Data_Field" fontName="Bitstream Vera Sans" fontSize="11" isBold="false"/>
+	<style name="Report_Footer" isDefault="true" fontName="Bitstream Vera Sans" fontSize="11"/>
+	<style name="Group_Data_Label" fontName="Bitstream Vera Sans" fontSize="14" isBold="true"/>
+	<style name="Group_Data_Field" fontName="Bitstream Vera Sans" fontSize="14"/>
+	<style name="Detail_Data_Label" mode="Opaque" backcolor="#CCCCCC" fontName="Bitstream Vera Sans" fontSize="11" isBold="true"/>
+	<style name="Detail_Data_Field" mode="Opaque" backcolor="#CCCCCC" fontName="Bitstream Vera Sans" fontSize="11"/>
+	<style name="Group_Footer" fontName="Bitstream Vera Sans" fontSize="11" isBold="true"/>
+	<parameter name="Title" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="Subtitle" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="InitPosition" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["0"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CURSYMOL" class="java.lang.String"/>
+	<parameter name="parameter1" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+zssi_getElementTextByColumname('Project-Controlling',$P{LANGUAGE}) as header1,
+zssi_getElementTextByColumname('Project',$P{LANGUAGE}) as headerpro,
+zssi_getElementTextByColumname('Project#',$P{LANGUAGE}) as headerpron,
+zssi_getElementTextByColumname('Responsible',$P{LANGUAGE}) as headerresp,
+zssi_getElementTextByColumname('salesrep_id',$P{LANGUAGE}) as headersalesrep,
+zssi_getElementTextByColumname('c_bpartner_id',$P{LANGUAGE}) as headerbpartner,
+zssi_getElementTextByColumname('marginp',$P{LANGUAGE}) as headermargep,
+zssi_getElementTextByColumname('margin',$P{LANGUAGE}) as headermarge,
+zssi_getElementTextByColumname('Is',$P{LANGUAGE}) as headerist,
+zssi_getElementTextByColumname('Planned',$P{LANGUAGE}) as headerplan,
+zssi_getElementTextByColumname('Proposal',$P{LANGUAGE}) as headerange,
+zssi_getElementTextByColumname('Order',$P{LANGUAGE}) as headerauftr,
+zssi_getElementTextByColumname('Invoice',$P{LANGUAGE}) as headerrechn,
+zssi_getElementTextByColumname('Status',$P{LANGUAGE}) as headerstatus,
+zssi_getElementTextByColumname('StartDate',$P{LANGUAGE}) as headerstartdate,
+'' as   headerenddate,
+
+p_searchkey ,        p_name , p_responsible , p_bpartner , p_salesrep  , p_status ,     coalesce(p_startdate,'') as p_startdate     ,    p_datefinish     ,
+coalesce(p_invoicedocno,'') as p_invoicedocno,
+ p_invoicenetamt,
+p_invoicenetamt as stp_invoicenetamt,
+coalesce(p_invoicedate,'') as  p_invoicedate      ,
+coalesce(p_orderdocno,'') as p_orderdocno,
+ p_ordernetamt,
+p_ordernetamt as stp_ordernetamt,
+coalesce(p_orderdate,'') as p_orderdate ,
+coalesce(p_offerdocno,'') as p_offerdocno,
+p_offernetamt,
+p_offernetamt as stp_offernetamt,
+coalesce(p_offerdate ,'') as   p_offerdate,
+p_plannedamt,
+p_actualcost,
+p_marginamt,
+p_marginperc,
+substr(p_org_id,3,1) as p_org_id, p_isitalic as cursive, p_isitalic
+from zssi_getProjectProfReportData('0',null,null,null,null,null,null,null,null,null,null,'de_DE')]]>
+	</queryString>
+	<field name="header1" class="java.lang.String"/>
+	<field name="headerpro" class="java.lang.String"/>
+	<field name="headerpron" class="java.lang.String"/>
+	<field name="headerresp" class="java.lang.String"/>
+	<field name="headersalesrep" class="java.lang.String"/>
+	<field name="headerbpartner" class="java.lang.String"/>
+	<field name="headermargep" class="java.lang.String"/>
+	<field name="headermarge" class="java.lang.String"/>
+	<field name="headerist" class="java.lang.String"/>
+	<field name="headerplan" class="java.lang.String"/>
+	<field name="headerange" class="java.lang.String"/>
+	<field name="headerauftr" class="java.lang.String"/>
+	<field name="headerrechn" class="java.lang.String"/>
+	<field name="headerstatus" class="java.lang.String"/>
+	<field name="headerstartdate" class="java.lang.String"/>
+	<field name="headerenddate" class="java.lang.String"/>
+	<field name="p_searchkey" class="java.lang.String"/>
+	<field name="p_name" class="java.lang.String"/>
+	<field name="p_responsible" class="java.lang.String"/>
+	<field name="p_bpartner" class="java.lang.String"/>
+	<field name="p_salesrep" class="java.lang.String"/>
+	<field name="p_status" class="java.lang.String"/>
+	<field name="p_startdate" class="java.lang.String"/>
+	<field name="p_datefinish" class="java.lang.String"/>
+	<field name="p_invoicedocno" class="java.lang.String"/>
+	<field name="p_invoicenetamt" class="java.math.BigDecimal"/>
+	<field name="stp_invoicenetamt" class="java.math.BigDecimal"/>
+	<field name="p_invoicedate" class="java.lang.String"/>
+	<field name="p_orderdocno" class="java.lang.String"/>
+	<field name="p_ordernetamt" class="java.math.BigDecimal"/>
+	<field name="stp_ordernetamt" class="java.math.BigDecimal"/>
+	<field name="p_orderdate" class="java.lang.String"/>
+	<field name="p_offerdocno" class="java.lang.String"/>
+	<field name="p_offernetamt" class="java.math.BigDecimal"/>
+	<field name="stp_offernetamt" class="java.math.BigDecimal"/>
+	<field name="p_offerdate" class="java.lang.String"/>
+	<field name="p_plannedamt" class="java.math.BigDecimal"/>
+	<field name="p_actualcost" class="java.math.BigDecimal"/>
+	<field name="p_marginamt" class="java.math.BigDecimal"/>
+	<field name="p_marginperc" class="java.math.BigDecimal"/>
+	<field name="p_org_id" class="java.lang.String"/>
+	<field name="cursive" class="java.lang.String"/>
+	<field name="p_isitalic" class="java.lang.String"/>
+	<variable name="plannedamt" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{p_plannedamt}]]></variableExpression>
+	</variable>
+	<variable name="actual" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{p_actualcost}]]></variableExpression>
+	</variable>
+	<variable name="margin" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{p_marginamt}]]></variableExpression>
+	</variable>
+	<variable name="invoiceamt" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{p_invoicenetamt}]]></variableExpression>
+	</variable>
+	<variable name="orderamt" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{p_ordernetamt}]]></variableExpression>
+	</variable>
+	<variable name="offeramt" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{p_offernetamt}]]></variableExpression>
+	</variable>
+	<variable name="pposi" class="java.math.BigDecimal" calculation="DistinctCount">
+		<variableExpression><![CDATA[$F{p_searchkey}]]></variableExpression>
+	</variable>
+	<variable name="orderamt_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[($F{p_isitalic}.equals("N"))?$F{p_ordernetamt}:new java.math.BigDecimal(0)]]></variableExpression>
+	</variable>
+	<variable name="offeramt_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[($F{p_isitalic}.equals("N"))?$F{p_offernetamt}:new java.math.BigDecimal(0)]]></variableExpression>
+	</variable>
+	<variable name="invoiceamt_1" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[($F{p_isitalic}.equals("N"))?$F{p_invoicenetamt}:new java.math.BigDecimal(0)]]></variableExpression>
+	</variable>
+	<variable name="marginp" class="java.math.BigDecimal" calculation="Average">
+		<variableExpression><![CDATA[$F{p_marginperc}]]></variableExpression>
+	</variable>
+	<variable name="CURRENT_PAGE" class="java.lang.Integer" resetType="Page">
+		<variableExpression><![CDATA[$V{PAGE_NUMBER}]]></variableExpression>
+	</variable>
+	<group name="Data">
+		<groupExpression><![CDATA[$V{CURRENT_PAGE}]]></groupExpression>
+		<groupHeader>
+			<band splitType="Stretch"/>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Prevent"/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="18" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-4" style="Report_Subtitle" x="0" y="1" width="781" height="17" forecolor="#000000" uuid="30fe980e-5f5c-4e5d-bdf5-5497cde37a79"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{Subtitle}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="12" splitType="Stretch">
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="203" y="0" width="60" height="12" uuid="3f700369-2d51-4741-8750-9f9ac8064d4f"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerresp}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="572" y="0" width="40" height="12" uuid="a8fccea5-1acb-462c-b411-4b251d8523ac"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerrechn}+ "#"]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="482" y="0" width="40" height="12" uuid="00181037-ccb0-43c3-a0a8-588fdae58be2"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerauftr} + "#"]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="398" y="0" width="40" height="12" uuid="c8ee527c-e1de-4cbf-aaa8-6b0d344bd2ce"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerange} + "#"]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="662" y="0" width="50" height="12" uuid="617cd6f8-26db-43b0-ba80-23397f2dd490"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerplan} + "/" + $P{CURSYMOL}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="712" y="0" width="50" height="12" uuid="5ca4951c-db5e-4392-9b18-d50be892eb4a"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerist} + "/" + $P{CURSYMOL}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="812" y="0" width="20" height="12" uuid="23a7a2a3-cc37-4f97-9339-6b72438f7698"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headermargep}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="762" y="0" width="50" height="12" uuid="a972c577-c503-46bb-ba20-eafd007e1afb"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headermarge} + "/" + $P{CURSYMOL}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="263" y="0" width="35" height="12" uuid="4e4b5efb-5319-4b6b-9d16-35d2ad43abe7"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerstatus}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="612" y="0" width="50" height="12" uuid="85c98837-b86c-4d15-b737-41aa9acf5a63"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerrechn} + "/" + $P{CURSYMOL}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="522" y="0" width="50" height="12" uuid="7703ba11-8b90-4e0c-8467-99c5cccf65e4"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerauftr} + "/" + $P{CURSYMOL}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="438" y="0" width="44" height="12" uuid="b13dc0c4-3561-4868-bc85-543f8c0370ac"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerange} + "/" + $P{CURSYMOL}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="298" y="0" width="45" height="12" uuid="2a6d1cf4-e420-49da-8ac4-bac4eb4d03ed"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerstartdate}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="73" y="0" width="130" height="12" uuid="7d7c11a7-3d49-47df-8189-ec6b7c21dfeb"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerpro}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="20" y="0" width="33" height="12" uuid="d0064f90-f81a-4afc-a31c-dec12ae56dff"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerpron}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="0" y="0" width="20" height="12" uuid="5a984304-b63a-4dd0-b2c4-6b3f778a073e"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Pos."]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField" x="343" y="0" width="55" height="12" uuid="ceeeaf50-37f7-462c-b326-1107abfa21ec"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{headerenddate}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" x="53" y="0" width="20" height="12" uuid="1c2a01e6-1108-4093-89f6-4d3501f7e8a3"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ORG"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="12" splitType="Stretch">
+			<textField pattern="###0" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="0" y="0" width="20" height="12" uuid="c490c1ac-beb5-4fef-8b00-c67739bbc914">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{pposi}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="0" y="0" width="20" height="12" uuid="336f2257-5700-4829-bfe1-3367dae3ecfd">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{pposi}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="20" y="0" width="33" height="12" uuid="b37ae24b-5349-4636-ad85-fdbcb7799e3f">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_searchkey}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="20" y="0" width="33" height="12" uuid="9c8fc304-b453-43e8-9542-5a1060c1d990">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_searchkey}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="53" y="0" width="20" height="12" uuid="b8adc8cb-975a-48cc-82e2-36c5a0cb9c49">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_org_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="53" y="0" width="20" height="12" uuid="797d8910-5a81-4e51-9738-a22a19b050db">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_org_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="73" y="0" width="130" height="12" uuid="73b62af7-8074-4c7d-a953-8d5d2f5b2f17">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="73" y="0" width="130" height="12" uuid="7f7c0780-ec34-4f05-9804-a2efaa5ae8a2">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-5" positionType="Float" x="203" y="0" width="60" height="12" uuid="c4e9564e-f6e8-4a6e-aaff-0518ca75a687">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_responsible}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-5" positionType="Float" x="203" y="0" width="60" height="12" uuid="0d5133c8-105c-4440-99a5-06d33bd13909">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_responsible}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="263" y="0" width="35" height="12" uuid="265a5388-2c91-471b-bf5b-31a0d73f2992">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_status}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="263" y="0" width="35" height="12" uuid="34be6f71-4957-4e4f-9359-124f54ccd4d7">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_status}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="298" y="0" width="45" height="12" uuid="28d7ef6b-913e-4819-8b1d-9cd8baeb1390">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_startdate}!=null)?$F{p_startdate}:""]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="298" y="0" width="45" height="12" uuid="89d45993-78d0-4f63-b17d-bd3bda77876a">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_startdate}!=null)?$F{p_startdate}:""]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="572" y="0" width="40" height="12" uuid="5c70091c-eb3c-4bbc-bc3c-471b690b41bc">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_invoicedocno}==null)?" ":$F{p_invoicedocno}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="572" y="0" width="40" height="12" uuid="1531428e-e523-40d5-959b-4aebd79f28bd">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_invoicedocno}==null)?" ":$F{p_invoicedocno}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="482" y="0" width="40" height="12" uuid="35001a46-07fe-4b33-b382-daf0e9af7a70">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_orderdocno}==null)?" ":$F{p_orderdocno}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="482" y="0" width="40" height="12" uuid="4b28d4e0-ca04-409f-a543-846cf60018f6">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_orderdocno}==null)?" ":$F{p_orderdocno}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="398" y="0" width="40" height="12" uuid="bc5afbb9-7e2d-414a-a6c6-ae6afc68fff3">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_offerdocno}!=null?$F{p_offerdocno}:" "]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="398" y="0" width="40" height="12" uuid="6ccbaa04-0ec4-42d8-9ad0-e74f362f0fc2">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_offerdocno}!=null?$F{p_offerdocno}:" "]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.0" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="812" y="0" width="20" height="12" uuid="8407c4cd-df0e-43ae-a121-f839c4f8947d">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="5" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_marginperc}==null)?"n/a":$P{NUMBERFORMAT}.format($F{p_marginperc})]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.0" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="812" y="0" width="20" height="12" uuid="450090ba-8817-4745-b2d9-161b4a544bd0">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="5" isBold="false" isItalic="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_marginperc}==null)?"n/a":$P{NUMBERFORMAT}.format($F{p_marginperc})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="762" y="0" width="50" height="12" uuid="7a4a34cd-933d-4b10-8ba7-0bf9d6e57e92">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_marginamt}==null)?" ":$P{NUMBERFORMAT}.format($F{p_marginamt})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="762" y="0" width="50" height="12" uuid="2f6d3913-3276-4797-99aa-7d7c934f6d4f">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_marginamt}==null)?" ":$P{NUMBERFORMAT}.format($F{p_marginamt})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="662" y="0" width="50" height="12" uuid="c48916c8-706d-4314-86e8-f6460f6fef87">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_plannedamt}==null)?" ":$P{NUMBERFORMAT}.format($F{p_plannedamt})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="662" y="0" width="50" height="12" uuid="0f936a8f-683a-4246-804b-a90d3757d338">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_plannedamt}==null)?" ":$P{NUMBERFORMAT}.format($F{p_plannedamt})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="712" y="0" width="50" height="12" uuid="76085e94-082a-4f0d-86c0-bee4e646d615">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_actualcost}==null)?" ":$P{NUMBERFORMAT}.format($F{p_actualcost})]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="712" y="0" width="50" height="12" uuid="a61da967-c4a2-4330-afb7-7c3eb87541e1">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_actualcost}==null)?" ":$P{NUMBERFORMAT}.format($F{p_actualcost})]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="612" y="0" width="50" height="12" uuid="b65bc29f-e64c-41d1-b9c8-66747df01df0">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_invoicenetamt}==null)?" ":$P{NUMBERFORMAT}.format($F{p_invoicenetamt})]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="612" y="0" width="50" height="12" uuid="af39ae6c-24ca-47c3-a55a-175918052abf">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_invoicenetamt}==null)?" ":$P{NUMBERFORMAT}.format($F{p_invoicenetamt})]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="522" y="0" width="50" height="12" uuid="2b0285dc-05a4-4c15-a2a0-805d7152baaa">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_ordernetamt} == null )?"":$P{NUMBERFORMAT}.format($F{p_ordernetamt})]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="522" y="0" width="50" height="12" uuid="7ae52b7d-9778-4eb0-8da2-bb0a41f18a58">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_ordernetamt} != null )?""+$P{NUMBERFORMAT}.format($F{p_ordernetamt})+"":""]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="438" y="0" width="44" height="12" uuid="6feafce2-2e72-4705-85de-705f21c6da08">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_offernetamt}==null)?" ":$P{NUMBERFORMAT}.format($F{p_offernetamt})]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="438" y="0" width="44" height="12" uuid="ba43abbf-8c28-4bf1-9c3e-26289bc2ecf4">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{p_offernetamt}==null)?" ":$P{NUMBERFORMAT}.format($F{p_offernetamt})]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="343" y="0" width="55" height="12" uuid="b9d6b8f8-af1a-462c-a937-9a3052bc0d41">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="true" isItalic="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_datefinish}!=null?$F{p_datefinish}:""]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="343" y="0" width="55" height="12" uuid="eb388565-30b4-4568-b9a0-63a9bee3f30a">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{p_isitalic}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="html">
+					<font fontName="SansSerif" size="6" isBold="false" isItalic="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_datefinish}!=null?$F{p_datefinish}:""]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="12" splitType="Prevent">
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="762" y="0" width="50" height="12" uuid="2c58929a-43fd-4ee4-b371-89f9bd459bcd">
+					<printWhenExpression><![CDATA[new Boolean($V{CURRENT_PAGE}.equals($V{PAGE_NUMBER}))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{margin}!=null)?$P{NUMBERFORMAT}.format($V{margin}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="662" y="0" width="50" height="12" uuid="0ec42f5f-4962-43fc-bddc-0187780d43f0">
+					<printWhenExpression><![CDATA[new Boolean($V{CURRENT_PAGE}.equals($V{PAGE_NUMBER}))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{plannedamt}!=null)?$P{NUMBERFORMAT}.format($V{plannedamt}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="712" y="0" width="50" height="12" uuid="d050a149-7e12-49ae-8b62-39190c04500c">
+					<printWhenExpression><![CDATA[new Boolean($V{CURRENT_PAGE}.equals($V{PAGE_NUMBER}))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{actual}!=null)?$P{NUMBERFORMAT}.format($V{actual}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-8" style="Report_Footer" positionType="Float" x="300" y="0" width="78" height="12" uuid="60090f61-a65a-458d-8bfe-e682fd64782a">
+					<printWhenExpression><![CDATA[new Boolean($V{CURRENT_PAGE}.equals($V{PAGE_NUMBER}))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Summe]]></text>
+			</staticText>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="438" y="0" width="44" height="12" uuid="7cf21051-23de-4bb9-9c67-af1c88ddd6cb">
+					<printWhenExpression><![CDATA[new Boolean($V{CURRENT_PAGE}.equals($V{PAGE_NUMBER}))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{offeramt_1}!=null)?$P{NUMBERFORMAT}.format($V{offeramt_1}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="522" y="0" width="50" height="12" uuid="ad33df75-c88c-412a-8df9-0d0041668804">
+					<printWhenExpression><![CDATA[new Boolean($V{CURRENT_PAGE}.equals($V{PAGE_NUMBER}))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{orderamt_1}!=null)?$P{NUMBERFORMAT}.format($V{orderamt_1}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="612" y="0" width="50" height="12" uuid="08536573-40bc-46aa-a56b-1add5db83b60">
+					<printWhenExpression><![CDATA[new Boolean($V{CURRENT_PAGE}.equals($V{PAGE_NUMBER}))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="6" isBold="true"/>
+					<paragraph rightIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{invoiceamt_1}!=null)?$P{NUMBERFORMAT}.format($V{invoiceamt_1}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.0" isBlankWhenNull="true">
+				<reportElement key="textField" positionType="Float" x="812" y="0" width="20" height="12" uuid="648ebb02-07ec-496e-a4cd-e7cb5ebfef7f">
+					<printWhenExpression><![CDATA[new Boolean($V{CURRENT_PAGE}.equals($V{PAGE_NUMBER}))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="5" isBold="true"/>
+					<paragraph rightIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{actual}.compareTo( new java.math.BigDecimal(0))!=0  && $V{invoiceamt_1}.compareTo( new java.math.BigDecimal(0))!=0) ? ($V{margin}.compareTo( new java.math.BigDecimal(0) ) <= 0)?($V{margin}.divide($V{actual}, new MathContext(100)).multiply(new java.math.BigDecimal(100))):($V{margin}.divide($V{invoiceamt_1}, new MathContext(100)).multiply(new java.math.BigDecimal(100))):new java.math.BigDecimal(0)]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="35" splitType="Prevent">
+			<staticText>
+				<reportElement key="staticText-8" style="Report_Footer" x="5" y="23" width="48" height="12" uuid="7d110ad3-84e7-4932-b37e-5e6ad02f911e"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[Druckdatum]]></text>
+			</staticText>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField-54" style="Report_Footer" x="53" y="23" width="90" height="12" uuid="3ecce747-10aa-41c5-ae04-052ae7a40a6e"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new Date()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" pattern="" isBlankWhenNull="false">
+				<reportElement key="textField-56" style="Report_Footer" x="808" y="23" width="23" height="12" forecolor="#000000" backcolor="#FFFFFF" uuid="4877939a-07ad-4f6b-a6d6-681637c07fa9"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None">
+					<font fontName="SansSerif" size="7"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}.toString()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-8" style="Report_Footer" x="679" y="23" width="78" height="12" uuid="15a7712b-b851-4bcf-afdb-528484e5595c"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<text><![CDATA[Page]]></text>
+			</staticText>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField-55" style="Report_Footer" x="757" y="23" width="42" height="12" uuid="07b16f26-4df0-4be7-9c0e-7b21423bc51a"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}.toString()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-8" style="Report_Footer" x="799" y="23" width="10" height="12" uuid="ff921be9-d69a-4186-954c-082775ed2e93"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<text><![CDATA[/]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-8" style="Report_Footer" x="541" y="23" width="138" height="12" uuid="2c1cc286-33f7-4317-a7bb-1b765500b245"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<text><![CDATA[Project Sales Report]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+</jasperReport>

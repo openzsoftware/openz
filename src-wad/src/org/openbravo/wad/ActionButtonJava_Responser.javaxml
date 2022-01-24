@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ ************************************************************************************
+ * Copyright (C) 2001-2009 Openbravo S.L.
+ * Licensed under the Apache Software License version 2.0
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ * you may not  use this file except in compliance with the License.
+ * Contributor:  Stefan Zimmermann, 02/2011, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+ ************************************************************************************
+-->
+
+
+<java_TMP>
+package org.openbravo.erpCommon.ad_actionButton;
+
+
+import org.openbravo.erpCommon.utility.*;
+import org.openbravo.erpCommon.reference.*;
+import org.openbravo.utils.Replace;
+import org.openbravo.base.secureApp.HttpSecureAppServlet;
+import org.openbravo.base.secureApp.VariablesSecureApp;
+import org.openbravo.scheduling.ProcessBundle;
+import org.openbravo.scheduling.ProcessRunner;
+import org.openbravo.xmlEngine.XmlDocument;
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.util.HashMap;
+import org.openz.view.Formhelper;
+import org.openz.view.Scripthelper;
+import org.openz.view.templates.ConfigureButton;
+import org.openz.view.templates.ConfigureInfobar;
+import org.openz.view.templates.ConfigurePopup;
+import org.openz.util.LocalizationUtils;
+import org.apache.commons.fileupload.FileItem;
+
+
+public class ActionButtonJava_Responser extends HttpSecureAppServlet {
+  private static final long serialVersionUID = 1L;
+  protected static final String windowId = "ActionButtonResponser";
+  
+  public void init (ServletConfig config) {
+    super.init(config);
+    boolHist = false;
+  }
+
+  public void doPost (HttpServletRequest request, HttpServletResponse response) throws IOException,ServletException {
+    VariablesSecureApp vars = new VariablesSecureApp(request);
+    String strProcessId = null;
+    
+    String command = vars.getCommand();
+    
+    if (command.equals("DEFAULT"))
+      strProcessId = vars.getRequiredStringParameter("inpadProcessId");
+    else if (command.startsWith("BUTTON"))
+      strProcessId = command.substring("BUTTON".length());
+    else if (command.startsWith("FRAMES")) {
+      strProcessId = command.substring("FRAMES".length());
+      printPageFrames(response, vars, strProcessId);
+    } else if (command.startsWith("SAVE_BUTTONActionButton"))
+      strProcessId = command.substring("SAVE_BUTTONActionButton".length());
+   
+    if (!vars.commandIn("DEFAULT") &amp;&amp; !hasGeneralAccess(vars, "P", strProcessId)) {
+      bdErrorGeneralPopUp(request, response, Utility.messageBD(this, "Error", vars.getLanguage()), Utility.messageBD(this, "AccessTableNoView", vars.getLanguage()));
+    }
+    
+      
+    if (vars.commandIn("DEFAULT")) {
+      printPageDefault(response, vars, strProcessId);
+<FIELDS_TMP id="sectionActionButtons1">    } else if (vars.commandIn("BUTTON<FIELD_TMP id="ProcessID1">button</FIELD_TMP>")) {
+        <FIELD_TMP id="FieldsLoad1">String strField = vars.getStringParameter("inpFields");</FIELD_TMP>
+        printPageButton<FIELD_TMP id="ProcessID1">xx</FIELD_TMP>(response, vars, strProcessId<FIELD_TMP id="FieldsLoadName1">, strFields</FIELD_TMP>);
+</FIELDS_TMP>
+<FIELDS_TMP id="sectionActionButtons3">    } else if (vars.commandIn("SAVE_BUTTONActionButton<FIELD_TMP id="ProcessID3">button</FIELD_TMP>")) {
+        <FIELD_TMP id="FieldsLoad3">String strField = vars.getStringParameter("inpFields");</FIELD_TMP>
+        
+        ProcessBundle pb = new ProcessBundle(strProcessId, vars);
+        HashMap&lt;String, Object&gt; params= new HashMap&lt;String, Object&gt;();
+       
+        <FIELD_TMP id="FieldsLoadParams3">PInstanceProcessData.insertPInstanceParam(this, pinstance, )</FIELD_TMP>
+        
+        pb.setParams(params);
+        pb.setConnection(this);
+        OBError myMessage = null;
+        try {
+          <FIELD_TMP id="ProcessCode3">execute process</FIELD_TMP>
+          myMessage = (OBError) pb.getResult();
+          myMessage.setMessage(Utility.parseTranslation(this, vars, vars.getLanguage(), myMessage.getMessage()));
+          myMessage.setTitle(Utility.parseTranslation(this, vars, vars.getLanguage(), myMessage.getTitle()));
+        } catch (Exception ex) {
+              myMessage = new OBError();
+              myMessage.setMessage(Utility.parseTranslation(this, vars, vars.getLanguage(), ex.getMessage()));
+              myMessage.setTitle(Utility.parseTranslation(this, vars, vars.getLanguage(), "Error in Process"));
+              myMessage.setType("Error");
+              log4j.error(ex);
+              processButtonHelper(request, response, vars, myMessage);       
+              return;
+        }
+        <FIELD_TMP id="ProcessCode4">ButtonHelper</FIELD_TMP>       
+</FIELDS_TMP>
+    } else pageErrorPopUp(response);
+  }
+  
+  void printPageDefault(HttpServletResponse response, VariablesSecureApp vars, String strProcessId) throws IOException, ServletException {
+    log4j.debug("Output: Default");
+    response.setContentType("text/html; charset=UTF-8");
+    PrintWriter out = response.getWriter();
+    XmlDocument xmlDocument = xmlEngine.readXmlTemplate("org/openbravo/erpCommon/ad_actionButton/ActionButtonDefault").createXmlDocument();
+    xmlDocument.setParameter("processId", strProcessId);
+          xmlDocument.setParameter("trlFormType", "PROCESS");
+          xmlDocument.setParameter("type", "ActionButtonJava_Responser.html");
+          xmlDocument.setParameter("language", "defaultLang = \"" + vars.getLanguage() + "\";\n");
+    out.println(xmlDocument.print());
+    out.close();
+  }
+  
+  void printPageFrames(HttpServletResponse response, VariablesSecureApp vars, String strProcessId) throws IOException, ServletException {
+    log4j.debug("Output: Default");
+    response.setContentType("text/html; charset=UTF-8");
+    PrintWriter out = response.getWriter();
+    XmlDocument xmlDocument = xmlEngine.readXmlTemplate("org/openbravo/erpCommon/ad_actionButton/ActionButtonDefaultFrames").createXmlDocument();
+    xmlDocument.setParameter("processId", strProcessId);
+    xmlDocument.setParameter("trlFormType", "PROCESS");
+    xmlDocument.setParameter("type", "ActionButtonJava_Responser.html");
+    xmlDocument.setParameter("language", "defaultLang = \"" + vars.getLanguage() + "\";\n");
+    out.println(xmlDocument.print());
+    out.close();
+  }
+
+  
+
+<FIELDS_TMP id="sectionActionButtons2">    void printPageButton<FIELD_TMP id="ProcessID2">xx</FIELD_TMP>(HttpServletResponse response, VariablesSecureApp vars, String strProcessId<FIELD_TMP id="FieldsLoadName2">, strFields</FIELD_TMP>)
+    throws IOException, ServletException {
+      Scripthelper script = new Scripthelper();
+      Formhelper fh=new Formhelper();
+      <![CDATA[
+      try {
+        String name= LocalizationUtils.getProcessTitle(this, strProcessId,vars.getLanguage());
+        String info = LocalizationUtils.getProcessInfo(this, strProcessId ,vars.getLanguage());
+        if (! info.isEmpty())
+          info = ConfigureInfobar.doConfigure(this, vars, script, info, "");
+        String strFG="<table cellspacing=\"0\" cellpadding=\"0\" class=\"Form_Table\"> <colgroup span=\"4\"></colgroup><tr><td colspan=\"4\"></td></tr><tr><td></td></tr></table>";
+        strFG=strFG + fh.prepareProcessParameters(this, vars, script,strProcessId );
+        String strSkeleton = ConfigurePopup.doConfigure(this,vars,script,name, "buttonok");
+        strSkeleton=Replace.replace(strSkeleton, "ActionButton_Responser.html","ActionButtonJava_Responser.html"); 
+        String strActionButtons= "<table cellspacing=\"0\" cellpadding=\"0\" class=\"Form_Table\"> <colgroup span=\"4\"></colgroup><tr><td colspan=\"4\"></td></tr><tr>";
+        strActionButtons= strActionButtons + ConfigureButton.doConfigure(this,vars,script,"buttonok",1,1,false, "ok",  "submitThisPage('SAVE_BUTTONActionButton" + strProcessId + "');", "","") + ""; 
+        strActionButtons= strActionButtons + ConfigureButton.doConfigure(this,vars,script,"buttonCancel",0,1,false, "cancel", "closeThisPage();", "","");
+        strActionButtons= strActionButtons + "</tr></table>";
+        script.enableshortcuts("POPUP");
+        String strOutput=Replace.replace(strSkeleton, "@CONTENT@",info +  strFG +strActionButtons); 
+        script.addSubmitPagePageSripts();
+        script.addHiddenfield("inpadProcessId", strProcessId);
+        OBError myMessage = vars.getMessage(strProcessId);
+        vars.removeMessage(strProcessId);
+        if (myMessage!=null) {
+          script.addMessage(this, vars, myMessage);
+        }
+        strOutput = script.doScript(strOutput, "",this,vars);
+        response.setContentType("text/html; charset=UTF-8");
+        PrintWriter out = response.getWriter();
+        out.println(strOutput);
+        out.close();
+        ]]>
+      } catch (Exception ex) {
+        throw new ServletException(ex);
+      }
+    }
+</FIELDS_TMP>
+
+  public String getServletInfo() {
+    return "Servlet ActionButton_Responser. This Servlet was made by Wad constructor";
+  } // end of the getServletInfo() method
+
+  private void processButtonHelper(HttpServletRequest request, HttpServletResponse response, VariablesSecureApp vars, OBError myMessage) 
+     throws ServletException, IOException {
+      advisePopUp(request, response, myMessage.getType(), myMessage.getTitle(), myMessage.getMessage());
+  }
+}
+</java_TMP>

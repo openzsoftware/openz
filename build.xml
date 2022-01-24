@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+****************************************************************************************************************************************************
+-->
+<!--
+List of targets:
+
+init: checks if exists the JAVA_HOME var.
+compile.complete: refer to compile.complete target of src.
+compile: refer to compile target of src.
+compile.complete.development: refer to compile.complete.development target of src.
+compile.development: refer to compile.development target of src.
+compile.web: refer to compile.web: target of src.
+compile.web.development: refer to compile.web.development: target of src.
+compile.src: refer to compile.src target of src.
+war: refer to build.war target of src.
+core.docs: refer to doc target of src-core.
+core.lib: refer to build target of src-core.
+wad.docs: refer to doc target of src-wad.
+wad.lib: refer to build target of src-wad.
+trl.docs: refer to doc target of src-trl.
+trl.lib: refer to build target of src-trl.
+database.lib: refer to jar target of src-db.
+clean: refer to clean target of src.
+trl.clean: refer to trl.clean target of src.
+translate: refer to translate target of src.
+installWebService: refer to installWebService target of src.
+uninstallWebService: refer to uninstallWebService target of src.
+deploy.context: deploy the context into Tomcat using the manager
+install.source: install the ERP from sources (from subversion).
+create.database.script: refer to create.database.script target of database.
+update.database.script: refer to update.database.script target of database.
+export.database: exports database structure and data to xml files.
+-->
+<project name="openbravo" default="compile.complete" basedir=".">
+  <property environment="env" />
+  <property name="base.config" location="config" />
+  <property file="${base.config}/Openbravo.properties" />
+  <property file="${base.config}/checksums" />
+
+  <property name="base.config" location="config" />
+  <property name="base.src" location="src" />
+  <property name="base.src.test" location="src-test" />
+  <property name="base.src.core" location="src-core" />
+  <property name="base.src.db" location="src-db" />
+  <property name="base.src.trl" location="src-trl" />
+  <property name="base.src.wad" location="src-wad" />
+  <property name="base.src.gen" location="src-gen" />
+  <property name="base.src.test" location="src-test" />
+  <property name="base.client.src" location="srcClient" />
+  <property name="base.db" location="src-db/database" />
+  <property name="base.web" location="web" />
+  <property name="base.context" location="WebContent" />
+  <property name="base.design" location="${base.context}/src-loc" />
+  <property name="base.lib" location="lib" />
+  <property name="base.modules" location="modules" />
+  <property name="build" location="build/classes" />
+  <property name="build.AD" location="srcAD" />
+  <property name="build.sqlc" location="build/javasqlc" />
+  <property name="build.core.lib" location="src-core/lib" />
+  <property name="build.trl.lib" location="src-trl/lib" />
+  <property name="build.wad.lib" location="src-wad/lib" />
+  <property name="build.docs" location="docs/api" />
+  <property name="jakarta.home" location="${env.CATALINA_HOME}" />
+  <property name="module" value="%" />
+  <property name="apply.on.create" value="false" />
+  <property name="obx.export.RD" value="false" />
+  <property name="obx.export.DB" value="false" />
+  <property name="obx.export.CS" value="false" />
+  <property name="chekPerms" value="false" />
+  <property name="force" value="false" />
+  <property name="rd" value="false" />
+  <property name="local" value="true" />
+  <property name="apply.modules.complete.compilation" value="false" />
+  <property name="stopOnWadError" value="false"/>
+  <property name="friendlyWarnings" value="false"/>
+  <property name="minimizeJSandCSSparam" value="false"/>
+
+  
+  
+  
+  <condition property="deploy.mode" value="class">
+    <not>
+      <isset property="${deploy.mode}" />
+    </not>
+  </condition>
+
+  <condition property="mode.war">
+    <equals arg1="war" arg2="${deploy.mode}" />
+  </condition>
+
+  <condition property="mode.class">
+    <equals arg1="class" arg2="${deploy.mode}" />
+  </condition>
+
+  <condition property="apply.modules.on.create">
+    <or>
+      <equals arg1="yes" arg2="${apply.on.create}" />
+      <equals arg1="true" arg2="${apply.on.create}" />
+    </or>
+  </condition>
+
+  <condition property="obx.exp.DB">
+    <or>
+      <equals arg1="yes" arg2="${obx.export.DB}" />
+      <equals arg1="true" arg2="${obx.export.DB}" />
+    </or>
+  </condition>
+
+  <condition property="obx.exp.CS">
+    <or>
+      <equals arg1="yes" arg2="${obx.export.CS}" />
+      <equals arg1="true" arg2="${obx.export.CS}" />
+    </or>
+  </condition>
+
+  <condition property="timestamp">
+    <or>
+      <equals arg1="no" arg2="${execute.update.build.timestamp}" />
+      <equals arg1="false" arg2="${execute.update.build.timestamp}" />
+    </or>
+  </condition>
+
+  <condition property="jakarta.base" value="${env.CATALINA_BASE}" else="${jakarta.home}">
+    <and>
+      <isset property="env.CATALINA_BASE" />
+    </and>
+  </condition>
+  <property name="log.path" location="${jakarta.base}/logs" />
+  <property name="lib" location="${jakarta.home}/common" />
+  <property name="jakarta.context" location="${jakarta.base}/webapps/${context.name}" />
+  <property name="build.maxmemory" value="512M" />
+
+  <condition property="no.java.home" value="true">
+    <not>
+      <isset property="env.JAVA_HOME" />
+    </not>
+  </condition>
+
+  <condition property="bbdd.owner.url" value="${bbdd.url}/${bbdd.sid}" else="${bbdd.url}">
+    <and>
+      <equals arg1="${bbdd.rdbms}" arg2="POSTGRE" />
+    </and>
+  </condition>
+
+  <path id="project.class.path">
+    <pathelement path="${build}" />
+    <pathelement path="${base.src}" />
+    <fileset dir="${base.lib}">
+      <include name="**/*.jar" />
+    </fileset>
+    <fileset dir="${build.core.lib}">
+      <include name="openbravo-core.jar" />
+    </fileset>
+    <fileset dir="${build.trl.lib}">
+      <include name="openbravo-trl.jar" />
+    </fileset>
+    <fileset dir="${build.wad.lib}">
+      <include name="openbravo-wad.jar" />
+    </fileset>
+    <fileset dir="${base.lib}">
+      <include name="**/*.jar" />
+    </fileset>
+    <fileset dir="${base.db}/lib/">
+      <include name="**/*.jar" />
+    </fileset>
+    <fileset dir="${base.modules}">
+      <include name="*/lib/**" />
+    </fileset>
+  </path>
+  
+
+  
+  <target name="init">
+    <fail if="no.java.home" message="The environment variable JAVA_HOME is not set." />
+  </target>
+
+
+<!-- DEVELOPMENT Tasks -->
+  <target name="compile" depends="init">
+    <ant dir="${base.src}" target="compile" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="compile.complete" depends="init">
+    <ant dir="${base.src}" target="compile.complete" inheritAll="true" inheritRefs="true" />
+  </target>
+ 
+  <target name="compile.dh" depends="init">
+    <ant dir="${base.src}" target="compile.dh" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="compile.xsql" depends="init">
+    <ant dir="${base.src}" target="compile.xsql" inheritAll="true" inheritRefs="true" />
+  </target>
+  
+  <target name="compile.web" depends="init">
+    <ant dir="${base.src}" target="compile.web" inheritAll="true" inheritRefs="true" />
+  </target>
+  
+   <target name="compile.web.development" depends="init">
+    <ant dir="${base.src}" target="compile.web.development" inheritAll="true" inheritRefs="true" />
+  </target>
+
+
+
+<!-- DEPLOYMENT Tasks -->
+  
+  <target name="cleanTarget">
+    <property name="complete" value="true" />
+    <delete includeEmptyDirs="true" failonerror="false">
+      <fileset dir="${jakarta.base}/webapps/${context.name}/" />
+    </delete>
+  </target>
+  
+  
+  <target name="build.deploy" depends="cleanTarget">
+    <antcall target="build.deploy.war" />
+    <antcall target="build.deploy.class" />
+  </target>
+  
+  <target name="war" depends="init">
+    <ant dir="${base.src}" target="build.war" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="build.deploy.class" if="mode.class">
+    <ant dir="${base.src}" target="copy.files" inheritAll="true" inheritRefs="true" />
+    <mkdir dir="${jakarta.base}/webapps/${context.name}/WEB-INF/lib" />
+    <copy todir="${jakarta.base}/webapps/${context.name}/WEB-INF/lib" file="${build.core.lib}/openbravo-core.jar" encoding="UTF-8" />
+  </target>
+
+  <target name="build.deploy.war" if="mode.war">
+    <antcall target="war" />
+  </target>
+
+  <target name="if.restart.tomcat" if="dorestart">
+    <antcall target="tomcat.restart" />
+  </target>
+
+  
+ 
+<!--Librarys -->
+  <target name="core.lib" depends="init">
+    <ant dir="${base.src.core}" target="build" inheritAll="true" inheritRefs="true" />
+    <antcall target="copy.core.lib" />
+  </target>
+
+  <target name="copy.core.lib">
+    <copy file="${base.src.core}/lib/openbravo-core.jar" todir="${base.lib}/runtime" failonerror="false" />
+  </target>
+  
+  <target name="wad.lib" depends="init">
+    <ant dir="${base.src.wad}" target="build" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="trl.lib" depends="init">
+    <ant dir="${base.src.trl}" target="build" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="database.lib" depends="init">
+    <ant dir="${base.src.db}" target="jar" inheritAll="true" inheritRefs="true" />
+    <copy file="${base.src.db}/build/lib/dbmanager.jar" todir="${base.db}/lib" failonerror="false" />
+  </target>
+
+  
+<!-- Validation and Test ANT Tasks -->
+  <target name="validate.database">
+    <ant dir="${base.src}" target="validate.database" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="validate.modules">
+    <ant dir="${base.src}" target="validate.modules" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="run.tests" depends="init">
+    <ant dir="${base.src}" target="run.tests" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="run.all.tests" depends="init">
+    <ant dir="${base.src}" target="run.all.tests" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="run.quick.tests" depends="init">
+    <ant dir="${base.src}" target="run.quick.tests" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="run.api.test.javascript">
+    <ant dir="${base.src}" target="run.api.test.javascript" inheritAll="true" inheritRefs="true" />
+  </target>
+  
+  <target name="validate.wad">
+    <ant dir="${base.src}" target="wadvalidation" inheritAll="true" inheritRefs="true" />
+  </target>
+
+
+  
+<!-- Translation ANT Tasks -->
+  <target name="trl.clean" depends="init">
+    <ant dir="${base.src}" target="trl.clean" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="translate" depends="init">
+    <ant dir="${base.src}" target="translate" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="translate.modules" depends="init">
+    <ant dir="${base.src}" target="translate.modules" inheritAll="true" inheritRefs="true" />
+  </target>
+
+
+<!-- Database ANT Tasks -->
+  <target name="create.database.script" depends="init, core.lib">
+    <ant dir="${base.db}" target="create.database.script" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="update.database.script" depends="init, core.lib">
+    <ant dir="${base.db}" target="update.database.script" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="export.database" depends="init, core.lib, database.lib, generate.entities.quick">
+    <ant dir="${base.db}" target="export.database.structure" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="export.config.script" depends="init, core.lib">
+    <ant dir="${base.db}" target="export.config.script" inheritAll="true" inheritRefs="true" />
+  </target>
+
+  <target name="generate.entities.quick">
+    <ant dir="${base.src}" target="generate.entities.quick" inheritAll="true" inheritRefs="true" />
+  </target> 
+  
+
+  
+  <!-- Update ANT Tasks -->
+  <target name="export.module">
+     <java classname="com.openz.update.ExportModule" jvm="${env.JAVA_HOME}/bin/java" fork="yes" maxmemory="${build.maxmemory}">
+         <arg line="'${base.config}/Openbravo.properties' '${name}'" />
+      <classpath refid="project.class.path" />
+    </java>
+  </target>
+  <!-- Update ANT Tasks -->
+  <target name="import.module">
+     <java classname="com.openz.update.ImportModule" jvm="${env.JAVA_HOME}/bin/java" fork="yes" maxmemory="${build.maxmemory}">
+         <arg line="'${base.config}/Openbravo.properties' '${name}'" />
+      <classpath refid="project.class.path" />
+    </java>
+  </target>
+
+
+
+</project>

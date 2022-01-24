@@ -1,0 +1,139 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>@TITLE@</title>
+
+@SCRIPTSET@
+<SCRIPT language="JavaScript" type="text/javascript" id="selectedColumn">@JSVARS@</SCRIPT>
+
+@INITSCRIPT@
+
+<script language="JavaScript" type="text/javascript" id="selectedColumn">
+  var selectedRow = 0;
+  var orderByPositions = new Array("1");
+  var orderByDirections = new Array("ASC");
+</script>
+<script language="JavaScript" type="text/javascript" id="jsFocusOnField">
+function focusOnField() {
+        setWindowElementFocus('@FOCUSFIELD@', 'id');
+        return true;
+}
+
+</script>
+@ADDITIONALSCRIPTS@
+<script language="JavaScript" type="text/javascript">
+function onLoadDo(){
+        this.windowTables = new Array(
+     new windowTableId('client_top', 'buttonSearch'),
+     new windowTableId('client_middle', 'buttonOK'),
+     new windowTableId('client_bottom', 'buttonOK')
+        );
+        setWindowTableParentElement();
+        enableShortcuts('popup');
+        setBrowserAutoComplete(false);
+
+        try {
+          onloadFunctions();
+        } catch (e) {}
+
+        focusOnField();
+        resizeAreaInfo();
+}
+
+function onResizeDo(){
+    resizeAreaInfo(true);
+}
+
+function gridMovePage(direction) {
+  dijit.byId('grid').gridMovePage(direction);
+  return true;
+}
+
+function updateHeader(liveGrid, offset) {
+  var backendPageSize = liveGrid.getBackendPageSize();
+  var currPageStart = (liveGrid.metaData.getBackendPage()*backendPageSize);
+  var pageFull = (liveGrid.metaData.getTotalRows() >= backendPageSize);
+  var firstPage = (liveGrid.metaData.getBackendPage() == 0);
+  var res = "<nobr class='DataGrid_Popup_text_bookmark'>";
+  if (!firstPage) {
+    res = res + "<a href='#' onclick='gridMovePage(\"PREVIOUSPAGE\"); setWindowElementFocus(\"grid_table_dummy_input\",\"id\");' class='DataGrid_Popup_text_pagerange' id='prevPage_link'>" + getMessage("GridPreviousPage") + " " + backendPageSize +"</a>&nbsp;|&nbsp;";
+  }
+  res = res + ((liveGrid.visibleRows>0)?(currPageStart+offset+1):0) + " - "+ (currPageStart+offset+liveGrid.visibleRows) + " / " + (currPageStart+liveGrid.metaData.getTotalRows());
+  if (pageFull) {
+    res = res + "&nbsp;|&nbsp;<a href='#' onclick='gridMovePage(\"NEXTPAGE\"); setWindowElementFocus(\"grid_table_dummy_input\",\"id\");' class='DataGrid_Popup_text_pagerange' id='nextPage_link'>" + getMessage("GridNextPage") + " " + backendPageSize +"</a>";
+  }
+  res = res + "</nobr>";
+  liveGrid.setGridPaging(!firstPage,pageFull);
+  dojo.byId('bookmark').innerHTML = res;
+}
+</script>
+</head>
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" onload="onLoadDo();" onresize="onResizeDo();">
+<form name="frmMain" method="post" action="@FORMNAME@.html" id="form">
+  <input type="hidden" name="Command">
+  <input type="hidden" name="inpDirectKey" id="inpDirectKey" value="">
+  <INPUT type="hidden" name="inpKeyReferenceColumnName">
+  <INPUT type="hidden" name="inpTableReferenceId">
+  <INPUT type="hidden" name="inpKeyReferenceId">
+  <input type="hidden" name="IsPopUpCall" value="1">
+  <input type="hidden" name="inpKeyName">
+  @HIDDENFIELDS@
+  
+  <div class="Popup_ContentPane_CircleLogo">
+    <div class="Popup_WindowLogo">
+          <img class="Popup_WindowLogo_Icon @ICON@" src="../web/images/blank.gif" border="0">
+    </div>
+  </div>
+  
+<table cellspacing="0" cellpadding="0" width="100%" id="table_header">
+
+  <tr>
+    <td>
+      <table cellspacing="0" cellpadding="0" class="Popup_ContentPane_NavBar">
+        <tr class="Popup_NavBar_bg"><td></td>
+          <td class="Popup_NavBar_separator_cell"></td>
+          <td class="Popup_NavBar_bg_logo_left"></td>
+          <td class="Popup_NavBar_bg_logo" width="1" onclick="openNewBrowser('http://www.openz.de', 'OpenZ');return false;"><img src="../web/images/blank.gif" alt="OpenZ" title="OpenZ" border="0" id="openbravoLogo" class="Main_NavBar_logo_openz"></td>
+          <td class="Popup_NavBar_bg_logo_right"></td>
+          <td class="Popup_NavBar_Popup_title_cell"><span>@TITLE@</span></td>
+          <td class="Popup_NavBar_bg_logo_left"></td>
+          <td class="Popup_NavBar_bg_logo" width="1" onclick="openNewBrowser('http://www.openbravo.com', 'Openbravo');return false;"><img src="../web/images/blank.gif" alt="Openbravo" title="Openbravo" border="0" id="openbravoLogo" class="Popup_NavBar_logo"></td>
+          <td class="Popup_NavBar_bg_logo_right"></td>          
+          <td class="Popup_NavBar_separator_cell"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      <table cellspacing="0" cellpadding="0" class="Popup_ContentPane_SeparatorBar">
+        <tr>
+          <td class="Popup_SeparatorBar_bg"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  
+  </table>
+@MESSAGEBOX@
+  <table cellspacing="0" cellpadding="0" width="100%">
+    <tr>
+      <td>
+       @FILTERCONTENT@
+      </td>
+    </tr>
+    <tr>
+      <td>
+       @DATAGRIDCONTENT@
+      </td>
+    </tr>
+    <tr>
+      <td>
+       @ACTIONBUTTONS@
+      </td>
+    </tr>    
+  </table>
+</form>
+</body>
+</html>

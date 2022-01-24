@@ -1,0 +1,61 @@
+«IMPORT org::openbravo::base::model»
+
+#  *************************************************************************
+#  * The contents of this file are subject to the Openbravo  Public  License
+#  * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+#  * Version 1.1  with a permitted attribution clause; you may not  use this
+#  * file except in compliance with the License. You  may  obtain  a copy of
+#  * the License at http://www.openbravo.com/legal/license.html 
+#  * Software distributed under the License  is  distributed  on  an "AS IS"
+#  * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+#  * License for the specific  language  governing  rights  and  limitations
+#  * under the License. 
+#  * The Original Code is Openbravo ERP. 
+#  * The Initial Developer of the Original Code is Openbravo SL 
+#  * All portions are Copyright (C) 2008 Openbravo SL 
+#  * All Rights Reserved. 
+#  * Contributor(s):  ______________________________________.
+#  ************************************************************************
+ 
+«EXTENSION org::openbravo::base::gen::gen_util» 
+ 
+«DEFINE ModelTemplate FOR ModelProvider»
+  «EXPAND EntityTemplate FOREACH model»
+  	«FOREACH model AS entity-»
+  
+  	«FILE "org/openbravo/model/definition/" + ((Entity)entity).name + ".java"-»
+/*   
+ *  
+ * Copyright (C) 2001-2008 Openbravo S.L. Licensed under the Apache Software
+ * License version 2.0 You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+package org.openbravo.model.definition;
+
+/** 
+ * Static references to names of entity: «((Entity)entity).name»
+ */
+public class «((Entity)entity).name» {	
+		// Entity: «((Entity)entity).name»
+		public static final String ENTITYNAME = "«((Entity)entity).name»";
+		«FOREACH ((Entity)entity).properties AS p-»
+		public static final String «((Entity)entity).name.toUpperCase()»_«((Property)p).name» = "«((Property)p).name»";
+		«ENDFOREACH-»
+}
+
+	«ENDFILE»
+	«ENDFOREACH-»
+  
+«ENDDEFINE» 
+
+# this define is there to get rid of the error
+# displayed by the editor because for the 
+# statement EXPAND Entity FOREACH model
+# it can determine the type for model
+«DEFINE EntityTemplate FOR Object»
+«ENDDEFINE»
+ 

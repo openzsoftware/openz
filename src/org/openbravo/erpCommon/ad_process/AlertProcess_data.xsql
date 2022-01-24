@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2007 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="AlertProcessData" package="org.openbravo.erpCommon.ad_process">
+   <SqlMethod name="select" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT '' AS AD_CLIENT_ID,
+               '' AS AD_ORG_ID,
+               '' AS CREATED,
+               '' AS CREATEDBY,
+               '' AS UPDATED,
+               '' AS UPDATEDBY,
+               '' AS ISACTIVE,
+               '' AS AD_USER_ID,
+               '' AS AD_ROLE_ID,
+               '' AS RECORD_ID,
+               '' AS DESCRIPTION,
+               '' AS REFERENCEKEY_ID, 
+               '' AS AD_ALERTRULE_ID,
+               '' AS SQL,
+               '' AS NAME,
+               '' AS SMTPHOST,
+               '' AS REQUESTUSER,
+               '' AS REQUESTUSERPW,
+               '' AS MAILTO,
+               '' AS MAILFROM,
+               '' AS AD_LANGUAGE,
+               '' AS isfixed,
+               '' AS fixed,
+               '' as usetls,
+               '' as usessl,
+               '' as smtpport
+          FROM DUAL
+    ]]></Sql>
+   </SqlMethod>
+   
+   <SqlMethod name="selectAlert" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+          SELECT * 
+            FROM (SELECT '' AS AD_CLIENT_ID, '' AS AD_ORG_ID, TO_DATE(NULL) AS CREATED, '' AS CREATEDBY,'' AS UPDATED,'' AS UPDATEDBY,'' AS RECORD_ID, '' AS REFERENCEKEY_ID, '' AS DESCRIPTION, '' AS ISACTIVE, '' AS AD_USER_ID, '' AS AD_ROLE_ID FROM DUAL) AAA 
+      ]]></Sql>
+      <Parameter name="sql" type="replace" optional="true" after="FROM (" text="SELECT '' AS AD_CLIENT_ID, '' AS AD_ORG_ID, TO_DATE(NULL) AS CREATED, '' AS CREATEDBY,'' AS UPDATED,'' AS UPDATEDBY,'' AS RECORD_ID, '' AS REFERENCEKEY_ID, '' AS DESCRIPTION, '' AS ISACTIVE, '' AS AD_USER_ID, '' AS AD_ROLE_ID FROM DUAL"/>
+   </SqlMethod>
+   
+   
+   <SqlMethod name="DeleteWhenNotFixed" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+		DELETE FROM ad_alert using ad_alertrule where ad_alert.isfixed='N' AND ad_alert.ad_alertrule_id=ad_alertrule.ad_alertrule_id and ad_alertrule.fixed='N' and ad_alertrule.ad_alertrule_id = ?
+       ]]>
+      </Sql>
+      <Parameter name="ruleId"/>
+   </SqlMethod>
+   <SqlMethod name="existsReference" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+          SELECT COUNT(*) AS EXISTING
+            FROM AD_ALERT
+           WHERE AD_ALERTRULE_ID = ?
+             AND REFERENCEKEY_ID = ?
+             AND ISACTIVE = 'Y'
+      ]]></Sql>
+      <Parameter name="alertRule"/>
+      <Parameter name="ref"/>      
+   </SqlMethod>
+   
+   <SqlMethod name="selectSQL" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT AD_ALERTRULE_ID, SQL, NAME
+          FROM AD_ALERTRULE
+         WHERE ISACTIVE = 'Y'
+    ]]></Sql>
+   </SqlMethod>
+   
+  <SqlMethod name="InsertAlert" type="preparedStatement" return="rowcount">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        INSERT INTO AD_ALERT
+        (AD_ALERT_ID, AD_CLIENT_ID, AD_ORG_ID,                                                                                                                                                                                    
+         ISACTIVE, CREATED, CREATEDBY, 
+         UPDATED, UPDATEDBY, 
+         AD_ALERTRULE_ID, RECORD_ID, REFERENCEKEY_ID, 
+         DESCRIPTION, AD_USER_ID, AD_ROLE_ID)
+        VALUES
+         (?,?,?,
+          'Y',TO_DATE(?),?,
+          now(),0,
+          ?,?,?,
+          ?,?,?)
+    ]]></Sql>
+    <Parameter name="alertId"/>
+    <Parameter name="clientId"/>
+    <Parameter name="orgId"/>
+    
+    <Parameter name="created"/>
+    <Parameter name="createdBy"/>
+    
+    <Parameter name="ruleId"/>
+    <Parameter name="recordId"/>
+    <Parameter name="referenceKey"/>
+    
+    <Parameter name="description"/>
+    <Parameter name="user"/>
+    <Parameter name="role"/>
+   </SqlMethod>
+   
+   <SqlMethod name="updateAlert" type="preparedStatement" return="rowcount"> 
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        UPDATE AD_ALERT
+           SET ISACTIVE  = 'N',
+               UPDATED   = NOW(),
+               UPDATEDBY = 0 
+         WHERE AD_ALERTRULE_ID = ?
+           AND ISACTIVE = 'Y'
+           AND NOT EXISTS 
+                   (SELECT 1 FROM (SELECT '' AS AD_REFERENCEKEY_ID FROM DUAL) A WHERE 1=1
+                              AND A.REFERENCEKEY_ID = AD_ALERT.REFERENCEKEY_ID)
+           AND ((select deactvatewhennotapplied from AD_ALERTRULE where AD_ALERTRULE_ID = ?)='Y')
+    ]]></Sql>
+   <Parameter name="alertRuleId"/>
+   <Parameter name="sql" type="replace" optional="true" after="(SELECT 1 FROM (" text="SELECT '' AS AD_REFERENCEKEY_ID FROM DUAL"/>
+   <Parameter name="alertRuleId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="prepareMails" type="preparedStatement" return="multiple">
+     <Sql><![CDATA[
+          SELECT C.SMTPHOST,
+                 REQUESTUSER,
+                 REQUESTUSERPW,
+                 C.REQUESTEMAIL AS MAILFROM,
+                 U.EMAIL AS MAILTO,
+                 A.DESCRIPTION as DESCRIPTION,
+                 A.RECORD_ID as RECORD_ID,
+                 C.AD_LANGUAGE,
+                 c.smtpport,
+                 c.usetls,
+                 c.usessl
+            FROM AD_ALERTRECIPIENT R,
+                 AD_USER U,
+                 AD_CLIENT C,
+                 AD_ALERT A
+           WHERE R.AD_ALERTRULE_ID = ?
+             AND SENDEMAIL = 'Y'
+             AND A.AD_ALERTRULE_ID=?
+             AND R.AD_USER_ID = U.AD_USER_ID
+             AND C.AD_CLIENT_ID = U.AD_CLIENT_ID
+             AND A.AD_ALERT_ID= ? 
+           UNION
+           SELECT C.SMTPHOST,
+                 REQUESTUSER,
+                 REQUESTUSERPW,
+                 C.REQUESTEMAIL AS MAILFROM,
+                 U.EMAIL AS MAILTO,
+                 A.DESCRIPTION as DESCRIPTION,
+                 A.RECORD_ID as RECORD_ID,
+                 C.AD_LANGUAGE,
+                 c.smtpport,
+                 c.usetls,
+                 c.usessl
+            FROM AD_ALERTRULE R,
+                 AD_USER U,
+                 AD_CLIENT C,
+                 AD_ALERT A
+           WHERE R.AD_ALERTRULE_ID = ?
+             AND R.sendemailtouser = 'Y'
+             AND A.AD_ALERTRULE_ID=R.AD_ALERTRULE_ID 
+             AND A.AD_USER_ID = U.AD_USER_ID
+             AND U.AD_USER_ID = ?
+             AND C.AD_CLIENT_ID = U.AD_CLIENT_ID
+             AND A.AD_ALERT_ID= ? 
+      ]]></Sql>
+      <Parameter name="alertRuleId"/>
+      <Parameter name="alertRuleId"/>
+      <Parameter name="alertId"/>
+      <Parameter name="alertRuleId"/>
+      <Parameter name="adUserId"/>
+      <Parameter name="alertId"/>
+   </SqlMethod>
+   <SqlMethod name="getBccAddress" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+      <![CDATA[
+        select
+            C_poc_configuration.smtpServerSenderAddress
+        from
+            C_poc_configuration
+        where
+            C_poc_configuration.ad_client_id = ? AND
+            (C_poc_configuration.ad_org_id = ? OR C_poc_configuration.ad_org_id = '0') AND
+            C_poc_configuration.isActive = 'Y'
+        ]]>
+        </Sql>
+        <Parameter name="adClientId" />
+        <Parameter name="adOrgId" />
+   </SqlMethod>
+</SqlClass>

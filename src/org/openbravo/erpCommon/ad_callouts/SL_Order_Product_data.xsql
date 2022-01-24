@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+****************************************************************************************************************************************************
+-->
+
+
+<SqlClass name="SLOrderProductData" package="org.openbravo.erpCommon.ad_callouts">
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT C_ORDER_ID AS ID, DATEORDERED, C_BPARTNER_ID, M_PRICELIST_ID, '' AS DATEINVOICED ,ad_org_id
+        FROM C_ORDER WHERE C_ORDER_ID = ?
+      ]]>
+    </Sql>
+    <Parameter name="cOrderId"/>
+  </SqlMethod>
+  <SqlMethod name="selectInvoice" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT C_INVOICE_ID AS ID, DATEINVOICED, C_BPARTNER_ID, M_PRICELIST_ID,ad_org_id
+      	FROM C_INVOICE WHERE C_INVOICE_ID = ?
+      ]]>
+    </Sql>
+    <Parameter name="cInvoiceId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="hasSecondaryUOM" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT (CASE COUNT(*) WHEN 0 THEN 0 ELSE 1 END) AS TOTAL 
+      FROM M_PRODUCT_UOM 
+      WHERE M_PRODUCT_ID = ?
+    </Sql>
+    <Parameter name="mProductId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="selectDefaultManufacturerPO" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT m_product_po_id from m_product_po where m_product_id= ? and c_bpartner_id = ? and iscurrentvendor='Y' 
+      and AD_ORG_ID in ('0',?)  order by coalesce(qualityrating,0) desc,updated desc limit 1
+    </Sql>
+    <Parameter name="mProductId"/>
+    <Parameter name="bPartnerId"/>
+    <Parameter name="orgId"/>
+  </SqlMethod>
+  <SqlMethod name="selectDefault2NdUOM" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT p.m_product_uom_id from m_product_po po left join m_product_uom p on p.m_product_id=po.m_product_id and po.c_uom_id=p.c_uom_id 
+      where  po.m_product_id= ? and po.c_bpartner_id = ? and po.iscurrentvendor='Y' 
+      and po.AD_ORG_ID in ('0',?)  order by coalesce(po.qualityrating,0) desc,po.updated desc limit 1
+    </Sql>
+    <Parameter name="mProductId"/>
+    <Parameter name="bPartnerId"/>
+    <Parameter name="orgId"/>
+  </SqlMethod>
+  <SqlMethod name="isSummaryitem" type="preparedStatement" return="String" default="N">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT issummaryitem
+      FROM M_PRODUCT 
+      WHERE M_PRODUCT_ID = ?
+    </Sql>
+    <Parameter name="mProductId"/>
+  </SqlMethod>
+
+  <SqlMethod name="getOffersPrice" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT ROUND(M_GET_OFFERS_PRICE(TO_DATE(?),?,?,TO_NUMBER(?), ?,'N',null,'N',null,?,?,?,?),
+                   (SELECT PRICEPRECISION 
+                       FROM C_CURRENCY C,
+                            C_ORDER    O 
+                      WHERE C.C_CURRENCY_ID = O.C_CURRENCY_ID
+                        AND O.C_ORDER_ID    = ?)) AS TOTAL FROM DUAL
+    </Sql>
+    <Parameter name="dateordered"/>
+    <Parameter name="cBpartnerId"/>
+    <Parameter name="mProductId"/>
+    <Parameter name="qty"/>
+    <Parameter name="pricelist"/>
+    <Parameter name="cUomId"/>
+    <Parameter name="mproductPOId"/>
+    <Parameter name="mAttributesetInstanceId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="orderid"/>
+    
+  </SqlMethod>
+  <SqlMethod name="getOffersPriceDirect" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT ROUND(M_GET_OFFERS_PRICE(TO_DATE(?),?,?,TO_NUMBER(?), TO_NUMBER(?), ?),
+                   (SELECT PRICEPRECISION 
+                       FROM C_CURRENCY C WHERE C.C_CURRENCY_ID =  ?)) AS TOTAL FROM DUAL
+    </Sql>
+    <Parameter name="dateordered"/>
+    <Parameter name="cBpartnerId"/>
+    <Parameter name="mProductId"/>
+    <Parameter name="pricestd"/>
+    <Parameter name="qty"/>
+    <Parameter name="pricelist"/>
+    <Parameter name="cCurrencyid"/>
+    
+  </SqlMethod>
+  
+  <SqlMethod name="getOffersPriceInvoice" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT ROUND(M_GET_OFFERS_PRICE(TO_DATE(?),?,?,TO_NUMBER(?), ?,'N',null,'N',null,?,?,?),
+                    (SELECT PRICEPRECISION 
+                       FROM C_CURRENCY C,
+                            C_INVOICE  I 
+                      WHERE C.C_CURRENCY_ID = I.C_CURRENCY_ID
+                        AND I.C_INVOICE_ID  = ?)) AS TOTAL FROM DUAL
+    </Sql>
+    <Parameter name="dateordered"/>
+    <Parameter name="cBpartnerId"/>
+    <Parameter name="mProductId"/>
+    <Parameter name="qty"/>
+    <Parameter name="pricelist"/>
+    <Parameter name="cUomId"/>
+    <Parameter name="mManufacturerId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="invoiceid"/>
+    
+  </SqlMethod>
+
+   
+  
+  <SqlMethod name="getOrgLocationId" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+	  	SELECT C_LOCATION_ID 
+	  		FROM AD_ORGINFO 
+	  		WHERE AD_Client_ID IN ('1') 
+	  		AND AD_Org_ID IN ('1')
+	 </Sql>
+     <Parameter name="adUserClient" type="replace" optional="true" after="AD_Client_ID IN (" text="'1'"/>
+     <Parameter name="adUserOrg" type="replace" optional="true" after="AD_Org_ID IN (" text="'1'"/>
+  </SqlMethod>
+  
+ 
+  <SqlMethod name="getProductDescription" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT documentnote  
+            FROM m_product
+            WHERE AD_Client_ID IN ('1') 
+            AND AD_Org_ID IN ('1')
+            AND m_product_id = ?
+     </Sql>
+     <Parameter name="adUserClient" type="replace" optional="true" after="AD_Client_ID IN (" text="'1'"/>
+     <Parameter name="adUserOrg" type="replace" optional="true" after="AD_Org_ID IN (" text="'1'"/>
+     <Parameter name="mProductId"/>  
+  </SqlMethod>
+  <SqlMethod name="getProductPrice" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT M_BOM_PriceStd(?, ?) AS PriceStd
+     </Sql>
+     <Parameter name="mProductId"/>  
+     <Parameter name="mPricelistVId"/>  
+  </SqlMethod>
+  <SqlMethod name="getUOMProduct" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT  c_uom_id from m_product_uom where m_product_uom_id=?
+     </Sql>
+     
+     <Parameter name="mProductUOMId"/>  
+  </SqlMethod>
+ 
+  <!--
+  <SqlMethod name="getSheddeliveryDate4vendorProduct" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT  mrp_getsheddeliverydate4vendorProduct(?,?) 
+     </Sql>
+     <Parameter name="cBpartnerId"/>  
+     <Parameter name="mProductId"/>  
+  </SqlMethod>
+  -->
+</SqlClass>

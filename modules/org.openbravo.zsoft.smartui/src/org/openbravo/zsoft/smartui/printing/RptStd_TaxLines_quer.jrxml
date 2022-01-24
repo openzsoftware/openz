@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T10:26:04 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RptStd_TaxLines_quer" language="groovy" pageWidth="802" pageHeight="515" orientation="Landscape" columnWidth="802" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="de2b4c4c-3f0b-4470-9210-a76a494a2b91">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT C_ORDER.C_ORDER_ID AS "C_ORDER_ID",
+       zssi_gettax(C_TAX.C_TAX_ID, $P{LANGUAGE}) as "name",
+       zssi_strNumber(C_ORDERTAX.TAXAMT,$P{LANGUAGE}) as taxamt,
+       C_CURRENCY.cursymbol,
+       zssi_getText('zssi_TaxhintInvoiceExcl',$P{LANGUAGE}) as TAXHINT
+        FROM C_ORDERTAX, C_TAX, C_ORDER, C_CURRENCY
+        WHERE C_ORDERTAX.C_TAX_ID = C_TAX.C_TAX_ID
+        AND C_ORDER.C_ORDER_ID=C_ORDERTAX.C_ORDER_ID
+        AND C_ORDER.C_CURRENCY_ID = C_CURRENCY.C_CURRENCY_ID
+        AND C_ORDERTAX.C_ORDER_ID = $P{DOCUMENT_ID}
+        AND C_ORDER.C_ORDER_ID IN ($P{DOCUMENT_ID})
+
+UNION
+SELECT C_INVOICE.C_INVOICE_ID AS "C_INVOICE_ID",
+       zssi_gettax(C_TAX.C_TAX_ID, $P{LANGUAGE}) as "name",
+       zssi_strNumber(C_INVOICETAX.TAXAMT,$P{LANGUAGE}) as taxamt,
+       C_CURRENCY.cursymbol,
+       CASE WHEN C_INVOICE.isgrossinvoice='Y' THEN  zssi_getText('zssi_TaxhintInvoiceIncl',$P{LANGUAGE}) ELSE zssi_getText('zssi_TaxhintInvoiceExcl',$P{LANGUAGE}) END as TAXHINT
+        FROM C_INVOICETAX, C_TAX, C_INVOICE, C_CURRENCY
+        WHERE C_INVOICETAX.C_TAX_ID = C_TAX.C_TAX_ID
+        AND C_INVOICE.C_INVOICE_ID=C_INVOICETAX.C_INVOICE_ID
+        AND C_INVOICE.C_CURRENCY_ID = C_CURRENCY.C_CURRENCY_ID
+        AND C_INVOICETAX.C_INVOICE_ID = $P{DOCUMENT_ID}
+        AND C_INVOICE.C_INVOICE_ID IN ($P{DOCUMENT_ID})]]>
+	</queryString>
+	<field name="C_ORDER_ID" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="taxamt" class="java.lang.String"/>
+	<field name="cursymbol" class="java.lang.String"/>
+	<field name="taxhint" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="16" splitType="Stretch">
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-1" x="720" y="0" width="68" height="16" uuid="c45b9f05-41d8-4980-adf7-4dd02dc26d53"/>
+				<box>
+					<pen lineWidth="0.0" lineColor="#000000"/>
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{taxamt}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-2" x="654" y="0" width="60" height="16" uuid="01819f6d-2fb3-4f10-85f4-98dae5568bcb"/>
+				<box>
+					<pen lineWidth="0.0" lineColor="#000000"/>
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-3" x="788" y="0" width="14" height="16" uuid="52fdfc6d-8f71-4789-b16a-dd1581c1341e"/>
+				<box>
+					<pen lineWidth="0.0" lineColor="#000000"/>
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cursymbol}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-1" x="714" y="0" width="6" height="16" isPrintWhenDetailOverflows="true" uuid="c987f6b6-8fad-48fc-b0d4-10155abb7d10"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0" lineColor="#000000"/>
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" x="537" y="0" width="117" height="16" uuid="5822951e-2a57-4a37-937b-21dc5a92eac8"/>
+				<box>
+					<pen lineWidth="0.0" lineColor="#000000"/>
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{taxhint} == null ? "" : $F{taxhint})]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

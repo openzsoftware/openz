@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.5.1.final using JasperReports Library version 6.5.1  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Rpt_Cashbook_Main" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" isIgnorePagination="true" uuid="3cf18472-19fe-456b-9695-0f6b7136c2e6">
+	<property name="ireport.zoom" value="0.9330147604194666"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="default" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="10" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Report_Title" fontName="OpenZ Sans" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="GroupHeader_DarkGray" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="GroupHeader_Gray" mode="Opaque" backcolor="#999999"/>
+	<style name="Detail_Line">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Total_Gray" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC"/>
+	<style name="Group_Footer" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Footer" isDefault="true" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="11"/>
+	<parameter name="ATTACH" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_WEB" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_CLIENT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('1000000')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_ORG" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('0')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_TITLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["REPORT TITLE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_SUBTITLE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_Cashlines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="LANGUAGE2" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/danny/OpenZ/PrivateTrunc/modules/com.smh/src/com/smh/printing/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_RptStd_Commissionlines_1" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="ORDERING" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[Select
+--Header
+zssi_getElementTextByColumname('c_Cashbook_id',$P{LANGUAGE}) as Header,
+zssi_getElementTextByColumname('Name',$P{LANGUAGE}) as Nameh,
+zssi_getElementTextByColumname('date',$P{LANGUAGE}) as Dateh,
+zssi_getElementTextByColumname('Description',$P{LANGUAGE}) as descriptionh,
+zssi_getElementTextByColumname('ad_org_id',$P{LANGUAGE}) as orgnameh,
+zssi_getElementTextByColumname('statementdate',$P{LANGUAGE}) as Auszugsdatumh,
+zssi_getElementTextByColumname('dateacct',$P{LANGUAGE}) as Buchungsdatumh,
+zssi_getElementTextByColumname('beginningbalance',$P{LANGUAGE}) as Beginbalanceh,
+zssi_getElementTextByColumname('statementdifference',$P{LANGUAGE}) as statementbalanceh,
+zssi_getElementTextByColumname('endingbalance',$P{LANGUAGE}) as endingbalanceh,
+zssi_getElementTextByColumname('Account',$P{LANGUAGE}) as axxh,
+-- Data
+c_getaccountfromCash(cash.c_cash_id) as axx,
+(select name from ad_org where ad_org_id=cash.ad_org_id) as orga,
+(select iso_code from c_currency , c_cashbook where c_cashbook.c_currency_id=c_currency.c_currency_id and c_cashbook.c_cashbook_id=cash.c_cashbook_id) as currency,
+(select cursymbol from c_currency , c_cashbook where c_cashbook.c_currency_id=c_currency.c_currency_id and c_cashbook.c_cashbook_id=cash.c_cashbook_id) as cursymbol,
+cash.name as name,
+coalesce(cash.description,'') as description,
+to_char(cash.statementdate,'DD.MM.YYYY') as statementdate,
+to_char(cash.dateacct,'DD.MM.YYYY') as dateacct,
+to_char(now(),'DD.MM.YYYY') as date,
+zssi_strnumber(cash.beginningbalance,$P{LANGUAGE}) as beginbalance,
+zssi_strnumber(cash.statementdifference,$P{LANGUAGE}) as statementbalance,
+zssi_strnumber(cash.endingbalance,$P{LANGUAGE}) as endingbalance
+from c_cash cash where cash.c_cash_id in ($P{DOCUMENT_ID})]]>
+	</queryString>
+	<field name="header" class="java.lang.String"/>
+	<field name="nameh" class="java.lang.String"/>
+	<field name="dateh" class="java.lang.String"/>
+	<field name="descriptionh" class="java.lang.String"/>
+	<field name="orgnameh" class="java.lang.String"/>
+	<field name="auszugsdatumh" class="java.lang.String"/>
+	<field name="buchungsdatumh" class="java.lang.String"/>
+	<field name="beginbalanceh" class="java.lang.String"/>
+	<field name="statementbalanceh" class="java.lang.String"/>
+	<field name="endingbalanceh" class="java.lang.String"/>
+	<field name="axxh" class="java.lang.String"/>
+	<field name="axx" class="java.lang.String"/>
+	<field name="orga" class="java.lang.String"/>
+	<field name="currency" class="java.lang.String"/>
+	<field name="cursymbol" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="statementdate" class="java.lang.String"/>
+	<field name="dateacct" class="java.lang.String"/>
+	<field name="date" class="java.lang.String"/>
+	<field name="beginbalance" class="java.lang.String"/>
+	<field name="statementbalance" class="java.lang.String"/>
+	<field name="endingbalance" class="java.lang.String"/>
+	<variable name="doctype_id" class="java.lang.String">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="NETAMTTEST" class="java.math.BigDecimal"/>
+	<variable name="TAXAMT" class="java.math.BigDecimal"/>
+	<variable name="TAXRATE" class="java.math.BigDecimal"/>
+	<title>
+		<band height="555" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="802" height="30" uuid="c2ac72c7-484f-4b75-b5aa-fac8d81da53e"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{header}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="30" width="267" height="20" uuid="ac3c03c9-cad2-4c03-b886-ea581d1322b7"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Left" markup="html">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{orgnameh}+": "+$F{orga}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="0" y="120" width="802" height="435" uuid="8f5f31bd-28fc-4e3e-8e39-f74fd0a66404"/>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DOCUMENT_ID">
+					<subreportParameterExpression><![CDATA[$P{DOCUMENT_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ORDERING">
+					<subreportParameterExpression><![CDATA[$P{ORDERING}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREP_RptStd_Cashlines}]]></subreportExpression>
+			</subreport>
+			<textField>
+				<reportElement x="267" y="30" width="268" height="20" uuid="efa46444-9ce2-493e-a163-0144dd922e48"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Left" markup="html">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nameh}+": "+$F{name}+" "+$F{description}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="50" width="401" height="20" uuid="9ba9572a-7d69-4960-94fe-035bd2a36cee"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Left" markup="html">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{auszugsdatumh}+": "+$F{statementdate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="401" y="50" width="401" height="20" uuid="ed13e6a7-d670-438c-8a65-deafdaa3943a"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Left" markup="html">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{buchungsdatumh}+": "+$F{dateacct}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="535" y="30" width="267" height="20" uuid="1d74800a-2166-4cc0-83e0-b4c0ea29f6c9"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Left" markup="html">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{axxh}+": "+$F{axx}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="267" y="70" width="268" height="20" uuid="cd85d2f9-791e-44a2-811b-d352bf46f2bf"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Left" markup="html">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{statementbalanceh}+": "+$F{statementbalance}+" "+$F{cursymbol}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="70" width="267" height="20" uuid="20fc955c-0f9e-48e3-a125-45abb9481ea0"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Left" markup="html">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{beginbalanceh}+": "+$F{beginbalance}+" "+$F{cursymbol}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="535" y="70" width="267" height="20" uuid="f43c7a29-a8b9-49e4-a0b2-30e9e4484a7f"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Left" markup="html">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{endingbalanceh}+": "+$F{endingbalance}+" "+$F{cursymbol}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+</jasperReport>

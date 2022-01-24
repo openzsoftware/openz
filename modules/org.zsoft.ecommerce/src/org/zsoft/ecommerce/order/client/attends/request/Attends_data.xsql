@@ -1,0 +1,13 @@
+<SqlClass name="AttendsData" package="org.zsoft.ecommerce.order.client.attends.request"  accessModifier="public">
+    <SqlMethod name="select" type="preparedStatement" return="multiple">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+         <![CDATA[select org.name,l.address1,l.address2,l.postal,l.city,c.name as country
+                       from m_warehouse m,c_order o,ad_org org, c_location l left join c_country c on   l.c_country_id=c.c_country_id             
+                       where  m.c_location_id=l.c_location_id and o.m_warehouse_id=m.m_warehouse_id 
+                          and o.ad_org_id=org.ad_org_id and o.c_order_id=? 
+               ]]>      
+         </Sql>
+        <Parameter name="shopId"/>
+     </SqlMethod>
+</SqlClass>

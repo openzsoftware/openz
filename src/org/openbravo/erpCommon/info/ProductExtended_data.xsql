@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2010 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+****************************************************************************************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="ProductExtendedData" package="org.openbravo.erpCommon.info">
+   <SqlClassComment></SqlClassComment>
+   <SqlMethod name="select" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+       SELECT A.*,
+        PriceStd-PriceLimit AS Margin
+      FROM (
+        SELECT p.M_Product_ID, p.Discontinued, p.Value, 
+        case when (? = 'en_US' or (select count(*) from ad_client where ad_client_id= ? and ismultilingualdocument='Y')=0) then p.name else coalesce(ptrl.name,p.Name) end as name, 
+        M_BOM_PriceList(p.M_Product_ID, ?) AS PriceList,
+        M_BOM_PriceStd(p.M_Product_ID, ?) AS PriceStd, 
+        M_BOM_PriceLimit(p.M_Product_ID, ?) AS PriceLimit,
+        M_BOM_Qty_OnHand(p.M_Product_ID,?, NULL) AS QtyOnHand, 
+        M_BOM_Qty_Incomming(p.M_Product_ID,?, null) AS qtyinflow, 
+        M_BOM_Qty_Outgoing(p.M_Product_ID,?, NULL) AS qtyoutflow,
+        M_BOM_Qty_Available(p.M_Product_ID,?, NULL) AS QtyAvailable, 
+        coalesce(p.Width,0) as width,
+        p.theme,
+        p.customerproductno,
+        p.C_UOM_ID, pl.C_Currency_ID
+        FROM m_product p left join m_product_trl ptrl on ptrl.m_product_id=p.m_product_id and ptrl.ad_language=?, 
+        m_pricelist pl 
+        WHERE
+              pl.m_pricelist_id=(select m_pricelist_id from m_pricelist_version where m_pricelist_version_id=?)
+              AND p.isactive ='Y' 
+              AND 1=1
+              AND case when (? = 'en_US' or (select count(*) from ad_client where ad_client_id= ? and ismultilingualdocument='Y')=0) then 2=2 else 3=3 AND ptrl.ad_language=? end
+              AND p.AD_Client_ID IN ('1') 
+              AND p.AD_Org_ID IN ('1')
+              AND p.ispurchased in ('1')
+              AND p.issold in ('1') 
+              ANd coalesce(p.c_bpartner_id,'%')  like ?
+              and p.m_product_category_id like ?
+              and coalesce(p.theme,'%') like ?
+              and coalesce(p.customerproductno,'%') like ?
+              and coalesce(p.Width,0) between coalesce(to_number(?),0) and coalesce(to_number(?),99999999)
+              AND 5=5
+              and p.typeofproduct  like ?
+              AND 4=4                   
+        ) A ORDER BY Value
+      ]]></Sql>
+        <Field name="position" value="count"/>
+        <Field name="rowKey" value="void" />
+        <Parameter name="language"/>
+        <Parameter name="adClientID"/>
+        <Parameter name="priceListVersion"/>
+        <Parameter name="priceListVersion"/>
+        <Parameter name="priceListVersion"/>
+        <Parameter name="warehouse"/>
+        <Parameter name="warehouse"/>
+        <Parameter name="warehouse"/>
+        <Parameter name="warehouse"/>
+        <Parameter name="language"/>
+        <Parameter name="priceListVersion"/>
+        <Parameter name="key" ignoreValue="%" optional="true" after="AND 1=1"><![CDATA[ AND UPPER(p.Value) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="language"/>
+        <Parameter name="adClientID"/>
+        <Parameter name="name" ignoreValue="%" optional="true" after="2=2"><![CDATA[ AND UPPER(p.Name) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="name" ignoreValue="%" optional="true" after="3=3"><![CDATA[ AND UPPER(ptrl.Name) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="language"/>
+        <Parameter name="adUserClient" type="replace" optional="true" after="p.AD_Client_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="p.AD_Org_ID IN (" text="'1'"/>
+        <Parameter name="isPurchase" type="replace" optional="true" after="p.ispurchased in (" text="'1'"/>
+        <Parameter name="isSold" type="replace" optional="true" after="p.issold in (" text="'1'"/>
+        <Parameter name="cBpartnerId"/>
+        <Parameter name="mProductCategoryId"/>
+        <Parameter name="mTheme"/>
+        <Parameter name="mCustomerproductno"/>
+        <Parameter name="mWtdthFrom"/>
+        <Parameter name="mWtdthTo"/>
+        <Parameter name="vendorproductno" ignoreValue="%" optional="true" after="AND 5=5"><![CDATA[and p.m_product_id in (select m_product_id from m_product_po po where coalesce(po.vendorproductno,'%') like ?)]]></Parameter>
+        <Parameter name="TypeOfProduct"/>
+        <Parameter name="pgLimit" type="argument" optional="true" after="AND 4=4"><![CDATA[ LIMIT ]]></Parameter>
+        <Parameter name="orderBy" type="replace" optional="true" after="A ORDER BY " text="Value" />
+   </SqlMethod>
+
+   <SqlMethod name="countRows" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT count(*) AS value FROM (
+        select p.m_product_id FROM m_product p left join m_product_trl ptrl on ptrl.m_product_id=p.m_product_id and ptrl.ad_language=?, 
+        m_pricelist pl 
+        WHERE
+              pl.m_pricelist_id=(select m_pricelist_id from m_pricelist_version where m_pricelist_version_id=?)
+              AND p.isactive ='Y' 
+              AND 1=1
+              AND case when (? = 'en_US' or (select count(*) from ad_client where ad_client_id= ? and ismultilingualdocument='Y')=0) then 2=2 else 3=3 AND ptrl.ad_language=? end
+              AND p.AD_Client_ID IN ('1') 
+              AND p.AD_Org_ID IN ('1')
+              AND p.ispurchased in ('1')
+              AND p.issold in ('1') 
+              ANd coalesce(p.c_bpartner_id,'%')  like ?
+              and p.m_product_category_id like ?
+              and coalesce(p.theme,'%') like ?
+              and coalesce(p.customerproductno,'%') like ?
+              and coalesce(p.Width,0) between coalesce(to_number(?),0) and coalesce(to_number(?),99999999)
+              AND 5=5
+              and p.typeofproduct  like ?
+              AND 4=4                   
+        )  A 
+      ]]></Sql>
+        <Parameter name="language"/>
+        <Parameter name="priceListVersion"/>
+        <Parameter name="key" ignoreValue="%" optional="true" after="AND 1=1"><![CDATA[ AND UPPER(p.Value) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="language"/>
+        <Parameter name="adClientID"/>
+        <Parameter name="name" ignoreValue="%" optional="true" after="2=2"><![CDATA[ AND UPPER(p.Name) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="name" ignoreValue="%" optional="true" after="3=3"><![CDATA[ AND UPPER(ptrl.Name) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="language"/>
+        <Parameter name="adUserClient" type="replace" optional="true" after="p.AD_Client_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="p.AD_Org_ID IN (" text="'1'"/>
+        <Parameter name="isPurchase" type="replace" optional="true" after="p.ispurchased in (" text="'1'"/>
+        <Parameter name="isSold" type="replace" optional="true" after="p.issold in (" text="'1'"/>
+        <Parameter name="cBpartnerId"/>
+        <Parameter name="mProductCategoryId"/>
+        <Parameter name="Theme"/>
+        <Parameter name="Customerproductno"/>
+        <Parameter name="WidthFrom"/>
+        <Parameter name="WidthTo"/>
+        <Parameter name="vendorproductno" ignoreValue="%" optional="true" after="AND 5=5"><![CDATA[and p.m_product_id in (select m_product_id from m_product_po po where coalesce(po.vendorproductno,'%') like ?)]]></Parameter>
+        <Parameter name="TypeOfProduct"/>
+        <Parameter name="pgLimit" type="argument" optional="true" after="AND 4=4"><![CDATA[ LIMIT ]]></Parameter>
+   </SqlMethod>
+  
+   <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+   </SqlMethod>
+   
+</SqlClass>

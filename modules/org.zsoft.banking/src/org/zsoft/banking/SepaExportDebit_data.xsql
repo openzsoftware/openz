@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2014 Stefan Zimmermann All Rights Reserved.
+Contributor(s): MaHinrichs 07.2014 sepa: DD=direct debit / pain.008
+***************************************************************************************************************************************************
+-->
+<SqlClass name="SepaExportDebitData" package="org.zsoft.banking">
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+          SELECT 
+           '' AS zsfi_sepa_debit_data_id,
+           '' AS ad_client_id,
+           '' AS ad_org_id,
+           '' AS createdBy,
+           '' AS updatedBy,
+           '' AS c_bankaccount_id,
+           '' AS grphdr_msgid,
+           '' AS grphdr_credttm,
+           '' AS grphdr_initgpty_nm,
+           '' AS pmtinf_pmtinfid,
+           '' AS pmtinf_reqdcolltndt,
+           '' AS pmtinf_cdtracct_iban,
+           '' AS pmtinf_cdtragt_bic,
+           '' AS pmtinf_cdtrschmeid_id
+          FROM dual;	      
+      ]]>
+    </Sql>
+  </SqlMethod>
+  	
+  <SqlMethod name="insertHeader" type="preparedStatement" return="rowcount">
+    <SqlMethodComment>Insert header for sepa-collection pain.008</SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        INSERT INTO zsfi_sepa_debit_data (
+           zsfi_sepa_debit_data_id
+         , ad_client_id
+         , ad_org_id
+         , createdby
+         , updatedby
+         , c_bankaccount_id
+         , grphdr_MsgId
+         , pmtinf_PmtInfId
+         , pmtInf_ReqdColltnDt
+        ) VALUES (?,?,?,?,?,(select c_bankaccount_id from c_bankstatement WHERE c_bankstatement_id = ?),?,?,to_date(?))
+      ]]>
+     </Sql>
+    <Parameter name="sepaDebitDataId"/>
+    <Parameter name="adClientId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="bankStatementId"/>
+    <Parameter name="grphdrMsgId"/>
+    <Parameter name="pmtinfPmtInfId"/>
+    <Parameter name="pmtInfReqdColltnDt"/>
+  </SqlMethod>
+
+  <SqlMethod name="insertLines" type="preparedStatement" return="rowcount">
+    <SqlMethodComment>Insert data lines for sepa-debit pain.008.003.02</SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        INSERT INTO zsfi_sepa_debit_dataline(
+           zsfi_sepa_debit_data_id, ad_client_id, ad_org_id, createdby, updatedby
+         , c_bp_bankaccount_id
+         , drctdbttx_instdamt, seqtp, lclinstrm 
+         , drctdbttx_rmtinf_ustrd)            
+         SELECT 
+           ?, ?, ?, ?, ?
+         , zssi_getPartnerBankaccountFromDebtPayment(bsl.c_debt_payment_id, true)
+         , zssi_getPartnerLineTrxAmt(bsl.c_bankstatementline_id), 'RCUR', 'CORE'  
+         , zssi_getPartnerLineMemo(bsl.c_bankstatementline_id)
+         FROM c_bankstatementline bsl ,c_debt_payment d,c_invoice i  where bsl.c_debt_payment_id=d.c_debt_payment_id and i.c_invoice_id=d.c_invoice_id
+              AND bsl.isactive='Y' AND bsl.sepaexportenabled='Y' AND bsl.voidline='N' AND bsl.c_bankstatement_id=?
+              AND i.c_doctype_id not in ( 'A4277AD679DF4DD8A9C2BB9F3C2F2C92','3CD24CAE0D074B8FA9918178780D50FB')
+      ]]>
+    </Sql>
+    <Parameter name="sepaDataExportId" />
+    <Parameter name="createdby" />    
+    <Parameter name="updatedby" />    
+    <Parameter name="adUserId"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="cBankstatementId"/>
+  </SqlMethod>    
+  
+  <SqlMethod name="doProcessing" type="preparedStatement" connection="true" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT zsfi_sepa_export_debit(?) AS plresult FROM dual;
+    </Sql>
+    <Parameter name="sepaDataExportId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="attachFile" type="preparedStatement" connection="true" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT zsse_addattachmentfile('392',?,?,?,?,?,?) as plresult from dual;
+    </Sql>
+    <Parameter name="BankstatementId"/>
+    <Parameter name="UserId"/>
+    <Parameter name="ClientId"/>
+    <Parameter name="OrgId"/>
+    <Parameter name="Filename"/>
+    <Parameter name="Text"/>
+  </SqlMethod>
+  
+  <SqlMethod name="cSettlementSepaCollect" type="preparedStatement" return="String">
+    <SqlMethodComment>set c_bankstatement.sepacollectioniscreated = Y</SqlMethodComment>
+    <Sql>
+      select c_settlement_sepa_collect(?);
+    </Sql>
+    <Parameter name="BankstatementId"/>
+  </SqlMethod>
+     
+ </SqlClass>
+ 

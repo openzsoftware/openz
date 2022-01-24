@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2010 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+****************************************************************************************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="AccountData" package="org.openbravo.erpCommon.info">
+   <SqlClassComment></SqlClassComment>
+   <SqlMethod name="select" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      		SELECT * FROM ( SELECT '0' AS RN1, '' AS ID, '' AS NAME, A.* FROM (
+	            SELECT C.C_VALIDCOMBINATION_ID, C.ALIAS, C.COMBINATION, C.DESCRIPTION, 
+	            C.AD_ORG_ID, (O.VALUE || ' - ' || O.NAME) AS AD_ORG_ID_D, 
+	            s.c_acctschema_id as ACCOUNT_ID, S.NAME AS ACCOUNT_ID_D, 
+	            C.C_VALIDCOMBINATION_ID || '#' || C.COMBINATION AS ROWKEY
+	            FROM C_VALIDCOMBINATION C,c_acctschema s,
+	            AD_ORG O, C_ELEMENTVALUE E
+	            WHERE C.AD_ORG_ID = O.AD_ORG_ID 
+	            AND C.C_ACCTSCHEMA_ID = S.C_ACCTSCHEMA_ID and s.isactive='Y'
+	            AND C.ACCOUNT_ID = E.C_ELEMENTVALUE_ID 
+	            AND C.ISACTIVE = 'Y' 
+	            AND C.AD_Client_ID IN ('1') 
+	            AND C.AD_Org_ID IN ('1')
+	            ORDER BY C.ALIAS
+	        	) A ) B
+			WHERE 1=1
+      ]]></Sql>
+        <Parameter name="rownum" type="replace" optional="true" after="FROM ( SELECT " text="'0'" />
+        <Parameter name="acctschema" optional="true" after="WHERE "><![CDATA[ C.C_ACCTSCHEMA_ID = ? AND ]]></Parameter>
+        <Parameter name="alias" optional="true" after="WHERE "><![CDATA[ (C.ALIAS IS NULL  OR UPPER(C.ALIAS) LIKE UPPER(?)) AND ]]></Parameter>
+        <Parameter name="combination" ignoreValue="%" optional="true" after="WHERE "><![CDATA[ UPPER(C.COMBINATION) LIKE UPPER(?) AND ]]></Parameter>
+        <Parameter name="organization" optional="true" after="WHERE "><![CDATA[ C.AD_ORG_ID = ? AND ]]></Parameter>
+        <Parameter name="account" optional="true" after="WHERE "><![CDATA[ C.ACCOUNT_ID = ? AND ]]></Parameter>
+        <Parameter name="description" optional="true" after="WHERE "><![CDATA[ UPPER(C.DESCRIPTION) LIKE UPPER(?) AND  ]]></Parameter>
+        <Parameter name="validcombination" optional="true" after="WHERE "><![CDATA[ C.C_VALIDCOMBINATION_ID = ? AND ]]></Parameter>
+        <Parameter name="adUserClient" type="replace" optional="true" after="C.AD_Client_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="C.AD_Org_ID IN (" text="'1'"/>
+        <Parameter name="orderBy" type="replace" optional="true" after="ORDER BY " text="C.ALIAS" />
+        <Parameter name="pgLimit" type="argument" optional="true" after="WHERE 1=1"><![CDATA[LIMIT ]]></Parameter>
+   </SqlMethod>
+
+   <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+      <Parameter name="alias"/>
+      <Parameter name="combination"/>
+      <Parameter name="ACCOUNT_ID"/>
+   </SqlMethod>
+
+   <SqlMethod name="countRows" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      		SELECT COUNT(*) AS VALUE FROM ( SELECT '0' AS rn1, B.* FROM 
+                ( SELECT 1 FROM C_VALIDCOMBINATION C ,
+                     AD_ORG O, C_ELEMENTVALUE E
+	            WHERE C.AD_ORG_ID = O.AD_ORG_ID 
+	            AND C.ACCOUNT_ID = E.C_ELEMENTVALUE_ID 
+	            AND C.ISACTIVE = 'Y' 
+	            AND C.AD_Client_ID IN ('1') 
+	            AND C.AD_Org_ID IN ('1')
+	            AND 1=1
+	        ) B
+	        ) A 
+      ]]></Sql>
+       <Field name="position" value="count"/> 
+       <Parameter name="rownum" type="replace" optional="true" after="FROM ( SELECT " text="'0'" />
+         <Parameter name="acctschema" optional="true" after="WHERE "><![CDATA[ C.C_ACCTSCHEMA_ID = ? AND ]]></Parameter>
+        <Parameter name="alias" optional="true" after="WHERE "><![CDATA[ (C.ALIAS IS NULL  OR UPPER(C.ALIAS) LIKE UPPER(?)) AND ]]></Parameter>
+        <Parameter name="combination" ignoreValue="%" optional="true" after="WHERE "><![CDATA[ UPPER(C.COMBINATION) LIKE UPPER(?) AND ]]></Parameter>
+        <Parameter name="organization" optional="true" after="WHERE "><![CDATA[ C.AD_ORG_ID = ? AND ]]></Parameter>
+        <Parameter name="account" optional="true" after="WHERE "><![CDATA[ C.ACCOUNT_ID = ? AND ]]></Parameter>
+        <Parameter name="description" optional="true" after="WHERE "><![CDATA[ UPPER(C.DESCRIPTION) LIKE UPPER(?) AND  ]]></Parameter>
+        <Parameter name="validcombination" optional="true" after="WHERE "><![CDATA[ C.C_VALIDCOMBINATION_ID = ? AND ]]></Parameter>
+        <Parameter name="adUserClient" type="replace" optional="true" after="C.AD_Client_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="C.AD_Org_ID IN (" text="'1'"/>
+        <Parameter name="pgLimit" type="argument" optional="true" after="AND 1=1"><![CDATA[LIMIT ]]></Parameter>
+   </SqlMethod>
+
+   <SqlMethod name="selectKey" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT C.C_VALIDCOMBINATION_ID, C.ALIAS, C.COMBINATION, C.DESCRIPTION, 
+            C.AD_ORG_ID, (O.VALUE || ' - ' || O.NAME) AS AD_ORG_ID_D, 
+            C.ACCOUNT_ID, (E.VALUE || ' - ' || E.NAME) AS ACCOUNT_ID_D 
+            FROM C_VALIDCOMBINATION C ,
+            AD_ORG O, C_ELEMENTVALUE E
+            WHERE C.AD_ORG_ID = O.AD_ORG_ID 
+            AND C.ACCOUNT_ID = E.C_ELEMENTVALUE_ID 
+            AND C.ISACTIVE = 'Y' 
+            AND C.AD_Client_ID IN ('1') 
+            AND C.AD_Org_ID IN ('1') 
+            AND (C.ALIAS IS NULL 
+            OR UPPER(C.ALIAS) LIKE UPPER(?)) 
+      ]]></Sql>
+        <Parameter name="acctschema" optional="true" after="WHERE "><![CDATA[ C.C_ACCTSCHEMA_ID = ? AND ]]></Parameter>
+        <Parameter name="adUserClient" type="replace" optional="true" after="C.AD_Client_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="C.AD_Org_ID IN (" text="'1'"/>
+        <Parameter name="key"/>
+   </SqlMethod>
+
+   <SqlMethod name="combination" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT COMBINATION FROM C_VALIDCOMBINATION WHERE C_VALIDCOMBINATION_ID = ?
+      ]]></Sql>
+        <Parameter name="key"/>
+   </SqlMethod>
+   
+   <SqlMethod name="isCompleteCombination" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT case when count(*)=1 then 'Y' else 'N' end as ret FROM C_VALIDCOMBINATION WHERE COMBINATION = ?
+      ]]></Sql>
+        <Parameter name="key"/>
+   </SqlMethod>
+
+  
+  <SqlMethod name="selectElementValues" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    SELECT EV.C_acctschema_ID AS ID, EV.NAME, '' AS DESCRIPTION
+    FROM C_acctschema EV
+    WHERE EV.AD_Client_ID IN ('1')
+      AND EV.AD_Org_ID IN ('1')
+      AND EV.ISACTIVE = 'Y'
+    ORDER BY EV.name
+  </Sql>
+    <Parameter name="adUserClient" type="replace" optional="true" after="EV.AD_Client_ID IN (" text="'1'"/>
+    <Parameter name="adUserOrg" type="replace" optional="true" after="EV.AD_Org_ID IN (" text="'1'"/>
+  </SqlMethod>
+</SqlClass>

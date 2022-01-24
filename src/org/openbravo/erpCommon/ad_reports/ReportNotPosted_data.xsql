@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2009 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+<SqlClass name="ReportNotPostedData" package="org.openbravo.erpCommon.ad_reports">
+  <SqlClassComment>Clase ReportNotPostedData</SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Select for relation</SqlMethodComment>
+    <Sql>
+    <![CDATA[
+        select documentno, dateacct, name as description, GRANDTOTAL  as amount, document as doctype
+        from
+        (select ad_client_id, documentno, dateacct, ad_column_identifier('C_Bpartner',to_char(C_bpartner_id), TO_CHAR(?)) as name, GRANDTOTAL, coalesce(to_char((select printname from c_doctype_trl where c_doctype_id=c_invoice.c_doctype_id and ad_language=to_char(?) and ad_client_id=?)), 'Sales Invoices') as document
+        from c_invoice
+        where processed = 'Y'
+        and posted = 'N'
+        and issotrx = 'Y'
+        and docstatus <> 'VO'
+        and 'Y'=(select max(isactive) from c_acctschema_table where ad_table_id='318' and ad_client_id=?)
+        union
+        select ad_client_id, documentno, dateacct, ad_column_identifier('M_InOut',to_char(m_inout_id), TO_CHAR(?)) as name, 0 as GRANDTOTAL, coalesce(to_char((select printname from c_doctype_trl where c_doctype_id=m_inout.c_doctype_id and ad_language=to_char(?) and ad_client_id=?)), 'Goods Shipments') as document
+        from m_inout
+        where processed = 'Y'
+        and posted = 'N'
+        and issotrx = 'Y'
+        and 'Y'=(select max(isactive) from c_acctschema_table where ad_table_id='319' and ad_client_id=?)
+        union
+        select ad_client_id, documentno, dateacct, ad_column_identifier('M_InOut',to_char(m_inout_id), TO_CHAR(?)) as name, 0 as GRANDTOTAL, coalesce(to_char((select printname from c_doctype_trl where c_doctype_id=m_inout.c_doctype_id and ad_language=to_char(?) and ad_client_id=?)), 'Goods Receipts') as document
+        from m_inout
+        where processed = 'Y'
+        and posted = 'N'
+        and issotrx = 'N'
+        and 'Y'=(select max(isactive) from c_acctschema_table where ad_table_id='319' and ad_client_id=?)
+        union
+        select ad_client_id, documentno, dateacct, ad_column_identifier('C_Bpartner',to_char(C_bpartner_id), TO_CHAR(?)), GRANDTOTAL, coalesce(to_char((select printname from c_doctype_trl where c_doctype_id=c_invoice.c_doctype_id and ad_language=to_char(?) and ad_client_id=?)), 'Purchase Invoices') as document
+        from c_invoice
+        where processed = 'Y'
+        and posted = 'N'
+        and issotrx = 'N'
+        and docstatus <> 'VO'
+        and 'Y'=(select max(isactive) from c_acctschema_table where ad_table_id='318' and ad_client_id=?)
+        union
+        select ad_client_id, name, dateacct, ad_column_identifier('C_Cash',to_char(C_Cash_id), TO_CHAR(?)), c_cash.STATEMENTDIFFERENCE, coalesce(to_char((select printname from c_doctype_trl where c_doctype_id=(select min(c_doctype_id) from c_doctype where ad_client_id=? and docbasetype='CMC') and ad_language=to_char(?) and ad_client_id=?)), 'Cash Journal') as document
+        from C_Cash
+        where processed = 'Y'
+        and posted = 'N'
+        and 'Y'=(select max(isactive) from c_acctschema_table where ad_table_id='407' and ad_client_id=?)
+        union
+        select ad_client_id, name, statementdate, ad_column_identifier('C_Bankstatement',to_char(C_bankstatement_id), TO_CHAR(?)), STATEMENTDIFFERENCE, coalesce(to_char((select printname from c_doctype_trl where c_doctype_id=(select min(c_doctype_id) from c_doctype where ad_client_id=? and docbasetype='CMB') and ad_language=to_char(?) and ad_client_id=?)), 'Bank Statements') as document
+        from c_bankstatement
+        where processed = 'Y'
+        and posted = 'N'
+        and 'Y'=(select max(isactive) from c_acctschema_table where ad_table_id='392' and ad_client_id=?)
+        union
+        select ad_client_id, documentno, dateacct, ad_column_identifier('C_Settlement',to_char(C_Settlement_id), TO_CHAR(?)), generatedamt, coalesce(to_char((select printname from c_doctype_trl where c_doctype_id=s.c_doctype_id and ad_language=to_char(?) and ad_client_id=?)), 'Manual Settlements') as document
+        from c_Settlement s
+        where processed = 'Y'
+        and posted = 'N'
+        and settlementtype = 'I'
+        and 'Y'=(select max(isactive) from c_acctschema_table where ad_table_id='800019' and ad_client_id=?)
+        and exists (select 1
+                    from c_debt_payment p
+                    where p.c_settlement_generate_id = s.c_settlement_id
+                    and p.isdirectposting='Y')
+        union
+        select ad_client_id, documentno, dateacct, ad_column_identifier('C_Settlement',to_char(C_Settlement_id), TO_CHAR(?)), generatedamt, coalesce(to_char((select printname from c_doctype_trl where c_doctype_id=c_Settlement.c_doctype_id and ad_language=to_char(?) and ad_client_id=?)), 'Settlements') as document
+        from c_Settlement
+        where processed = 'Y'
+        and posted = 'N'
+        and settlementtype <> 'I'
+        and 'Y'=(select max(isactive) from c_acctschema_table where ad_table_id='800019' and ad_client_id=?)
+        union
+        select ad_client_id, documentno, dateacct, ad_column_identifier('GL_Journal',to_char(GL_Journal_id), TO_CHAR(?)), totaldr, coalesce(to_char((select printname from c_doctype_trl where c_doctype_id=GL_Journal.c_doctype_id and ad_language=to_char(?) and ad_client_id=?)), 'GL Journal') as document
+        from GL_Journal
+        where processed = 'Y'
+        and posted = 'N'
+        and 'Y'=(select max(isactive) from c_acctschema_table where ad_table_id='224' and ad_client_id=?)) AAA
+        where dateacct >= ?
+        and dateacct <= ?
+        and ad_client_id = ?
+        order by  document, dateacct, name
+      ]]></Sql>
+    <Parameter name="adLanguage"/>
+    <Parameter name="adLanguage"/>
+    <Parameter name="client"></Parameter>
+    <Parameter name="client"></Parameter>
+    <Parameter name="adLanguage"/>
+    <Parameter name="adLanguage"/>
+    <Parameter name="client"></Parameter>
+    <Parameter name="client"></Parameter>
+    <Parameter name="adLanguage"/>
+    <Parameter name="adLanguage"/>
+    <Parameter name="client"></Parameter>
+    <Parameter name="client"></Parameter>
+    <Parameter name="adLanguage"/>
+    <Parameter name="adLanguage"/>
+    <Parameter name="client"></Parameter>
+    <Parameter name="client"></Parameter>
+    <Parameter name="adLanguage"/>
+    <Parameter name="client"></Parameter>
+    <Parameter name="adLanguage"/>
+    <Parameter name="client"></Parameter>
+    <Parameter name="client"></Parameter>
+    <Parameter name="adLanguage"/>
+    <Parameter name="client"></Parameter>
+    <Parameter name="adLanguage"/>
+    <Parameter name="client"></Parameter>
+    <Parameter name="client"></Parameter>
+    <Parameter name="adLanguage"/>
+    <Parameter name="adLanguage"/>
+    <Parameter name="client"></Parameter>
+    <Parameter name="client"></Parameter>
+    <Parameter name="adLanguage"/>
+    <Parameter name="adLanguage"/>
+    <Parameter name="client"></Parameter>
+    <Parameter name="client"></Parameter>
+    <Parameter name="adLanguage"/>
+    <Parameter name="adLanguage"/>
+    <Parameter name="client"></Parameter>
+    <Parameter name="client"></Parameter>
+    <Parameter name="dateFrom"></Parameter>
+    <Parameter name="dateTo"></Parameter>
+    <Parameter name="client"></Parameter>
+  </SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment>Create a registry</SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+</SqlClass>

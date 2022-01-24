@@ -1,0 +1,19 @@
+<TD colspan="@NUMCOLS@" class="@CONTENTCELLCLASS@"  id="@FIELDNAME@tdx">
+       <TABLE cellpadding="0" cellspacing="0"  class="Celltable" id="@FIELDNAME@td">
+       <TR>
+       <TD>
+             <input class="@CLASS@" @REQUIREDTAG@ type="text" maxlength="@MAXLENGTH@" name="inp@FIELDNAME@" value="@CURRENTVALUE@" id="@FIELDNAME@" title="@TITLE@" saveformat="@TIMEFORMAT@" displayformat="@TIMEFORMAT@" @READONLY@ @JSSETTINGS@>
+             <SPAN onmouseover="this.style.display='none'; return false;" class="TextBox_MsgContainer_span" style="display: none;" id="@FIELDNAME@missingSpan">
+                <TABLE class="TextBox_MsgContainer_table">
+                  <TR class="TextBox_MsgContainer_tr">
+                    <TD class="TextBox_MsgContainer_td"><DIV class="TextBox_MsgContainer_div"></DIV></TD><TD></TD>
+                  </TR>
+                  <TR>
+                    <TD colspan="2" class="missing"><DIV class="TextBox_MsgContainer_div2" id="@FIELDNAME@missingSpanText" name="missingText">@REQUIREDMESSAGE@</DIV></TD>
+                  </TR>
+                </TABLE>
+             </SPAN>    
+      </TD>
+      </TR>
+      </TABLE>
+</TD>

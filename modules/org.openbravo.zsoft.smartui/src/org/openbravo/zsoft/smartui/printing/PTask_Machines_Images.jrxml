@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PTask_Machines" language="groovy" pageWidth="585" pageHeight="842" columnWidth="585" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="4b171723-0618-443d-bbac-d508717d231d">
+	<property name="ireport.zoom" value="2.357947691000003"/>
+	<property name="ireport.x" value="304"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="HUP"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<parameter name="C_PROJECT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="BASE_ATTACH" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select snr.serialnumber,
+(select $P{BASE_ATTACH}||'/'||ad_table_id||'-'||ad_record_id||'/'||c_file.name
+ from c_file where  lower(right(c_file.name,4)) in ('.jpg','.bmp','.gif','.png','.jpeg') and c_file.isactive='Y' and m_product.m_product_id=c_file.ad_record_id order by c_file.seqno limit 1)   as logo,
+coalesce(snr.model, zssi_getproductname(snr.m_product_id,$P{LANGUAGE})) as productname,
+zssi_getproductname(snr.m_product_id,$P{LANGUAGE}) as categoryname,
+case when snr.c_projecttask_id =mp.c_projecttask_id then 'Y' else 'N' end as isreceived,
+CASE when (case when snr.c_projecttask_id is null then 'N' else 'Y' end)='N' then '' else 'Y' end as status,
+zssi_getElementTextByColumname('needed',$P{LANGUAGE}) as h1,
+zssi_getElementTextByColumname('received',$P{LANGUAGE}) as h2,
+zssi_getElementTextByColumname('checked',$P{LANGUAGE}) as h3,
+zssi_getElementTextByColumname('back',$P{LANGUAGE}) as h4,
+CASE WHEN ($P{LANGUAGE}='de_DE') then 'St.' else 'Pc' end as uom
+from
+zspm_ptaskmachineplan mp,snr_masterdata snr left join m_product on snr.m_product_id=m_product.m_product_id ,ma_machine m
+where
+m.snr_masterdata_id=snr.snr_masterdata_id and mp.ma_machine_id=m.ma_machine_id and mp.c_projecttask_id = $P{C_PROJECT_ID} and
+mp.c_projecttask_id in ($P{C_PROJECT_ID})]]>
+	</queryString>
+	<field name="serialnumber" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="serialnumber"/>
+	</field>
+	<field name="logo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="logo"/>
+	</field>
+	<field name="productname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="productname"/>
+	</field>
+	<field name="categoryname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="categoryname"/>
+	</field>
+	<field name="isreceived" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="isreceived"/>
+	</field>
+	<field name="status" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="status"/>
+	</field>
+	<field name="h1" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="h1"/>
+	</field>
+	<field name="h2" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="h2"/>
+	</field>
+	<field name="h3" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="h3"/>
+	</field>
+	<field name="h4" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="h4"/>
+	</field>
+	<field name="uom" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="uom"/>
+	</field>
+	<variable name="SUMQTYPLAN" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMQTY" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNTPLAN" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNT" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<title>
+		<band height="13">
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="217" height="13" isPrintWhenDetailOverflows="true" uuid="952d6424-ade2-4104-a49b-81fbdfcd366b"/>
+				<textElement textAlignment="Left">
+					<font size="11" isBold="true"/>
+					<paragraph leftIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{categoryname}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="435" y="0" width="75" height="13" isPrintWhenDetailOverflows="true" uuid="6a53ab5f-9cfa-44f8-9080-d429ddc93d96"/>
+				<textElement textAlignment="Left">
+					<font size="11" isBold="true"/>
+					<paragraph leftIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{h3}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="39" splitType="Stretch">
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="13" y="0" width="155" height="39" isPrintWhenDetailOverflows="true" uuid="94b6ac63-8ea4-4e55-a31e-5598fad35f39"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="283" y="0" width="152" height="39" isPrintWhenDetailOverflows="true" uuid="bf39d690-e2cf-43ea-be80-a929e938471c"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{serialnumber}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="448" y="0" width="62" height="39" isPrintWhenDetailOverflows="true" uuid="3080ece8-6f36-4eb5-8a37-f3fbea8ef72e"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="435" y="0" width="13" height="39" isPrintWhenDetailOverflows="true" uuid="85b83d01-f8f9-43a1-8615-d5f5f1ae6719"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="12" height="39" uuid="444e559e-2fdc-459c-ad6a-d4b461e98a83"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<image scaleImage="RetainShape" hAlign="Center" vAlign="Top" isUsingCache="true" isLazy="true" onErrorType="Blank">
+				<reportElement key="image-1" x="167" y="0" width="116" height="39" uuid="392eda90-f8ba-4a02-ae38-2c29f0b7a762"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<imageExpression><![CDATA[$F{logo}]]></imageExpression>
+			</image>
+		</band>
+	</detail>
+</jasperReport>

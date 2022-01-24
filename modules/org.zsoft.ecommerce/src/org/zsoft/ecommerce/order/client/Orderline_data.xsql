@@ -1,0 +1,39 @@
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+<SqlClass name="OrderlineData" package="org.zsoft.ecommerce.order.client" accessModifier="public">
+    <SqlMethod name="select" type="preparedStatement" return="multiple">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+         <![CDATA[select l.c_orderline_id,l.c_order_id,
+                       coalesce(l.line,0) as line,
+                       l.datepromised,
+                       l.datedelivered,
+                       l.dateinvoiced,
+                       l.description,
+                       p.value as product,
+                       p.name as productname,
+                       p.upc as ean,
+                       (select name from c_uom where c_uom_id=p.c_uom_id) as uomname,
+                       (select x12de355 from c_uom where c_uom_id=p.c_uom_id) as uomcode,
+                       p.manufacturernumber,
+                       coalesce(l.qtyordered,0) as qtyordered,
+                       coalesce(l.qtydelivered,0) as qtydelivered,
+                       coalesce(l.qtyinvoiced,0) as qtyinvoiced,
+                       coalesce(l.priceactual,0) as priceactual,
+                       l.m_attributesetinstance_id
+                       from c_orderline l,m_product p 
+                       where p.m_product_id=l.m_product_id and l.c_order_id=?            
+               ]]>      
+         </Sql>
+        <Parameter name="OrderId"/>
+     </SqlMethod>
+</SqlClass>

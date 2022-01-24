@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+<SqlClass name="PreferencesData" package="org.openbravo.base.secureApp">
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT '' as Attribute, '' as Value, '' as AD_Window_ID 
+      FROM dual
+    </Sql>
+  </SqlMethod>
+  <SqlMethod name="selectAttributes" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT Attribute, Value, AD_Window_ID 
+        FROM AD_Preference 
+        WHERE AD_CLIENT_ID IN ('1') 
+        AND AD_ORG_ID IN ('1') 
+        AND ((AD_User_ID IS NULL AND isglobal='Y')  OR AD_User_ID=?)
+        AND IsActive='Y'  
+        ORDER BY Attribute, AD_Client_ID, AD_Org_ID, AD_User_ID
+      ]]></Sql>
+      <Parameter name="clientlist" optional="true" type="replace" after="WHERE AD_CLIENT_ID IN (" text="'1'"/>
+      <Parameter name="orglist" optional="true" type="replace" after="AND AD_ORG_ID IN (" text="'1'"/>
+      <Parameter name="adUserId"/>
+   </SqlMethod>
+   <SqlMethod name="selectRoleAttributes" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT p.Attribute, p.Value, p.AD_Window_ID 
+        FROM AD_Preference p, ad_preference_access pa
+        WHERE pa.AD_CLIENT_ID IN ('1') 
+        AND pa.AD_ORG_ID IN ('1') 
+        AND pa.IsActive='Y' 
+        AND p.IsActive='Y'
+        AND p.AD_Preference_id=pa.AD_Preference_id
+        AND pa.ad_role_id=?
+        ORDER BY p.Attribute, p.AD_Client_ID, p.AD_Org_ID
+      ]]></Sql>
+      <Parameter name="clientlist" optional="true" type="replace" after="WHERE pa.AD_CLIENT_ID IN (" text="'1'"/>
+      <Parameter name="orglist" optional="true" type="replace" after="AND pa.AD_ORG_ID IN (" text="'1'"/>
+      <Parameter name="adRoleId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="selectSessionExpiration" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        <![CDATA[
+          SELECT Sessionexpiration 
+          FROM AD_ROLE
+          WHERE AD_ROLE_ID = ? 
+        ]]>
+      </Sql>
+      <Parameter name="adRoleId"/>
+      </SqlMethod>
+   <SqlMethod name="initBWA" type="preparedStatement" return="String" connection="true" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        <![CDATA[
+          SELECT zsfi_bwainit(?,to_date(?),to_date(?),?)
+        ]]>
+      </Sql>
+      <Parameter name="bwaHeaderId"/>
+      <Parameter name="datefrom"/>
+      <Parameter name="dateto"/>
+      <Parameter name="adOrgId"/>
+      </SqlMethod>
+</SqlClass>

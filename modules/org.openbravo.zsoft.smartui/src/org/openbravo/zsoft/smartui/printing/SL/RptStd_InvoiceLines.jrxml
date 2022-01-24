@@ -1,0 +1,721 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.5.1.final using JasperReports Library version 6.5.1  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RptStd_InvoiceLines" language="groovy" pageWidth="388" pageHeight="802" columnWidth="388" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="fabc5b53-c424-4c0c-8060-3ff62d9702c6">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="8.0"/>
+	<property name="ireport.x" value="2390"/>
+	<property name="ireport.y" value="384"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="steuermann.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="Detail_Line">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Column_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#666666"/>
+	<parameter name="C_INVOICE_ID" class="java.lang.String"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_RptStd_TaxLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="START_PAGE_SUBREP" class="java.lang.Integer" isForPrompting="false"/>
+	<parameter name="LANGUAGE2" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select c_invoiceline.qtyinvoiced as qtyinvoiced,c_invoiceline.textposition,c_invoiceline.ispagebreak,
+       CASE WHEN C_INVOICELINE.isgrossprice='Y' THEN zssi_strNumber(C_INVOICELINE.linegrossamt,$P{LANGUAGE})
+       ELSE zssi_strNumber(C_INVOICELINE.LINENETAMT,$P{LANGUAGE})
+       END AS "linenetamt",
+       CASE WHEN C_INVOICELINE.isgrossprice='Y' THEN C_INVOICELINE.linegrossamt
+       ELSE C_INVOICELINE.LINENETAMT
+       END AS "numbernetamt",
+       zssi_strNumber(c_invoiceline.priceactual,$P{LANGUAGE}) as priceactual,
+       zssi_strNumber2(c_invoiceline.pricestd,$P{LANGUAGE}) as pricestd,
+       zssi_strNumber(c_invoiceline.linetaxamt,$P{LANGUAGE}) as taxtotal,
+       c_invoiceline.linetaxamt as numbertaxamt,
+       zssi_tinymce2jsreportsHTML(c_invoiceline.DESCRIPTION) as "DESCRIPTION",
+       c_invoiceline.line as line,
+       zssi_gettax(c_invoiceline.c_tax_id, $P{LANGUAGE}) as TAX,
+       C_CURRENCY.cursymbol,
+       zspr_getProductPrintoutText(c_invoiceline_id,$P{LANGUAGE},$P{LANGUAGE2}) as name,
+       zssi_getuom(c_invoiceline.c_uom_id, $P{LANGUAGE}) as uomid,
+       CASE WHEN C_INVOICELINE.isgrossprice='Y' THEN zssi_strNumber(c_invoice.grandtotal,$P{LANGUAGE})
+       ELSE zssi_strNumber(c_invoice.totallines,$P{LANGUAGE})
+       END AS "totallines",
+       zssi_strNumber(c_invoice.grandtotal,$P{LANGUAGE}) as grandtotal,
+       c_invoiceline.isgrossprice,
+       m_attributesetinstance.description as attribute,
+       count(zsfi_discount.zsfi_discount_id) as discountcounter,
+       zspr_printinfo.printcashdiscountinfo,
+       c_invoice.c_Doctypetarget_Id
+
+from c_invoiceline left join C_TAX on c_invoiceline.c_tax_id=c_tax.c_tax_id
+                   left join m_attributesetinstance on c_invoiceline.m_attributesetinstance_id=m_attributesetinstance.m_attributesetinstance_id
+                   left join m_product on c_invoiceline.m_product_id=m_product.m_product_id,
+     c_invoice     left join C_currency on c_invoice.c_currency_id=c_currency.c_currency_id
+                   left join zsfi_discount on c_invoice.c_paymentterm_id=zsfi_discount.c_paymentterm_id
+                   left join zspr_printinfo on c_invoice.ad_org_id=zspr_printinfo.ad_org_id
+
+where c_invoiceline.c_invoice_id=($P{C_INVOICE_ID})
+AND   c_invoiceline.c_invoice_id=c_invoice.c_invoice_id
+group by qtyinvoiced, C_INVOICELINE.isgrossprice, C_INVOICELINE.linegrossamt, C_INVOICELINE.LINENETAMT, priceactual, pricestd, taxtotal,
+numbertaxamt, "DESCRIPTION", c_invoiceline.line, TAX, C_CURRENCY.cursymbol, m_product.m_product_id, c_invoice.ad_org_id, c_invoice.c_bpartner_id,
+c_invoiceline.c_uom_id, c_invoice.totallines, grandtotal, attribute, zspr_printinfo.printcashdiscountinfo, c_invoiceline.c_invoiceline_id,c_invoice.c_Doctypetarget_Id
+order by c_invoiceline.line]]>
+	</queryString>
+	<field name="qtyinvoiced" class="java.math.BigDecimal"/>
+	<field name="textposition" class="java.lang.String"/>
+	<field name="ispagebreak" class="java.lang.String"/>
+	<field name="linenetamt" class="java.lang.String"/>
+	<field name="numbernetamt" class="java.math.BigDecimal"/>
+	<field name="priceactual" class="java.lang.String"/>
+	<field name="pricestd" class="java.lang.String"/>
+	<field name="taxtotal" class="java.lang.String"/>
+	<field name="numbertaxamt" class="java.math.BigDecimal"/>
+	<field name="DESCRIPTION" class="java.lang.String"/>
+	<field name="line" class="java.math.BigDecimal"/>
+	<field name="tax" class="java.lang.String"/>
+	<field name="cursymbol" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="uomid" class="java.lang.String"/>
+	<field name="totallines" class="java.lang.String"/>
+	<field name="grandtotal" class="java.lang.String"/>
+	<field name="isgrossprice" class="java.lang.String"/>
+	<field name="attribute" class="java.lang.String"/>
+	<field name="discountcounter" class="java.lang.Long"/>
+	<field name="printcashdiscountinfo" class="java.lang.String"/>
+	<field name="c_doctypetarget_id" class="java.lang.String"/>
+	<variable name="SUM_LINENETAMT" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{numbernetamt}]]></variableExpression>
+	</variable>
+	<variable name="SUM_LINETAXAMT" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{numbertaxamt}]]></variableExpression>
+	</variable>
+	<group name="Total" isStartNewPage="true">
+		<groupExpression><![CDATA[]]></groupExpression>
+		<groupHeader>
+			<band splitType="Stretch"/>
+		</groupHeader>
+		<groupFooter>
+			<band height="64" splitType="Stretch">
+				<staticText>
+					<reportElement key="staticText-5" x="123" y="1" width="183" height="16" uuid="c703973c-2877-4456-b541-5cf6ee40eef9">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<box leftPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None">
+						<font size="9" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Positions Total:]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement key="textField-25" x="305" y="1" width="76" height="16" uuid="e99479de-89a9-4094-a98d-a4df6deeee04"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.0" lineColor="#000000"/>
+						<topPen lineWidth="0.0" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineColor="#000000"/>
+						<bottomPen lineWidth="0.25" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="OpenZ Sans" size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+						<paragraph rightIndent="4"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{totallines}+" "+$F{cursymbol}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="false">
+					<reportElement key="textField-26" x="381" y="1" width="6" height="16" uuid="bb8acfa3-5a5f-4463-af04-2971fb27a9ed"/>
+					<box>
+						<pen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement key="line-4" x="0" y="-1" width="388" height="1" uuid="8b63e4f2-45ae-4998-9a74-e2cb3eb9e855">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+				</line>
+				<staticText>
+					<reportElement key="staticText-8" positionType="Float" x="123" y="32" width="183" height="16" uuid="fcffb2b2-375e-46a7-9942-1010e09a9908"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.0" lineStyle="Double" lineColor="#000000"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Double" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Double" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font isBold="true" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Grand Total:]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement key="textField-31" positionType="Float" x="305" y="32" width="76" height="16" uuid="c1ee424d-4ebc-4289-94bd-f21d371fbdcf"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.0" lineStyle="Double"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Double"/>
+						<bottomPen lineWidth="1.0" lineStyle="Double" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Double" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9" isBold="true" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+						<paragraph rightIndent="4"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{grandtotal}+" "+$F{cursymbol}]]></textFieldExpression>
+				</textField>
+				<subreport isUsingCache="true">
+					<reportElement key="subreport-1" positionType="Float" x="1" y="16" width="387" height="16" uuid="1f8bf75c-3ae9-42e2-ac35-e9f9dc8c83da">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<subreportParameter name="DOCUMENT_ID">
+						<subreportParameterExpression><![CDATA[$P{C_INVOICE_ID}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="NUMBERFORMAT">
+						<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LOCALE">
+						<subreportParameterExpression><![CDATA[$P{LOCALE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LANGUAGE">
+						<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="BASE_DESIGN">
+						<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LANGUAGE2">
+						<subreportParameterExpression><![CDATA[$P{LANGUAGE2}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[/*"C:/Users/Frank/Documents/OBproject/Reports/RptStd_TaxLines.jasper"*/
+$P{BASE_DESIGN} + "/org/openbravo/zsoft/smartui/printing/SL/RptStd_TaxLines.jasper"]]></subreportExpression>
+				</subreport>
+				<subreport isUsingCache="true">
+					<reportElement key="subreport-2" positionType="Float" x="0" y="48" width="387" height="16" uuid="4d535160-3b2e-4f99-9071-6a72901dd9ec">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<printWhenExpression><![CDATA[($F{discountcounter}.intValue()!=0 && $F{printcashdiscountinfo}.equals("Y")) &&  !$F{c_doctypetarget_id}.equals("A4277AD679DF4DD8A9C2BB9F3C2F2C92")]]></printWhenExpression>
+					</reportElement>
+					<subreportParameter name="DOCUMENT_ID">
+						<subreportParameterExpression><![CDATA[$P{C_INVOICE_ID}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="NUMBERFORMAT">
+						<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LOCALE">
+						<subreportParameterExpression><![CDATA[$P{LOCALE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LANGUAGE">
+						<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="BASE_DESIGN">
+						<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LANGUAGE2">
+						<subreportParameterExpression><![CDATA[$P{LANGUAGE2}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[/*"C:/Users/Frank/Documents/OBproject/Reports/RptStd_TaxLines.jasper"*/
+$P{BASE_DESIGN} + "/org/openbravo/zsoft/smartui/printing/SL/RptStd_DiscountLines.jasper"]]></subreportExpression>
+				</subreport>
+				<textField isBlankWhenNull="false">
+					<reportElement key="textField-32" positionType="Float" x="381" y="32" width="6" height="16" uuid="7ecffa35-fd5e-45c8-a6cb-90a5b06a5ae7"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.0" lineStyle="Double" lineColor="#000000"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Double" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Double" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="9" isBold="true" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="16" splitType="Stretch">
+			<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField-27" x="305" y="0" width="82" height="16" uuid="5203777e-edc4-4e73-a5f6-ef6b04f65ba0">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{LANGUAGE}.equals("en_US")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue()).replace(",", "x").replace(".", ",").replace("x", "."):$P{LANGUAGE}.equals("de_DE")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue())+" "+$F{cursymbol}:$V{SUM_LINENETAMT}+" "+$F{cursymbol}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-28" x="373" y="0" width="14" height="16" uuid="f5176c0e-5b86-4db7-bf85-ec1822e3ea8f">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-9" x="299" y="0" width="6" height="16" uuid="f0c10173-4d78-4dfb-92d8-b42281ebccc0">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-18" x="165" y="0" width="124" height="16" uuid="561d2708-5a2c-45df-aaa9-c1214e03cf03"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Transfer Page]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-46" x="289" y="0" width="10" height="16" uuid="895d2518-6f4c-4a5e-9642-dc8fcae9ae82"/>
+				<box leftPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.lang.Integer($V{PAGE_NUMBER}.intValue() + $P{START_PAGE_SUBREP}.intValue() - 2)]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="17" splitType="Stretch">
+			<staticText>
+				<reportElement key="staticText-10" style="Column_Header" mode="Opaque" x="26" y="0" width="45" height="17" forecolor="#FFFFFF" backcolor="#666666" uuid="f040d9f5-103f-449a-81a3-2e004515c7e2">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box topPadding="2" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Mg.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-11" style="Column_Header" x="71" y="0" width="30" height="17" forecolor="#FFFFFF" uuid="64785794-c9c8-4aaa-8420-490b399bb739">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box topPadding="2" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Unit]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-12" style="Column_Header" mode="Opaque" x="101" y="0" width="158" height="17" forecolor="#FFFFFF" uuid="6999195c-5982-46f7-8faf-d699d596cd70">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box topPadding="2" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Product]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-16" style="Column_Header" x="259" y="0" width="58" height="17" forecolor="#FFFFFF" uuid="a98ba769-3aad-43b7-a7fd-5339424060e9"/>
+				<box topPadding="2" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isBold="true" isItalic="false" isUnderline="true" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[E-Preis]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-19" style="Column_Header" x="317" y="0" width="70" height="17" forecolor="#FFFFFF" uuid="aecf5783-8082-4688-b86d-6a3d8f194b55">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isgrossprice}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box topPadding="2" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Gross-Total]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-14" style="Column_Header" x="317" y="0" width="70" height="17" forecolor="#FFFFFF" uuid="f9ee0a35-609f-46cd-893e-e5207e09a3f5">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isgrossprice}.matches("N"))]]></printWhenExpression>
+				</reportElement>
+				<box topPadding="2" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[G-Preis]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-17" style="Column_Header" mode="Opaque" x="0" y="0" width="26" height="17" forecolor="#FFFFFF" backcolor="#666666" uuid="5c53e39a-e20e-4ce7-87e2-ea5d467cfcf6"/>
+				<box topPadding="2" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="7" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Pos.]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="11" splitType="Stretch">
+			<printWhenExpression><![CDATA[new java.lang.Boolean($F{textposition} != null)]]></printWhenExpression>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="0" y="0" width="388" height="11" uuid="c0dc97eb-755c-4667-aaa0-20d5fd299dd8">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{textposition}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="19">
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement key="textField-34" stretchType="RelativeToTallestObject" x="101" y="0" width="158" height="19" forecolor="#000000" uuid="121371ae-dd6a-4282-91a2-f744ca242818">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="false" isItalic="true" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{name}+ (($F{DESCRIPTION} == null) ? "" : $F{DESCRIPTION})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement key="textField-35" stretchType="RelativeToTallestObject" x="381" y="0" width="6" height="19" uuid="1a778601-5574-4bd3-b569-6283be42bfd1"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-37" stretchType="RelativeToTallestObject" x="259" y="0" width="52" height="19" uuid="7c81a963-2919-4f35-ba66-7a5ff073c768"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isItalic="true" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{priceactual}+" "+$F{cursymbol}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement key="textField-35" stretchType="RelativeToTallestObject" x="311" y="0" width="6" height="19" uuid="02d60b09-5e31-4116-b5ae-28e5f86d0c69"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-40" stretchType="RelativeToTallestObject" x="71" y="0" width="30" height="19" uuid="1b51d4ba-4188-4569-8f5b-458528cd7157">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="4">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isItalic="true" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{uomid}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-42" stretchType="RelativeToTallestObject" x="317" y="0" width="64" height="19" uuid="9f65d177-b8e8-47ac-9d0d-a8f02eb8674c"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isItalic="true" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<paragraph rightIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{linenetamt}+" "+$F{cursymbol}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###" isBlankWhenNull="true">
+				<reportElement key="textField-39" stretchType="RelativeToTallestObject" x="26" y="0" width="45" height="19" uuid="1ea070aa-4b6e-41e2-8722-56e60dcf05b9">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="4">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isItalic="true" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qtyinvoiced}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
+				<reportElement key="textField-45" stretchType="RelativeToTallestObject" x="0" y="0" width="26" height="19" uuid="13236733-caca-4825-ba61-4dd6b8fa0009"/>
+				<box leftPadding="2" rightPadding="4">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isItalic="true" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{line}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
+				<reportElement key="Borderpos" stretchType="RelativeToTallestObject" x="0" y="0" width="26" height="19" isPrintWhenDetailOverflows="true" uuid="e521403b-c9a9-4664-8217-df6712c2e339"/>
+				<box leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement key="Borderqty" stretchType="RelativeToTallestObject" x="26" y="0" width="45" height="19" isPrintWhenDetailOverflows="true" uuid="472fb85d-8031-4d38-94da-b8e8b164067c">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="Borderuom" stretchType="RelativeToTallestObject" x="71" y="0" width="30" height="19" isPrintWhenDetailOverflows="true" uuid="d2d46f41-c20a-4636-98a1-c5fb83c8a94b">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement key="Borderdesc" stretchType="RelativeToTallestObject" x="101" y="0" width="158" height="19" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="52b9f081-f614-48e4-a631-11e3cf2ac4cb">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="Borderpric" stretchType="RelativeToTallestObject" x="259" y="0" width="58" height="19" isPrintWhenDetailOverflows="true" uuid="b646a83d-36ba-4957-8c4e-ddd545d87e0b"/>
+				<box leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="Bordergross" stretchType="RelativeToTallestObject" x="317" y="0" width="70" height="19" isPrintWhenDetailOverflows="true" uuid="81e49ab0-72f3-42da-bb78-cca4ea59dc84"/>
+				<box leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+			</textField>
+			<break>
+				<reportElement x="0" y="0" width="100" height="1" uuid="f6844a55-9a01-4d00-a5cf-86013e768840">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{ispagebreak}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+			</break>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="16" splitType="Stretch">
+			<line>
+				<reportElement key="line-1" x="0" y="0" width="388" height="1" uuid="bd981ff5-2175-4b95-8e40-9c5493de757e">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+			</line>
+			<staticText>
+				<reportElement key="staticText-1" x="166" y="0" width="140" height="16" uuid="0b490a04-d154-459b-9a8e-04e22c800e63"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Transfer:]]></text>
+			</staticText>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField-8" x="306" y="0" width="82" height="16" uuid="d3b661ea-62ba-482f-b842-cfdfc772609c"/>
+				<box leftPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{LANGUAGE}.equals("en_US")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue()).replace(",", "x").replace(".", ",").replace("x", "."):$P{LANGUAGE}.equals("de_DE")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue())+" "+$F{cursymbol}:$V{SUM_LINENETAMT}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-9" x="374" y="0" width="14" height="16" uuid="0bef28bd-41a4-4735-8a88-86dedb99d596"/>
+				<box>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="1" splitType="Stretch"/>
+	</lastPageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

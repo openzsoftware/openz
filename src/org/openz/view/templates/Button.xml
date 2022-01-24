@@ -1,0 +1,28 @@
+<td colspan="@NUMCOLS@" class="Button_LeftAlign_ContentCell" id="@NAME@tdx">
+       <div id="@NAME@td">
+            <button type="button" 
+                  id="@NAME@" 
+                  class="ButtonLink" 
+                  @DISABLED@
+                  onclick="@ACTION@;return false;" 
+                  onfocus="buttonEvent('onfocus', this); window.status='@NAME@'; return true;" 
+                  onblur="buttonEvent('onblur', this);" 
+                  onchange="displayLogic(); return true;"
+                  onkeyup="buttonEvent('onkeyup', this);" 
+                  onkeydown="buttonEvent('onkeydown', this);" 
+                  onkeypress="buttonEvent('onkeypress', this);" 
+                  onmouseup="buttonEvent('onmouseup', this);" 
+                  onmousedown="buttonEvent('onmousedown', this);" 
+                  onmouseover="buttonEvent('onmouseover', this); window.status='@NAME@'; return true;" 
+                  onmouseout="buttonEvent('onmouseout', this);"
+                  title="@TITLE@">
+                  <table class="Button">
+                    <tr>
+                      <td class="Button_left@STYLE@"><img class="Button_Icon Button_Icon_@FLAVOUR@" alt="@NAME@" title="@NAME@" src="../web/images/blank.gif" border="0" /></td>
+                      <td nowrap class="Button_text@STYLE@ Button_width">@TEXT@</td>
+                      <td class="Button_right@STYLE@"></td>
+                    </tr>
+                  </table>
+            </button>
+       </div>
+</td>

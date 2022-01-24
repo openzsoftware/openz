@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2010 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2014 Stefan Zimmermann
+****************************************************************************************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="ProductData" package="org.openbravo.erpCommon.info">
+   <SqlClassComment></SqlClassComment>
+   <SqlMethod name="select" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+       SELECT A.*,
+        PriceStd-PriceLimit AS Margin
+      FROM (
+        SELECT p.M_Product_ID, p.Discontinued, p.Value, 
+        coalesce(ptrl.name,p.Name)  as name, 
+        M_BOM_PriceList(p.M_Product_ID, ?) AS PriceList,
+        M_BOM_PriceStd(p.M_Product_ID, ?) AS PriceStd, 
+        M_BOM_PriceLimit(p.M_Product_ID, ?) AS PriceLimit,
+        M_BOM_Qty_OnHand(p.M_Product_ID,?, NULL) AS QtyOnHand, 
+        m_qty_inflow(p.M_Product_ID,?) AS qtyinflow, 
+        m_qty_outflow(p.M_Product_ID,?) AS qtyoutflow,
+        m_qty_avail(p.M_Product_ID,?) AS QtyAvailable, 
+        p.C_UOM_ID, pl.C_Currency_ID,
+        ? as m_pricelist_version_id, 'AUX1' as auxfield1,'AUX2' as auxfield2,'AUX3' as auxfield3,'AUX4' as auxfield4
+        FROM M_Product p left join m_product_trl ptrl on ptrl.m_product_id=p.m_product_id and ptrl.ad_language=?,
+        m_pricelist pl , m_product_category cat 
+        WHERE cat.m_product_category_id=p.m_product_category_id and
+              pl.m_pricelist_id=(select m_pricelist_id from m_pricelist_version where m_pricelist_version_id=?)
+              AND p.isactive ='Y' 
+              AND 1=1
+              AND 3=3
+              AND p.AD_Client_ID IN ('1') 
+              AND p.AD_Org_ID IN ('1')
+              AND p.ispurchased in ('1')
+              AND p.issold in ('1') 
+              AND case when ? = '%' then 1=1 else ? in (select c_bpartner_id from m_product_po where isactive='Y' and iscurrentvendor='Y' and m_product_id=p.m_product_id) end
+              and p.m_product_category_id like ?
+              and case when ? = 'N' then not exists (select 0 from snr_masterdata snr,ma_machine ma where ma.snr_masterdata_id=snr.snr_masterdata_id and snr.m_product_id=p.m_product_id) else 6=6 end
+              AND 5=5
+              and p.typeofproduct  like ?
+              AND (cat.isselectableinproduction = 'Y' or (select count(*) from  ad_window w where w.ad_window_id = ?    and ad_module_id  in ('19A7FD2B075F48B2B52ADBEDC581770C','9D31DE7CE403417AA30579195A455E02') )=0)
+              and p.m_product_category_id in ('1')
+              AND 4=4 and 6=6
+              AND 7=7 and 6=6
+              AND 8=8 and 6=6
+              AND 9=9 and 6=6
+              AND 11=11   
+        ) A ORDER BY Value
+      ]]></Sql>
+        <Field name="position" value="count"/>
+        <Field name="rowKey" value="void" />
+        <Parameter name="priceListVersion"/>
+        <Parameter name="priceListVersion"/>
+        <Parameter name="priceListVersion"/>
+        <Parameter name="warehouse"/>
+        <Parameter name="warehouse"/>
+        <Parameter name="warehouse"/>
+        <Parameter name="warehouse"/>        
+        <Parameter name="priceListVersion"/>
+        <Parameter name="auxfield1" type="replace"  optional="true" after="m_pricelist_version_id, " text="'AUX1'"/>
+        <Parameter name="auxfield2" type="replace"  optional="true" after=" as auxfield1," text="'AUX2'"/>
+        <Parameter name="auxfield3" type="replace"  optional="true" after=" as auxfield2," text="'AUX3'"/>
+        <Parameter name="auxfield4" type="replace"  optional="true" after=" as auxfield3," text="'AUX4'"/>
+        <Parameter name="language"/>
+        <Parameter name="priceListVersion"/>
+        <Parameter name="key" ignoreValue="%" optional="true" after="AND 1=1"><![CDATA[ AND UPPER(p.Value) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="name" ignoreValue="%" optional="true" after="AND 3=3"><![CDATA[AND COALESCE(UPPER(ptrl.Name),UPPER(p.Name)) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="adUserClient" type="replace" optional="true" after="p.AD_Client_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="p.AD_Org_ID IN (" text="'1'"/>
+        <Parameter name="isPurchase" type="replace" optional="true" after="p.ispurchased in (" text="'1'"/>
+        <Parameter name="isSold" type="replace" optional="true" after="p.issold in (" text="'1'"/>
+        <Parameter name="cBpartnerId"/>
+        <Parameter name="cBpartnerId"/>
+        <Parameter name="mProductCategoryId"/>
+        <Parameter name="selectMachines"/>
+        <Parameter name="vendorproductno" ignoreValue="%" optional="true" after="AND 5=5"><![CDATA[and p.m_product_id in (select m_product_id from m_product_po po where coalesce(po.vendorproductno,'%') like ?)]]></Parameter>
+        <Parameter name="TypeOfProduct"/>
+        <Parameter name="WindwID"/>
+        <Parameter name="userRoleProductcategories" type="replace" optional="true" after="p.m_product_category_id in (" text="'1'"/>
+        <Parameter name="auxfilter1" type="replace" optional="true" after="AND 4=4 " text="and 6=6"/>
+        <Parameter name="auxfilter2" type="replace" optional="true" after="AND 7=7 " text="and 6=6"/>
+        <Parameter name="auxfilter3" type="replace" optional="true" after="AND 8=8 " text="and 6=6"/>
+        <Parameter name="auxfilter4" type="replace" optional="true" after="AND 9=9 " text="and 6=6"/>
+        <Parameter name="pgLimit" type="argument" optional="true" after="AND 11=11"><![CDATA[ LIMIT ]]></Parameter>
+        <Parameter name="orderBy" type="replace" optional="true" after="A ORDER BY " text="Value" />
+   </SqlMethod>
+
+   <SqlMethod name="countRows" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT count(*) AS value FROM (
+        select p.m_product_id FROM M_Product p left join m_product_trl ptrl on ptrl.m_product_id=p.m_product_id and ptrl.ad_language=?, 
+        m_pricelist pl , m_product_category cat 
+        WHERE cat.m_product_category_id=p.m_product_category_id and
+              pl.m_pricelist_id=(select m_pricelist_id from m_pricelist_version where m_pricelist_version_id=?)
+              AND p.isactive ='Y' 
+              AND 1=1
+              AND 3=3
+              AND p.AD_Client_ID IN ('1') 
+              AND p.AD_Org_ID IN ('1')
+              AND p.ispurchased in ('1')
+              AND p.issold in ('1') 
+              AND case when ? = '%' then 1=1 else ? in (select c_bpartner_id from m_product_po where isactive='Y' and iscurrentvendor='Y' and m_product_id=p.m_product_id) end
+              and p.m_product_category_id like ?
+              and case when ? = 'N' then not exists (select 0 from snr_masterdata snr,ma_machine ma where ma.snr_masterdata_id=snr.snr_masterdata_id and snr.m_product_id=p.m_product_id) else 6=6 end
+              AND 5=5
+              and p.typeofproduct  like ?
+              AND (cat.isselectableinproduction = 'Y' or (select count(*) from  ad_window w where w.ad_window_id = ?    and ad_module_id  in ('19A7FD2B075F48B2B52ADBEDC581770C','9D31DE7CE403417AA30579195A455E02') )=0)
+              and p.m_product_category_id in ('1')
+              AND 4=4 and 6=6
+              AND 7=7 and 6=6
+              AND 8=8 and 6=6
+              AND 9=9 and 6=6
+              AND 10=10      
+        )  A 
+      ]]></Sql>
+        <Parameter name="language"/>
+        <Parameter name="priceListVersion"/>
+        <Parameter name="key" ignoreValue="%" optional="true" after="AND 1=1"><![CDATA[ AND UPPER(p.Value) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="name" ignoreValue="%" optional="true" after="AND 3=3"><![CDATA[ AND COALESCE(UPPER(ptrl.Name),UPPER(p.Name)) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="adUserClient" type="replace" optional="true" after="p.AD_Client_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="p.AD_Org_ID IN (" text="'1'"/>
+        <Parameter name="isPurchase" type="replace" optional="true" after="p.ispurchased in (" text="'1'"/>
+        <Parameter name="isSold" type="replace" optional="true" after="p.issold in (" text="'1'"/>
+        <Parameter name="cBpartnerId"/>
+        <Parameter name="cBpartnerId"/>
+        <Parameter name="mProductCategoryId"/>
+        <Parameter name="selectMachines"/>
+        <Parameter name="vendorproductno" ignoreValue="%" optional="true" after="AND 5=5"><![CDATA[and p.m_product_id in (select m_product_id from m_product_po po where coalesce(po.vendorproductno,'%') like ?)]]></Parameter>
+        <Parameter name="TypeOfProduct"/>
+        <Parameter name="WindwID"/>
+        <Parameter name="userRoleProductcategories" type="replace" optional="true" after="p.m_product_category_id in (" text="'1'"/>
+        <Parameter name="auxfilter1" type="replace" optional="true" after="AND 4=4 " text="and 6=6"/>
+        <Parameter name="auxfilter2" type="replace" optional="true" after="AND 7=7 " text="and 6=6"/>
+        <Parameter name="auxfilter3" type="replace" optional="true" after="AND 8=8 " text="and 6=6"/>
+        <Parameter name="auxfilter4" type="replace" optional="true" after="AND 9=9 " text="and 6=6"/>
+        <Parameter name="pgLimit" type="argument" optional="true" after="AND 10=10"><![CDATA[ LIMIT ]]></Parameter>
+   </SqlMethod>
+  
+   <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+   </SqlMethod>
+
+   
+   <SqlMethod name="selectpartner" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT A.*,
+        PriceStd-PriceLimit AS Margin
+      FROM (
+      select f.p_Product_ID as M_Product_ID, p.Discontinued, p.value,
+             coalesce(ptrl.name,p.Name)  as name,
+             max(f.p_PriceList) as PriceList,max(f.p_PriceStd) as PriceStd,max(f.p_PriceLimit) as PriceLimit,
+             M_BOM_Qty_OnHand(f.p_Product_ID,?, NULL) AS QtyOnHand, 
+            coalesce(SUM(ohq.qtyinflow),0) AS qtyinflow, 
+            coalesce(SUM(ohq.qtyoutflow),0) AS qtyoutflow,
+            coalesce(SUM(qtyonhand)-SUM(qtyoutflow),0) AS QtyAvailable, 
+            p.C_UOM_ID, pl.C_Currency_ID,
+            ? as m_pricelist_version_id, 'AUX1' as auxfield1,'AUX2' as auxfield2,'AUX3' as auxfield3,'AUX4' as auxfield4
+            FROM m_offerpartnerproducts(?,?) f,
+                 M_Product p left join m_product_trl ptrl on ptrl.m_product_id=p.m_product_id and ptrl.ad_language=?
+                            left join zssi_onhanqty ohq on ohq.m_warehouse_id = ? and ohq.M_Product_id=p.m_product_id, 
+                 m_pricelist pl , m_product_category cat 
+        WHERE cat.m_product_category_id=p.m_product_category_id and f.p_Product_ID=p.M_Product_ID
+                  AND pl.m_pricelist_id=(select m_pricelist_id from m_pricelist_version where m_pricelist_version_id=?)
+                  AND p.isactive ='Y' 
+                  AND 1=1
+                  AND 3=3
+                  AND p.AD_Client_ID IN ('1') 
+                  AND p.AD_Org_ID IN ('1')
+                  AND p.issold='Y'
+                  and p.m_product_category_id like ?
+                  AND 5=5
+                  and p.typeofproduct  like ?
+                  AND (cat.isselectableinproduction = 'Y' or (select count(*) from  ad_window w where w.ad_window_id = ?    and ad_module_id  in ('19A7FD2B075F48B2B52ADBEDC581770C','9D31DE7CE403417AA30579195A455E02') )=0)
+                  and p.m_product_category_id in ('1')
+                  AND 4=4 and 6=6
+	              AND 7=7 and 6=6
+	              AND 8=8 and 6=6
+	              AND 9=9 and 6=6   
+                  GROUP BY f.p_Product_ID,p.m_Product_ID, p.Discontinued, p.Value,p.name,ptrl.name,p.C_UOM_ID, pl.C_Currency_ID   
+            ) A ORDER BY Value
+      ]]></Sql>
+        <Field name="position" value="count"/>
+        <Field name="rowKey" value="void" />
+        <Parameter name="warehouse"/>
+        <Parameter name="priceListVersion"/>
+        <Parameter name="auxfield1" type="replace"  optional="true" after="m_pricelist_version_id, " text="'AUX1'"/>
+        <Parameter name="auxfield2" type="replace"  optional="true" after=" as auxfield1," text="'AUX2'"/>
+        <Parameter name="auxfield3" type="replace"  optional="true" after=" as auxfield2," text="'AUX3'"/>
+        <Parameter name="auxfield4" type="replace"  optional="true" after=" as auxfield3," text="'AUX4'"/>
+        <Parameter name="bpartnerID"/>
+        <Parameter name="priceListVersion"/>
+        <Parameter name="language"/>
+        <Parameter name="warehouse"/>
+        <Parameter name="priceListVersion"/>
+        <Parameter name="key" ignoreValue="%" optional="true" after="AND 1=1"><![CDATA[ AND UPPER(p.Value) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="name" ignoreValue="%" optional="true" after="AND 3=3"><![CDATA[ AND COALESCE(UPPER(ptrl.Name),UPPER(p.Name)) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="adUserClient" type="replace" optional="true" after="p.AD_Client_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="p.AD_Org_ID IN (" text="'1'"/>
+        <Parameter name="mProductCategoryId"/>
+        <Parameter name="vendorproductno" ignoreValue="%" optional="true" after="AND 5=5"><![CDATA[and p.m_product_id in (select m_product_id from m_product_po po where coalesce(po.vendorproductno,'%') like ?)]]></Parameter>
+        <Parameter name="TypeOfProduct"/>
+        <Parameter name="WindwID"/>
+        <Parameter name="userRoleProductcategories" type="replace" optional="true" after="p.m_product_category_id in (" text="'1'"/>
+        <Parameter name="auxfilter1" type="replace" optional="true" after="AND 4=4 " text="and 6=6"/>
+        <Parameter name="auxfilter2" type="replace" optional="true" after="AND 7=7 " text="and 6=6"/>
+        <Parameter name="auxfilter3" type="replace" optional="true" after="AND 8=8 " text="and 6=6"/>
+        <Parameter name="auxfilter4" type="replace" optional="true" after="AND 9=9 " text="and 6=6"/>
+        <Parameter name="pgLimit" type="argument" optional="true" after="GROUP BY f.p_Product_ID,p.m_Product_ID, p.Discontinued, p.Value,p.name,ptrl.name,p.C_UOM_ID, pl.C_Currency_ID"><![CDATA[ LIMIT ]]></Parameter>
+        <Parameter name="orderBy" type="replace" optional="true" after="A ORDER BY " text="Value" />
+   </SqlMethod>
+   
+   
+   
+   <SqlMethod name="countRowspartner" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT count(*) AS value FROM (
+        select f.p_Product_ID as M_Product_ID FROM M_Product p left join m_product_trl ptrl on ptrl.m_product_id=p.m_product_id and ptrl.ad_language=?, 
+        m_offerpartnerproducts(?,?) f, m_product_category cat 
+        WHERE cat.m_product_category_id=p.m_product_category_id and
+              f.p_Product_ID=p.M_Product_ID
+              AND p.isactive ='Y' 
+              AND 1=1
+              AND 3=3
+              AND p.AD_Client_ID IN ('1') 
+              AND p.AD_Org_ID IN ('1')
+              AND p.issold='Y'
+              and p.m_product_category_id like ?
+              AND 5=5
+              and p.typeofproduct  like ?
+              AND (cat.isselectableinproduction = 'Y' or (select count(*) from  ad_window w where w.ad_window_id = ?    and ad_module_id  in ('19A7FD2B075F48B2B52ADBEDC581770C','9D31DE7CE403417AA30579195A455E02') )=0)
+              and p.m_product_category_id in ('1')
+              AND 4=4 and 6=6
+              AND 7=7 and 6=6
+              AND 8=8 and 6=6
+              AND 9=9 and 6=6
+              AND 10=10    
+        )  A 
+      ]]></Sql>
+        <Parameter name="language"/>
+        <Parameter name="bpartnerID"/>
+        <Parameter name="priceListVersion"/>
+        <Parameter name="key" ignoreValue="%" optional="true" after="AND 1=1"><![CDATA[ AND UPPER(p.Value) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="name" ignoreValue="%" optional="true" after="AND 3=3"><![CDATA[ AND COALESCE(UPPER(ptrl.Name),UPPER(p.Name)) LIKE UPPER(?)]]></Parameter>
+        <Parameter name="adUserClient" type="replace" optional="true" after="p.AD_Client_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="p.AD_Org_ID IN (" text="'1'"/>
+        <Parameter name="mProductCategoryId"/>
+        <Parameter name="vendorproductno" ignoreValue="%" optional="true" after="AND 5=5"><![CDATA[and p.m_product_id in (select m_product_id from m_product_po po where coalesce(po.vendorproductno,'%') like ?)]]></Parameter>
+        <Parameter name="TypeOfProduct"/>
+        <Parameter name="WindwID"/>
+        <Parameter name="userRoleProductcategories" type="replace" optional="true" after="p.m_product_category_id in (" text="'1'"/>
+        <Parameter name="auxfilter1" type="replace" optional="true" after="AND 4=4 " text="and 6=6"/>
+        <Parameter name="auxfilter2" type="replace" optional="true" after="AND 7=7 " text="and 6=6"/>
+        <Parameter name="auxfilter3" type="replace" optional="true" after="AND 8=8 " text="and 6=6"/>
+        <Parameter name="auxfilter4" type="replace" optional="true" after="AND 9=9 " text="and 6=6"/>
+        <Parameter name="pgLimit" type="argument" optional="true" after="AND 10=10"><![CDATA[ LIMIT ]]></Parameter>
+   </SqlMethod> 
+   
+   
+   
+   
+   
+   <SqlMethod name="priceListDefault" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT M_PRICELIST_ID FROM M_PRICELIST 
+        WHERE AD_Client_ID IN ('1') 
+        AND AD_Org_ID IN ('1') 
+        AND CASE when ?='Y' then  isdefault='Y' and issopricelist='Y' else issopricelist='N' end
+        order by isdefault desc
+      ]]></Sql>
+      <Parameter name="adUserClient" type="replace" optional="true" after="AD_Client_ID IN (" text="'1'"/>
+      <Parameter name="adUserOrg" type="replace" optional="true" after="AD_Org_ID IN (" text="'1'"/>
+      <Parameter name="issotrx"/>
+   </SqlMethod>
+   <SqlMethod name="existsActual" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT name as name
+        FROM M_Product 
+        WHERE UPPER(AD_COLUMN_IDENTIFIER(TO_CHAR('M_Product'), TO_CHAR(M_Product_ID), TO_CHAR(?))) = UPPER(?)
+        AND M_Product_ID = ? 
+        ORDER BY name
+      ]]></Sql>
+        <Parameter name="language"/>
+        <Parameter name="description"/>
+        <Parameter name="cBpartnerId"/>
+   </SqlMethod>
+   <SqlMethod name="existsActualValue" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT value as value
+        FROM M_Product 
+        WHERE UPPER(AD_COLUMN_IDENTIFIER(TO_CHAR('M_Product'), TO_CHAR(M_Product_ID), TO_CHAR(?))) = UPPER(?)
+        AND M_Product_ID = ? 
+        ORDER BY value
+      ]]></Sql>
+        <Parameter name="language"/>
+        <Parameter name="description"/>
+        <Parameter name="cBpartnerId"/>
+   </SqlMethod>
+   <SqlMethod name="getValue" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT value as value
+        FROM M_Product 
+        WHERE  M_Product_ID = ? 
+      ]]></Sql>
+        <Parameter name="mProductId"/>
+   </SqlMethod>
+   <SqlMethod name="getValueCount" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT count(*) as count
+        FROM M_Product 
+        WHERE  upper(value) like upper(?) 
+      ]]></Sql>
+        <Parameter name="PValue"/>
+   </SqlMethod>
+   <SqlMethod name="getNameCount" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT count(*) as count
+        FROM M_Product 
+        WHERE  upper(name) like upper(?) 
+      ]]></Sql>
+        <Parameter name="PName"/>
+   </SqlMethod>
+   <SqlMethod name="isSOPricelist" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT issopricelist FROM M_PRICELIST 
+        WHERE M_PRICELIST_ID=(select m_pricelist_id from m_pricelist_version where m_pricelist_version_id=?)
+      ]]></Sql>
+      <Parameter name="priceListVersion"/>
+   </SqlMethod>
+  
+   <SqlMethod name="isBPProductSelection" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT iscustomerpricelist FROM c_bpartner where c_bpartner_id = ?
+      ]]></Sql>
+      <Parameter name="bpartnerID"/>
+   </SqlMethod>
+   
+   <SqlMethod name="getActivatePOBPartnerPreselection" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT c_getconfigoption('activatepobpartnerpreselection', ?) from dual
+      ]]></Sql>
+    <Parameter name="adOrgId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="getDirectPurchaseCategory" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT m_product_category_id from m_product_category where isdirectpurchase='Y' and ad_org_id in ('0',?) limit 1
+      ]]></Sql>
+    <Parameter name="adOrgId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="getSalesDefaultCategory" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT m_product_category_id from m_product_category where issalesdefault='Y' and ad_org_id in ('0',?) limit 1
+      ]]></Sql>
+    <Parameter name="adOrgId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="getPurchaseDefaultCategory" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT m_product_category_id from m_product_category where ispurchasedefault='Y' and ad_org_id in ('0',?) limit 1
+      ]]></Sql>
+    <Parameter name="adOrgId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="getRoleCategories" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT ad_role_pcategories(?) from dual
+      ]]></Sql>
+    <Parameter name="adRoleId"/>
+   </SqlMethod>
+   
+</SqlClass>

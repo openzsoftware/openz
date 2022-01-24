@@ -1,0 +1,40 @@
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta id="viewport" name=viewport content="width=device-width, initial-scale=1">
+<title>@TITLE@</title>
+
+@SCRIPTSET@
+<SCRIPT language="JavaScript" type="text/javascript" id="selectedColumn">@JSVARS@</SCRIPT>
+@ADDITIONALSCRIPTS@
+
+
+
+</HEAD>
+<BODY leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<div id="Processing_Container" class="Main_Status_Processing_Container" style="display: none">
+    <div id="Processing_Container_Logo" class="Main_Status_Processing_Elements_Container">
+        <div class="Main_Status_Processing_logo">
+            <div class="Main_Status_Processing_logo_dimension"></div>
+        </div>
+        <div class="Main_Status_Processing_text">Processing...</div>
+    </div>
+</div>
+<SCRIPT language="JavaScript" type="text/javascript" id="confirmOnChanges">var confirmOnChanges = false;</SCRIPT>
+<FORM id="form" method="post" action="@FORMNAME@.html" name="frmMain">
+  <INPUT type="hidden" name="Command">
+  <INPUT type="hidden" name="inpLastFieldChanged" id="paramChanged" value="">
+  <INPUT type="hidden" name="inpkeyColumnIdInp" value="" id="inpkeyColumnId">
+  <INPUT type="hidden" name="inpParentKeyColumn" id="parent" value="">
+  <input type="hidden" name="inpDirectKey" id="inpDirectKey" value="">
+  <INPUT type="hidden" name="inpKeyReferenceColumnName">
+  <INPUT type="hidden" name="inpTableReferenceId">
+  <INPUT type="hidden" name="inpKeyReferenceId">
+  <INPUT type="hidden" name="autosave" id="autosave" value="N">
+  @INITHIDDENFIELDS@
+  @HIDDENFIELDS@
+ 
+  @CONTENT@
+ 
+</FORM>
+</BODY></HTML>

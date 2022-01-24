@@ -1,0 +1,763 @@
+/* Track */
+::-webkit-scrollbar-track {
+   -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3) !important;
+   -webkit-border-radius: 10px !important;
+   border-radius: 10px !important;
+ }
+
+ /* Handle */
+ ::-webkit-scrollbar-thumb {
+   -webkit-border-radius: 10px !important;
+   border-radius: 10px !important;
+   background: #41617D !important; 
+   -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5) !important; 
+
+ }
+ ::-webkit-scrollbar-thumb:window-inactive {
+   background: #41617D !important; 
+ }
+ 
+/* Common */
+body {
+  margin-top: 0px;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  font-weight: normal;
+  color: #000000;
+  background-color: #e7e7e7;
+}
+
+div.scrolldh::-webkit-scrollbar {
+    background: #fafafa;
+    width:1px !important;
+}
+
+
+/*
+ *************************************************************************
+ * Common elements specific CSS
+ *************************************************************************
+*/
+
+
+/*
+ *************************
+ * Buttons
+ *************************
+*/
+button.ButtonLink .Button, .Button {
+  border-collapse: collapse;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #1b4106;
+  font-weight: bold;
+  cursor: pointer;
+  background-color:#496D04;
+}
+
+button.ButtonLink table.Button .Button_left, table.Button .Button_left {
+  width: 35px;
+  height: 26px;
+  background-repeat: no-repeat;
+  background-position: center right; /*~RTL   background-position: center left;  */
+  /*background-image: url(Common/Button/buttonLeft.normal.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: right; */
+ background-color:#496D04; 
+  text-align: right; /*~RTL   text-align: left; */
+  vertical-align: top;
+}
+
+button.ButtonLink table.Button .Button_text, table.Button .Button_text {
+  background-repeat: repeat-x;
+  background-position: center center;
+  /*background-image: url(Common/Button/buttonBody.normal.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; */
+  background-color:#496D04; 
+  text-align: center;
+  height: 26px;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  font-weight: bold;
+  text-align: center;
+  white-space: nowrap;
+  
+}
+
+button.ButtonLink table.Button .Button_right, table.Button .Button_right {
+  width: 26px;
+  height: 26px;
+  
+  background-repeat: no-repeat;
+  background-position: center left;
+ /*background-image: url(Common/Button/buttonRight.normal.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: left; */
+  background-color:#496D04; 
+}
+
+
+button.ButtonLink_hover .Button, .Button_hover {
+  border-collapse: collapse;
+  text-align: center;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #1b4106;
+  font-weight: bold;
+  cursor: pointer;
+  background-color:#89B633;
+  opacity:0.8;
+
+}
+
+button.ButtonLink_hover table.Button .Button_left, table.Button_hover .Button_left {
+  background-repeat: no-repeat;
+  background-position: center right; /*~RTL   background-position: center left; */
+  /*background-image: url(Common/Button/buttonLeft.rollover.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: right; */
+  
+  width: 35px;
+  height: 26px;
+  background-color:#89B633;
+  opacity:0.8;
+
+}
+
+button.ButtonLink_hover table.Button .Button_text, table.Button_hover .Button_text {
+ /* background-repeat: repeat-x;
+  background-position: center center;
+  background-image: url(Common/Button/buttonBody.rollover.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; */
+  background-color:#89B633;
+  opacity:0.8;
+}
+
+
+button.ButtonLink_hover table.Button .Button_right, table.Button_hover .Button_right {
+  background-repeat: no-repeat;
+  background-position: center left;
+  /*background-image: url(Common/Button/buttonRight.rollover.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: left; */
+ background-color:#89B633;
+ opacity:0.8;
+  width: 26px;
+  height: 26px;
+}
+
+
+button.ButtonLink_active .Button, .Button_active {
+  border-collapse: collapse;
+  text-align: center;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #eaf7e4;
+  font-weight: bold;
+  cursor: pointer;
+  background-color:#89B633;
+}
+
+button.ButtonLink_active table.Button .Button_left, .Button_active .Button_left {
+  width: 35px;
+  height: 26px;
+  background-color:#89B633;
+}
+
+
+button.ButtonLink_active table.Button .Button_text, table.Button_active .Button_text {
+background-color:#89B633;
+
+
+}
+
+
+button.ButtonLink_active table.Button .Button_right, table.Button_active .Button_right {
+  background-repeat: no-repeat;
+  background-position: center left; 
+  /*background-image: url(Common/Button/buttonRight.pressed.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: left; */
+
+  width: 26px;
+  height: 26px;
+  background-color:#89B633;
+}
+
+button.ButtonLink_focus .Button, .Button_focus {
+  border-collapse: collapse;
+  text-align: center;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #213e51;
+  font-weight: bold;
+  cursor: pointer;
+  background-color:#89B633;
+}
+
+button.ButtonLink_focus table.Button .Button_left, .Button_focus .Button_left {
+  background-repeat: no-repeat;
+  background-position: center right; /*~RTL   background-position: center left; */
+  /*background-image: url(Common/Button/buttonLeft.focused.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: right; */
+background-color:#89B633;
+  width: 35px;
+  height: 26px;
+}
+
+button.ButtonLink_focus table.Button .Button_text, table.Button_focus .Button_text {
+  background-repeat: repeat-x;
+  background-position: center center;
+  /*background-image: url(Common/Button/buttonBody.focused.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; */
+  background-color:#89B633;
+  font-size:9pt;
+
+}
+
+button.ButtonLink_focus table.Button .Button_right, table.Button_focus .Button_right {
+  background-repeat: no-repeat;
+  background-position: center left;
+ /* background-image: url(Common/Button/buttonRight.focused.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: left; */
+background-color:#89B633;
+  width: 26px;
+  height: 26px;
+}
+button.ButtonLink_default .Button, .Button_default {
+  border-collapse: collapse;
+  text-align: center;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #213e51;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button.ButtonLink_disabled .Button, .ButtonLink_disabled {
+  border-collapse: collapse;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #1b4106;
+  font-weight: bold;
+  cursor: default;
+}
+
+button.ButtonLink_disabled table.Button .Button_text, table.ButtonLink_disabled .Button_text {
+  background-repeat: repeat-x;
+  background-position: center center;
+  /*background-image: url(Common/Button/buttonBody.disabled.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; */
+
+  text-align: center;
+  height: 26px;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #549033;
+  font-weight: bold;
+  text-align: center;
+}
+
+/*
+ *************************
+ * Button  //Used in old r2.40 button definition DEPRECATED!!
+ *************************
+*/
+
+a.ButtonLink .Button, .Button {
+  border-collapse: collapse;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #1b4106;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+a.ButtonLink table.Button .Button_text, table.Button .Button_text {
+ /*  background-repeat: repeat-x;
+  background-position: center center;
+  background-image: url(Common/Button/buttonBody.normal.png);  * sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat;
+  */ color: #ffffff;
+  text-align: center;
+  height: 26px;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  font-weight: bold;
+  text-align: center;
+}
+
+a.ButtonLink_hover .Button, .Button_hover {
+  border-collapse: collapse;
+  text-align: center;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #1b4106;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+a.ButtonLink_active .Button, .Button_active {
+  border-collapse: collapse;
+  text-align: center;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #eaf7e4;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+a.ButtonLink_focus .Button, .Button_focus {
+  border-collapse: collapse;
+  text-align: center;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #213e51;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+a.ButtonLink_default .Button, .Button_default {
+  border-collapse: collapse;
+  text-align: center;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #213e51;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+a.ButtonLink_disabled .Button, .ButtonLink_disabled {
+  border-collapse: collapse;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #1b4106;
+  font-weight: bold;
+  cursor: default;
+}
+
+a.ButtonLink_disabled table.Button .Button_text, table.ButtonLink_disabled .Button_text {
+  /* background-repeat: repeat-x;
+  background-position: center center;
+  background-image: url(Common/Button/buttonBody.disabled.png);  * sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat;
+ */
+  text-align: center;
+  height: 26px;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #549033;
+  font-weight: bold;
+  text-align: center;
+  text-transformation:uppercase;
+}
+
+/*
+ *************************
+ * Calendar - Not individual...
+ *************************
+*/
+
+
+/*
+ *************************
+ * Checkbox
+ *************************
+*/
+
+.Checkbox_focused, .Radio_focused {
+  border: 2px solid #4D98CA;
+  outline-style: solid;
+  outline-width: 2px;
+  outline-color: #4D98CA;
+}
+
+/*
+ *************************
+ * Combo
+ *************************
+*/
+ComboKeyNoUpdatable {
+  color: #606060;
+  background-color: #e7e7e7;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  font-weight: bold;
+  border: 1px solid #888888;
+  padding-left: 1px;
+  padding-top: 0px;
+  height: 17px;
+}
+
+.ComboNoUpdatable {
+  color: #606060;
+  background-color: #e7e7e7;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  border: 1px solid #888888;
+  padding-left: 1px;
+  padding-top: 0px;
+  height: 17px;
+}
+
+.ComboReadOnly {
+  color: #606060;
+  background-color: #e7e7e7;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  border: 1px solid #888888;
+  padding-left: 1px;
+  padding-top: 0px;
+  height: 17px;
+}
+
+.ComboKeyReadOnly {
+  color: #606060;
+  background-color: #e7e7e7;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  font-weight: bold;
+  border: 1px solid #888888;
+  padding-left: 1px;
+  padding-top: 0px;
+  height: 17px;
+}
+
+.ComboKey {
+  border: 1px solid #888888;
+  color: #303030;
+  /*background-color: #FFF6CC !important;*/
+  background-image: url(Common/TextBox/textField.required.background.png);
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  padding-left: 1px;
+  padding-top: 0px;
+  height: 17px;
+}
+
+.Combo {
+  border: 1px solid #888888;
+  color: #303030;
+  background-color: white;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  height: 17px;
+}
+
+.Combo_focus {
+  border: 1px solid #000000;
+  background-color: #C8E9F9 !important;
+  outline: none;
+  padding-left: 0px;
+  margin-top: -1px;
+  -moz-outline-style: none;
+  -moz-outline: 0 none;
+  outline: 0 none;
+  height: 19px;
+}
+
+/*
+ *************************
+ * DataGrid
+ *************************
+*/
+
+.DataGrid_Popup_text_bookmark {
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  color: #404040;
+}
+
+a.DataGrid_Popup_text_pagerange {
+  color: #2985BA;
+  font-weight: bold;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+a.DataGrid_Popup_text_pagerange:active {
+  color: #1d5e84;
+  text-decoration: none;
+  -moz-outline-style: none;
+  font-weight: bold;
+}
+
+a.DataGrid_Popup_text_pagerange:visited {
+  color: #2985BA;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+a.DataGrid_Popup_text_pagerange_focus {
+  padding: 0px 4px 0px 4px;
+  background-color: #C8E9F9 !important;
+  color: #2985BA;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #2985BA;
+  outline: none;
+  font-weight: bold;
+}
+
+tr.DataGrid_Body_Row_Even, tr.DataGrid_Body_Row_1 {
+  /*background: none;
+  background-repeat: repeat;
+  background-position: top left;
+  background-image: url(Common/DataGrid/backgroundRow.even.normal.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; sprite-margin-bottom: 30px; */
+
+  background-color: #ffffff;
+  _background-color: #DDDDDD;
+}
+
+tr.DataGrid_Body_Row_Odd, tr.DataGrid_Body_Row_0 {
+  /*background: none;
+  background-repeat: repeat;
+  background-position: top left;
+  background-image: url(Common/DataGrid/backgroundRow.odd.normal.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; sprite-margin-bottom: 30px; */
+
+  background-color: #C0CFDC;
+  _background-color: #B9C9D8;
+}
+
+tr.DataGrid_Body_Row_focus {
+  /*background: none;
+  background-repeat: repeat-x;
+  background-position: top left;
+  background-image: url(Common/DataGrid/backgroundRow.focused.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; sprite-margin-bottom: 30px; */
+
+  background-color: #458CBB;
+  color: #FFFFFF;
+}
+
+tr.DataGrid_Body_Row_selected {
+  /*background: none;
+  background-repeat: repeat-x;
+  background-position: top left;
+  background-image: url(Common/DataGrid/backgroundRow.selected.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; sprite-margin-bottom: 30px; */
+
+  background-color: #d69d18;
+  _background-color: #4A8C29;
+  color: #FFFFFF;
+}
+
+
+/* Cells */
+
+th.DataGrid_Header_Cell {
+  font-weight: normal;
+  height: 19px;
+  _height: 19px;
+  vertical-align: middle !important;
+  overflow: hidden;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  padding: 1px 0px 1px 2px;
+  text-indent: 2px;
+  text-align: left; /*~RTL   text-align: right; */
+  border-top: 1px solid #e7e7e7;
+  border-bottom: 1px solid #e7e7e7;
+  border-right: 1px solid #e7e7e7;
+  border-left : 1px solid #e7e7e7;
+  /*background: none;
+  background-repeat: repeat-x;
+  background-position: top left;
+  background-image: url(Common/DataGrid/backgroundHeader.normal.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; sprite-margin-bottom: 30px; */
+
+  background-color: #A6A6A6;
+  _background-color: #9D9D9D;
+  color: #ffffff;
+  white-space: nowrap;
+  font-weight: bold;
+  background-size: 1px 22px;
+}
+
+th.DataGrid_Header_Cell_Amount {
+  font-weight: normal;
+  height: 19px;
+  _height: 19px;
+  vertical-align: middle !important;
+  overflow: hidden;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  padding: 1px 2px 1px 0px;
+  text-indent: 2px;
+  text-align: right;
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #fff;
+  border-right: 1px solid #fff;
+  border-left : 1px solid #fff;
+ /* background: none;
+  background-repeat: repeat-x;
+  background-position: top left;
+  background-image: url(Common/DataGrid/backgroundHeader.normal.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; sprite-margin-bottom: 30px; */
+
+  background-color: #A6A6A6;
+  _background-color: #9D9D9D;
+  color: #fff;
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+th.DataGrid_Header_Cell_hover {
+  /*background: none;
+  background-repeat: repeat-x;
+  background-position: top left;
+  background-image: url(Common/DataGrid/backgroundHeader.rollover.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; sprite-margin-bottom: 30px; */
+  color:#000000;
+  background-color: #BEBEBE;
+  _background-color: #B7B7B7;
+  font-weight: bold !important;
+}
+
+th.DataGrid_Header_Cell_active {
+/*  background-repeat: repeat-x;
+  background-position: top left;
+  background-image: url(Common/DataGrid/backgroundHeader.pressed.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; sprite-margin-bottom: 30px; */
+
+  color: #ffffff;
+  font-weight: bold;
+}
+
+th.DataGrid_Header_Cell_sorted {
+ /* background-repeat: repeat-x;
+  background-position: top left;
+  background-image: url(Common/DataGrid/backgroundHeader.selected.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; sprite-margin-bottom: 30px; */
+
+  color: #ffffff;
+  font-weight: bold;
+}
+
+th.DataGrid_Header_LineNoCell {
+  padding: 1px 0px 1px 2px; /*~RTL   padding: 1px 2px 1px 0px; */ 
+  text-align: left; /*~RTL   text-align: right; */
+ /* border-top: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  border-right: 1px solid #000000;
+  border-left: 1px solid #000000;*/
+  background: none !important;
+  background-color : #a5a5a5 !important;
+  color: #a5a5a5;
+}
+
+
+td.DataGrid_Header_Cell {
+  font-weight: normal;
+  height: 19px;
+  _height: 19px;
+  vertical-align: middle !important;
+  overflow: hidden;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  font-size: 8pt;
+  padding: 1px 0px 1px 2px;
+  text-indent: 2px;
+  text-align: left; /*~RTL   text-align: right; */
+  border-top: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  border-right: 1px solid #000000;
+  border-left : 1px solid #000000;
+  background: none;
+  background-repeat: repeat-x;
+  background-position: top left;
+  background-image: url(Common/DataGrid/backgroundHeader.normal.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; sprite-margin-bottom: 30px; */
+
+  background-color: #A6A6A6;
+  _background-color: #9D9D9D;
+  color: #000000;
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+td.DataGrid_Body_Cell {
+  font-family: tahoma, arial, helvetica, sans-serif !important;
+  font-size: 8pt !important;
+  padding: 1px 1px 1px 1px; /*~RTL  padding: 1px 2px 1px 0px; */ 
+  text-indent: 2px;
+  text-align: left; /*~RTL  text-align: right; */
+  border-top: 1px solid #e7e7e7;
+  border-bottom: 1px solid #e7e7e7;
+  border-right: 1px solid #e7e7e7;
+  border-left: 1px solid #e7e7e7;
+  overflow: hidden;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  /*cursor: default;*/
+  border-collapse: collapse;
+}
+
+td.DataGrid_Body_Cell_Amount {
+  font-family: tahoma, arial, helvetica, sans-serif !important;
+  font-size: 8pt !important;
+  padding: 1px 2px 1px 0px;
+  text-indent: 2px;
+  text-align: right;
+  border-top: 1px solid #e7e7e7;
+  border-bottom: 1px solid #e7e7e7;
+  border-right: 1px solid #e7e7e7;
+  border-left: 1px solid #e7e7e7;
+  overflow: hidden;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  cursor: default;
+}
+
+td.DataGrid_Body_Cell_hover {
+  color: #000000 !important;
+  vertical-align: middle !important;
+  background: none;
+  background-repeat: repeat-x;
+  background-position: top left;
+  background-image: url(Common/DataGrid/backgroundRow.rollover.png);  /** sprite-ref: Openbravo_ERP_250_Default_LTR_Sprite_V; sprite-alignment: repeat; sprite-margin-bottom: 30px; */
+
+  
+  _background-color: #97D070;
+}
+
+td.DataGrid_Body_LineNoCell {
+  padding: 1px 0px 1px 2px; /*~RTL   padding: 1px 2px 1px 0px; */
+  text-align: left; /*~RTL   text-align: right; */
+  /*border-top:  1px solid #000000;
+  /*border-bottom: 1px solid #000000;
+  /*border-right: 1px solid #000000;
+  /*border-left:   1px solid #000000;*/
+  background: none;
+  background-color: #a5a5a5;
+  color: #ffffff;
+  overflow: hidden;
+  vertical-align: middle !important;
+}
+
+.DataGrid_Body_Cell_SUMFIRST {
+     background-color:#555555 !important;
+     font-weight: bold;
+}
+
+/* Others GRID */
+
+.first {
+  border-left: 1px solid #b8b8b8;
+}
+
+.dojoDialog {
+  border: 2px solid #1c5d79;
+  padding: 1em;
+  padding-bottom: 1.7em;
+  background: #f3f3f3;
+}
+
+td.messageDialogText {
+  font-size: 14px;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  color: #1c5d79;
+}
+
+td.messageDialogTitle {
+  font-size: 18px;
+  font-family: tahoma, arial, helvetica, sans-serif;
+  color: #1c5d79;
+}
+
+input.dialogButton {
+  width: auto;
+  border: none;
+  background-color: #e3edfa;
+  color: #000;
+  padding: 0.1em;
+  border-bottom: 1px solid #5885b6 !important;
+  border-right: 1px solid #5885b6 !important;
+  border-top: 1px solid #92b8e2 !important;
+  border-left: 1px solid #92b8e2 !important;
+  cursor: hand;
+  cursor: pointer;
+}
+
+/*
+ *************************
+ * Dimension
+ *************************
+*/

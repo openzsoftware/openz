@@ -1,0 +1,115 @@
+<!-- Use this file to deploy some handlers/chains and services      -->
+<!-- Two ways to do this:                                           -->
+<!--   java org.apache.axis.client.AdminClient deploy.wsdd          -->
+<!--      after the axis server is running                          -->
+<!-- or                                                             -->
+<!--   java org.apache.axis.utils.Admin client|server deploy.wsdd   -->
+<!--      from the same directory that the Axis engine runs         -->
+
+<deployment
+    xmlns="http://xml.apache.org/axis/wsdd/"
+    xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+  <!-- Services from WebServiceImplService WSDL service -->
+
+  <service name="WebService" provider="java:RPC" style="rpc" use="encoded">
+      <parameter name="wsdlTargetNamespace" value="http://centralrepository.openbravo.com/openbravo/services/WebService2"/>
+      <parameter name="wsdlServiceElement" value="WebServiceImplService"/>
+      <parameter name="schemaUnqualified" value="http://xml.apache.org/xml-soap,/services/WebService2,http://centralrepository.openbravo.com/openbravo/services/WebService2"/>
+      <parameter name="wsdlServicePort" value="WebService"/>
+      <parameter name="className" value="org.openbravo.services.webservice.WebServiceSoapBindingImpl"/>
+      <parameter name="wsdlPortType" value="WebServiceImpl"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation name="getModule" qname="operNS:getModule" xmlns:operNS="http://services.ws.erpCommon.openbravo.org" returnQName="getModuleReturn" returnType="rtns:base64Binary" xmlns:rtns="http://www.w3.org/2001/XMLSchema" soapAction="" >
+        <parameter qname="moduleVersionID" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+      </operation>
+      <operation name="moduleSearch" qname="operNS:moduleSearch" xmlns:operNS="http://services.ws.erpCommon.openbravo.org" returnQName="moduleSearchReturn" returnType="rtns:ArrayOf_tns1_SimpleModule" xmlns:rtns="http://centralrepository.openbravo.com/openbravo/services/WebService2" returnItemType="tns2:SimpleModule" xmlns:tns2="/services/WebService2" soapAction="" >
+        <parameter qname="word" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+        <parameter qname="exclude" type="tns:ArrayOf_xsd_string" xmlns:tns="http://centralrepository.openbravo.com/openbravo/services/WebService2"/>
+      </operation>
+      <operation name="moduleDetail" qname="operNS:moduleDetail" xmlns:operNS="http://services.ws.erpCommon.openbravo.org" returnQName="moduleDetailReturn" returnType="rtns:Module" xmlns:rtns="/services/WebService2" soapAction="" >
+        <parameter qname="moduleVersionID" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+      </operation>
+      <operation name="getURLforDownload" qname="operNS:getURLforDownload" xmlns:operNS="http://services.ws.erpCommon.openbravo.org" returnQName="getURLforDownloadReturn" returnType="rtns:string" xmlns:rtns="http://www.w3.org/2001/XMLSchema" soapAction="" >
+        <parameter qname="moduleVersionID" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+      </operation>
+      <operation name="isCommercial" qname="operNS:isCommercial" xmlns:operNS="http://services.ws.erpCommon.openbravo.org" returnQName="isCommercialReturn" returnType="rtns:boolean" xmlns:rtns="http://www.w3.org/2001/XMLSchema" soapAction="" >
+        <parameter qname="moduleVersionID" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+      </operation>
+      <operation name="moduleScanForUpdates" qname="operNS:moduleScanForUpdates" xmlns:operNS="http://services.ws.erpCommon.openbravo.org" returnQName="moduleScanForUpdatesReturn" returnType="rtns:ArrayOf_tns1_SimpleModule" xmlns:rtns="http://centralrepository.openbravo.com/openbravo/services/WebService2" returnItemType="tns2:SimpleModule" xmlns:tns2="/services/WebService2" soapAction="" >
+        <parameter qname="moduleIdInstalledModules" type="tns:Map" xmlns:tns="http://xml.apache.org/xml-soap"/>
+      </operation>
+      <operation name="moduleRegister" qname="operNS:moduleRegister" xmlns:operNS="http://services.ws.erpCommon.openbravo.org" returnQName="moduleRegisterReturn" returnType="rtns:Module" xmlns:rtns="/services/WebService2" soapAction="" >
+        <parameter qname="module" type="tns:Module" xmlns:tns="/services/WebService2"/>
+        <parameter qname="userName" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+        <parameter qname="password" type="tns:string" xmlns:tns="http://www.w3.org/2001/XMLSchema"/>
+      </operation>
+      <operation name="checkConsistency" qname="operNS:checkConsistency" xmlns:operNS="http://services.ws.erpCommon.openbravo.org" returnQName="checkConsistencyReturn" returnType="rtns:ModuleInstallDetail" xmlns:rtns="/services/WebService2" soapAction="" >
+        <parameter qname="versionIdInstalled" type="tns:Map" xmlns:tns="http://xml.apache.org/xml-soap"/>
+        <parameter qname="versionIdToInstall" type="tns:ArrayOf_xsd_string" xmlns:tns="http://centralrepository.openbravo.com/openbravo/services/WebService2"/>
+        <parameter qname="versionIdToUpdate" type="tns:ArrayOf_xsd_string" xmlns:tns="http://centralrepository.openbravo.com/openbravo/services/WebService2"/>
+      </operation>
+      <parameter name="allowedMethods" value="checkConsistency getModule moduleRegister moduleScanForUpdates isCommercial getURLforDownload moduleDetail moduleSearch"/>
+
+      <typeMapping
+        xmlns:ns="/services/WebService2"
+        qname="ns:ModuleInstallDetail"
+        type="java:org.openbravo.services.webservice.ModuleInstallDetail"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+      />
+      <typeMapping
+        xmlns:ns="/services/WebService2"
+        qname="ns:SimpleModule"
+        type="java:org.openbravo.services.webservice.SimpleModule"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+      />
+      <typeMapping
+        xmlns:ns="/services/WebService2"
+        qname="ns:Module"
+        type="java:org.openbravo.services.webservice.Module"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+      />
+      <typeMapping
+        xmlns:ns="/services/WebService2"
+        qname="ns:ModuleDependency"
+        type="java:org.openbravo.services.webservice.ModuleDependency"
+        serializer="org.apache.axis.encoding.ser.BeanSerializerFactory"
+        deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory"
+        encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+      />
+      <arrayMapping
+        xmlns:ns="http://centralrepository.openbravo.com/openbravo/services/WebService2"
+        qname="ns:ArrayOf_tns1_SimpleModule"
+        type="java:org.openbravo.services.webservice.SimpleModule[]"
+        innerType="cmp-ns:SimpleModule" xmlns:cmp-ns="/services/WebService2"
+        encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+      />
+      <arrayMapping
+        xmlns:ns="http://centralrepository.openbravo.com/openbravo/services/WebService2"
+        qname="ns:ArrayOf_tns1_Module"
+        type="java:org.openbravo.services.webservice.Module[]"
+        innerType="cmp-ns:Module" xmlns:cmp-ns="/services/WebService2"
+        encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+      />
+      <arrayMapping
+        xmlns:ns="http://centralrepository.openbravo.com/openbravo/services/WebService2"
+        qname="ns:ArrayOf_tns1_ModuleDependency"
+        type="java:org.openbravo.services.webservice.ModuleDependency[]"
+        innerType="cmp-ns:ModuleDependency" xmlns:cmp-ns="/services/WebService2"
+        encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+      />
+      <arrayMapping
+        xmlns:ns="http://centralrepository.openbravo.com/openbravo/services/WebService2"
+        qname="ns:ArrayOf_xsd_string"
+        type="java:java.lang.String[]"
+        innerType="cmp-ns:string" xmlns:cmp-ns="http://www.w3.org/2001/XMLSchema"
+        encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+      />
+  </service>
+</deployment>

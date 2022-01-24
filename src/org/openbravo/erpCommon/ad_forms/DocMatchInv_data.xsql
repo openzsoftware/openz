@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ ******************************************************************************
+ * The contents of this file are subject to the   Compiere License  Version 1.1
+ * ("License"); You may not use this file except in compliance with the License
+ * You may obtain a copy of the License at http://www.compiere.org/license.html
+ * Software distributed under the License is distributed on an  "AS IS"  basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+ * the specific language governing rights and limitations under the License.
+ * The Original Code is                  Compiere  ERP & CRM  Business Solution
+ * The Initial Developer of the Original Code is Jorg Janke  and ComPiere, Inc.
+ * Portions created by Jorg Janke are Copyright (C) 1999-2001 Jorg Janke, parts
+ * created by ComPiere are Copyright (C) ComPiere, Inc.;   All Rights Reserved.
+ * Contributor(s): Openbravo SL
+ * Contributions are Copyright (C) 2001-2009 Openbravo S.L.
+ ******************************************************************************
+-->
+
+<SqlClass name="DocMatchInvData" package="org.openbravo.erpCommon.ad_forms">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT '' AS M_MATCHINV_ID, '' AS AD_CLIENT_ID, '' AS AD_ORG_ID, '' AS ISACTIVE,
+          '' AS CREATED, '' AS CREATEDBY, '' AS UPDATED, '' AS UPDATEDBY, '' AS M_INOUTLINE_ID,
+          '' AS C_INVOICELINE_ID, '' AS M_PRODUCT_ID, '' AS DATETRX, '' AS QTY, '' AS PROCESSING,
+          '' AS PROCESSED, '' AS POSTED, '' AS DATEACCT, '' AS DATEDOC, '' AS C_BPARTNER_ID
+        FROM DUAL
+      ]]>
+    </Sql>
+  </SqlMethod>
+  <SqlMethod name="selectRegistro" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT M.M_MATCHINV_ID, M.AD_CLIENT_ID, M.AD_ORG_ID, M.ISACTIVE, M.CREATED, M.CREATEDBY, M.UPDATED,
+        M.UPDATEDBY, M.M_INOUTLINE_ID, M.C_INVOICELINE_ID, M.M_PRODUCT_ID, M.DATETRX, M.QTY, M.PROCESSING,
+        M.PROCESSED, M.POSTED, M.DATETRX AS DATEACCT, M.DATETRX AS DATEDOC, I.C_BPARTNER_ID
+      FROM M_MATCHINV M, C_INVOICELINE IL, C_INVOICE I
+      WHERE IL.C_INVOICELINE_ID = M.C_INVOICELINE_ID
+        AND IL.C_INVOICE_ID = I.C_INVOICE_ID
+        AND M.AD_Client_ID=?
+        AND M.M_MATCHINV_ID=?
+    ]]>
+    </Sql>
+    <Parameter name="client"/>
+    <Parameter name="id"/>
+    </SqlMethod>
+  <SqlMethod name="selectProductAverageCost" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT COALESCE(M_GET_PRODUCT_COST(?, TO_DATE(?), TO_CHAR(NULL),?),0) FROM DUAL
+    </Sql>
+    <Parameter name="mProductID"/>
+    <Parameter name="date"/>
+    <Parameter name="AdOrgId"/>
+  </SqlMethod>
+  <SqlMethod name="selectInvoiceExpense" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT LINENETAMT
+      FROM C_INVOICELINE
+      WHERE AD_CLIENT_ID = ?
+        AND C_INVOICELINE_ID = ?
+    </Sql>
+    <Parameter name="adClientId"/>
+    <Parameter name="cInvoiceLineId"/>
+  </SqlMethod>
+</SqlClass>

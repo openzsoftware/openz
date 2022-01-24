@@ -1,0 +1,131 @@
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+<SqlClass name="OrderData" package="org.zsoft.ecommerce.order.client" accessModifier="public">
+    <SqlMethod name="select" type="preparedStatement" return="multiple">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+              <![CDATA[select ad_org_id,c_doctype_id,c_order_id,documentno,docstatus,isdelivered,isinvoiced,c_bpartner_id,(select c_location_id from c_bpartner_location b, c_order c where b.c_bpartner_location_id=c.c_bpartner_location_id and c_order_id=?)  as c_bpartner_location_id,
+               paymentrule,deliveryviarule,description,scheddeliverydate,to_char(scheddeliverydate,'YYYY-MM-DD') as sddami,to_char(dateordered,'DDMMYYYY') as dorder ,to_char(dateordered,'hhmm') as torder from c_order
+                        where c_order_id=?        
+              ]]>
+         </Sql>
+         <Parameter name="OrderId"/>
+        <Parameter name="OrderId"/>
+    </SqlMethod>
+    <SqlMethod name="InsertPoReference" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+          <Sql>
+               update c_order set poreference=?,ecommerceorder='Y' where c_order_id=?
+          </Sql>
+          <Parameter name="docno"/>
+          <Parameter name="OrderId"/>
+    </SqlMethod>
+    <SqlMethod name="selectporeference" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+              <![CDATA[select poreference from c_order where c_order_id=?        
+              ]]>
+         </Sql>
+         <Parameter name="OrderId"/>
+
+    </SqlMethod>
+        <SqlMethod name="selectWSpw" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+              <![CDATA[select password from ad_user where username= ?       
+              ]]>
+         </Sql>
+         <Parameter name="UserName"/>
+    </SqlMethod>
+            <SqlMethod name="ecommerced" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+              <![CDATA[select ecommerceorder from c_order where c_order_id=?        
+              ]]>
+         </Sql>
+<Parameter name="OrderId"/>
+    </SqlMethod>
+     <SqlMethod name="selectUrl" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+              <![CDATA[select url from zse_shop sh,zse_ecommercegrant g where g.zse_shop_id=sh.zse_shop_id and g.c_bpartner_id=(select c_bpartner_id  from c_order where c_order_id=?) and g.isactive='Y'
+              ]]>
+         </Sql>
+         <Parameter name="OrderId"/>
+    </SqlMethod>
+    <SqlMethod name="selectRemoteOrgID" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+              <![CDATA[select orgidremote from zse_shop sh,zse_ecommercegrant g where g.zse_shop_id=sh.zse_shop_id and g.c_bpartner_id=(select c_bpartner_id  from c_order where c_order_id=?) and g.isactive='Y'
+              ]]>
+         </Sql>
+         <Parameter name="OrderId"/>
+    </SqlMethod>
+     <SqlMethod name="selectRemoteAPI" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+              <![CDATA[select coalesce(sh.api,'SOAP') from zse_shop sh,zse_ecommercegrant g where g.zse_shop_id=sh.zse_shop_id and g.c_bpartner_id=(select c_bpartner_id  from c_order where c_order_id=?) and g.isactive='Y'
+              ]]>
+         </Sql>
+         <Parameter name="OrderId"/>
+    </SqlMethod>
+    <SqlMethod name="selectRemoteShopId" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+              <![CDATA[select g.zse_shop_id from zse_ecommercegrant g where g.c_bpartner_id=(select c_bpartner_id  from c_order where c_order_id=?) and g.isactive='Y'
+              ]]>
+         </Sql>
+         <Parameter name="OrderId"/>
+    </SqlMethod>
+    <SqlMethod name="selectRemoteShopUserID" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+              <![CDATA[select sh.ad_user_id from zse_shop sh,zse_ecommercegrant g where g.zse_shop_id=sh.zse_shop_id and g.c_bpartner_id=(select c_bpartner_id  from c_order where c_order_id=?) and g.isactive='Y'
+              ]]>
+         </Sql>
+         <Parameter name="OrderId"/>
+    </SqlMethod>
+    <SqlMethod name="selectRemoteShopUserName" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+              <![CDATA[select u.username from zse_shop sh,zse_ecommercegrant g,ad_user u where g.zse_shop_id=sh.zse_shop_id and g.c_bpartner_id=(select c_bpartner_id  from c_order where c_order_id=?) and g.isactive='Y' and u.ad_user_id=sh.ad_user_id
+              ]]>
+         </Sql>
+         <Parameter name="OrderId"/>
+    </SqlMethod>
+    <SqlMethod name="selectRemoteBPartnerID" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+              <![CDATA[select bpartneridremote from zse_shop sh,zse_ecommercegrant g where g.zse_shop_id=sh.zse_shop_id and g.c_bpartner_id=(select c_bpartner_id  from c_order where c_order_id=?) and g.isactive='Y'
+              ]]>
+         </Sql>
+         <Parameter name="OrderId"/>
+    </SqlMethod>
+    <SqlMethod name="selectDropShipCustomerOrder" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+              <![CDATA[select c_order_id from c_order where c_order_id=(select orderselfjoin  from c_order where c_doctype_id='EE19ABBDB5A94C519DAB11003320FC8E' and c_order_id=?)
+                        
+              ]]>
+         </Sql>
+         <Parameter name="OrderId"/>
+    </SqlMethod>
+    <SqlMethod name="selectOwnCustromerNoAtVendorSite" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+              <![CDATA[select owncodeatpartnersite from c_bpartner where c_bpartner_id=(select c_bpartner_id  from c_order where c_order_id=?) 
+              ]]>
+         </Sql>
+         <Parameter name="OrderId"/>
+    </SqlMethod>
+     
+</SqlClass>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+****************************************************************************************************************************************************
+* Contribution:      Disable Remote Administration of WebServices for Security reasons
+**************************************************************************************
+-->
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+ <globalConfiguration>
+  <parameter name="sendMultiRefs" value="true"/>
+  <parameter name="disablePrettyXML" value="true"/>
+  <parameter name="adminPassword" value="admin"/>
+  <parameter name="dotNetSoapEncFix" value="true"/>
+  <parameter name="enableNamespacePrefixOptimization" value="false"/>
+  <parameter name="sendXMLDeclaration" value="true"/>
+  <parameter name="attachments.implementation" value="org.apache.axis.attachments.AttachmentsImpl"/>
+  <parameter name="sendXsiTypes" value="true"/>
+  <requestFlow>
+   <handler type="java:org.apache.axis.handlers.JWSHandler">
+    <parameter name="scope" value="session"/>
+   </handler>
+   <handler type="java:org.apache.axis.handlers.JWSHandler">
+    <parameter name="scope" value="request"/>
+    <parameter name="extension" value=".jwr"/>
+   </handler>
+  </requestFlow>
+
+
+<!-- SZ: Logging Facility - Logs every SOAP Request and Response - Do not Activate in Productive Environments
+  <parameter name="disablePrettyXML" value="false"/>
+  <requestFlow> <handler type="log"/></requestFlow> 
+  <responseFlow> <handler type="log"/></responseFlow>
+-->
+  
+  
+ </globalConfiguration>
+ <handler name="LocalResponder" type="java:org.apache.axis.transport.local.LocalResponder"/>
+ <handler name="URLMapper" type="java:org.apache.axis.handlers.http.URLMapper"/>
+ <handler name="Authenticate" type="java:org.apache.axis.handlers.SimpleAuthenticationHandler"/>
+ 
+ 
+<!-- SZ: Logging Facility - Logs every SOAP Request and Response - Do not Activate in Productive Environments 
+ <handler name="log" type="java:org.apache.axis.handlers.LogHandler"> <parameter name="LogHandler.fileName" value="/tmp/axis.log"/> </handler>
+-->
+ <transport name="http">
+  <requestFlow>
+   <handler type="URLMapper"/>
+   <handler type="java:org.apache.axis.handlers.http.HTTPAuthHandler"/>
+  </requestFlow>
+  <parameter name="qs:list" value="org.apache.axis.transport.http.QSListHandler"/>
+  <parameter name="qs:wsdl" value="org.apache.axis.transport.http.QSWSDLHandler"/>
+  <parameter name="qs.list" value="org.apache.axis.transport.http.QSListHandler"/>
+  <parameter name="qs.method" value="org.apache.axis.transport.http.QSMethodHandler"/>
+  <parameter name="qs:method" value="org.apache.axis.transport.http.QSMethodHandler"/>
+  <parameter name="qs.wsdl" value="org.apache.axis.transport.http.QSWSDLHandler"/>
+ </transport>
+ <transport name="local">
+  <responseFlow>
+   <handler type="LocalResponder"/>
+  </responseFlow>
+ </transport>
+
+<!--
+**************************************************************************************
+SZ: Disabled the whole ADMIN-Servlet (Security)
+**************************************************************************************
+-->
+ <!--
+ <service name="AdminService" provider="java:MSG">
+  <parameter name="allowedMethods" value="AdminService"/>
+  <parameter name="enableRemoteAdmin" value="false"/>
+  <parameter name="className" value="org.apache.axis.utils.Admin"/>
+  <namespace>http://xml.apache.org/axis/wsdd/</namespace>
+ </service>
+-->
+ <service name="Version" provider="java:RPC">
+  <parameter name="allowedMethods" value="getVersion"/>
+  <parameter name="className" value="org.apache.axis.Version"/>
+ </service>
+ 
+ 
+<!--
+**************************************************************************************
+We define our services here directly 
+Thats much better for a convenient deployment
+**************************************************************************************
+-->
+
+<service name="BusinessPartnerServiceV2" provider="java:RPC">
+        <parameter name="className" value="org.zsoft.ecommerce.businesspartner.BusinessPartnerServiceV2"/>
+        <parameter name="allowedMethods" value="*"/>
+        <beanMapping qname="myNS:BusinessPartner"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.businesspartner.BusinessPartnerV2"/>
+        <beanMapping qname="myNS:Contact"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.businesspartner.Contact"/>
+        <beanMapping qname="myNS:Customer"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.businesspartner.CustomerV2"/>
+        <beanMapping qname="myNS:Location"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.businesspartner.Location"/>
+        <beanMapping qname="myNS:Payterms"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.businesspartner.Payterm"/>
+</service>
+
+<service name="ProjectFeedback" provider="java:RPC">
+        <parameter name="className" value="org.openbravo.zsoft.project.ws.ProjectFeedbackImpl"/>
+        <parameter name="allowedMethods" value="*"/>
+        <beanMapping qname="myNS:Project"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.openbravo.zsoft.project.ws.Project"/>
+        <beanMapping qname="myNS:Phase"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.openbravo.zsoft.project.ws.Phase"/>
+        <beanMapping qname="myNS:Task"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.openbravo.zsoft.project.ws.Task"/>
+        <beanMapping qname="myNS:Employee"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.openbravo.zsoft.project.ws.Employee"/>
+</service>
+
+<service name="TelephonyService" provider="java:RPC">
+        <parameter name="className" value="org.openbravo.zsoft.crm.webservice.TelephonyService"/>
+        <parameter name="allowedMethods" value="*"/>
+</service>
+
+<service name="ProductService" provider="java:RPC">
+        <parameter name="className" value="org.zsoft.ecommerce.product.ProductService"/>
+        <parameter name="allowedMethods" value="*"/>
+        <beanMapping qname="myNS:Product"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.product.Product"/>
+        <beanMapping qname="myNS:ProductTranslation"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.product.ProductTranslation"/>
+</service>
+
+<service name="ProductServiceV100" provider="java:RPC">
+        <parameter name="className" value="org.zsoft.ecommerce.product.ProductServiceV100"/>
+        <parameter name="allowedMethods" value="*"/>
+        <beanMapping qname="myNS:Product"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.product.Product"/>
+        <beanMapping qname="myNS:Quanities"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.product.Quanities"/>
+        <beanMapping qname="myNS:ProductTranslation"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.product.ProductTranslation"/>
+</service>
+
+<service name="OrderService" provider="java:RPC">
+        <parameter name="className" value="org.zsoft.ecommerce.order.OrderService"/>
+        <parameter name="allowedMethods" value="*"/>
+        <beanMapping qname="myNS:Order"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.order.Order"/>
+        <beanMapping qname="myNS:Orderline"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.order.Orderline"/>
+        <beanMapping qname="myNS:OrderResponse"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.order.OrderResponse"/>
+</service>
+
+<service name="OrderServiceV100" provider="java:RPC">
+        <parameter name="className" value="org.zsoft.ecommerce.order.OrderServiceV100"/>
+        <parameter name="allowedMethods" value="*"/>
+        <beanMapping qname="myNS:OrderV100"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.order.OrderV100"/>
+        <beanMapping qname="myNS:Orderline"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.order.Orderline"/>
+        <beanMapping qname="myNS:OrderResponse"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.order.OrderResponse"/>
+</service>
+
+<service name="OrderServiceV200" provider="java:RPC">
+        <parameter name="className" value="org.zsoft.ecommerce.order.OrderServiceV200"/>
+        <parameter name="allowedMethods" value="*"/>
+        <beanMapping qname="myNS:OrderV200"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.order.OrderV200"/>
+        <beanMapping qname="myNS:OrderlineV200"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.order.OrderlineV200"/>
+        <beanMapping qname="myNS:OrderResponse"  xmlns:myNS="/services/WebService" languageSpecificType="java:org.zsoft.ecommerce.order.OrderResponse"/>
+</service>
+

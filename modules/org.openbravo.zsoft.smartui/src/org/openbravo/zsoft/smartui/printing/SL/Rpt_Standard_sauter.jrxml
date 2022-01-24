@@ -1,0 +1,1616 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.5.1.final using JasperReports Library version 6.5.1  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Rpt_Standard" language="groovy" pageWidth="595" pageHeight="842" columnWidth="515" leftMargin="60" rightMargin="20" topMargin="20" bottomMargin="20" uuid="8eac9bd3-276f-4fb0-b8ae-46d6936c72c5">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="1344"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="steuermann.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="default" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="10" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Report_Title" fontName="OpenZ Sans" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="GroupHeader_DarkGray" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="GroupHeader_Gray" mode="Opaque" backcolor="#999999"/>
+	<style name="Detail_Line">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Total_Gray" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC"/>
+	<style name="Group_Footer" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Footer" isDefault="true" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="11"/>
+	<parameter name="ATTACH" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_WEB" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_CLIENT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('1000000')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_ORG" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('0')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_TITLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["REPORT TITLE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_SUBTITLE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_InvoiceLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_OrderLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_ShipmentLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_TaxLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="LANGUAGE2" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_RptStd_OrderLines_SubPos_juwi" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_OrderLines_SubPosOneTime_juwi" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT c_order.c_doctypetarget_id, '1' as abschnitt, C_ORDER.C_ORDER_ID as ID, zssi_tinymce2jsreportsHTML(C_ORDER.DESCRIPTION) as DESCRIPTION, C_ORDER.DOCUMENTNO as DOCUMENTNO,zssi_getDeliveryLocationText(C_ORDER.C_ORDER_ID) as deliverylocationtext,null as deladrtext,
+CASE when c_bpartner_location.deviant_bp_name='' or c_bpartner_location.deviant_bp_name is NULL then C_BPARTNER.NAME else c_bpartner_location.deviant_bp_name end as PARTNER,
+C_BPARTNER.VALUE as CUSTOMERNO,
+C_BPARTNER.name2,
+CASE when c_bpartner_location.deviant_bp_name is NULL then zssi_getusernamecomplete(c_order.ad_user_id,$P{LANGUAGE}) else '' end  as CONTACT_NAME,
+C_LOCATION.ADDRESS1 AS ADDRESS_CS, C_LOCATION.ADDRESS2 AS ADDRESS_2,
+        C_LOCATION.POSTAL, C_LOCATION.CITY,
+        zssi_getOwnCodeAtPartnerSide(C_ORDER.ad_org_id,C_BPARTNER.c_bpartner_id) as owncodeatpartnersite,
+        zssi_getusernamecomplete(c_order.salesrep_id,$P{LANGUAGE}) as ourrepresentative, zssi_getuseremail(c_order.salesrep_id) as ourrepemail, zssi_getuserphone(c_order.salesrep_id) as ourrepphone,
+        C_BPARTNER_LOCATION.PHONE,C_BPARTNER_LOCATION.FAX,C_BPARTNER.URL,
+        C_BPARTNER_LOCATION.uidnumber,   zssi_getprojectorcostcentervalue(c_order.c_project_id,'') as costunit,  zssi_getprojectorcostcentervalue('',c_order.a_asset_id) as costcenter,
+        C_Location_Description(AD_ORGINFO.C_LOCATION_ID) AS LOCATION, C_CURRENCY.ISO_CODE AS CURRENCY_CODE,C_CURRENCY.CURSYMBOL AS SYMBOL,
+        C_ORDER.DESCRIPTION, zssi_strDate(C_ORDER.DATEORDERED,$P{LANGUAGE}) as DATEORDERED, C_ORDER.DOCUMENTNO, zssi_strDate(c_order.datepromised,$P{LANGUAGE}) as datepromised, zssi_2html('') as PAYTERM,
+        zssi_strDate(current_date,$P{LANGUAGE}) as curdate,
+CASE when c_order.issotrx='Y' then zssi_getlocationcity(C_ORDER.DELIVERY_LOCATION_ID)
+WHEN (c_order.c_doctype_id='EE19ABBDB5A94C519DAB11003320FC8E' and c_order.Deliver2projectadress='N' ) THEN zssi_getlocationcity((select s.c_bpartner_location_id from c_order s where s.c_order_id=c_order.orderselfjoin))
+WHEN (c_order.issotrx='N' AND c_order.Deliver2projectadress='Y' AND c_project.c_bpartner_location_id is not null) THEN zssi_getlocationcity(c_project.c_bpartner_location_id)
+else zssi_getcityfromwarehouse(c_order.m_warehouse_id,'Y') end as delcity,
+CASE when c_order.issotrx='Y' then zssi_getlocationcountry(C_ORDER.DELIVERY_LOCATION_ID,$P{LANGUAGE})
+WHEN (c_order.c_doctype_id='EE19ABBDB5A94C519DAB11003320FC8E' and c_order.Deliver2projectadress='N' ) THEN zssi_getlocationcountry((select s.c_bpartner_location_id from c_order s where s.c_order_id=c_order.orderselfjoin),$P{LANGUAGE})
+WHEN (c_order.issotrx='N' AND c_order.Deliver2projectadress='Y' AND c_project.c_bpartner_location_id is not null) THEN zssi_getlocationcountry(c_project.c_bpartner_location_id,$P{LANGUAGE})
+else zssi_getcountryfromwarehouse(c_order.m_warehouse_id,$P{LANGUAGE},'Y') end  as delcountry,
+CASE when c_order.issotrx='Y' then zssi_getlocationline1(C_ORDER.DELIVERY_LOCATION_ID)
+WHEN (c_order.c_doctype_id='EE19ABBDB5A94C519DAB11003320FC8E' and c_order.Deliver2projectadress='N' ) THEN zssi_getlocationline1((select s.c_bpartner_location_id from c_order s where s.c_order_id=c_order.orderselfjoin))
+WHEN (c_order.issotrx='N' AND c_order.Deliver2projectadress='Y' AND c_project.c_bpartner_location_id is not null) THEN zssi_getlocationline1(c_project.c_bpartner_location_id)
+else zssi_getlocline1fromwarehouse(c_order.m_warehouse_id,'Y') end  as deladdr1,
+CASE when c_order.issotrx='Y' then zssi_getlocationline2(C_ORDER.DELIVERY_LOCATION_ID)
+WHEN (c_order.c_doctype_id='EE19ABBDB5A94C519DAB11003320FC8E' and c_order.Deliver2projectadress='N' ) THEN zssi_getlocationline2((select s.c_bpartner_location_id from c_order s where s.c_order_id=c_order.orderselfjoin))
+WHEN (c_order.issotrx='N' AND c_order.Deliver2projectadress='Y' AND c_project.c_bpartner_location_id is not null) THEN zssi_getlocationline2(c_project.c_bpartner_location_id)
+else zssi_getlocline2fromwarehouse(c_order.m_warehouse_id,'Y') end  as deladdr2,
+CASE when c_order.issotrx='Y' then zssi_getlocationpostal(C_ORDER.DELIVERY_LOCATION_ID)
+WHEN (c_order.c_doctype_id='EE19ABBDB5A94C519DAB11003320FC8E' and c_order.Deliver2projectadress='N' ) THEN zssi_getlocationpostal((select s.c_bpartner_location_id from c_order s where s.c_order_id=c_order.orderselfjoin))
+WHEN (c_order.issotrx='N' AND c_order.Deliver2projectadress='Y' AND c_project.c_bpartner_location_id is not null) THEN zssi_getlocationpostal(c_project.c_bpartner_location_id)
+else zssi_getpostalfromwarehouse(c_order.m_warehouse_id,'Y') end  as delpostal,
+        zssi_getpaymentterm(C_ORDER.C_PAYMENTTERM_ID,$P{LANGUAGE}) as paymentterm,
+        zssi_getlocationcountry(C_ORDER.C_BPARTNER_LOCATION_ID,$P{LANGUAGE}) as bpcountry,
+        zssi_getexportterm(C_ORDER.C_BPARTNER_LOCATION_ID, c_order.c_doctypetarget_id,$P{LANGUAGE}) as exportterm,
+        zssi_getlocationeori(C_ORDER.C_BPARTNER_LOCATION_ID) as eori,
+        zssi_getincoterms(C_ORDER.c_incoterms_id) as incoterms,
+        zssi_getshipper(C_ORDER.m_shipper_id) as shipper,
+        zssi_getdeliverymethod(C_ORDER.deliveryviarule,$P{LANGUAGE}) as deliverymethod,
+        CASE when $P{LANGUAGE}='de_DE' then 'Zahlungsmethode: ' || zssi_getpaymethod(C_ORDER.paymentrule,C_ORDER.deliveryrule,$P{LANGUAGE})
+        ELSE ' Method of payment: ' || zssi_getpaymethod(C_ORDER.paymentrule,C_ORDER.deliveryrule,$P{LANGUAGE})
+        END as paymethod,
+	zssi_strint(c_order.weight, $P{LANGUAGE}) as weight,
+        zssi_getuom(c_order.weight_uom,$P{LANGUAGE}) as weight_uom,
+        null as trackingno,
+        null as shippingto,
+        ad_image.binarydata as logo,
+        c_order.issotrx as issotrx,
+        zssi_GetDocText(C_ORDER.c_doctype_id,$P{LANGUAGE}) as title,
+        c_order.c_doctype_id as doctype_id,
+CASE when ad_get_docbasetype(c_doctype_id)='POO' then zssi_getelementtextbycolumname(to_char('Bono'),$P{LANGUAGE}) when ad_get_docbasetype(c_doctype_id)='QUOTATION' then zssi_getelementtextbycolumname(to_char('Pono'),$P{LANGUAGE}) when ad_get_docbasetype(c_doctype_id)='SALESOFFER' then zssi_getelementtextbycolumname(to_char('Pono'),$P{LANGUAGE}) when ad_get_docbasetype(c_doctype_id)='POREQUESTOFFER' then zssi_getelementtextbycolumname(to_char('Aono'),$P{LANGUAGE}) else zssi_getelementtextbycolumname(to_char('Sono'),$P{LANGUAGE}) end as dbt,
+        zspr.addressheader,  zspr.address1, zspr.address2, zspr.address3, zspr.address4, zspr.address5, zspr.address6, zspr.address7, zspr.address8, zspr.address9, zspr.footer1, zspr.footer2, zspr.footer3, zspr.footer4, zspr.footer5, zspr.onelineadr, zspr.isfootergroupstyle,
+c_order.poreference,
+zssi_getElementTextByColumname('yourreference',$P{LANGUAGE}) as refhead,
+        to_char(c_order.performanceperiodstart,'DD.MM.YYYY') as performanceperiodstart,
+        CASE when (c_order.performanceperiodend is null) then ''
+        ELSE ' - '||to_char(c_order.performanceperiodend,'DD.MM.YYYY')
+        END as performanceperiodend,
+        -- Spezielle Dokumentendaten (je nach Dokument und Einstellung vorhanden oder nicht)
+                zssi_2html(zssi_getTextModuleFromDoc(C_ORDER.C_ORDER_ID,'ORDER','N', $P{LANGUAGE})) as textmodule1,  -- Textmodule oben Order
+                        zssi_2html(zssi_getTextModuleFromDoc(C_ORDER.C_ORDER_ID,'ORDER','Y', $P{LANGUAGE})) as textmodule2  -- Textmodule unten Order
+FROM C_ORDER LEFT JOIN C_BPARTNER ON C_ORDER.C_BPARTNER_ID = C_BPARTNER.C_BPARTNER_ID
+                 LEFT JOIN C_BPARTNER_LOCATION ON C_ORDER.C_BPARTNER_LOCATION_ID = C_BPARTNER_LOCATION.C_BPARTNER_LOCATION_ID
+                 LEFT JOIN C_LOCATION ON C_BPARTNER_LOCATION.C_LOCATION_ID = C_LOCATION.C_LOCATION_ID
+                 LEFT JOIN C_PAYMENTTERM ON C_ORDER.C_PAYMENTTERM_ID=C_PAYMENTTERM.C_PAYMENTTERM_ID
+                 LEFT JOIN C_CURRENCY ON C_ORDER.C_CURRENCY_ID = C_CURRENCY.C_CURRENCY_ID
+                LEFT JOIN C_PROJECT ON C_ORDER.C_PROJECT_ID = C_PROJECT.C_PROJECT_ID,
+        AD_ORGINFO LEFT JOIN ad_image on AD_ORGINFO.your_company_document_image=ad_image.ad_image_id,
+        zspr_printinfo zspr
+  WHERE C_ORDER.ad_org_id = AD_ORGINFO.ad_org_id
+    AND zspr.ad_org_id=C_ORDER.ad_org_id
+    AND C_ORDER.C_ORDER_ID IN ($P{DOCUMENT_ID})
+UNION
+SELECT  c_invoice.c_doctypetarget_id, '2' as abschnitt, C_INVOICE.C_INVOICE_ID as ID,zssi_tinymce2jsreportsHTML(C_INVOICE.DESCRIPTION) as DESCRIPTION, C_INVOICE.DOCUMENTNO as DOCUMENTNO,null as deliverylocationtext,null as deladrtext,
+CASE when c_bpartner_location.deviant_bp_name='' or c_bpartner_location.deviant_bp_name is NULL then C_BPARTNER.NAME else c_bpartner_location.deviant_bp_name end as PARTNER,
+C_BPARTNER.VALUE as CUSTOMERNO,
+C_BPARTNER.name2,
+CASE when c_bpartner_location.deviant_bp_name is NULL then zssi_getusernamecomplete(c_invoice.ad_user_id,$P{LANGUAGE}) else '' end  as CONTACT_NAME,
+C_LOCATION.ADDRESS1 AS ADDRESS_CS, C_LOCATION.ADDRESS2 AS ADDRESS_2,
+       C_LOCATION.POSTAL, C_LOCATION.CITY,zssi_getOwnCodeAtPartnerSide(C_INVOICE.ad_org_id,C_BPARTNER.c_bpartner_id) as owncodeatpartnersite,
+       zssi_getusernamecomplete(c_invoice.salesrep_id,$P{LANGUAGE}) as ourrepresentative,  zssi_getuseremail(c_invoice.salesrep_id) as ourrepemail, zssi_getuserphone(c_invoice.salesrep_id) as ourrepphone,
+        C_BPARTNER_LOCATION.PHONE,C_BPARTNER_LOCATION.FAX,C_BPARTNER.URL,
+       C_BPARTNER_LOCATION.uidnumber,   zssi_getprojectorcostcentervalue(c_invoice.c_project_id,'') as costunit,  zssi_getprojectorcostcentervalue('',c_invoice.a_asset_id) as costcenter,
+        C_Location_Description(AD_ORGINFO.C_LOCATION_ID) AS LOCATION, C_CURRENCY.ISO_CODE AS CURRENCY_CODE,C_CURRENCY.CURSYMBOL AS SYMBOL,
+        C_INVOICE.DESCRIPTION, zssi_strDate(C_INVOICE.DATEINVOICED,$P{LANGUAGE}) as DATEORDERED, C_INVOICE.DOCUMENTNO, '' as datepromised, zssi_2html(C_PAYMENTTERM.DESCRIPTION) AS PAYTERM,
+        zssi_strDate(current_date,$P{LANGUAGE}) as curdate,
+        null as delcity,
+        null as delcountry,
+        null as deladdr1,
+        null as deladdr2,
+        null as delpostal,
+        zssi_getpaymentterm(C_INVOICE.C_PAYMENTTERM_ID,$P{LANGUAGE}) as paymentterm,
+        zssi_getlocationcountry(C_INVOICE.C_BPARTNER_LOCATION_ID,$P{LANGUAGE}) as bpcountry,
+        zssi_getexportterm(C_INVOICE.C_BPARTNER_LOCATION_ID, c_invoice.c_doctypetarget_id,$P{LANGUAGE}) as exportterm,
+        null as eori,
+        null as incoterms,
+        null as shipper,
+        null as deliverymethod,
+        CASE when $P{LANGUAGE}='de_DE' then 'Zahlungsmethode: ' || zssi_getpaymethod(C_INVOICE.paymentrule,C_INVOICE.deliveryrule,$P{LANGUAGE})
+        ELSE ' Method of payment: ' || zssi_getpaymethod(C_INVOICE.paymentrule,C_INVOICE.deliveryrule,$P{LANGUAGE})
+        END as paymethod,
+        null as weight,
+        null as weight_uom,
+        null as trackingno,
+        null as shippingto,
+        ad_image.binarydata as logo,
+        c_invoice.issotrx as issotrx,
+        zssi_GetDocText(C_INVOICE.c_doctype_id,$P{LANGUAGE})  as title,
+        c_invoice.c_doctype_id as doctype_id,
+        null as dbt,
+        zspr.addressheader,  zspr.address1, zspr.address2, zspr.address3, zspr.address4, zspr.address5, zspr.address6, zspr.address7, zspr.address8, zspr.address9, zspr.footer1, zspr.footer2, zspr.footer3, zspr.footer4, zspr.footer5, zspr.onelineadr, zspr.isfootergroupstyle,
+case when c_invoice.poreference is null then c_order.documentno else c_invoice.poreference end as poreference,
+zssi_getElementTextByColumname('yourreference',$P{LANGUAGE}) as refhead,
+        to_char(c_invoice.performanceperiodstart,'DD.MM.YYYY') as performanceperiodstart,
+        CASE when (c_invoice.performanceperiodend is null) then ''
+        ELSE ' - '||to_char(c_invoice.performanceperiodend,'DD.MM.YYYY')
+        END as performanceperiodend,
+        -- Spezielle Dokumentendaten (je nach Dokument und Einstellung vorhanden oder nicht)
+                zssi_2html(zssi_getTextModuleFromDoc(C_INVOICE.C_INVOICE_ID,'INVOICE','N', $P{LANGUAGE})) as textmodule1, -- Textmodul oben Invoice
+                zssi_2html(zssi_getTextModuleFromDoc(C_INVOICE.C_INVOICE_ID,'INVOICE','Y', $P{LANGUAGE})) as textmodule2 -- Textmodul unten Invoice
+FROM C_INVOICE LEFT JOIN C_BPARTNER ON C_INVOICE.C_BPARTNER_ID = C_BPARTNER.C_BPARTNER_ID
+                 LEFT JOIN C_BPARTNER_LOCATION ON C_INVOICE.C_BPARTNER_LOCATION_ID = C_BPARTNER_LOCATION.C_BPARTNER_LOCATION_ID
+                 LEFT JOIN C_LOCATION ON C_BPARTNER_LOCATION.C_LOCATION_ID = C_LOCATION.C_LOCATION_ID
+                 LEFT JOIN C_PAYMENTTERM ON C_INVOICE.C_PAYMENTTERM_ID=C_PAYMENTTERM.C_PAYMENTTERM_ID
+                 LEFT JOIN C_CURRENCY ON C_INVOICE.C_CURRENCY_ID = C_CURRENCY.C_CURRENCY_ID
+                 LEFT JOIN C_ORDER on c_invoice.c_order_id=c_order.c_order_id,
+        AD_ORGINFO LEFT JOIN ad_image on AD_ORGINFO.your_company_document_image=ad_image.ad_image_id,
+        zspr_printinfo zspr
+  WHERE C_INVOICE.ad_org_id = AD_ORGINFO.ad_org_id
+    AND zspr.ad_org_id=C_INVOICE.ad_org_id
+    AND C_INVOICE.C_INVOICE_ID IN ($P{DOCUMENT_ID})
+UNION
+SELECT '' as c_doctypetarget_id,'3' as abschnitt, M_INOUT.M_INOUT_ID as ID, zssi_tinymce2jsreportsHTML(M_INOUT.DESCRIPTION) as DESCRIPTION, M_INOUT.DOCUMENTNO as DOCUMENTNO,null as deliverylocationtext,M_INOUT.deliverylocationtext as deladrtext,
+CASE when c_bpartner_location.deviant_bp_name='' or c_bpartner_location.deviant_bp_name is NULL then C_BPARTNER.NAME else c_bpartner_location.deviant_bp_name end as PARTNER,
+C_BPARTNER.VALUE as CUSTOMERNO,
+C_BPARTNER.name2,
+CASE when c_bpartner_location.deviant_bp_name is NULL then zssi_getusernamecomplete(m_inout.ad_user_id,$P{LANGUAGE}) else '' end  as CONTACT_NAME,
+C_LOCATION.ADDRESS1 AS ADDRESS_CS, C_LOCATION.ADDRESS2 AS ADDRESS_2,
+       C_LOCATION.POSTAL, C_LOCATION.CITY,zssi_getOwnCodeAtPartnerSide(M_INOUT.ad_org_id,C_BPARTNER.c_bpartner_id) as owncodeatpartnersite,
+       zssi_getusernamecomplete(m_inout.salesrep_id,$P{LANGUAGE}) as ourrepresentative, zssi_getuseremail(m_inout.salesrep_id) as ourrepemail, zssi_getuserphone(m_inout.salesrep_id) as ourrepphone,
+        C_BPARTNER_LOCATION.PHONE,C_BPARTNER_LOCATION.FAX,C_BPARTNER.URL, C_BPARTNER_LOCATION.uidnumber, null as  cosunit, null as costcenter,
+        C_Location_Description(AD_ORGINFO.C_LOCATION_ID) AS LOCATION, null AS CURRENCY_CODE,null AS SYMBOL,
+        M_INOUT.DESCRIPTION, zssi_strDate(M_INOUT.MOVEMENTDATE, $P{LANGUAGE}) as DATEORDERED, M_INOUT.DOCUMENTNO, zssi_strDate(m_inout.shipdate,$P{LANGUAGE}) as datepromised, zssi_2html('') AS PAYTERM,
+        zssi_strDate(current_date,$P{LANGUAGE}) as curdate,
+        zssi_getlocationcity(M_INOUT.DELIVERY_LOCATION_ID) as delcity,
+        zssi_getlocationcountry(M_INOUT.DELIVERY_LOCATION_ID,$P{LANGUAGE}) as delcountry,
+        zssi_getlocationline1(M_INOUT.DELIVERY_LOCATION_ID) as deladdr1,
+        zssi_getlocationline2(M_INOUT.DELIVERY_LOCATION_ID) as deladdr2,
+        zssi_getlocationpostal(M_INOUT.DELIVERY_LOCATION_ID) as delpostal,
+        null as paymentterm,
+        zssi_getlocationcountry(M_INOUT.C_BPARTNER_LOCATION_ID,$P{LANGUAGE}) as bpcountry,
+        zssi_getexportterm(m_inout.C_BPARTNER_LOCATION_ID, m_inout.c_doctype_id,$P{LANGUAGE}) as exportterm,
+        zssi_getlocationeori(M_INOUT.C_BPARTNER_LOCATION_ID) as eori,
+        zssi_getincoterms(M_INOUT.c_incoterms_id) as incoterms,
+        zssi_getshipper(M_INOUT.m_shipper_id) as shipper,
+        zssi_getdeliverymethod(M_INOUT.deliveryviarule,$P{LANGUAGE}) as deliverymethod,
+        '' as paymethod,
+	zssi_strint(m_inout.weight, $P{LANGUAGE}) as weight,
+        zssi_getuom(m_inout.weight_uom,$P{LANGUAGE}) as weight_uom,
+        m_inout.trackingno as trackingno,
+        m_inout.shippingto as shippingto,
+        ad_image.binarydata as logo,
+        m_inout.issotrx as issotrx,
+        zssi_GetDocText(M_INOUT.c_doctype_id,$P{LANGUAGE}) as title, m_inout.c_doctype_id as doctype_id,
+        null as dbt,
+        zspr.addressheader,  zspr.address1, zspr.address2, zspr.address3, zspr.address4, zspr.address5, zspr.address6, zspr.address7, zspr.address8, zspr.address9, zspr.footer1, zspr.footer2, zspr.footer3, zspr.footer4, zspr.footer5, zspr.onelineadr, zspr.isfootergroupstyle,
+case when m_inout.poreference is null then c_order.documentno else m_inout.poreference end as poreference,
+zssi_getElementTextByColumname('yourreference',$P{LANGUAGE}) as refhead,
+        null as performanceperiodstart,
+        null as performanceperiodend,
+        -- Spezielle Dokumentendaten (je nach Dokument und Einstellung vorhanden oder nicht)
+                zssi_2html(zssi_getTextModuleFromDoc(M_INOUT.M_INOUT_ID,'SHIPMENT','N', $P{LANGUAGE})) as textmodule1,  -- Textmodul oben shipment
+                zssi_2html(zssi_getTextModuleFromDoc(M_INOUT.M_INOUT_ID,'SHIPMENT','Y', $P{LANGUAGE})) as textmodule2  --Textmodul unten shipment
+FROM M_INOUT LEFT JOIN C_BPARTNER ON M_INOUT.C_BPARTNER_ID = C_BPARTNER.C_BPARTNER_ID
+                 LEFT JOIN C_BPARTNER_LOCATION ON M_INOUT.C_BPARTNER_LOCATION_ID = C_BPARTNER_LOCATION.C_BPARTNER_LOCATION_ID
+                 LEFT JOIN C_LOCATION ON C_BPARTNER_LOCATION.C_LOCATION_ID = C_LOCATION.C_LOCATION_ID
+                LEFT JOIN C_ORDER on m_inout.c_order_id=c_order.c_order_id,
+        AD_ORGINFO LEFT JOIN ad_image on AD_ORGINFO.your_company_document_image=ad_image.ad_image_id,
+        zspr_printinfo zspr
+  WHERE M_INOUT.ad_org_id = AD_ORGINFO.ad_org_id
+    AND zspr.ad_org_id=M_INOUT.ad_org_id
+    AND M_INOUT.M_INOUT_ID IN ($P{DOCUMENT_ID})]]>
+	</queryString>
+	<field name="c_doctypetarget_id" class="java.lang.String"/>
+	<field name="abschnitt" class="java.lang.String"/>
+	<field name="id" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="documentno" class="java.lang.String"/>
+	<field name="deliverylocationtext" class="java.lang.String"/>
+	<field name="deladrtext" class="java.lang.String"/>
+	<field name="partner" class="java.lang.String"/>
+	<field name="customerno" class="java.lang.String"/>
+	<field name="name2" class="java.lang.String"/>
+	<field name="contact_name" class="java.lang.String"/>
+	<field name="address_cs" class="java.lang.String"/>
+	<field name="address_2" class="java.lang.String"/>
+	<field name="postal" class="java.lang.String"/>
+	<field name="city" class="java.lang.String"/>
+	<field name="owncodeatpartnersite" class="java.lang.String"/>
+	<field name="ourrepresentative" class="java.lang.String"/>
+	<field name="ourrepemail" class="java.lang.String"/>
+	<field name="ourrepphone" class="java.lang.String"/>
+	<field name="phone" class="java.lang.String"/>
+	<field name="fax" class="java.lang.String"/>
+	<field name="url" class="java.lang.String"/>
+	<field name="uidnumber" class="java.lang.String"/>
+	<field name="costunit" class="java.lang.String"/>
+	<field name="costcenter" class="java.lang.String"/>
+	<field name="location" class="java.lang.String"/>
+	<field name="currency_code" class="java.lang.String"/>
+	<field name="symbol" class="java.lang.String"/>
+	<field name="COLUMN_29" class="java.lang.String"/>
+	<field name="dateordered" class="java.lang.String"/>
+	<field name="COLUMN_31" class="java.lang.String"/>
+	<field name="datepromised" class="java.lang.String"/>
+	<field name="payterm" class="java.lang.String"/>
+	<field name="curdate" class="java.lang.String"/>
+	<field name="delcity" class="java.lang.String"/>
+	<field name="delcountry" class="java.lang.String"/>
+	<field name="deladdr1" class="java.lang.String"/>
+	<field name="deladdr2" class="java.lang.String"/>
+	<field name="delpostal" class="java.lang.String"/>
+	<field name="paymentterm" class="java.lang.String"/>
+	<field name="bpcountry" class="java.lang.String"/>
+	<field name="exportterm" class="java.lang.String"/>
+	<field name="eori" class="java.lang.String"/>
+	<field name="incoterms" class="java.lang.String"/>
+	<field name="shipper" class="java.lang.String"/>
+	<field name="deliverymethod" class="java.lang.String"/>
+	<field name="paymethod" class="java.lang.String"/>
+	<field name="weight" class="java.lang.String"/>
+	<field name="weight_uom" class="java.lang.String"/>
+	<field name="trackingno" class="java.lang.String"/>
+	<field name="shippingto" class="java.lang.String"/>
+	<field name="logo" class="java.io.InputStream"/>
+	<field name="issotrx" class="java.lang.String"/>
+	<field name="title" class="java.lang.String"/>
+	<field name="doctype_id" class="java.lang.String"/>
+	<field name="dbt" class="java.lang.String"/>
+	<field name="addressheader" class="java.lang.String"/>
+	<field name="address1" class="java.lang.String"/>
+	<field name="address2" class="java.lang.String"/>
+	<field name="address3" class="java.lang.String"/>
+	<field name="address4" class="java.lang.String"/>
+	<field name="address5" class="java.lang.String"/>
+	<field name="address6" class="java.lang.String"/>
+	<field name="address7" class="java.lang.String"/>
+	<field name="address8" class="java.lang.String"/>
+	<field name="address9" class="java.lang.String"/>
+	<field name="footer1" class="java.lang.String"/>
+	<field name="footer2" class="java.lang.String"/>
+	<field name="footer3" class="java.lang.String"/>
+	<field name="footer4" class="java.lang.String"/>
+	<field name="footer5" class="java.lang.String"/>
+	<field name="onelineadr" class="java.lang.String"/>
+	<field name="isfootergroupstyle" class="java.lang.String"/>
+	<field name="poreference" class="java.lang.String"/>
+	<field name="refhead" class="java.lang.String"/>
+	<field name="performanceperiodstart" class="java.lang.String"/>
+	<field name="performanceperiodend" class="java.lang.String"/>
+	<field name="textmodule1" class="java.lang.String"/>
+	<field name="textmodule2" class="java.lang.String"/>
+	<variable name="doctype_id" class="java.lang.String">
+		<variableExpression><![CDATA[$F{doctype_id}]]></variableExpression>
+	</variable>
+	<group name="ShipmentAddress">
+		<groupExpression><![CDATA[]]></groupExpression>
+		<groupHeader>
+			<band height="91" splitType="Stretch">
+				<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1 && (($F{deladdr1} != null && !$F{deladdr1}.equals("")) || ($F{deliverylocationtext} != null && !$F{deliverylocationtext}.equals(""))) && (!$F{doctype_id}.equals("6557A8E827ED40BDAE66E4A78166A839")) && (!$F{doctype_id}.equals("B342FD5CA1C64E8BA25A0A6F6C98C7DA")))]]></printWhenExpression>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-241" style="Report_Footer" positionType="Float" x="0" y="16" width="236" height="14" isRemoveLineWhenBlank="true" uuid="b0b12860-0a69-413e-ae61-95282cc7a990">
+						<printWhenExpression><![CDATA[new java.lang.Boolean(($F{deliverylocationtext}== null  || $F{deliverylocationtext}.equals("")) && (!$F{doctype_id}.equals("6557A8E827ED40BDAE66E4A78166A839")))]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font fontName="OpenZ Sans" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{deladdr1} == null ? "" : $F{deladdr1})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-242" positionType="Float" x="0" y="30" width="236" height="14" isRemoveLineWhenBlank="true" uuid="590ef8f7-b6a2-4c84-897a-327a73f53642">
+						<printWhenExpression><![CDATA[new java.lang.Boolean(($F{deliverylocationtext}== null  || $F{deliverylocationtext}.equals(""))&& (!$F{doctype_id}.equals("6557A8E827ED40BDAE66E4A78166A839")))]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font fontName="OpenZ Sans" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{deladdr2} == null ? "" : $F{deladdr2})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-243" positionType="Float" x="0" y="44" width="47" height="14" isRemoveLineWhenBlank="true" uuid="924a2f31-c1e8-4800-9827-1fa3686257e6">
+						<printWhenExpression><![CDATA[new java.lang.Boolean(($F{deliverylocationtext}== null  || $F{deliverylocationtext}.equals("")) && (!$F{doctype_id}.equals("6557A8E827ED40BDAE66E4A78166A839")))]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font fontName="OpenZ Sans" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{delpostal} == null ? "" : $F{delpostal})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-244" positionType="Float" x="47" y="44" width="189" height="14" isRemoveLineWhenBlank="true" uuid="e99912da-fc57-4481-8ef8-c4bbb9908d85">
+						<printWhenExpression><![CDATA[new java.lang.Boolean(($F{deliverylocationtext}== null  || $F{deliverylocationtext}.equals("")) && (!$F{doctype_id}.equals("6557A8E827ED40BDAE66E4A78166A839")))]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font fontName="OpenZ Sans" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{delcity} ==  null ? "" : $F{delcity})]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-147" positionType="Float" x="0" y="0" width="236" height="16" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="1fbb21ac-4217-400f-8fd0-9ad14c9c9388">
+						<printWhenExpression><![CDATA[new java.lang.Boolean(($F{deladdr1} != null && !$F{deladdr1}.equals("")) || (($F{deliverylocationtext} != null && !$F{deliverylocationtext}.equals(""))))]]></printWhenExpression>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="11" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Shipping Address:]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="0" y="16" width="236" height="62" uuid="1b8ee3cb-51b4-4363-bb8e-63a83059ae2d">
+						<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{deliverylocationtext} != null && (!$F{doctype_id}.equals("6557A8E827ED40BDAE66E4A78166A839")))]]></printWhenExpression>
+					</reportElement>
+					<textElement verticalAlignment="Top">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{deliverylocationtext}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-245" positionType="Float" x="0" y="58" width="236" height="14" isRemoveLineWhenBlank="true" uuid="5baa1ab9-7acc-4189-bdd5-e47ebed32d07">
+						<printWhenExpression><![CDATA[new java.lang.Boolean(($F{deliverylocationtext}== null  || $F{deliverylocationtext}.equals("")) && (!$F{doctype_id}.equals("6557A8E827ED40BDAE66E4A78166A839")))]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font fontName="OpenZ Sans" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{delcountry} == null ? "" : $F{delcountry})]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Stretch"/>
+		</groupFooter>
+	</group>
+	<group name="TitleBar">
+		<groupExpression><![CDATA[]]></groupExpression>
+		<groupHeader>
+			<band height="150" splitType="Stretch">
+				<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1)]]></printWhenExpression>
+				<staticText>
+					<reportElement key="staticText-135" x="1" y="67" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="f2555de3-7f15-419d-87e7-3cda46870168">
+						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("5") & !$F{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749"))]]></printWhenExpression>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Order No.]]></text>
+				</staticText>
+				<textField isBlankWhenNull="false">
+					<reportElement key="textField-225" x="1" y="31" width="212" height="27" uuid="000b78d7-2201-45ce-b9a6-20436da7356a"/>
+					<textElement>
+						<font size="19" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{title}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-226" x="70" y="67" width="102" height="11" isPrintWhenDetailOverflows="true" uuid="b4a3e335-b47d-4bc2-a1f1-4ac4fae93a49"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{documentno}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-138" x="186" y="67" width="48" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="0ed26c06-c4ed-407e-994e-9c2e3320942f">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1)]]></printWhenExpression>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Contact]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-228" x="234" y="67" width="154" height="11" isPrintWhenDetailOverflows="true" uuid="1b9e06b5-a56a-4891-95b9-85bcdff89028">
+						<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					</reportElement>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{ourrepresentative}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-140" x="186" y="84" width="48" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="4bd835f8-b54f-427e-9625-eb9f3aa16e96">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1)]]></printWhenExpression>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Phone]]></text>
+				</staticText>
+				<line>
+					<reportElement key="line-15" x="0" y="65" width="388" height="1" uuid="ccf30ef9-c1cb-4d42-8b29-493c47d6707d">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+				</line>
+				<line>
+					<reportElement key="line-14" x="0" y="115" width="388" height="1" uuid="015fc4d2-082a-4f25-919e-1b1538b42469">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+				</line>
+				<staticText>
+					<reportElement key="staticText-141" x="1" y="84" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="7d4376b4-e70b-4032-81bd-be0dd2649052"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Customer No.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-143" x="186" y="100" width="48" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="3bdec3bb-c237-46cb-8252-3dba9c76c123">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1)]]></printWhenExpression>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[E-Mail]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-231" x="234" y="84" width="154" height="11" isPrintWhenDetailOverflows="true" uuid="9208e93c-17fb-45af-90e1-83b35349a9da"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{ourrepphone}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-232" x="234" y="100" width="154" height="11" isPrintWhenDetailOverflows="true" uuid="64f7c6db-b34b-4102-9863-42d637335275"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{ourrepemail}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-144" x="1" y="67" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="2d4a7c8a-25b9-4ab9-94f6-8d1140a99689">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("2"))]]></printWhenExpression>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Invoice No.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-145" x="1" y="67" width="70" height="10" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="35a3eff5-4e00-40e1-8a5a-5f0648ad3aa7">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("3"))]]></printWhenExpression>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Shipment No.]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-235" x="70" y="84" width="102" height="11" isPrintWhenDetailOverflows="true" uuid="505be8e7-f088-4498-bb45-c1ce147c1c97"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{customerno}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="false">
+					<reportElement key="textField-238" positionType="Float" x="322" y="38" width="66" height="12" uuid="4e16ce33-7553-4b49-8394-aa18824e0827"/>
+					<textElement textAlignment="Right">
+						<font size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{dateordered}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="textField-223" positionType="Float" x="222" y="38" width="100" height="12" forecolor="#666666" uuid="ef0ccc20-5db4-4986-9077-581a2c73fa05">
+						<printWhenExpression><![CDATA[new java.lang.Boolean(!$F{abschnitt}.equals("2"))]]></printWhenExpression>
+					</reportElement>
+					<textElement textAlignment="Right" markup="none">
+						<font size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Date]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="textField-223" positionType="Float" x="222" y="38" width="100" height="12" forecolor="#666666" uuid="40d82e88-cbf7-46de-8793-277cbcb9c434">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("2"))]]></printWhenExpression>
+					</reportElement>
+					<textElement textAlignment="Right" markup="none">
+						<font size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Invoice date]]></text>
+				</staticText>
+				<textField>
+					<reportElement key="txtAngebotsNo" positionType="Float" x="1" y="67" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="4204ff92-799b-4510-a86c-317acd7361fc">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("1"))]]></printWhenExpression>
+					</reportElement>
+					<textElement>
+						<font size="8" pdfFontName="OpenZ Sans" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{dbt}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-141" x="1" y="100" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="fda10f70-d621-42f6-a3ad-bfca36032a8f"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Ihr Zeichen:]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-235" x="70" y="100" width="102" height="11" isPrintWhenDetailOverflows="true" uuid="56144d67-ad4a-476d-88eb-0ede15b6767d"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{poreference}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-39" stretchType="RelativeToBandHeight" x="0" y="135" width="388" height="12" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="8764c22c-df45-4cf1-82ac-79ed01235f54">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle" markup="html">
+						<font size="8" isBold="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Stretch"/>
+		</groupFooter>
+	</group>
+	<group name="Order">
+		<groupExpression><![CDATA[$F{id}]]></groupExpression>
+		<groupHeader>
+			<band height="47" splitType="Stretch">
+				<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("1"))]]></printWhenExpression>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-39" positionType="Float" stretchType="RelativeToTallestObject" x="0" y="12" width="393" height="12" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="583f314b-e59c-4471-8072-8f1168256d7a">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle" markup="html">
+						<font size="8" isBold="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{textmodule1} == null) ? "" :  $F{textmodule1}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="32" splitType="Prevent">
+				<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("1"))]]></printWhenExpression>
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+					<reportElement key="textField-222" isPrintRepeatedValues="false" x="0" y="10" width="388" height="12" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="769e73ae-a192-46c9-9b08-51bf0e5080e3">
+						<printWhenExpression><![CDATA[!$F{c_doctypetarget_id}.equals("A4277AD679DF4DD8A9C2BB9F3C2F2C92")]]></printWhenExpression>
+					</reportElement>
+					<textElement textAlignment="Left" verticalAlignment="Middle" markup="html">
+						<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($F{paymethod} == null) ? "" :  $F{paymethod} + "<br/>" + "<br/>") + (($F{paymentterm} == null) ? "" :  $F{paymentterm} + "<br/>" + "<br/>") + (($F{textmodule2} == null) ? "" :  $F{textmodule2} + "<br/>" + "<br/>") + (($F{payterm} == null) ? "" : $F{payterm})]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="Invoice">
+		<groupExpression><![CDATA[$F{id}]]></groupExpression>
+		<groupHeader>
+			<band height="31" splitType="Stretch">
+				<printWhenExpression><![CDATA[$F{abschnitt}.equals("2")]]></printWhenExpression>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-121" positionType="Float" x="0" y="12" width="388" height="12" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="6cb9b3dc-5487-4e5b-aea3-c77660a2cb76">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle" markup="html">
+						<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($F{textmodule1} == null) ? "" :  $F{textmodule1}) + "<br/>" + "<br/>" + (($F{description} == null) ? "" : $F{description})]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="31" splitType="Stretch">
+				<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("2"))]]></printWhenExpression>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-71" positionType="Float" x="0" y="10" width="388" height="12" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="f93754f8-d090-4275-b72c-ea6a0c1124c3">
+						<printWhenExpression><![CDATA[new java.lang.Boolean(!$F{c_doctypetarget_id}.equals("A4277AD679DF4DD8A9C2BB9F3C2F2C92"))]]></printWhenExpression>
+					</reportElement>
+					<textElement textAlignment="Left" verticalAlignment="Middle" markup="html">
+						<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($F{paymethod} == null) ? "" :  $F{paymethod} + "<br/>" + "<br/>") + (($F{paymentterm} == null) ? "" :  $F{paymentterm} + "<br/>" + "<br/>") + (($F{textmodule2} == null) ? "" :  $F{textmodule2} + "<br/>" + "<br/>") + (($F{exportterm} == null) ? "" :  $F{exportterm})]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="Shipment">
+		<groupExpression><![CDATA[$V{Order_COUNT}]]></groupExpression>
+		<groupHeader>
+			<band height="73" splitType="Stretch">
+				<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("10"))]]></printWhenExpression>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-134" positionType="Float" x="0" y="51" width="388" height="12" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="9eff0dff-8bb6-4c0d-93a1-569e99fac68b"/>
+					<box topPadding="0" leftPadding="0" bottomPadding="0" rightPadding="0">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle" markup="html">
+						<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($F{textmodule1} == null) ? "" :  $F{textmodule1} + "<br/>" + "<br/>") + (($F{description} == null) ? "" : $F{description})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-249" positionType="Float" x="70" y="20" width="74" height="11" isPrintWhenDetailOverflows="true" uuid="c564554b-1220-4d29-8997-04051b4044f4"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{trackingno} == null ? "" : $F{trackingno})]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement key="line-17" positionType="Float" x="0" y="47" width="388" height="1" uuid="8b6ac288-7a47-401b-9565-868bb62c05f7">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					</reportElement>
+				</line>
+				<staticText>
+					<reportElement key="staticText-151" positionType="Float" x="293" y="3" width="55" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="f19baf94-76d6-4f49-bbbf-3758495a7e53"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Weight]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-152" positionType="Float" x="0" y="20" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="5eaeb2b6-cdb3-4311-ac74-2eed9cf64582"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Tracking No]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-153" positionType="Float" x="149" y="20" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="58d2f0e6-fe57-45c2-b41a-4d4e3d387cb9"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Shipping to]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-250" positionType="Float" x="218" y="20" width="101" height="11" isPrintWhenDetailOverflows="true" uuid="fe753cc9-fa33-4138-8603-9c58784a8e7c"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{shippingto} == null ? "" : $F{shippingto})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-251" positionType="Float" x="348" y="3" width="39" height="11" isPrintWhenDetailOverflows="true" uuid="a33a66ed-56d2-4225-ac54-2849ee40da47"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{weight} == null ? "" : ($F{weight_uom} == null ? "" : $F{weight} + " " + $F{weight_uom}))]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-252" positionType="Float" x="70" y="3" width="74" height="11" isPrintWhenDetailOverflows="true" uuid="ea22ce6f-0113-4a07-b7cc-a101367583d8"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{deliverymethod} == null ? "" : $F{deliverymethod})]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-154" positionType="Float" x="0" y="36" width="70" height="11" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="432e1843-9179-4a37-a819-20dc0c16dac7">
+						<printWhenExpression><![CDATA[($F{incoterms} != null)]]></printWhenExpression>
+					</reportElement>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Incoterms]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-155" positionType="Float" x="0" y="3" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="d67f8053-b88d-4c83-95b2-c83349323812"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Delivery]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-156" positionType="Float" x="149" y="3" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="61626b11-190c-4872-b6c1-74560ccc1d85"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<text><![CDATA[Carrier]]></text>
+				</staticText>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-253" positionType="Float" x="218" y="3" width="75" height="11" isPrintWhenDetailOverflows="true" uuid="034db930-1a86-46a2-8647-356b91f53ecf"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{shipper} == null ? "" : $F{shipper})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-254" positionType="Float" x="66" y="36" width="322" height="11" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="afdb7e72-e417-4f96-9f12-d09f6db36861"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{incoterms} == null ? "" : $F{incoterms})]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="32" splitType="Stretch">
+				<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("3"))]]></printWhenExpression>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-70" positionType="Float" x="0" y="10" width="388" height="12" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="64b7b34d-e462-43c5-af2d-ee732508f4dc">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<printWhenExpression><![CDATA[!$F{c_doctypetarget_id}.equals("A4277AD679DF4DD8A9C2BB9F3C2F2C92")]]></printWhenExpression>
+					</reportElement>
+					<textElement textAlignment="Left" verticalAlignment="Middle" markup="html">
+						<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($F{textmodule2} == null) ? "" :  $F{textmodule2} + "<br/>" + "<br/>") + (($F{exportterm} == null) ? "" :  $F{exportterm})]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="250" splitType="Stretch">
+			<printWhenExpression><![CDATA[$F{abschnitt}.equals("1") ||  $F{abschnitt}.equals("2") ||  $F{abschnitt}.equals("3")]]></printWhenExpression>
+			<frame>
+				<reportElement key="frame-1" style="Report_Footer" positionType="Float" mode="Transparent" x="1" y="1" width="514" height="248" isPrintInFirstWholeBand="true" backcolor="#FF6666" uuid="b0f6c004-7814-4f63-b68b-a556c5937531"/>
+				<textField isBlankWhenNull="false">
+					<reportElement key="textField-11" x="0" y="22" width="237" height="32" uuid="df173448-a002-4b99-aca2-a2f513e56a4e">
+						<printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+					</reportElement>
+					<textElement textAlignment="Left">
+						<font size="12" isBold="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{addressheader} == null ? "" : $F{addressheader})]]></textFieldExpression>
+				</textField>
+				<image scaleImage="RetainShape" hAlign="Right" vAlign="Top" isUsingCache="true" isLazy="true">
+					<reportElement key="image-2" style="Report_Footer" x="0" y="26" width="514" height="90" uuid="9d84ff8f-d656-4892-a720-b1478697b547">
+						<printWhenExpression><![CDATA[$F{abschnitt}.equals("1") || $F{abschnitt}.equals("3")]]></printWhenExpression>
+					</reportElement>
+					<imageExpression><![CDATA[$F{logo}]]></imageExpression>
+				</image>
+				<frame>
+					<reportElement key="AddressBlock" x="364" y="92" width="150" height="145" uuid="8f82dbd6-4ca3-4928-804a-f8010480838f"/>
+					<textField>
+						<reportElement x="0" y="26" width="150" height="14" uuid="2b52ee58-8de7-4c36-b58a-df507662dfb9"/>
+						<textElement textAlignment="Right">
+							<font size="8" isItalic="true"/>
+						</textElement>
+						<textFieldExpression><![CDATA[($F{address1} == null ? "" : $F{address1})]]></textFieldExpression>
+					</textField>
+					<textField>
+						<reportElement x="0" y="43" width="150" height="14" uuid="f1a2684a-d2f6-44ca-9f64-bcb4aa6f2705"/>
+						<textElement textAlignment="Right">
+							<font size="8"/>
+						</textElement>
+						<textFieldExpression><![CDATA[($F{address2}==null?"":$F{address2})]]></textFieldExpression>
+					</textField>
+					<textField>
+						<reportElement x="90" y="61" width="60" height="14" uuid="0298c463-e41b-4604-b5ad-ff59f1fc1c2d"/>
+						<textElement textAlignment="Right">
+							<font size="8" isItalic="true"/>
+						</textElement>
+						<textFieldExpression><![CDATA[($F{address3}==null?"":$F{address3})]]></textFieldExpression>
+					</textField>
+					<textField>
+						<reportElement x="90" y="78" width="60" height="14" uuid="9b1a6333-6e26-4b62-b17c-f22beb4c784f"/>
+						<textElement textAlignment="Right">
+							<font size="8"/>
+						</textElement>
+						<textFieldExpression><![CDATA[($F{address4}==null?"":$F{address4})]]></textFieldExpression>
+					</textField>
+					<textField>
+						<reportElement x="0" y="95" width="150" height="14" uuid="c9768b49-1acf-48fa-a0f7-6d179d298115"/>
+						<textElement textAlignment="Right">
+							<font size="8" isItalic="true"/>
+						</textElement>
+						<textFieldExpression><![CDATA[($F{address5}==null?"":$F{address5})]]></textFieldExpression>
+					</textField>
+					<textField>
+						<reportElement x="0" y="112" width="150" height="14" uuid="45fc5921-00d9-43be-837a-13678c30a6cb"/>
+						<textElement textAlignment="Right">
+							<font size="8"/>
+						</textElement>
+						<textFieldExpression><![CDATA[($F{address6}==null?"":$F{address6})]]></textFieldExpression>
+					</textField>
+					<staticText>
+						<reportElement key="" x="68" y="61" width="20" height="14" uuid="1edeca94-1014-4b3f-b3e7-50d06a4c23c1">
+							<printWhenExpression><![CDATA[$F{address3} != null]]></printWhenExpression>
+						</reportElement>
+						<textElement>
+							<font size="8"/>
+						</textElement>
+						<text><![CDATA[Tel.:]]></text>
+					</staticText>
+					<staticText>
+						<reportElement key="" x="68" y="78" width="20" height="14" uuid="dc811556-c127-44f0-ac9c-dbee3a79679f">
+							<printWhenExpression><![CDATA[$F{address4}!=null]]></printWhenExpression>
+						</reportElement>
+						<textElement>
+							<font size="8"/>
+						</textElement>
+						<text><![CDATA[Fax:]]></text>
+					</staticText>
+				</frame>
+				<frame>
+					<reportElement key="frame-1" style="Report_Footer" positionType="Float" mode="Transparent" x="0" y="129" width="280" height="118" isPrintInFirstWholeBand="true" backcolor="#FF6666" uuid="bdeed5d5-3388-4426-ae91-64863606fd08"/>
+					<textField>
+						<reportElement x="0" y="31" width="280" height="81" uuid="a9582dc7-87e3-43a4-946d-09dabdf4c9b1">
+							<printWhenExpression><![CDATA[$F{deladrtext} != null]]></printWhenExpression>
+						</reportElement>
+						<textElement verticalAlignment="Top"/>
+						<textFieldExpression><![CDATA[$F{deladrtext}]]></textFieldExpression>
+					</textField>
+					<textField isBlankWhenNull="false">
+						<reportElement key="textField-15" positionType="Float" x="0" y="0" width="280" height="20" isRemoveLineWhenBlank="true" uuid="ef5f3e78-f64b-41ac-a033-fad667da3d95">
+							<printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1 && ($F{abschnitt}.equals("1") || $F{abschnitt}.equals("3"))]]></printWhenExpression>
+						</reportElement>
+						<textElement markup="html">
+							<font size="6" isBold="true" isUnderline="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+						</textElement>
+						<textFieldExpression><![CDATA["<u>" + ($F{onelineadr} == null ? "" : $F{onelineadr}) + "</u>"]]></textFieldExpression>
+					</textField>
+					<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+						<reportElement key="textField-16" positionType="Float" x="0" y="42" width="280" height="14" isRemoveLineWhenBlank="true" uuid="8ff20ee1-6958-48ee-b1d2-0f8186fac0d8">
+							<printWhenExpression><![CDATA[new java.lang.Boolean($F{deladrtext} == null)]]></printWhenExpression>
+						</reportElement>
+						<textElement>
+							<font fontName="OpenZ Sans" size="10" isBold="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+						</textElement>
+						<textFieldExpression><![CDATA[($F{partner} == null ? "" : $F{partner})]]></textFieldExpression>
+					</textField>
+					<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+						<reportElement key="textField-17" positionType="Float" x="0" y="56" width="280" height="14" isRemoveLineWhenBlank="true" uuid="47e4838d-c3c9-43d2-9df7-263e03353540">
+							<printWhenExpression><![CDATA[new java.lang.Boolean($F{deladrtext} == null)]]></printWhenExpression>
+						</reportElement>
+						<textElement>
+							<font fontName="OpenZ Sans" size="10" isBold="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+						</textElement>
+						<textFieldExpression><![CDATA[($F{contact_name} == null ? "" : $F{contact_name}.equals($F{partner})? "" :$F{contact_name} )]]></textFieldExpression>
+					</textField>
+					<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+						<reportElement key="textField-18" style="Report_Footer" positionType="Float" x="0" y="84" width="280" height="14" isRemoveLineWhenBlank="true" uuid="1496595a-521c-457e-ae59-8f0c649bb908">
+							<printWhenExpression><![CDATA[new java.lang.Boolean($F{deladrtext} == null)]]></printWhenExpression>
+						</reportElement>
+						<textElement>
+							<font fontName="OpenZ Sans" size="10" isBold="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+						</textElement>
+						<textFieldExpression><![CDATA[($F{address_2} == null ? "" : $F{address_2})]]></textFieldExpression>
+					</textField>
+					<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+						<reportElement key="textField-19" positionType="Float" x="0" y="70" width="280" height="14" isRemoveLineWhenBlank="true" uuid="4bb77745-6823-4077-8328-f6044ad1b41a">
+							<printWhenExpression><![CDATA[new java.lang.Boolean($F{deladrtext} == null)]]></printWhenExpression>
+						</reportElement>
+						<textElement>
+							<font fontName="OpenZ Sans" size="10" isBold="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+						</textElement>
+						<textFieldExpression><![CDATA[($F{address_cs} == null ? "" : $F{address_cs})]]></textFieldExpression>
+					</textField>
+					<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+						<reportElement key="textField-21" positionType="Float" x="0" y="98" width="280" height="14" isRemoveLineWhenBlank="true" uuid="5df75e55-43ec-4e6c-b683-08d1f2f5bc1d">
+							<printWhenExpression><![CDATA[new java.lang.Boolean($F{deladrtext} == null)]]></printWhenExpression>
+						</reportElement>
+						<textElement>
+							<font fontName="OpenZ Sans" size="10" isBold="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+						</textElement>
+						<textFieldExpression><![CDATA[($F{postal} == null ? "" : $F{postal}) +" "+ ($F{city} ==  null ? "" : $F{city})]]></textFieldExpression>
+					</textField>
+				</frame>
+			</frame>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="273" splitType="Stretch">
+			<printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() != 1]]></printWhenExpression>
+			<image scaleImage="RetainShape" hAlign="Right" vAlign="Top" isUsingCache="true" isLazy="true">
+				<reportElement key="image-2" style="Report_Footer" x="1" y="149" width="515" height="90" uuid="bc9f3840-ebc6-4d46-b1c0-3f781c999da4">
+					<printWhenExpression><![CDATA[$F{abschnitt}.equals("10")]]></printWhenExpression>
+				</reportElement>
+				<imageExpression><![CDATA[$F{logo}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement key="txtAngebotsNo" positionType="Float" x="1" y="180" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="39f5ccf6-6aca-49fa-a57d-4156f2bee941">
+					<printWhenExpression><![CDATA[$F{abschnitt}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="8" pdfFontName="OpenZ Sans" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dbt}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-86" x="0" y="22" width="237" height="32" uuid="72d306d4-0c68-48b8-b213-386b411b6ef6">
+					<printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 0]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left">
+					<font size="12" isBold="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{addressheader} == null ? "" : $F{addressheader})]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-90" x="1" y="144" width="212" height="27" uuid="6bd9c59c-d04c-4e7a-86e7-80af096e57c9"/>
+				<textElement>
+					<font size="19" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{title}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-91" positionType="Float" x="70" y="180" width="102" height="11" isPrintWhenDetailOverflows="true" uuid="4987af23-46bd-44f9-9311-8dee0a483436"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{documentno}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-52" positionType="Float" x="183" y="180" width="48" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="825feb7b-dd95-4bcd-a609-fcfdc16daab1">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Contact]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-94" positionType="Float" x="233" y="180" width="154" height="11" isPrintWhenDetailOverflows="true" uuid="a0d4375b-255b-4c68-8364-f6e74d63def3">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1)]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ourrepresentative}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-54" positionType="Float" x="183" y="196" width="48" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="a6892aa5-51bd-411e-a2ec-54dbd25fb757">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1)]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Phone]]></text>
+			</staticText>
+			<line>
+				<reportElement key="line-11" mode="Transparent" x="1" y="178" width="388" height="1" uuid="3d41d126-d146-41ab-bba9-08e5ef5e4fa8">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement key="line-10" positionType="Float" mode="Transparent" x="0" y="246" width="388" height="1" uuid="871645fc-c8d6-4cf5-975a-aeaf74d8837b">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1)]]></printWhenExpression>
+				</reportElement>
+			</line>
+			<line>
+				<reportElement key="line-10" positionType="Float" mode="Transparent" x="1" y="194" width="388" height="1" uuid="fd961767-6130-4d20-b161-db869d104d01">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
+				</reportElement>
+			</line>
+			<staticText>
+				<reportElement key="staticText-55" positionType="Float" mode="Transparent" x="0" y="194" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="af4ef513-1d27-412e-be92-5382114ba271">
+					<printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Customer No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-57" positionType="Float" x="183" y="212" width="48" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="2def9575-2f32-4cfd-adf7-12ceb9183caa">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1)]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[E-Mail]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-99" positionType="Float" x="233" y="196" width="154" height="11" isPrintWhenDetailOverflows="true" uuid="e3d91aa7-623c-41ce-a3f6-73286c1b814f">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1)]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ourrepphone}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-100" positionType="Float" x="233" y="212" width="154" height="11" isPrintWhenDetailOverflows="true" uuid="f122fed0-b0fd-4fae-9e83-ac7a0fef0da7">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1)]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ourrepemail}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-88" positionType="Float" x="0" y="180" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="eab252f1-fe6b-4878-948f-920cf14aad57">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("2"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Invoice No.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-89" positionType="Float" x="1" y="179" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="3fb666be-8ec1-47ff-bb31-56d2718a284d">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("3"))]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Shipment No.]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-203" positionType="Float" x="70" y="194" width="102" height="11" isPrintWhenDetailOverflows="true" uuid="4104f23c-092b-45b0-99b5-580aa3bbd4cb">
+					<printWhenExpression><![CDATA[$V{PAGE_NUMBER}.intValue() == 1]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{customerno}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-224" positionType="Float" x="322" y="151" width="66" height="12" uuid="214a2d8b-b405-480f-996d-0184f9d0c71c"/>
+				<textElement textAlignment="Right">
+					<font size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dateordered}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="textField-223" positionType="Float" x="222" y="151" width="100" height="12" forecolor="#666666" uuid="48f7d341-4b52-4829-b82e-c6f3260fe0ca">
+					<printWhenExpression><![CDATA[new java.lang.Boolean(!$F{abschnitt}.equals("2"))]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" markup="none">
+					<font size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField-223" positionType="Float" x="222" y="151" width="100" height="12" forecolor="#666666" uuid="2d280dc3-a7af-474d-b364-33030081f450">
+					<printWhenExpression><![CDATA[$F{abschnitt}.equals("2")]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" markup="none">
+					<font size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Invoice date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField-223" positionType="Float" x="1" y="230" width="133" height="16" isRemoveLineWhenBlank="true" forecolor="#666666" uuid="f43bde83-3488-428b-8664-95197b60a6a3">
+					<printWhenExpression><![CDATA[$F{abschnitt}.equals( "10" )]]></printWhenExpression>
+				</reportElement>
+				<box padding="0">
+					<topPen lineWidth="1.0" lineStyle="Solid" lineColor="#FF0400"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FF0400"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid" lineColor="#FF0400"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FF0400"/>
+				</box>
+				<textElement markup="none">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Performance date or period:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-224" positionType="Float" x="140" y="230" width="247" height="16" isRemoveLineWhenBlank="true" backcolor="#FFFFFF" uuid="154d9d1b-4d81-4190-a6d4-597231b2d0e1">
+					<printWhenExpression><![CDATA[$F{abschnitt}.equals( "10" )]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Left">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="100" splitType="Stretch">
+			<subreport isUsingCache="true">
+				<reportElement key="subreport-2" style="Report_Footer" positionType="Float" x="0" y="60" width="389" height="20" isRemoveLineWhenBlank="true" uuid="f82a3432-9082-4d19-b470-7cc9f3b95d9d">
+					<printWhenExpression><![CDATA[$F{abschnitt}.equals("2")]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="C_INVOICE_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOCALE">
+					<subreportParameterExpression><![CDATA[$P{LOCALE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ATTACH">
+					<subreportParameterExpression><![CDATA[$P{ATTACH}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_WEB">
+					<subreportParameterExpression><![CDATA[$P{BASE_WEB}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_DESIGN">
+					<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="USER_CLIENT">
+					<subreportParameterExpression><![CDATA[$P{USER_CLIENT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="USER_ORG">
+					<subreportParameterExpression><![CDATA[$P{USER_ORG}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="REPORT_TITLE">
+					<subreportParameterExpression><![CDATA[$P{REPORT_TITLE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="REPORT_SUBTITLE">
+					<subreportParameterExpression><![CDATA[$P{REPORT_SUBTITLE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DOCUMENT_ID">
+					<subreportParameterExpression><![CDATA[$P{DOCUMENT_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="START_PAGE_SUBREP">
+					<subreportParameterExpression><![CDATA[$V{PAGE_NUMBER}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE2">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE2}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREP_RptStd_InvoiceLines}
+/*"C:/Users/Frank/Documents/OBproject/Reports/RptStd_InvoiceLines.jasper"*/]]></subreportExpression>
+			</subreport>
+			<subreport isUsingCache="true">
+				<reportElement key="subreport-4" style="Report_Footer" positionType="Float" x="0" y="80" width="389" height="20" isRemoveLineWhenBlank="true" uuid="0c620788-363b-4bba-ab10-dc1d70c62917">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("3"))]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="ATTACH">
+					<subreportParameterExpression><![CDATA[$P{ATTACH}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_WEB">
+					<subreportParameterExpression><![CDATA[$P{BASE_WEB}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_DESIGN">
+					<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="USER_CLIENT">
+					<subreportParameterExpression><![CDATA[$P{USER_CLIENT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="USER_ORG">
+					<subreportParameterExpression><![CDATA[$P{USER_ORG}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="REPORT_TITLE">
+					<subreportParameterExpression><![CDATA[$P{REPORT_TITLE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="REPORT_SUBTITLE">
+					<subreportParameterExpression><![CDATA[$P{REPORT_SUBTITLE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOCALE">
+					<subreportParameterExpression><![CDATA[$P{LOCALE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SHIPMENT_ID">
+					<subreportParameterExpression><![CDATA[$P{DOCUMENT_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE2">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE2}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREP_RptStd_ShipmentLines}
+/*"C:/Users/Frank/Documents/OBproject/Reports/RptStd_ShipmentLines.jasper*/]]></subreportExpression>
+			</subreport>
+			<subreport isUsingCache="true">
+				<reportElement key="subreport-1" style="Report_Footer" positionType="Float" x="0" y="0" width="389" height="20" isRemoveLineWhenBlank="true" uuid="3a0e2107-ca36-474f-a87c-e81a86cde995">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("1") & !$F{doctype_id}.equals("ABE2033C7A74499A9750346A83DE3307") & !$F{doctype_id}.equals("7DE8D4B1B8824D36974E8064BBED5095"))]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="C_ORDER_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOCALE">
+					<subreportParameterExpression><![CDATA[$P{LOCALE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_DESIGN">
+					<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="START_PAGE_SUBREP">
+					<subreportParameterExpression><![CDATA[$V{PAGE_NUMBER}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="doctype_id">
+					<subreportParameterExpression><![CDATA[$V{doctype_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE2">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE2}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREP_RptStd_OrderLines}]]></subreportExpression>
+			</subreport>
+			<subreport isUsingCache="true">
+				<reportElement key="subreport-1" style="Report_Footer" positionType="Float" x="0" y="20" width="389" height="20" isRemoveLineWhenBlank="true" uuid="e9dfcec5-5453-472b-8580-03ce76a1b8b7">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("1") & ($F{doctype_id}.equals("ABE2033C7A74499A9750346A83DE3307") | $F{doctype_id}.equals("7DE8D4B1B8824D36974E8064BBED5095")))]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="C_ORDER_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOCALE">
+					<subreportParameterExpression><![CDATA[$P{LOCALE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_DESIGN">
+					<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="START_PAGE_SUBREP">
+					<subreportParameterExpression><![CDATA[$V{PAGE_NUMBER}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="doctype_id">
+					<subreportParameterExpression><![CDATA[$V{doctype_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE2">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE2}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREP_RptStd_OrderLines_SubPosOneTime_juwi}
+/*"C:/Users/Frank/Documents/OBproject/Reports/RptStd_OrderLines.jasper"*/]]></subreportExpression>
+			</subreport>
+			<subreport isUsingCache="true">
+				<reportElement key="subreport-1" style="Report_Footer" positionType="Float" x="0" y="40" width="389" height="20" isRemoveLineWhenBlank="true" uuid="4d806799-89f8-4bca-acfe-6066d5a5a006">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("1") & ($F{doctype_id}.equals("ABE2033C7A74499A9750346A83DE3307") | $F{doctype_id}.equals("7DE8D4B1B8824D36974E8064BBED5095")))]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="C_ORDER_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOCALE">
+					<subreportParameterExpression><![CDATA[$P{LOCALE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_DESIGN">
+					<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="START_PAGE_SUBREP">
+					<subreportParameterExpression><![CDATA[$V{PAGE_NUMBER}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="doctype_id">
+					<subreportParameterExpression><![CDATA[$V{doctype_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE2">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE2}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREP_RptStd_OrderLines_SubPos_juwi}
+/*"C:/Users/Frank/Documents/OBproject/Reports/RptStd_OrderLines.jasper"*/]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="62" splitType="Stretch">
+			<printWhenExpression><![CDATA[new java.lang.Boolean($F{abschnitt}.equals("1") || $F{abschnitt}.equals("3"))]]></printWhenExpression>
+			<staticText>
+				<reportElement key="staticText-58" style="Report_Footer" positionType="Float" isPrintRepeatedValues="false" x="404" y="53" width="31" height="9" forecolor="#666666" uuid="d70f28fd-7292-4a51-a48e-fcc688315b52"/>
+				<textElement textAlignment="Center">
+					<font size="6" isBold="true" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Page:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-101" style="Report_Footer" positionType="Float" isPrintRepeatedValues="false" x="435" y="53" width="24" height="9" uuid="734c747c-47cc-4a3d-8e08-62f7e2b19595"/>
+				<textElement textAlignment="Right">
+					<font size="6" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}.toString()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" isBlankWhenNull="false">
+				<reportElement key="textField-103" style="Report_Footer" positionType="Float" isPrintRepeatedValues="false" x="465" y="53" width="24" height="9" uuid="ea592ea4-b40a-4670-80ec-c01bbfc3d4f5"/>
+				<textElement textAlignment="Left">
+					<font size="6" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}.toString()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-63" style="Report_Footer" positionType="Float" x="459" y="53" width="6" height="9" uuid="683b1fd6-3efe-4022-be46-2a761f8391d2"/>
+				<textElement textAlignment="Center">
+					<font size="6" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[/]]></text>
+			</staticText>
+			<line>
+				<reportElement key="line-13" isPrintRepeatedValues="false" x="0" y="5" width="515" height="1" uuid="f2ae2dc9-1386-4e24-90ad-b37a2dee671a"/>
+			</line>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-104" style="Report_Footer" isPrintRepeatedValues="false" x="0" y="9" width="515" height="7" uuid="8d9bec84-e8e9-4970-a113-727fda117dd4">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isfootergroupstyle}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer1}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-105" style="Report_Footer" isPrintRepeatedValues="false" x="0" y="16" width="515" height="7" uuid="22ff6b58-3352-4d44-8020-3b5bb08c6983">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isfootergroupstyle}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer2}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-106" style="Report_Footer" isPrintRepeatedValues="false" x="0" y="23" width="515" height="7" uuid="e03e26ab-48a1-468c-8658-95180d8e5bf2">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isfootergroupstyle}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer3}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-107" style="Report_Footer" isPrintRepeatedValues="false" x="0" y="30" width="515" height="7" uuid="52355f1e-3711-4fbd-a57f-418afbe42a1b">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isfootergroupstyle}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer4}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-108" style="Report_Footer" isPrintRepeatedValues="false" x="0" y="37" width="515" height="7" uuid="86f344ff-945b-46a0-bd94-553585c4e414">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isfootergroupstyle}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer5}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-109" style="Report_Footer" positionType="Float" stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="0" y="12" width="160" height="42" uuid="a5249e48-e73e-436b-9f3d-1bce6726dc71">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isfootergroupstyle}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer1}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-110" style="Report_Footer" positionType="Float" stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="177" y="10" width="160" height="42" uuid="3c61e9ad-1b6e-4559-846f-1d3c011cb612">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isfootergroupstyle}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer2}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-111" style="Report_Footer" positionType="Float" stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="355" y="10" width="160" height="42" uuid="335ad9eb-7639-4cd9-b230-ce909ab57343">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isfootergroupstyle}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer3}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-112" style="Report_Footer" positionType="Float" stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="387" y="9" width="128" height="42" uuid="86d9d74d-305a-4448-a6c8-f599639d8d7a">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isfootergroupstyle}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer4}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-113" style="Report_Footer" positionType="Float" stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" x="181" y="9" width="140" height="42" uuid="b76ca4d0-9c50-4627-bdcc-967872290a45">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isfootergroupstyle}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font size="6" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer5}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

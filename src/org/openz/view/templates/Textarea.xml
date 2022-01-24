@@ -1,0 +1,19 @@
+<td id="@FIELDNAME@tdx"  class="@CONTENTCELLCLASS@" colspan="@NUMCOLS@">
+    <TABLE cellpadding="0" cellspacing="0"  class="Celltable" id="@FIELDNAME@td" style="padding-top: 0px;padding-bottom:6px;">
+       <TR>
+       <TD>
+    <textarea value="@CURRENTVALUE@" style="width: 100%;@STYLE@" name="inp@FIELDNAME@" maxlength="@MAXLENGTH@" @REQUIREDTAG@ class="@CLASS@" id="@FIELDNAME@" @READONLY@ @JSSETTINGS@>@TEXTAREACONTENT@</textarea>
+          <SPAN onmouseover="this.style.display='none'; return false;" class="TextBox_MsgContainer_span" style="display: none;" id="@FIELDNAME@missingSpan">
+                <TABLE class="TextBox_MsgContainer_table">
+                  <TR class="TextBox_MsgContainer_tr">
+                    <TD class="TextBox_MsgContainer_td"><DIV class="TextBox_MsgContainer_div"></DIV></TD><TD></TD>
+                  </TR>
+                  <TR>
+                    <TD colspan="2" class="missing"><DIV class="TextBox_MsgContainer_div2" id="@FIELDNAME@missingSpanText" name="missingText">@REQUIREDMESSAGE@</DIV></TD>
+                  </TR>
+                </TABLE>
+             </SPAN>    
+      </TD>
+      </TR>
+      </TABLE>
+</TD>

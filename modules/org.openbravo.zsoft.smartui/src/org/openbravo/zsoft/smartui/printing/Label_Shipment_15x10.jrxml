@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T08:18:19 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Label_Shipment_15x10" language="groovy" pageWidth="430" pageHeight="280" columnWidth="390" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="6ba3620b-eef0-4d41-993a-2339e5d987fa">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Title" forecolor="#FFFFFF" fontName="Times New Roman" fontSize="50" isBold="false" pdfFontName="Times-Bold"/>
+	<style name="SubTitle" forecolor="#CCCCCC" fontName="Times New Roman" fontSize="18" isBold="false" pdfFontName="Times-Roman"/>
+	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true" pdfFontName="Times-Roman"/>
+	<style name="Detail" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman"/>
+	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="DOCUMENT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select $P{DOCUMENT_ID}||coalesce(sn.lotnumber,'') as id,
+to_char(m.movementdate,'DD.MM.YYYY') as datewe,
+m.documentno as wedocno,
+p.value as key,
+coalesce(p.weight,0) as prodweight,
+p.name as productname,
+lower((select x12de355 from c_uom where c_uom.c_uom_id=p.c_uom_id)) as wuom,
+coalesce(sn.quantity,coalesce(ml.movementqty,0)) as qty,
+sn.lotnumber,
+--Header
+zssi_getelementtextbycolumname('we',$P{LANGUAGE}) as weh,
+zssi_getelementtextbycolumname('wedate',$P{LANGUAGE}) as wedath,
+zssi_getelementtextbycolumname('weno',$P{LANGUAGE}) as wenoh,
+zssi_getelementtextbycolumname('wetesting',$P{LANGUAGE}) as wetesth,
+zssi_getelementtextbycolumname('datetime',$P{LANGUAGE}) as wedattih,
+zssi_getelementtextbycolumname('sitecontrol',$P{LANGUAGE}) as wesite,
+zssi_getelementtextbycolumname('Name',$P{LANGUAGE}) as nameh,
+zssi_getelementtextbycolumname('m_product_id',$P{LANGUAGE}) as producth,
+zssi_getelementtextbycolumname('weight',$P{LANGUAGE}) as weighth,
+zssi_getelementtextbycolumname('amounttot',$P{LANGUAGE}) as amttotalh,
+zssi_getelementtextbycolumname('Charge',$P{LANGUAGE}) as loth,
+zssi_getelementtextbycolumname('weightcontrol',$P{LANGUAGE})as wctlh
+from m_inout m, m_inoutline ml left join snr_minoutline sn on sn.m_inoutline_id=ml.m_inoutline_id, m_product p
+where m.m_inout_id in ($P{DOCUMENT_ID})
+and ml.m_inout_id=m.m_inout_id
+and p.m_product_id=ml.m_product_id]]>
+	</queryString>
+	<field name="id" class="java.lang.String"/>
+	<field name="datewe" class="java.lang.String"/>
+	<field name="wedocno" class="java.lang.String"/>
+	<field name="key" class="java.lang.String"/>
+	<field name="prodweight" class="java.math.BigDecimal"/>
+	<field name="productname" class="java.lang.String"/>
+	<field name="wuom" class="java.lang.String"/>
+	<field name="qty" class="java.math.BigDecimal"/>
+	<field name="lotnumber" class="java.lang.String"/>
+	<field name="weh" class="java.lang.String"/>
+	<field name="wedath" class="java.lang.String"/>
+	<field name="wenoh" class="java.lang.String"/>
+	<field name="wetesth" class="java.lang.String"/>
+	<field name="wedattih" class="java.lang.String"/>
+	<field name="wesite" class="java.lang.String"/>
+	<field name="nameh" class="java.lang.String"/>
+	<field name="producth" class="java.lang.String"/>
+	<field name="weighth" class="java.lang.String"/>
+	<field name="amttotalh" class="java.lang.String"/>
+	<field name="loth" class="java.lang.String"/>
+	<field name="wctlh" class="java.lang.String"/>
+	<group name="Group1">
+		<groupExpression><![CDATA[(int)($V{REPORT_COUNT}/15)]]></groupExpression>
+	</group>
+	<group name="Group2">
+		<groupExpression><![CDATA[(int)($V{REPORT_COUNT}/5)]]></groupExpression>
+	</group>
+	<title>
+		<band/>
+	</title>
+	<detail>
+		<band height="240" splitType="Prevent">
+			<textField>
+				<reportElement x="0" y="0" width="390" height="32" uuid="c3f1a8a2-eead-417b-983a-2e66efb0eb7b"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="18" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{weh}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="32" width="390" height="33" uuid="001ce7af-b1d0-4698-b11f-d19fb14641c8"/>
+				<box topPadding="1" leftPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font size="12"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{wedath}+":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="49" width="175" height="16" uuid="93dbea6d-c117-412a-9a7b-7a57f8ab6da2"/>
+				<textElement>
+					<font size="12"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{wenoh}+":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="175" y="32" width="215" height="17" uuid="3bf931fd-fe5a-400f-9469-dbc6e3f6074f"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{datewe}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="175" y="49" width="215" height="16" uuid="5c8f9f96-ef09-4856-ae94-35b9f51d36d5"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{wedocno}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="65" width="390" height="77" uuid="5e492bfc-f08d-4265-bcbe-377bf28b0225"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font size="14"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{producth}+":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="132" y="65" width="258" height="20" uuid="01ff0d22-992c-43c7-8cc1-62a85f4983ce"/>
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{key}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="132" y="85" width="258" height="20" uuid="f91432b4-0d8f-4bae-8f2f-79aa1d9eb300"/>
+				<textElement>
+					<font size="14"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="132" y="104" width="134" height="20" uuid="94ff7700-29dd-4c16-a003-d4502f786525"/>
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{prodweight}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="132" y="123" width="134" height="20" uuid="bd878290-4b1c-43c9-b2f9-cb70cbe2dddd"/>
+				<textElement>
+					<font size="14"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="85" width="132" height="20" uuid="d8b677e1-ceb4-43da-9bbf-5d19a7173b86"/>
+				<textElement>
+					<font size="14"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nameh}+":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="104" width="132" height="20" uuid="9ace9cfa-05b6-4118-b784-d6b93fbfe7dd"/>
+				<textElement>
+					<font size="14"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{weighth}+":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="123" width="132" height="20" uuid="0be807df-ecf9-4982-be58-08a80b6066ee"/>
+				<textElement>
+					<font size="14"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{amttotalh}+":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="143" width="390" height="34" uuid="ae82cc03-f26f-4438-bb81-99fe40fffbb9"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="16"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{loth}+":"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="75" y="143" width="108" height="33" uuid="42404869-65cb-4acd-aa7a-4acd1a2a5df6"/>
+				<textElement verticalAlignment="Middle">
+					<font size="16" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lotnumber}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="177" width="183" height="34" uuid="47112fe7-b214-4215-b3c8-c7f439f56cca"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{wesite}+":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="211" width="183" height="29" uuid="74b6204a-4a80-41b3-b299-90d2452cf287"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{wctlh}+":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="183" y="177" width="207" height="63" uuid="960ba577-e29e-4179-9b48-58ffbd330993"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font size="10"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{wetesth}+":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="183" y="220" width="215" height="20" uuid="56e62955-dd04-42fe-8338-4ff2c350f564"/>
+				<textElement>
+					<font size="10"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{wedattih}+":"]]></textFieldExpression>
+			</textField>
+			<componentElement>
+				<reportElement x="238" y="148" width="152" height="22" uuid="cdcd4a93-0b5a-41f9-8ed5-6684b6d5fe5f"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code39" drawText="false" checksumRequired="false">
+					<jr:codeExpression><![CDATA[$F{lotnumber}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<textField isBlankWhenNull="true">
+				<reportElement x="266" y="104" width="124" height="20" uuid="920b16f6-0abb-4754-a20a-7c2276b7bfa2"/>
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{wuom}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="266" y="123" width="124" height="20" uuid="d5a7e362-0650-4344-9675-266dd23ce950"/>
+				<textElement>
+					<font size="14"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{wuom}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

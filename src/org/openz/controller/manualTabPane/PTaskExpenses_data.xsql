@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+
+<SqlClass name="PTaskExpensesData" package="org.openz.controller.manualTabPane" accessModifier="public">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      select 
+            p.c_projecttaskexpenseplan_id, p.m_product_id as product, p.description, p.calculated_qty as qty, p.cost as cost,p.plannedamt,
+            row_number() OVER (ORDER BY p.created) as seqno,p.created, 0 as SUM_Qty, 0 as SUM_Cost, 0 as SUM_Plannedamt
+
+      from 
+            c_projecttaskexpenseplan p left join m_product m on m.m_product_id=p.m_product_id
+        where p.C_PROJECTTASK_ID = ?
+        order by m.name
+      ]]></Sql>
+      <Parameter name="projecttaskid"/>
+  </SqlMethod>
+    
+  <SqlMethod name="selectnew" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+    select c_projecttaskexpenseplan_id, product, description, qty, cost,plannedamt, row_number() OVER (ORDER BY created) as seqno
+    from(
+    select get_uuid() as c_projecttaskexpenseplan_id, null as product, null as description, null as qty, 0 as cost, 0 as plannedamt,now() as created
+    from dual
+    union  
+    
+      select 
+            p.c_projecttaskexpenseplan_id, p.m_product_id as product, p.description, p.calculated_qty as qty, p.cost as cost, p.plannedamt,p.created
+
+      from 
+            c_projecttaskexpenseplan p left join m_product m on m.m_product_id=p.m_product_id
+        where p.C_PROJECTTASK_ID = ?) a order by seqno asc
+        
+      ]]></Sql>
+      <Parameter name="projecttaskid"/>
+  </SqlMethod>
+  <SqlMethod name="getSums" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+    <![CDATA[
+      select sum(coalesce(calculated_qty,0)) as SUM_Qty,
+             sum(coalesce(cost,0)) as SUM_Cost,
+             sum(coalesce(plannedamt,0)) as SUM_Plannedamt  
+             from c_projecttaskexpenseplan      
+        where C_PROJECTTASK_ID = ?
+      ]]></Sql>
+      <Parameter name="projecttaskid"/>
+  </SqlMethod>
+       <SqlMethod name="insert" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      insert into c_projecttaskexpenseplan(
+      c_projecttaskexpenseplan_id,  
+      c_projecttask_id, 
+      line, 
+      plannedamt, 
+      ad_client_id, 
+      ad_org_id,
+      isactive,
+      created,
+      createdby,
+      updated,
+      updatedby,
+      m_product_id,
+      description,
+      calculated_qty,
+      cost)values
+      (?,?,to_number(?),to_number(?),?,?,'Y',now(),?,now(),?,?,?,to_number(?),to_number(?))
+      ]]></Sql>
+      <Parameter name="expenseplan"/>
+      <Parameter name="projecttask"/>
+      <Parameter name="line"/>
+      <Parameter name="plannedamt"/>
+      <Parameter name="client"/>
+      <Parameter name="org"/>
+      <Parameter name="user"/>
+      <Parameter name="user"/>
+      <Parameter name="m_product_id"/>
+      <Parameter name="description"/>
+      <Parameter name="calculated_qty"/>
+      <Parameter name="cost"/>
+      
+  </SqlMethod>
+    <SqlMethod name="update" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      update c_projecttaskexpenseplan set 
+                m_product_id=?,
+                description=?,
+                calculated_qty=to_number(?),
+                cost=to_number(?)
+      where  c_projecttaskexpenseplan_id=?
+      ]]></Sql>
+      <Parameter name="product"/>
+      <Parameter name="description"/>
+      <Parameter name="calculated_qty"/>
+      <Parameter name="cost"/>
+      <Parameter name="expenseplan"/>
+      
+  </SqlMethod>
+<SqlMethod name="delete"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       delete from c_projecttaskexpenseplan where c_projecttaskexpenseplan_id = ?
+    </Sql>
+    <Parameter name="expenseplan"/>
+  </SqlMethod>
+    <SqlMethod name="isExistingID" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select count(*) from c_projecttaskexpenseplan where c_projecttaskexpenseplan_id = ?
+    </Sql>
+    <Parameter name="planId"/>
+  </SqlMethod>
+  </SqlClass>

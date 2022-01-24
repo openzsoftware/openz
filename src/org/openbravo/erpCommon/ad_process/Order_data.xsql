@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+<SqlClass id="class" name="OrderData" package="org.openbravo.erpCommon.ad_process">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+        SELECT I_Order_ID, AD_Client_ID, AD_Org_ID, isActive, Created, CreatedBy, Updated, UpdatedBy,
+				DateOrdered, C_OrderLine_ID, I_IsImported, IsSOtrx, Processed, DocTypeName, C_Order_ID,
+				Description, AD_User_ID, BPartnerValue, ProductValue, QtyOrdered, LineDescription,
+				Order_ReferenceNo
+				FROM I_Order
+				WHERE AD_Client_ID = ?
+    ]]></Sql>
+    <Parameter name="ad_client_id"/>
+  </SqlMethod>
+
+  <SqlMethod name="insert" type="preparedStatement" return="rowcount" static="false">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+			  INSERT INTO I_Order (I_Order_ID, AD_Client_ID, AD_Org_ID, isActive, Created, CreatedBy, Updated, UpdatedBy,
+				DateOrdered, C_OrderLine_ID, I_IsImported, IsSOtrx, Processed, DocTypeName, C_Order_ID, Description,
+				BPartnerValue, ProductValue, 
+        QtyOrdered, LineDescription, Order_ReferenceNo)
+				VALUES (?, ?, ?, 'Y', now(), ?, now(), ?, TO_DATE(?,'YY-MM-DD'), ?, ?, ?, ?, ?, ?, ?, ?, ?, 
+                TO_NUMBER(?), ?, ?)
+      ]]>
+    </Sql>
+    <Parameter name="iOrderId"/>
+    <Parameter name="adClientId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="dateordered"/>
+		<Parameter name="cOrderlineId"/>
+		<Parameter name="iIsimported"/>
+		<Parameter name="issotrx"/>
+		<Parameter name="processed"/>
+		<Parameter name="doctypename"/>
+		<Parameter name="cOrderId"/>
+		<Parameter name="description"/>
+		<Parameter name="bpartnervalue"/>
+		<Parameter name="productvalue"/>
+		<Parameter name="qtyordered"/>
+		<Parameter name="linedescription"/>
+		<Parameter name="orderReferenceno"/>
+		</SqlMethod>
+
+</SqlClass>

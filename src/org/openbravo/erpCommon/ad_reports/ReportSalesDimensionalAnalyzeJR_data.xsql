@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ ***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, 02/2011, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+***************************************************************************************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="ReportSalesDimensionalAnalyzeJRData" package="org.openbravo.erpCommon.ad_reports">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT
+      '' as NIVEL1, '' as NIVEL2, '' as NIVEL3, '' as NIVEL4, '' as NIVEL5, '' as NIVEL6, '' as NIVEL7, '' as NIVEL8, '' as NIVEL9,
+      0 AS ROW1, 0 AS ROW2, 0 as ROW3, 0 as ROW4,'' as name, '' as id,
+      '€' AS CURRENCY from dual]]>
+    </Sql>
+  </SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+  <SqlMethod name="selectOrder" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT 
+      NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9, 
+      SUM(AMOUNT) AS ROW1, SUM(QTY) AS ROW4, SUM(estinvamount) as ROW2,SUM(invoiceamount) as ROW3,
+      C_CURRENCY_SYMBOL(?, 0, 'Y') AS CURRENCY
+      FROM (SELECT to_char('1') AS NIVEL1, to_char('2') AS NIVEL2, to_char('3') AS NIVEL3, to_char('4') AS NIVEL4, to_char('5') AS NIVEL5, to_char('6') AS NIVEL6, to_char('7') AS NIVEL7, to_char('10') AS NIVEL8, to_char('11') AS NIVEL9, 
+      zssi_getOrderLineValueByPeriod(C_ORDERLINE.C_ORDERLINE_ID, ?, to_date(?), to_date(?)) as AMOUNT,
+      coalesce(C_ORDERLINE.QTYORDERED,0) as QTY,
+      zssi_getinvoicedamt4OrderDevidedByLinesByPeriod(C_ORDERLINE.C_ORDERLINE_ID, ?,to_date(?), to_date(?)) as invoiceamount,
+      zssi_getEstInvoiceAmt4orderlineByPeriod(C_ORDERLINE.C_ORDERLINE_ID, ?,to_date(?), to_date(?)) as estinvamount
+      FROM C_ORDER left join AD_USER on C_ORDER.SALESREP_ID = AD_USER.AD_USER_ID, 
+       C_BPARTNER,C_BP_GROUP, 
+       C_ORDERLINE  left join c_project on C_ORDERLINE.c_project_id=c_project.c_project_id, 
+       M_PRODUCT, M_PRODUCT_CATEGORY, M_WAREHOUSE
+      WHERE C_ORDER.C_BPARTNER_ID = C_BPARTNER.C_BPARTNER_ID
+      AND C_BPARTNER.C_BP_GROUP_ID = C_BP_GROUP.C_BP_GROUP_ID
+      AND C_ORDER.C_ORDER_ID = C_ORDERLINE.C_ORDER_ID
+      AND C_ORDERLINE.M_PRODUCT_ID = M_PRODUCT.M_PRODUCT_ID
+      AND M_PRODUCT.M_PRODUCT_CATEGORY_ID = M_PRODUCT_CATEGORY.M_PRODUCT_CATEGORY_ID
+      AND C_ORDER.M_WAREHOUSE_ID = M_WAREHOUSE.M_WAREHOUSE_ID
+      AND C_ORDER.ISSOTRX = 'Y'
+      AND C_ORDER.PROCESSED = 'Y' AND 2=2
+      AND ad_get_docbasetype(C_ORDER.c_DocType_ID) not in ('NON','POREQUESTOFFER','SALESOFFER')
+      AND C_ORDER.C_DOCTYPE_ID!='B28FD44351C7433EAEA24D55CF8AFFA1'
+      AND 0=0 AND C_ORDER.AD_ORG_ID IN ('1')
+      AND C_ORDER.AD_CLIENT_ID IN ('8')
+      AND 1=1) AA
+      GROUP BY NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9, 1 
+     ]]></Sql>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="nivel1" type="replace" optional="true" after="FROM (SELECT to_char(" text="'1'"/>
+    <Parameter name="nivel2" type="replace" optional="true" after="AS NIVEL1, to_char(" text="'2'"/>
+    <Parameter name="nivel3" type="replace" optional="true" after="AS NIVEL2, to_char(" text="'3'"/>
+    <Parameter name="nivel4" type="replace" optional="true" after="AS NIVEL3, to_char(" text="'4'"/>
+    <Parameter name="nivel5" type="replace" optional="true" after="AS NIVEL4, to_char(" text="'5'"/>
+    <Parameter name="nivel6" type="replace" optional="true" after="AS NIVEL5, to_char(" text="'6'"/>
+    <Parameter name="nivel7" type="replace" optional="true" after="AS NIVEL6, to_char(" text="'7'"/>
+    <Parameter name="nivel8" type="replace" optional="true" after="AS NIVEL7, to_char(" text="'10'"/>
+    <Parameter name="nivel9" type="replace" optional="true" after="AS NIVEL8, to_char(" text="'11'"/>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="cCurrencyConv"/>
+     <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="dateRange"  type="replace" optional="true" after="AND C_ORDER.PROCESSED = 'Y' AND " text="2=2"></Parameter>
+    <Parameter name="adOrgId" optional="true" type="replace" after="AND 0=0 AND C_ORDER.AD_ORG_ID IN (" text="'1'"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="AND C_ORDER.AD_CLIENT_ID IN (" text="'8'"/>
+    <Parameter name="cBpartnerGroupId" optional="true" after="AND 1=1"><![CDATA[AND C_BP_GROUP.C_BP_GROUP_ID = ?]]></Parameter>
+    <Parameter name="cBpartnerId" optional="true" type="argument" after="AND 1=1"><![CDATA[AND C_BPARTNER.C_BPARTNER_ID IN]]></Parameter>
+    <Parameter name="mProductCategoryId" optional="true" after="AND 1=1"><![CDATA[AND M_PRODUCT_CATEGORY.M_PRODUCT_CATEGORY_ID = ?]]></Parameter>
+    <Parameter name="mProductId" optional="true" type="argument" after="AND 1=1"><![CDATA[AND M_PRODUCT.M_PRODUCT_ID IN]]></Parameter>
+    <Parameter name="mWarehouseId" optional="true" after="AND 1=1"><![CDATA[AND M_WAREHOUSE.M_WAREHOUSE_ID = ?]]></Parameter>
+    <Parameter name="salesrepId" optional="true" after="AND 1=1"><![CDATA[AND C_ORDER.SALESREP_ID = ?]]></Parameter>
+    <Parameter name="cProjectId" optional="true" type="argument" after="AND 1=1"><![CDATA[AND C_PROJECT.C_PROJECT_ID IN]]></Parameter>
+    <Parameter name="orderby" type="replace" optional="true" after="GROUP BY NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9" text=", 1"/>
+  </SqlMethod>
+  <SqlMethod name="selectOffer" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT 
+      NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9, 
+      SUM(AMOUNT) AS ROW1, SUM(QTY) AS ROW4, SUM(CHANCEAMT) as ROW2,
+      C_CURRENCY_SYMBOL(?, 0, 'Y') AS CURRENCY
+      FROM (SELECT NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9, 
+      SUM(AMOUNT) AS AMOUNT, SUM(QTY) AS QTY,SUM(CHANCEAMT) as CHANCEAMT,
+      TRCURRENCYID, TRDATE, TRCLIENTID, TRORGID
+      FROM (SELECT to_char('1') AS NIVEL1, to_char('2') AS NIVEL2, to_char('3') AS NIVEL3, to_char('4') AS NIVEL4, to_char('5') AS NIVEL5, to_char('6') AS NIVEL6, to_char('7') AS NIVEL7, to_char('10') AS NIVEL8, to_char('11') AS NIVEL9, 
+      zssi_getOrderLineValueByPeriod(C_ORDERLINE.C_ORDERLINE_ID,?,to_date(?), to_date(?)) as AMOUNT,
+      coalesce(C_ORDERLINE.QTYORDERED,0) as qty, 
+      round(to_number(coalesce(C_ORDER.estpropability,'0'))* zssi_getOrderLineValueByPeriod(C_ORDERLINE.C_ORDERLINE_ID, ?, to_date(?), to_date(?)) /100,1) as CHANCEAMT,
+      COALESCE(C_ORDERLINE.C_CURRENCY_ID, C_ORDER.C_CURRENCY_ID) AS TRCURRENCYID,      
+      TO_DATE(COALESCE(C_ORDERLINE.DATEORDERED, C_ORDER.DATEORDERED, NOW())) AS TRDATE,      
+      C_ORDERLINE.AD_CLIENT_ID AS TRCLIENTID,      
+      C_ORDERLINE.AD_ORG_ID AS TRORGID 
+      FROM C_ORDER left join AD_USER on C_ORDER.SALESREP_ID = AD_USER.AD_USER_ID, 
+       C_BPARTNER,C_BP_GROUP, C_ORDERLINE
+       left join c_project on C_ORDERLINE.c_project_id=c_project.c_project_id, M_PRODUCT, M_PRODUCT_CATEGORY, M_WAREHOUSE
+      WHERE C_ORDER.C_BPARTNER_ID = C_BPARTNER.C_BPARTNER_ID
+      AND C_BPARTNER.C_BP_GROUP_ID = C_BP_GROUP.C_BP_GROUP_ID
+      AND C_ORDER.C_ORDER_ID = C_ORDERLINE.C_ORDER_ID
+      AND C_ORDERLINE.M_PRODUCT_ID = M_PRODUCT.M_PRODUCT_ID
+      AND M_PRODUCT.M_PRODUCT_CATEGORY_ID = M_PRODUCT_CATEGORY.M_PRODUCT_CATEGORY_ID
+      AND C_ORDER.M_WAREHOUSE_ID = M_WAREHOUSE.M_WAREHOUSE_ID
+      AND C_ORDER.ISSOTRX = 'Y'
+      AND C_ORDER.PROCESSED = 'Y'
+      AND C_ORDER.proposalstatus= ?
+      AND ad_get_docbasetype(C_ORDER.c_DocType_ID) in ('POREQUESTOFFER','SALESOFFER') AND 2=2
+      AND C_ORDER.C_DOCTYPE_ID!='B28FD44351C7433EAEA24D55CF8AFFA1'
+      AND 0=0 AND C_ORDER.AD_ORG_ID IN ('1')
+      AND C_ORDER.AD_CLIENT_ID IN ('8')
+      AND 1=1) AA
+      GROUP BY NIVEL1,  NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9, TRCURRENCYID, TRDATE, TRCLIENTID, TRORGID) ZZ
+      GROUP BY NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9, 1 
+     ]]></Sql>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="nivel1" type="replace" optional="true" after="FROM (SELECT to_char(" text="'1'"/>
+    <Parameter name="nivel2" type="replace" optional="true" after="AS NIVEL1, to_char(" text="'2'"/>
+    <Parameter name="nivel3" type="replace" optional="true" after="AS NIVEL2, to_char(" text="'3'"/>
+    <Parameter name="nivel4" type="replace" optional="true" after="AS NIVEL3, to_char(" text="'4'"/>
+    <Parameter name="nivel5" type="replace" optional="true" after="AS NIVEL4, to_char(" text="'5'"/>
+    <Parameter name="nivel6" type="replace" optional="true" after="AS NIVEL5, to_char(" text="'6'"/>
+    <Parameter name="nivel7" type="replace" optional="true" after="AS NIVEL6, to_char(" text="'7'"/>
+    <Parameter name="nivel8" type="replace" optional="true" after="AS NIVEL7, to_char(" text="'10'"/>
+    <Parameter name="nivel9" type="replace" optional="true" after="AS NIVEL8, to_char(" text="'11'"/>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="dateFrom"/> 
+    <Parameter name="dateTo"/>  
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="proposalstatus"/>
+    <Parameter name="dateRange"  type="replace" optional="true" after="AND ad_get_docbasetype(C_ORDER.c_DocType_ID) in ('POREQUESTOFFER','SALESOFFER') AND " text="2=2"></Parameter>
+    <Parameter name="adOrgId" optional="true" type="replace" after="AND 0=0 AND C_ORDER.AD_ORG_ID IN (" text="'1'"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="AND C_ORDER.AD_CLIENT_ID IN (" text="'8'"/>
+    <Parameter name="cBpartnerGroupId" optional="true" after="AND 1=1"><![CDATA[AND C_BP_GROUP.C_BP_GROUP_ID = ?]]></Parameter>
+    <Parameter name="cBpartnerId" optional="true" type="argument" after="AND 1=1"><![CDATA[AND C_BPARTNER.C_BPARTNER_ID IN]]></Parameter>
+    <Parameter name="mProductCategoryId" optional="true" after="AND 1=1"><![CDATA[AND M_PRODUCT_CATEGORY.M_PRODUCT_CATEGORY_ID = ?]]></Parameter>
+    <Parameter name="mProductId" optional="true" type="argument" after="AND 1=1"><![CDATA[AND M_PRODUCT.M_PRODUCT_ID IN]]></Parameter>
+    <Parameter name="mWarehouseId" optional="true" after="AND 1=1"><![CDATA[AND M_WAREHOUSE.M_WAREHOUSE_ID = ?]]></Parameter>
+    <Parameter name="salesrepId" optional="true" after="AND 1=1"><![CDATA[AND C_ORDER.SALESREP_ID = ?]]></Parameter>
+    <Parameter name="cProjectId" optional="true" type="argument" after="AND 1=1"><![CDATA[AND C_PROJECT.C_PROJECT_ID IN]]></Parameter>
+    <Parameter name="orderby" type="replace" optional="true" after="GROUP BY NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9" text=", 1"/>
+  </SqlMethod>
+  <SqlMethod name="selectProject" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT 
+      NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9, 
+      SUM(OrderAMOUNT) AS ROW1, AVG(MARGIN) AS ROW4,SUM(projectrevenue) as ROW2,SUM(projectcost) as ROW3,
+      C_CURRENCY_SYMBOL(?, 0, 'Y') AS CURRENCY
+      FROM (SELECT NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9, 
+      SUM(totallines) AS OrderAmount, AVG(MARGIN/counter) AS MARGIN,SUM(projectrevenue/counter) as projectrevenue,SUM(projectcost/counter) as projectcost,
+      TRCURRENCYID, TRDATE, TRCLIENTID, TRORGID
+      FROM (SELECT to_char('1') AS NIVEL1, to_char('2') AS NIVEL2, to_char('3') AS NIVEL3, to_char('4') AS NIVEL4, to_char('5') AS NIVEL5, to_char('6') AS NIVEL6, to_char('7') AS NIVEL7, to_char('10') AS NIVEL8, to_char('11') AS NIVEL9, 
+      zssi_getvalue4orderByPeriod(c_order.c_order_id, ?,to_date(?), to_date(?)) as totallines, 
+      (select case count(*) when 0 then 1 else count(*) end from c_order where c_project_id=c_project.c_project_id and C_ORDER.DOCSTATUS in ('CO','CL') 
+      AND ad_get_docbasetype(C_ORDER.c_DocType_ID) not in ('NON','POREQUESTOFFER','SALESOFFER')
+      AND C_ORDER.C_DOCTYPE_ID!='B28FD44351C7433EAEA24D55CF8AFFA1'
+      and C_ORDER.ISSOTRX = 'Y' AND c_order.orderselfjoin is null) as counter,
+      C_PROJECT.marginpercent as MARGIN, 
+      coalesce(c_project.invoicedamt,0) as projectrevenue,coalesce(c_project.actualcostamount,0) as projectcost,
+      C_PROJECT.C_CURRENCY_ID AS TRCURRENCYID,      
+      TO_DATE(coalesce(C_PROJECT.startdate,now())) AS TRDATE,      
+      C_PROJECT.AD_CLIENT_ID AS TRCLIENTID,      
+      C_PROJECT.AD_ORG_ID AS TRORGID 
+      FROM c_project , c_order,c_bpartner,C_BP_GROUP
+      WHERE C_ORDER.c_project_ID = c_project.c_project_id
+      AND C_ORDER.C_BPARTNER_ID = C_BPARTNER.C_BPARTNER_ID
+      AND C_BPARTNER.C_BP_GROUP_ID = C_BP_GROUP.C_BP_GROUP_ID
+      AND C_ORDER.ISSOTRX = 'Y'
+      AND C_PROJECT.isactive='Y'
+      AND c_order.orderselfjoin is null
+      AND C_ORDER.DOCSTATUS in ('CO','CL') AND 2=2
+      AND ad_get_docbasetype(C_ORDER.c_DocType_ID) not in ('NON','POREQUESTOFFER','SALESOFFER')
+      AND C_ORDER.C_DOCTYPE_ID!='B28FD44351C7433EAEA24D55CF8AFFA1'
+      AND 0=0 AND C_PROJECT.AD_ORG_ID IN ('1')
+      AND C_PROJECT.AD_CLIENT_ID IN ('8')
+      AND 1=1) AA
+      GROUP BY NIVEL1,  NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9, TRCURRENCYID, TRDATE, TRCLIENTID, TRORGID) ZZ
+      GROUP BY NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9, 1 
+     ]]></Sql>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="dateFrom"/> 
+    <Parameter name="dateTo"/>    
+    <Parameter name="nivel1" type="replace" optional="true" after="FROM (SELECT to_char(" text="'1'"/>
+    <Parameter name="nivel2" type="replace" optional="true" after="AS NIVEL1, to_char(" text="'2'"/>
+    <Parameter name="nivel3" type="replace" optional="true" after="AS NIVEL2, to_char(" text="'3'"/>
+    <Parameter name="nivel4" type="replace" optional="true" after="AS NIVEL3, to_char(" text="'4'"/>
+    <Parameter name="nivel5" type="replace" optional="true" after="AS NIVEL4, to_char(" text="'5'"/>
+    <Parameter name="nivel6" type="replace" optional="true" after="AS NIVEL5, to_char(" text="'6'"/>
+    <Parameter name="nivel7" type="replace" optional="true" after="AS NIVEL6, to_char(" text="'7'"/>
+    <Parameter name="nivel8" type="replace" optional="true" after="AS NIVEL7, to_char(" text="'10'"/>
+    <Parameter name="nivel9" type="replace" optional="true" after="AS NIVEL8, to_char(" text="'11'"/>
+    <Parameter name="dateRange"  type="replace" optional="true" after="AND C_ORDER.DOCSTATUS in ('CO','CL') AND " text="2=2"></Parameter>
+    <Parameter name="adOrgId" optional="true" type="replace" after="AND 0=0 AND C_PROJECT.AD_ORG_ID IN (" text="'1'"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="AND C_PROJECT.AD_CLIENT_ID IN (" text="'8'"/>
+    <Parameter name="cBpartnerGroupId" optional="true" after="AND 1=1"><![CDATA[AND C_BP_GROUP.C_BP_GROUP_ID = ?]]></Parameter>
+    <Parameter name="cBpartnerId" optional="true" type="argument" after="AND 1=1"><![CDATA[AND C_BPARTNER.C_BPARTNER_ID IN]]></Parameter>
+    <Parameter name="mWarehouseId" optional="true" after="AND 1=1"><![CDATA[AND C_PROJECT.M_WAREHOUSE_ID = ?]]></Parameter>
+    <Parameter name="salesrepId" optional="true" after="AND 1=1"><![CDATA[AND C_ORDER.SALESREP_ID = ?]]></Parameter>
+    <Parameter name="cProjectId" optional="true" type="argument" after="AND 1=1"><![CDATA[AND C_PROJECT.C_PROJECT_ID IN]]></Parameter>
+    <Parameter name="orderby" type="replace" optional="true" after="GROUP BY NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, NIVEL6, NIVEL7, NIVEL8, NIVEL9" text=", 1"/>
+  </SqlMethod>
+  <SqlMethod name="selectBpgroup" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT C_BP_GROUP.NAME
+      FROM C_BP_GROUP
+      WHERE C_BP_GROUP.C_BP_GROUP_ID = ?
+     ]]></Sql>
+    <Parameter name="cBpGroupId"/>
+  </SqlMethod>
+
+  <SqlMethod name="selectProductCategory" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT M_PRODUCT_CATEGORY.NAME
+      FROM M_PRODUCT_CATEGORY
+      WHERE M_PRODUCT_CATEGORY.M_PRODUCT_CATEGORY_ID = ?
+     ]]></Sql>
+    <Parameter name="mProductCategoryId"/>
+  </SqlMethod>
+
+  <SqlMethod name="selectMwarehouse" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT M_WAREHOUSE.NAME
+      FROM M_WAREHOUSE
+      WHERE M_WAREHOUSE.M_WAREHOUSE_ID = ?
+     ]]></Sql>
+    <Parameter name="mWarehouseId"/>
+  </SqlMethod>
+
+  <SqlMethod name="selectSalesrep" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT AD_USER.FIRSTNAME||' '||AD_USER.LASTNAME
+      FROM AD_USER
+      WHERE AD_USER.AD_USER_ID = ?
+     ]]></Sql>
+    <Parameter name="mWarehouseId"/>
+  </SqlMethod>
+
+  <SqlMethod name="selectEntity" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT AD_CLIENT.NAME
+      FROM AD_CLIENT
+      WHERE AD_CLIENT.AD_CLIENT_ID = ?
+     ]]></Sql>
+    <Parameter name="adClientId"/>
+  </SqlMethod>
+
+  <SqlMethod name="selectNotShown" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Reference DimensionalFilterSale</SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT ID, NAME
+      FROM (SELECT l.VALUE AS ID, coalesce(T.NAME,L.name) as name 
+              FROM AD_REF_LIST     L left join AD_REF_LIST_trl T on l.AD_REF_LIST_ID  = t.AD_REF_LIST_ID and t.AD_LANGUAGE = ?
+             WHERE l.AD_REFERENCE_ID = '800087'
+               AND L.VALUE IN ('1', '2', '3', '4', '5', '6', '7', '8', '9')
+             ORDER BY TO_NUMBER(l.VALUE)) AA
+      WHERE 1=1 
+     ]]></Sql>
+     <Parameter name="lang"/> 
+     <Parameter name="notShown" optional="true" type="argument" after="WHERE 1=1 "><![CDATA[AND ID NOT IN]]></Parameter>
+  </SqlMethod>
+  <SqlMethod name="selectShown" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT ID, NAME
+      FROM (SELECT l.VALUE AS ID, coalesce(T.NAME,L.name) as name 
+              FROM AD_REF_LIST     L left join AD_REF_LIST_trl T on l.AD_REF_LIST_ID  = t.AD_REF_LIST_ID and t.AD_LANGUAGE = ?
+             WHERE l.AD_REFERENCE_ID = '800087'
+               AND L.VALUE IN ('1', '2', '3', '4', '5', '6', '7', '8', '9')
+             ORDER BY TO_NUMBER(l.VALUE)) AA
+      WHERE 1=1 
+     ]]></Sql>
+     <Parameter name="lang"/> 
+     <Parameter name="shown" optional="true" type="argument" after="WHERE 1=1 "><![CDATA[AND ID IN]]></Parameter>
+  </SqlMethod>
+</SqlClass>

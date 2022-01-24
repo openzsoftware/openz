@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="MenuData" package="org.openbravo.erpCommon.utility" accessModifier="public">
+   <SqlClassComment></SqlClassComment>
+   <SqlMethod name="select" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT DISTINCT tn.Node_ID,tn.Parent_ID,tn.SeqNo,menuData.NAME,menuData.Description,menuData.IsSummary,
+        menuData.Action, (case menuData.Action when 'W' then MOW.CLASSNAME 
+                                              when  'X' then MOX.CLASSNAME
+                                              when  'T' then MOT.CLASSNAME
+                                              when 'F' then MOF.CLASSNAME
+                                              else MOP.CLASSNAME
+                                              end) AS CLASSNAME, 
+        (case menuData.Action when 'W' then MOMW.MAPPINGNAME
+                              when 'X' then MOMX.MAPPINGNAME
+                              when 'T' then MOMT.MAPPINGNAME
+                              when 'F' then MOMF.MAPPINGNAME
+                              else MOMP.MAPPINGNAME
+                              end) AS MAPPINGNAME, 
+        menuData.AD_Process_ID, 
+        menuData.AD_Task_ID, 
+        menuData.AD_Workflow_ID, 
+        menuData.url,
+        P.IsExternalService,
+        P.Service_Type
+        FROM AD_TREENODE tn,
+        (SELECT m.AD_Menu_ID, coalesce(ti.name,COALESCE(m_t.NAME, m.NAME)) AS NAME, COALESCE(m_t.DESCRIPTION, m.Description) AS DESCRIPTION, 
+        m.IsSummary,m.Action, m.AD_Window_ID, m.AD_Process_ID, 
+        m.AD_FORM_ID, m.AD_Task_ID, m.AD_Workflow_ID, m.url , m.ad_module_id
+        FROM AD_MENU m left join AD_MENU_TRL m_t on m.AD_MENU_ID = m_t.AD_MENU_ID 
+                                                AND m_t.AD_LANGUAGE = ? 
+                       left join AD_MENU_TRL_instance ti on m.AD_MENU_ID = ti.AD_MENU_ID 
+                                                AND ti.AD_LANGUAGE = ? 
+        WHERE m.IsActive='Y' AND m.ad_module_id in (select ad_module_id from ad_module where isactive='Y')
+        AND (m.IsSummary='Y' OR m.Action='B' OR m.Action='L' OR m.Action='I'
+        OR EXISTS (SELECT * FROM AD_WINDOW_ACCESS wa WHERE wa.AD_Window_ID=m.AD_Window_ID AND wa.AD_Role_ID=?)
+        OR EXISTS (SELECT * FROM AD_PROCESS_ACCESS wa WHERE wa.AD_Process_ID=m.AD_Process_ID AND wa.AD_Role_ID=?)
+        OR EXISTS (SELECT * FROM AD_FORM_ACCESS wa WHERE wa.AD_Form_ID=m.AD_Form_ID AND wa.AD_Role_ID=?)
+        OR EXISTS (SELECT * FROM AD_TASK_ACCESS wa WHERE wa.AD_Task_ID=m.AD_Task_ID AND wa.AD_Role_ID=?)
+        OR EXISTS (SELECT * FROM AD_WORKFLOW w, AD_WORKFLOW_ACCESS wa WHERE w.AD_Workflow_ID=wa.AD_Workflow_ID 
+                    AND wa.AD_Workflow_ID=m.AD_Workflow_ID 
+                    AND w.isActive = 'Y'
+                    AND wa.AD_Role_ID=?)
+        )) menuData left join AD_TAB T on menuData.AD_Window_ID = T.AD_WINDOW_ID
+                    left join AD_PROCESS P on P.AD_Process_ID = menuData.AD_Process_ID 
+                    left join AD_MODEL_OBJECT MOW on T.AD_TAB_ID = MOW.AD_TAB_ID
+                                                  AND MOW.ACTION    = 'W' 
+                                                  AND MOW.ISACTIVE = 'Y'
+                                                  AND MOW.ISDEFAULT= 'Y'
+                    left join AD_MODEL_OBJECT_MAPPING MOMW on MOW.AD_MODEL_OBJECT_ID = MOMW.AD_MODEL_OBJECT_ID 
+                                                  AND MOMW.ISACTIVE  = 'Y'
+                                                  AND MOMW.ISDEFAULT = 'Y'
+                    left join AD_MODEL_OBJECT MOX on menuData.AD_FORM_ID = MOX.AD_FORM_ID 
+                                                  AND MOX.ACTION   = 'X' 
+                                                  AND MOX.ISACTIVE = 'Y'
+                                                  AND MOX.ISDEFAULT= 'Y'
+                    left join AD_MODEL_OBJECT_MAPPING MOMX on MOX.AD_MODEL_OBJECT_ID = MOMX.AD_MODEL_OBJECT_ID 
+                                                  AND MOMX.ISACTIVE  = 'Y'
+                                                  AND MOMX.ISDEFAULT = 'Y'
+                    left join AD_MODEL_OBJECT MOT on menuData.AD_TASK_ID = MOT.AD_TASK_ID 
+                                                  AND MOT.ACTION    = 'T' 
+                                                  AND MOT.ISACTIVE  = 'Y'
+                                                  AND MOT.ISDEFAULT = 'Y'
+                    left join AD_MODEL_OBJECT_MAPPING MOMT on MOT.AD_MODEL_OBJECT_ID = MOMT.AD_MODEL_OBJECT_ID 
+                                                  AND MOMT.ISACTIVE  = 'Y'
+                                                  AND MOMT.ISDEFAULT = 'Y'
+                    left join AD_MODEL_OBJECT MOF on menuData.AD_WORKFLOW_ID = MOF.AD_WORKFLOW_ID 
+                                                  AND MOF.ACTION   = 'X' 
+                                                  AND MOF.ISACTIVE = 'Y'
+                                                  AND MOF.ISDEFAULT= 'Y'
+                    left join AD_MODEL_OBJECT_MAPPING MOMF on MOF.AD_MODEL_OBJECT_ID = MOMF.AD_MODEL_OBJECT_ID
+                                                  AND MOMF.ISACTIVE  = 'Y'
+                                                  AND MOMF.ISDEFAULT = 'Y'
+                    left join AD_MODEL_OBJECT MOP on menuData.AD_PROCESS_ID = MOP.AD_PROCESS_ID 
+                                                  AND MOP.ACTION IN ('P', 'R') 
+                                                  AND MOP.ISACTIVE = 'Y'
+                                                  AND MOP.ISDEFAULT= 'Y'
+                    left join AD_MODEL_OBJECT_MAPPING MOMP on MOP.AD_MODEL_OBJECT_ID = MOMP.AD_MODEL_OBJECT_ID
+                                                  AND MOMP.ISACTIVE  = 'Y'
+                                                  AND MOMP.ISDEFAULT = 'Y'
+        WHERE tn.node_id = menuData.ad_menu_id
+        AND (EXISTS(SELECT 1 FROM AD_TAB 
+        WHERE AD_TAB.isactive ='Y'AND AD_TAB.ad_window_id=T.ad_window_id 
+        GROUP BY AD_TAB.ad_window_id
+        HAVING MIN(AD_TAB.seqno)=T.seqno)
+        OR T.ad_tab_id is null)
+        AND tn.ad_tree_id = ?
+        AND tn.IsActive='Y'
+        AND menuData.ad_module_id in (select ad_module_id from ad_module where isactive='Y')
+        ORDER BY PARENT_ID, SEQNO
+      </Sql>
+        <Parameter name="language"/>
+        <Parameter name="language"/>
+        <Parameter name="roleId"/>
+        <Parameter name="roleId"/>
+        <Parameter name="roleId"/>
+        <Parameter name="roleId"/>
+        <Parameter name="roleId"/>
+        <Parameter name="treeId"/>
+   </SqlMethod>
+
+   <SqlMethod name="selectData" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT DISTINCT tn.Node_ID,tn.Parent_ID,tn.SeqNo,menuData.NAME,menuData.Description,menuData.IsSummary,
+        menuData.Action, (case menuData.Action when 'W' then MOW.CLASSNAME
+                                        when 'X' then MOX.CLASSNAME
+                                        when 'T' then MOT.CLASSNAME
+                                        when 'F' then MOF.CLASSNAME
+                                        else MOP.CLASSNAME
+                                        end) AS CLASSNAME, 
+        (case menuData.Action when 'W' then MOMW.MAPPINGNAME
+                            when 'X' then MOMX.MAPPINGNAME
+                            when 'T' then MOMT.MAPPINGNAME
+                            when 'F' then MOMF.MAPPINGNAME
+                            else MOMP.MAPPINGNAME
+                            end) AS MAPPINGNAME, 
+        menuData.AD_Process_ID, 
+        menuData.AD_Task_ID, 
+        menuData.AD_Workflow_ID, menuData.url 
+        FROM AD_TREENODE tn,
+        (SELECT m.AD_Menu_ID, coalesce(ti.name,COALESCE(m_t.NAME, m.NAME)) AS NAME, COALESCE(m_t.DESCRIPTION, m.Description) AS DESCRIPTION, 
+                m.IsSummary,m.Action, m.AD_Window_ID, m.AD_Process_ID, 
+                m.AD_FORM_ID, m.AD_Task_ID, m.AD_Workflow_ID, m.url 
+           FROM AD_MENU m left join AD_MENU_TRL m_t on m.AD_MENU_ID = m_t.AD_MENU_ID  
+                                                   AND m_t.AD_LANGUAGE = ?
+                          left join AD_MENU_TRL_instance ti on m.AD_MENU_ID = ti.AD_MENU_ID  
+                                                   AND ti.AD_LANGUAGE = ?
+          WHERE m.IsActive='Y' 
+        ) menuData left join AD_WINDOW W on menuData.AD_Window_ID = W.AD_Window_ID
+                   left join AD_TAB T on W.AD_Window_ID = T.AD_WINDOW_ID
+                   left join AD_MODEL_OBJECT MOW on T.AD_TAB_ID = MOW.AD_TAB_ID  
+                                                AND MOW.ACTION    = 'W' 
+                                                AND MOW.ISACTIVE  = 'Y'
+                                                AND MOW.ISDEFAULT = 'Y'
+                   left join AD_MODEL_OBJECT_MAPPING MOMW on MOW.AD_MODEL_OBJECT_ID = MOMW.AD_MODEL_OBJECT_ID 
+                                                AND MOMW.ISACTIVE  = 'Y'
+                                                AND MOMW.ISDEFAULT = 'Y'
+                   left join AD_MODEL_OBJECT MOX on menuData.AD_FORM_ID = MOX.AD_FORM_ID
+                                                AND MOX.ACTION   = 'X' 
+                                                AND MOX.ISACTIVE = 'Y'
+                                                AND MOX.ISDEFAULT= 'Y'
+                   left join AD_MODEL_OBJECT_MAPPING MOMX on MOX.AD_MODEL_OBJECT_ID = MOMX.AD_MODEL_OBJECT_ID 
+                                                AND MOMX.ISACTIVE = 'Y'
+                                                AND MOMX.ISDEFAULT= 'Y'
+                   left join AD_MODEL_OBJECT MOT on menuData.AD_TASK_ID = MOT.AD_TASK_ID 
+                                                AND MOT.ACTION   = 'T' 
+                                                AND MOT.ISACTIVE = 'Y'
+                                                AND MOT.ISDEFAULT= 'Y'
+                   left join AD_MODEL_OBJECT_MAPPING MOMT on MOT.AD_MODEL_OBJECT_ID = MOMT.AD_MODEL_OBJECT_ID 
+                                                AND MOMT.ISACTIVE  = 'Y'
+                                                AND MOMT.ISDEFAULT = 'Y'
+                   left join AD_MODEL_OBJECT MOF on menuData.AD_WORKFLOW_ID = MOF.AD_WORKFLOW_ID 
+                                                AND MOF.ACTION   = 'X' 
+                                                AND MOF.ISACTIVE = 'Y'
+                                                AND MOF.ISDEFAULT= 'Y'
+                   left join AD_MODEL_OBJECT_MAPPING MOMF on MOF.AD_MODEL_OBJECT_ID = MOMF.AD_MODEL_OBJECT_ID 
+                                                AND MOMF.ISACTIVE  = 'Y'
+                                                AND MOMF.ISDEFAULT = 'Y'
+                   left join AD_MODEL_OBJECT MOP on menuData.AD_PROCESS_ID = MOP.AD_PROCESS_ID 
+                                                AND MOP.ACTION IN ('P', 'R') 
+                                                AND MOP.ISACTIVE = 'Y'
+                                                AND MOP.ISDEFAULT= 'Y'
+                   left join AD_MODEL_OBJECT_MAPPING MOMP on MOP.AD_MODEL_OBJECT_ID = MOMP.AD_MODEL_OBJECT_ID 
+                                                AND MOMP.ISACTIVE  = 'Y'
+                                                AND MOMP.ISDEFAULT = 'Y'
+        WHERE tn.node_id = menuData.ad_menu_id 
+        AND (EXISTS(SELECT 1 FROM AD_TAB 
+        WHERE AD_TAB.isactive ='Y'
+        GROUP BY AD_TAB.ad_window_id
+        HAVING AD_TAB.ad_window_id=T.ad_window_id 
+        AND MIN(AD_TAB.seqno)=T.seqno)
+        OR T.ad_tab_id is null)
+        AND tn.IsActive='Y'
+      </Sql>
+      <Parameter name="language"/>
+      <Parameter name="language"/>
+      <Parameter name="adWindowId" optional="true" after="WHERE m.IsActive='Y'" text=" AND m.AD_Window_ID = ? "/>
+      <Parameter name="adProcessId" optional="true" after="WHERE m.IsActive='Y'" text=" AND m.AD_Process_ID = ? "/>
+      <Parameter name="adFormId" optional="true" after="WHERE m.IsActive='Y'" text=" AND m.AD_FORM_ID = ? "/>
+      <Parameter name="adTaskId" optional="true" after="WHERE m.IsActive='Y'" text=" AND m.AD_Task_ID = ? "/>
+      <Parameter name="adWorkflowId" optional="true" after="WHERE m.IsActive='Y'" text=" AND m.AD_Workflow_ID = ? "/>
+   </SqlMethod>
+
+   <SqlMethod name="selectIdentificacion" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT ad_tree_menu_id  AS PARENT_ID
+        FROM AD_ClientInfo 
+        WHERE  AD_Client_ID=?
+      </Sql>
+        <Parameter name="strCliente"/>
+   </SqlMethod>
+   <SqlMethod name="selectMenuFromRole" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT ad_tree_menu_id  AS PARENT_ID
+        FROM AD_Role
+        WHERE  ad_role_id=?
+      </Sql>
+        <Parameter name="strRole"/>
+   </SqlMethod>
+
+   <SqlMethod name="selectSearchs" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT node_id, name, description, className
+        FROM (
+          SELECT  
+            r.ad_reference_id AS node_id,  
+            COALESCE(rt.name, r.name) AS name, 
+            COALESCE(rt.description, r.description) AS description, 
+            mom.mappingname AS classname
+          FROM ad_reference R LEFT JOIN ad_reference_trl rt 
+                              ON r.ad_reference_id = rt.ad_reference_id AND rt.ad_language = ? 
+                              LEFT JOIN ad_referenceinstance i on r.ad_reference_id = i.ad_reference_id AND i.isactive='Y', 
+               ad_model_object mo, ad_model_object_mapping mom
+          WHERE 1=1
+           AND r.ad_reference_id = mo.ad_reference_id
+           AND coalesce(i.showInfoMenu,r.showInfoMenu) = 'Y'
+           AND mo.ad_model_object_id = mom.ad_model_object_id 
+           AND mo.action = 'S'
+           AND mo.isactive = 'Y'
+           AND mo.isdefault = 'Y'
+           AND mom.isactive = 'Y'
+           AND mom.isdefault = 'Y' 
+             ) aa
+        ORDER BY name
+      </Sql>
+        <Parameter name="adLanguage"/>        
+   </SqlMethod>
+   <SqlMethod name="getUserName" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT USERNAME
+        FROM AD_USER 
+        WHERE AD_User_ID = ?
+      </Sql>
+        <Parameter name="adUserId"/>
+   </SqlMethod>
+   <SqlMethod name="getRoleName" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT NAME
+        FROM AD_ROLE 
+        WHERE AD_ROLE_ID = ?
+      </Sql>
+        <Parameter name="adRoleId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="isGenericJavaProcess" type="preparedStatement" return="boolean">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT COUNT(*)
+          FROM AD_PROCESS
+          WHERE Ad_PROCESS_ID = ?
+          AND UIPATTERN = 'S'
+          AND ISJASPER = 'N' 
+          AND PROCEDURENAME IS NULL
+      </Sql>
+      <Parameter name="processId"/>
+   </SqlMethod>
+   
+   
+</SqlClass>

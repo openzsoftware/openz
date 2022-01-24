@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2009 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+<SqlClass name="BPartnerData" package="org.openbravo.erpCommon.ad_process">
+
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT C_BPartner_ID, C_BPartner_Location_ID,
+        COALESCE (Address1,Address2,City) AS Addr, AD_User_ID, ContactName,
+				AD_Client_ID, AD_Org_ID, Value, I_BPartner_ID, Name
+			  FROM I_BPartner
+			  WHERE I_IsImported='N'
+        AND AD_Client_ID = ?
+      ]]>
+    </Sql>
+    <Parameter name="ad_client_id"/>
+  </SqlMethod>
+
+  <SqlMethod name="insert" type="preparedStatement" connection="true" return="rowcount" static="false">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+			  INSERT INTO C_BPartner (C_BPartner_ID, AD_Client_ID, AD_Org_ID,
+          IsActive,Created,CreatedBy,Updated,UpdatedBy,Value, Name, C_BP_Group_ID)
+					VALUES (?, ?, ?, 'Y', now(), ?, now(), ?, ?, ?, (SELECT min(C_BP_Group_ID) FROM C_BP_Group WHERE IsDefault='Y' AND AD_Client_ID=?))
+      ]]>
+    </Sql>
+    <Parameter name="cBpartnerId"/>
+    <Parameter name="adClientId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="adClientId"/>
+    <Parameter name="adClientId"/>
+    <Parameter name="value"/>
+		<Parameter name="name"/>
+		<Parameter name="adClientId"/>
+		</SqlMethod>
+
+</SqlClass>

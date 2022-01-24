@@ -1,0 +1,1 @@
+80CC706C9EA546B08B370401B89B384E	0	0	Y	2019-05-21 08:44:52.24107	100	2019-09-11 13:36:48.684301	100	SystemConfiguration	3.6.50	SystemConfiguration	\N	\N	M	\N	N	N	0	org.openz.sysconfig	MPL1.1	\N	A	\N	Y	en_US	N	N	N	\N	\N	\N	3.6.50.142	\N	N	N	0

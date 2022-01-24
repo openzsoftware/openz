@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ ****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2012 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+<SqlClass name="CrudOperationsData" package="org.openz.model"  accessModifier="public">
+   <SqlClassComment></SqlClassComment>
+   <SqlMethod name="selectCustomColumns" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select pType,PName from ad_getcustomcolumns(?)
+      </Sql>
+      <Parameter name="tabId"/>
+   </SqlMethod>
+   <SqlMethod name="getTableFromTab" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select tablename from ad_table,ad_tab where ad_table.ad_table_id=ad_tab.ad_table_id and ad_tab.ad_tab_id= ?
+      </Sql>
+      <Parameter name="tabId"/>
+   </SqlMethod>
+    <SqlMethod name="getTableIDFromTab" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select ad_table.ad_table_id from ad_table,ad_tab where ad_table.ad_table_id=ad_tab.ad_table_id and ad_tab.ad_tab_id= ?
+      </Sql>
+      <Parameter name="tabId"/>
+   </SqlMethod>
+   <SqlMethod name="getIdColumnFromTable" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select columnname from ad_column where iskey='Y' and ad_table_id= ?
+      </Sql>
+      <Parameter name="tableId"/>
+   </SqlMethod>
+   <SqlMethod name="getCustomColumnCount" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select count(*) as ca from ad_customfield where ad_tab_id = ?
+      </Sql>
+      <Parameter name="tabId"/>
+   </SqlMethod>
+   <SqlMethod name="isView" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select case when count(*)=1 then 'Y' else 'N' end as ca  from INFORMATION_SCHEMA.views,ad_table,ad_tab where ad_tab.ad_table_id=ad_table.ad_table_id and INFORMATION_SCHEMA.views.table_name=ad_table.tablename and ad_tab.ad_tab_id = ?
+      </Sql>
+      <Parameter name="tabId"/>
+   </SqlMethod>
+   
+ </SqlClass>

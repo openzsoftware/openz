@@ -1,0 +1,191 @@
+<!--
+***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+****************************************************************************************************************************************************
+-->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1" />-->
+<title>Log in</title>
+<link rel="shortcut icon" href="../../../../../web/images/favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" type="text/css" href="../../../../../web/skins/Default/Openbravo_ERP_250.css?v=20201118112638" id="paramCSS"/>
+<!--  <link rel="stylesheet" type="text/css" href="../../../../../web/skins/ltr/OpenZND/OpenZ_Login_350.css?v=20201118112638" />-->
+<script language="JavaScript" src="../../../../../web/js/messages.js?v=20201118112638" type="text/javascript"></script>
+<!-- <link rel="preload" href="../../../../../web/skins/Default/teufelsmoor.png" as="image"  id="paramPreLoadRel"> -->
+<script language="JavaScript" src="../../../../../web/js/shortcuts.js?v=20201118112638" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/utils.js?v=20201118112638" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/windowKeyboard.js?v=20201118112638" type="text/javascript"></script>
+<script language="JavaScript" type="text/javascript" id="paramDirectory">var baseDirectory = "../../../../../web/";</script>
+<script language="JavaScript" type="text/javascript" id="paramLanguage">    defaultLang = "en_US";</script>
+<script language="JavaScript" type="text/javascript">
+
+function validate(action)
+{
+    var frm = document.forms[0];
+    //Se controla que haya rellenado todos los campos
+    if (frm.user.value==null || frm.password.value==null || frm.user.value=="" || frm.password.value=="") {
+        showJSMessage(1);
+        return false;
+    }
+    return true;
+}
+function onloadFunctions() {
+	document.body.style.zoom = "200%";
+}
+function buttonOK_click() {
+    submitCommandForm('DEFAULT', false, null, '../secureApp/LoginHandler.html', '_top', true);
+    return false;
+}
+
+function redirectWhenPopup() {
+  var permission = false;
+  try {
+    if (top.opener.top.frames['appFrame']) {
+      permission = true;
+    }
+  }
+  catch (e) {}
+  if (top.opener && permission) {
+    top.opener.top.location.href = top.document.location.href;
+    top.window.close();
+  }
+}
+
+</script>
+<script language="JavaScript" type="text/javascript">
+  function onLoadDo() {
+	   top.opener=null;
+	   document.getElementsByName('user').value=('Username');
+	   document.getElementsByName('password').value=('Password');
+	   document.getElementById('ScreenY').value=window.screen.height;
+	   document.getElementById('ScreenX').value=window.screen.width;
+    redirectWhenPopup();
+    this.windowTables = new Array(
+      new windowTableId('client', 'buttonOK')
+    );
+    setWindowTableParentElement();
+    enableShortcuts('edition');
+   
+    try {
+      onloadFunctions();
+      //clearForm();
+    } catch (e) {}
+    
+    
+  }
+
+  function onResizeDo() {
+    
+  }
+</script>
+</head>
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" onload="onLoadDo();" onresize="onResizeDo();"  >
+<!-- style="background-color: #505050 !important;" -->
+
+
+<form method="post" action="../secureApp/LoginHandler.html" name="frmIdentificacion" id="frmFormulario" autocomplete="off" >
+  <input type="hidden" name="Command"></input>
+  <input type="hidden" value="" name="ScreenX" id="ScreenX"></input>
+  <input type="hidden" value="" name="ScreenY" id="ScreenY"></input>
+
+<div class="LoginBackground" id="WelcomeID" style="height:100%!important;">
+<!-- <img style="display:none;" src="../../../../../web/skins/Default/teufelsmoor.png" id="paramPreLoad"> -->
+  <table  border="0" cellpadding="0" cellspacing="0" id="main">
+    <tr>
+      <td valign="top">
+       
+
+        <div class="Login_ContentPane_ToolBar" id="paramToolBar" >
+        
+          <table class="Login_ContentPane_ToolBar Login_ToolBar_bg" id="tdToolBar">
+            <tr>
+              <td width="100%"></td>
+            </tr>
+          </table>
+        
+        </div>
+      <div class="Login_ContentPane" style="overflow: auto;" id="client">
+ <table class="Login_Tbl">
+ <tr height="280" class="Login_tr_area">
+
+    <td class="Login_Auth_Container_Cell">
+				<div tabindex="0" style="margin-top:85px;" class="Login_Auth_Container"><div class="lgnimghd4hpfr"><img class="Login_Logo_OpenZ_new" src="../../../../../web/images/OpenZ2017.png"></div>
+				<table class="lgn_tbl_bg Login_Tbl">
+
+                <tr><td class="lgn_bgn_txt" ></td></tr>
+
+                <tr>
+                  <!-- <td class="TitleCell_Login"><span class="LabelText_Login">Username</span></td>-->
+                  <td class="TextBox_ContentCell_Login" >
+                    <input id="username" autocorrect="off" autocapitalize="none" style="border:none;" class="dojoValidateValid_Login TextBox_TwoCells_width_Login" type="text" size="40" maxlength="60" name="user" placeholder="Username" ></input> 
+                  </td>
+                </tr>
+
+                <tr>
+                   <!-- <td class="TitleCell_Login"><span class="LabelText_Login">Password</span></td>-->
+                  <td class="TextBox_ContentCell_Login">
+                    <input autocorrect="off" autocapitalize="none" style="border:none;" class="dojoValidateValid_Login TextBox_TwoCells_width_Login" type="password" size="40" maxlength="40" name="password" placeholder="Password" ></input> 
+                  </td>
+                </tr>
+<tr class="Login_emptyline" style="height:20px;"></tr>
+                <!--Remember  onfocus="if(this.value=='Password'){this.type='password';this.value=''}"  <tr><td height="20px"></td></tr>-->
+
+                <tr>
+                  <td class="Button_CenterAlign_ContentCell">
+                    <div style="text-align:center;">
+                      <button type="button" 
+                        id="buttonOK" 
+                        class="ButtonLink" 
+                        onclick="buttonOK_click();" 
+                        onfocus="buttonEvent('onfocus', this); window.status='Login'; return true;" 
+                        onblur="buttonEvent('onblur', this);" 
+                        onkeyup="buttonEvent('onkeyup', this);" 
+                        onkeydown="buttonEvent('onkeydown', this);" 
+                        onkeypress="buttonEvent('onkeypress', this);" 
+                        onmouseup="buttonEvent('onmouseup', this);" 
+                        onmousedown="buttonEvent('onmousedown', this);" 
+                        onmouseover="buttonEvent('onmouseover', this); window.status='Login'; return true;" 
+                        onmouseout="buttonEvent('onmouseout', this);">
+                        <table class="Button hpfrbtn" id="fieldTable">
+                          <tr>
+                            <td class="Button_left Button_left_LI"><img class="Button_Icon Button_Icon_ok" alt="Login" title="Login" src="../../../../../web/images/blank.gif" border="0" id="fieldButton" /></td>
+                            <td class="Button_text Button_text_LI Button_width">Login</td>
+                            <td class="Button_right Button_right_LI"></td>
+                          </tr>
+                        </table>
+                      </button>
+                    </div>
+                                 <div class="lgnfttt" style="margin-top:54px; vertical-align:bottom;text-align:center;">   
+                  <div class="lgnft"><span class="forsupport">For Support Contact:</span><div style="color:#fff;" class="LabelText_Login" id="itService">www.your-it-service.com</div><div  class="Login_Copyright_text_new" style="text-align:center" id="versionNo">Version: 2.#.##.###</div></div>
+</div></div>
+                  </td>
+                  <td>
+                  </td>
+                </tr>
+
+              </table>
+              
+
+    </td>
+ </tr>
+
+
+          <tr height="30" class="Login_Logo_Support_Field">
+		
+            <td class="Login_ContentCell_Support" style="vertical-align: middle;"></td>
+         </tr>        
+</table>
+</div>
+
+
+</form>
+</body>
+</html>

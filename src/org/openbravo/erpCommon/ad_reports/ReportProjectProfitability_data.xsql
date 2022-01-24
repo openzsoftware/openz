@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+****************************************************************************************************************************************************
+    -->
+
+
+
+<SqlClass name="ReportProjectProfitabilityData" package="org.openbravo.erpCommon.ad_reports">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[ select '' as name,'' as id,
+       '' as header1,
+		zssi_getElementTextByColumname('pcr_pno',?) as headerpron,
+		zssi_getElementTextByColumname('pcr_pname',?) as headerpro,
+		zssi_getElementTextByColumname('Responsible_id',?) as headerresp,
+		zssi_getElementTextByColumname('salesrep_id',?) as headersalesrep,
+		zssi_getElementTextByColumname('c_bpartner_id',?) as headerbpartner,
+		'%' as headermargep,
+		zssi_getElementTextByColumname('pcr_margin',?) as headermarge,
+		zssi_getElementTextByColumname('Cost',?) as headerist,
+		zssi_getElementTextByColumname('pcr_Plancost',?) as headerplan,
+		zssi_getElementTextByColumname('pcr_offer',?) as headerange,
+		zssi_getElementTextByColumname('pcr_order',?) as headerauftr,
+		zssi_getElementTextByColumname('pcr_invoice',?) as headerrechn,
+		zssi_getElementTextByColumname('Status',?) as headerstatus,
+		zssi_getElementTextByColumname('pcr_StartDate',?) as headerstartdate,
+		zssi_getElementTextByColumname('pcr_DateFinish',?) as headerenddate,
+		p_searchkey ,        p_name , p_responsible , p_bpartner , p_salesrep  , p_status ,     p_startdate     ,    p_datefinish     ,
+		p_invoicedocno , p_invoicenetamt ,      p_invoicedate        ,
+		p_orderdocno , p_ordernetamt ,  p_orderdate  ,
+		p_offerdocno ,p_offernetamt ,     p_offerdate     ,
+		p_plannedamt      ,   p_actualcost   , p_marginamt ,p_marginperc,p_org_id,p_isitalic
+		from zssi_getProjectProfReportData(?,?,?,?,?,?,?,?,?,?,?,?)
+		where 1=1
+		order by p_searchkey,p_marginperc
+      ]]>
+    </Sql>
+     <Parameter name="lang"/>
+     <Parameter name="lang"/>
+     <Parameter name="lang"/>
+     <Parameter name="lang"/>
+     <Parameter name="lang"/>
+     <Parameter name="lang"/>
+     <Parameter name="lang"/>
+     <Parameter name="lang"/>
+     <Parameter name="lang"/>
+     <Parameter name="lang"/>
+     <Parameter name="lang"/>
+     <Parameter name="lang"/>
+     <Parameter name="lang"/>
+     <Parameter name="lang"/>
+     <Parameter name="adOrgID"/>
+     <Parameter name="responsibleID"/>
+     <Parameter name="Status"/>
+     <Parameter name="offerFrom"/>
+     <Parameter name="offerTo"/>
+     <Parameter name="orderFrom"/>
+     <Parameter name="orderTo"/>
+     <Parameter name="startFrom"/>
+     <Parameter name="startTo"/>
+     <Parameter name="invoiceFrom"/>
+     <Parameter name="invoiceTo"/>
+     <Parameter name="lang"/>
+     <Parameter name="salesReps" optional="true" type="argument" after="where 1=1"><![CDATA[AND p_salesrepid IN]]></Parameter>
+     <Parameter name="bPartners" optional="true" type="argument" after="where 1=1"><![CDATA[AND p_bpartnerid IN]]></Parameter>
+  </SqlMethod>
+  <SqlMethod name="isUserSupervisor" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>select isprojectmanager from c_bpartner where c_bpartner_id=(select c_bpartner_id from ad_user where ad_user_id=?) </Sql>
+      <Parameter name="userId"/>
+  </SqlMethod>
+  <SqlMethod name="getSelectedSalesreps" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>select name,ad_user_id as ID from ad_user where ad_user_id in ('1') </Sql>
+      <Parameter name="userIdList" optional="true" type="replace" after="where ad_user_id in " text="('1')"/>
+  </SqlMethod>
+  <SqlMethod name="getSelectedBpartner" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>select name,c_bpartner_id as ID from c_bpartner where c_bpartner_id in ('1') </Sql>
+      <Parameter name="bpartnerIdList" optional="true" type="replace" after="where c_bpartner_id in " text="('1')"/>
+  </SqlMethod>
+  <SqlMethod name="getSelectedOrg" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>select name from ad_org where ad_org_id=? </Sql>
+     <Parameter name="adOrgID"/>
+  </SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+</SqlClass>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2009 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+<SqlClass name="ReportAgingBalanceData" package="org.openbravo.erpCommon.ad_reports">
+  <SqlClassComment>Clase ReportAgingBalanceData</SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Select for relation</SqlMethodComment>
+    <Sql>
+    <![CDATA[
+        SELECT BPARTNER AS BPARTNER_ID, AD_COLUMN_IDENTIFIER('C_Bpartner',TO_CHAR(BPARTNER), ?) AS BPARTNER, ISRECEIPT,
+        SUM(CASE(SCOPE) WHEN 0 THEN AMOUNT ELSE 0 END) AS ZERO,
+        SUM(CASE(SCOPE) WHEN 1 THEN AMOUNT ELSE 0 END) AS ONE,
+        SUM(CASE(SCOPE) WHEN 2 THEN AMOUNT ELSE 0 END) AS TWO,
+        SUM(CASE(SCOPE) WHEN 3 THEN AMOUNT ELSE 0 END) AS THREE,
+        SUM(CASE(SCOPE) WHEN 4 THEN AMOUNT ELSE 0 END) AS FOUR,
+        SUM(CASE(SCOPE) WHEN 5 THEN AMOUNT ELSE 0 END) AS FIVE,
+        SUM(AMOUNT) AS TOTAL, ? AS AD_ORG_ID, '' as documentno,? as optiontext,? as selecteddate
+        FROM(
+          SELECT dp.C_BPARTNER_ID AS BPARTNER, dp.AMOUNT, dp.ISRECEIPT, case when ?='i.dateinvoiced' then i.dateinvoiced else dp.dateplanned end as dateplanned,
+          C_AGING_GET_SCOPE(case when ?='Y' then trunc(now()) else case when ?='i.dateinvoiced' then i.dateinvoiced else dp.dateplanned end end, case when ?='Y' then dp.dateplanned else coalesce(c.statementdate,b.dateacct) end,TO_NUMBER(?), TO_NUMBER(?), TO_NUMBER(?), TO_NUMBER(?)) AS SCOPE, 
+          dp.C_DEBT_PAYMENT_ID
+          FROM  C_DEBT_PAYMENT dp left join c_invoice i on i.c_invoice_id=dp.c_invoice_id
+                                  left join c_bankstatementline b on b.c_bankstatementline_id=dp.c_bankstatementline_id
+                                  left join c_cashline cl on cl.c_cashline_id=dp.c_cashline_id
+                                  left join c_cash c on c.c_cash_id=cl.c_cash_id
+          WHERE 
+          dp.isvalid='Y' and dp.isactive='Y'
+          AND dp.ISRECEIPT = ?
+          AND 1=1
+          AND dp.AD_ORG_ID IN('2')
+          AND dp.AD_CLIENT_ID IN ('1')
+          AND dp.AD_ORG_ID IN ('1')
+          ) AAA
+        GROUP BY BPARTNER, ISRECEIPT
+      ]]></Sql>
+    <Parameter name="adLanguage"/>  
+    <Parameter name="orgTrx"></Parameter>
+    <Parameter name="optiontext"></Parameter>
+    <Parameter name="selecteddate"></Parameter>
+    <Parameter name="planneddateorinvdate"></Parameter>
+    <Parameter name="isForecast"></Parameter>
+    <Parameter name="planneddateorinvdate"></Parameter>
+    <Parameter name="isForecast"></Parameter>
+    <Parameter name="one"></Parameter>
+    <Parameter name="two"></Parameter>
+    <Parameter name="three"></Parameter>
+    <Parameter name="four"></Parameter>
+    <Parameter name="isreceipt"></Parameter>
+    <Parameter name="cBpartnerId" optional="true" type="argument" after="AND 1=1"><![CDATA[ AND dp.C_BPARTNER_ID IN ]]></Parameter>
+    <Parameter name="dateFrom" optional="true"  after="AND 1=1"><![CDATA[ AND i.dateinvoiced>=to_date(?)]]></Parameter>
+    <Parameter name="dateTo" optional="true"  after="AND 1=1"><![CDATA[ AND i.dateinvoiced<=to_date(?) ]]></Parameter>
+    <Parameter name="openItems" optional="true" type="argument" after="AND 1=1"><![CDATA[ AND C_DEBT_PAYMENT_STATUS(dp.C_SETTLEMENT_CANCEL_ID, dp.CANCEL_PROCESSED, dp.GENERATE_PROCESSED,dp.ISPAID,dp.ISVALID,dp.C_CASHLINE_ID,dp.C_BANKSTATEMENTLINE_ID) = 'P' ]]></Parameter>
+    <Parameter name="closedItems" optional="true" type="argument" after="AND 1=1"><![CDATA[ AND dp.ispaid = 'Y' ]]></Parameter>
+    <Parameter name="orgFamily" type="replace" optional="true" after="dp.AD_ORG_ID IN(" text="'2'"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="dp.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="adUserOrg" type="replace" optional="true" after="dp.AD_ORG_ID IN (" text="'1'"/>
+  </SqlMethod>
+   <SqlMethod name="selectInvoice" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Select for relation</SqlMethodComment>
+    <Sql>
+    <![CDATA[
+        SELECT C_BPARTNER_ID as BPARTNER_ID, 
+        case when zsse_identifierexists(C_BPARTNER_ID)='N' then AD_COLUMN_IDENTIFIER('C_Bpartner',TO_CHAR(C_BPARTNER_ID), ?)||case when ?='Y' then ' / ' else '  /  &nbsp;' end ||documentno else case when ?='Y' then '           ' else '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' end||documentno end AS BPARTNER, 
+        ISRECEIPT,
+        SUM(CASE(SCOPE) WHEN 0 THEN AMOUNT ELSE 0 END) AS ZERO,
+        SUM(CASE(SCOPE) WHEN 1 THEN AMOUNT ELSE 0 END) AS ONE,
+        SUM(CASE(SCOPE) WHEN 2 THEN AMOUNT ELSE 0 END) AS TWO,
+        SUM(CASE(SCOPE) WHEN 3 THEN AMOUNT ELSE 0 END) AS THREE,
+        SUM(CASE(SCOPE) WHEN 4 THEN AMOUNT ELSE 0 END) AS FOUR,
+        SUM(CASE(SCOPE) WHEN 5 THEN AMOUNT ELSE 0 END) AS FIVE,
+        SUM(AMOUNT) AS TOTAL, ? AS AD_ORG_ID, documentno,? as optiontext,? as selecteddate
+        FROM(
+          SELECT dp.C_BPARTNER_ID, dp.AMOUNT, dp.ISRECEIPT, case when ?='i.dateinvoiced' then i.dateinvoiced else dp.dateplanned end as dateplanned,i.documentno,
+          C_AGING_GET_SCOPE(case when ?='Y' then trunc(now()) else case when ?='i.dateinvoiced' then i.dateinvoiced else dp.dateplanned end end, case when ?='Y' then dp.dateplanned else coalesce(c.statementdate,b.dateacct) end,TO_NUMBER(?), TO_NUMBER(?), TO_NUMBER(?), TO_NUMBER(?)) AS SCOPE,
+          dp.C_DEBT_PAYMENT_ID
+          FROM  C_DEBT_PAYMENT dp left join c_invoice i on i.c_invoice_id=dp.c_invoice_id
+                                  left join c_bankstatementline b on b.c_bankstatementline_id=dp.c_bankstatementline_id
+                                  left join c_cashline cl on cl.c_cashline_id=dp.c_cashline_id
+                                  left join c_cash c on c.c_cash_id=cl.c_cash_id
+          WHERE 
+          dp.isvalid='Y' and dp.isactive='Y'
+          AND dp.ISRECEIPT = ?
+          AND 1=1
+          AND dp.AD_ORG_ID IN('2')
+          AND dp.AD_CLIENT_ID IN ('1')
+          AND dp.AD_ORG_ID IN ('1')
+          ) AAA
+        GROUP BY C_BPARTNER_ID, ISRECEIPT, documentno order by C_BPARTNER_ID,documentno
+      ]]></Sql>
+    <Parameter name="adLanguage"/>  
+    <Parameter name="isPDF"/>  
+    <Parameter name="isPDF"/>  
+    <Parameter name="orgTrx"></Parameter>
+    <Parameter name="optiontext"></Parameter>
+    <Parameter name="selecteddate"></Parameter>
+    <Parameter name="planneddateorinvdate"></Parameter>
+    <Parameter name="isForecast"></Parameter>
+    <Parameter name="planneddateorinvdate"></Parameter>
+    <Parameter name="isForecast"></Parameter>
+    <Parameter name="one"></Parameter>
+    <Parameter name="two"></Parameter>
+    <Parameter name="three"></Parameter>
+    <Parameter name="four"></Parameter>
+    <Parameter name="isreceipt"></Parameter>
+    <Parameter name="cBpartnerId" optional="true" type="argument" after="AND 1=1"><![CDATA[ AND dp.C_BPARTNER_ID IN ]]></Parameter>
+    <Parameter name="dateFrom" optional="true"  after="AND 1=1"><![CDATA[ AND i.dateinvoiced>=to_date(?)]]></Parameter>
+    <Parameter name="dateTo" optional="true"  after="AND 1=1"><![CDATA[ AND i.dateinvoiced<=to_date(?) ]]></Parameter>
+    <Parameter name="openItems" optional="true" type="argument" after="AND 1=1"><![CDATA[ AND C_DEBT_PAYMENT_STATUS(dp.C_SETTLEMENT_CANCEL_ID, dp.CANCEL_PROCESSED, dp.GENERATE_PROCESSED,dp.ISPAID,dp.ISVALID,dp.C_CASHLINE_ID,dp.C_BANKSTATEMENTLINE_ID) = 'P' ]]></Parameter>
+    <Parameter name="closedItems" optional="true" type="argument" after="AND 1=1"><![CDATA[ AND dp.ispaid = 'Y' ]]></Parameter>
+    <Parameter name="orgFamily" type="replace" optional="true" after="dp.AD_ORG_ID IN(" text="'2'"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="dp.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="adUserOrg" type="replace" optional="true" after="dp.AD_ORG_ID IN (" text="'1'"/>
+  </SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment>Create a registry</SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+</SqlClass>

@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T09:36:27 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Rpt_Standard" language="groovy" printOrder="Horizontal" pageWidth="68" pageHeight="68" orientation="Landscape" columnWidth="64" leftMargin="2" rightMargin="2" topMargin="2" bottomMargin="0" uuid="252195a9-ab2b-426c-a01f-20c2495f780e">
+	<property name="ireport.zoom" value="6.276856753442007"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="default" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="10" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Report_Title" fontName="OpenZ Sans" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="GroupHeader_DarkGray" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="GroupHeader_Gray" mode="Opaque" backcolor="#999999"/>
+	<style name="Detail_Line">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Total_Gray" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC"/>
+	<style name="Group_Footer" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Footer" isDefault="true" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="11"/>
+	<parameter name="ATTACH" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_WEB" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_CLIENT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('1000000')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_ORG" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('0')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_TITLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["REPORT TITLE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_SUBTITLE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_InvoiceLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_OrderLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_Manufacturer_single" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_TaxLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="LANGUAGE2" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_RptStd_Manufacturer_single_small" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="INOUT_ID" class="java.lang.String"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String"/>
+	<parameter name="SUBREP_RptStd_Manufacturer_single_small_ic" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="PRODUCT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="INOUTLINE_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+        m_product.m_product_id||m_inoutline.m_inoutline_id as id,
+        case when c_getconfigoption('useproductvalue2scanproducts',m_product.ad_org_id)='Y' then  m_product.value else m_product.upc end as value,
+        (CASE when snr_minoutline.serialnumber is null then  snr_minoutline.lotnumber else snr_minoutline.serialnumber end) as snrbc,
+       (CASE when snr_minoutline.serialnumber is null then  snr_minoutline.lotnumber else snr_minoutline.serialnumber end) as snr,
+        case when c_getconfigoption('useproductvalue2scanproducts',m_product.ad_org_id)='Y' then  m_product.value else m_product.upc end as barcode,
+        TO_CHAR(m_inout.movementdate,'DD.MM.YYYY') as date,
+        c_bpartner.name as vendorname,
+        m_product_po.vendorproductno as vendorno,
+        substr(m_product.name,1,40) as name
+from m_product,m_inout,c_bpartner,m_inoutline
+        left join snr_minoutline
+                        on snr_minoutline.m_inoutline_id=m_inoutline.m_inoutline_id
+        left join m_product_po
+                        on m_product_po.m_product_id=m_inoutline.m_product_id and m_product_po.c_bpartner_id=(select c_bpartner_id from m_inout where m_inout.m_inout_id IN ($P{DOCUMENT_ID}))
+ where m_inoutline.m_product_id=m_product.m_product_id and m_inout.m_inout_id= m_inoutline.m_inout_id
+       and m_inout.c_bpartner_id=c_bpartner.c_bpartner_id and m_inout.m_inout_id IN ($P{DOCUMENT_ID})]]>
+	</queryString>
+	<field name="id" class="java.lang.String"/>
+	<field name="value" class="java.lang.String"/>
+	<field name="snrbc" class="java.lang.String"/>
+	<field name="snr" class="java.lang.String"/>
+	<field name="barcode" class="java.lang.String"/>
+	<field name="date" class="java.lang.String"/>
+	<field name="vendorname" class="java.lang.String"/>
+	<field name="vendorno" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<variable name="doctype_id" class="java.lang.String">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band/>
+	</title>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="66" splitType="Prevent">
+			<image scaleImage="FillFrame" hAlign="Center" vAlign="Top">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="-2" y="7" width="34" height="34" isRemoveLineWhenBlank="true" uuid="ad273172-57d5-4a5f-b0da-846677783a18"/>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{barcode},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+			</image>
+			<image scaleImage="FillFrame" hAlign="Center" vAlign="Top">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="32" y="7" width="34" height="34" isRemoveLineWhenBlank="true" uuid="178d5733-d591-46f7-ab3f-64af414de887"/>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{snrbc},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+			</image>
+			<textField isStretchWithOverflow="true" pattern="">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="-2" y="-2" width="68" height="11" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" uuid="63d5e42c-c295-45bd-886d-9a2bcf3fd930"/>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="styled">
+					<font size="7" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<style size='5'>"+(($F{name}==null)?"":$F{name})+"</style>"]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="-2" y="38" width="33" height="17" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" uuid="ac0931ff-c38d-436b-8a6c-0c80f932c72e"/>
+				<box>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="styled">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<style size='4'>"+(($F{value}==null)?"":$F{value})+"</style>"]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="32" y="38" width="34" height="17" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" uuid="8b5d8886-9978-4073-94ba-60d373a5e1b2"/>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="styled">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<style size='4'>"+(($F{snr} == null) ?"":$F{snr})+"</style>"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="">
+				<reportElement positionType="Float" x="-2" y="54" width="34" height="8" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" uuid="1f7986df-5cab-48fe-8b74-0c4bbf493f24"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="styled">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<style size='3'>"+(($F{vendorname}==null)?"":$F{vendorname})+"</style>"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="">
+				<reportElement positionType="Float" x="31" y="54" width="33" height="8" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" uuid="de8ef823-b608-4dcd-b53d-ccee4dd555fc"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="styled">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<style size='3'>"+(($F{vendorno}==null)?"":$F{vendorno})+"</style>"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="">
+				<reportElement positionType="Float" x="-2" y="61" width="34" height="5" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" uuid="3e96a20e-5449-4ed6-a581-444856e2e52c"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom" markup="styled">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<style size='2.5'>"+(($F{date}==null)?"":$F{date})+"</style>"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

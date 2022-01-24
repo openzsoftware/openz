@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2012 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+<SqlClass name="BprocessCommonData" package="org.openz.controller.businessprocess" accessModifier="public">
+   
+  <SqlMethod name="selectFiles" type="preparedStatement"  return="Multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        select ad_table_id,ad_record_id,name from c_file where extract (year from created) = to_number(?) 
+      ]]>
+    </Sql>
+    <Parameter name="year"/>
+  </SqlMethod>
+  <SqlMethod name="selectFilesDeleted" type="preparedStatement"  return="Multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        select ad_table_id,ad_record_id,name from c_filedeleted where extract (year from created) =to_number(?)  
+      ]]>
+    </Sql>
+    <Parameter name="year"/>
+  </SqlMethod>
+  <SqlMethod name="getYear" type="preparedStatement"  return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        select year from c_year where c_year_id=?
+      ]]>
+    </Sql>
+    <Parameter name="yearID"/>
+  </SqlMethod>
+  
+ <SqlMethod name="getIdentifierfromTabIdr" type="preparedStatement"  return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       select zssi_getIdentifierFromKey((select tablename||'_id' from ad_table where ad_table_id=?),?,?) as recordidentifier from dual
+      ]]>
+    </Sql>
+    <Parameter name="tableID"/>
+    <Parameter name="RecordID"/>
+    <Parameter name="Language"/>
+  </SqlMethod>
+  
+  <SqlMethod name="getTableName" type="preparedStatement"  return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        select zssi_getElementTextByColumname(name,?) as retval from ad_table where ad_table_id=?
+      ]]>
+    </Sql>
+    <Parameter name="Lang"/>
+    <Parameter name="TableID"/>
+  </SqlMethod>
+   <SqlMethod name="approveDebtPayment" type="preparedStatement"  return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        select c_ApproveDebtPayments(?,?,'APPROVE')
+      ]]>
+    </Sql>
+    <Parameter name="userId"/>
+    <Parameter name="paymentids"/>
+  </SqlMethod>
+   <SqlMethod name="updateAlertrule" type="preparedStatement"  return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        select ad_updateAlertRule(?);
+      ]]>
+    </Sql>
+    <Parameter name="alertruleID"/>
+  </SqlMethod>
+</SqlClass>

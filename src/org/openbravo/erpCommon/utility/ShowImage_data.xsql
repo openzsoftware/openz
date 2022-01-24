@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ ****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2019 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+<SqlClass id="class" name="ShowImageData" package="org.openbravo.erpCommon.utility">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="getFileName" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      select name  from c_file where c_file_id =? 
+    ]]></Sql>
+    <Parameter name="recordId"/>
+  </SqlMethod>
+  <SqlMethod name="getFilePath" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      select ad_table_id||'-'||ad_record_id as filepath from c_file where c_file_id =? 
+    ]]></Sql>
+    <Parameter name="recordId"/>
+  </SqlMethod>
+  
+</SqlClass>

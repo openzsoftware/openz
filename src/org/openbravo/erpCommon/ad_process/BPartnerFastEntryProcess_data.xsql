@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+
+<SqlClass name="BPartnerFastEntryProcessData" package="org.openbravo.erpCommon.ad_process">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+       select p_org_id as ad_org_id, p_value as value, p_name as name, p_bp_group_id as c_bp_group_id, p_url as url, p_salesrep_id  as salesrep_id,
+              p_ADDRESS1 as ADDRESS1,p_ADDRESS2 as ADDRESS2,p_CITY as city, p_POSTAL as postal ,P_COUNTRY_ID as C_COUNTRY_ID, p_uidnumber as uidnumber,P_TAX_ID as c_tax_id,
+              p_LOCATION_ID2,p_ADDRESS12 ,p_ADDRESS22, p_CITY2 ,p_POSTAL2,P_COUNTRY_ID2,
+              p_FIRSTNAME as FIRSTNAME,p_LASTNAME  as LASTNAME, p_TITLE as title, p_GREETING_ID as c_GREETING_ID,p_EMAIL as email,p_PHONE as phone, p_PHONE2 as phone2,
+              p_BANK_NAME as bank_name,p_IBAN as iban, p_SWIFTCODE as SWIFTCODE ,p_iscustomer as iscustomer,
+              p_isvendor as isvendor,p_isemployee as isemployee, p_paymentrule as paymentrule, p_payterm  as c_paymentterm_id, p_incoterms as c_incoterms_id,
+              '' as dummy,'' as c_bpartner_id
+       from c_Bpartner_getFastEntryData(?)
+      ]]></Sql>
+      <Parameter name="cBpartnerId"/>
+  </SqlMethod>
+  <SqlMethod name="selectUpdate" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+    <![CDATA[
+      SELECT c_Bpartner_updateFastEntryData(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) as dummy from dual
+      ]]></Sql>
+      <Parameter name="cBpartnerId"/>
+      <Parameter name="adUserId"/>
+      <Parameter name="p_value"/>
+      <Parameter name="p_name"/>
+      <Parameter name="p_bp_group_id"/>
+      <Parameter name="p_url"/>
+      <Parameter name="p_salesrep_id"/>
+      <Parameter name="p_ADDRESS1"/>
+      <Parameter name="p_ADDRESS2"/>
+      <Parameter name="p_CITY"/>
+      <Parameter name="p_POSTAL"/>
+      <Parameter name="P_COUNTRY_ID"/>
+      <Parameter name="p_uidnumber"/>
+      <Parameter name="p_TAX_ID"/>
+      <Parameter name="p_ADDRESS12"/>
+      <Parameter name="p_ADDRESS22"/>
+      <Parameter name="p_CITY2"/>
+      <Parameter name="p_POSTAL2"/>
+      <Parameter name="P_COUNTRY_ID2"/>
+      <Parameter name="p_FIRSTNAME"/>
+      <Parameter name="p_LASTNAME"/>
+      <Parameter name="p_TITLE"/>
+      <Parameter name="p_GREETING_ID"/>
+      <Parameter name="p_EMAIL"/>
+      <Parameter name="p_PHONE"/>
+      <Parameter name="p_PHONE2"/>   
+       <Parameter name="p_iscustomer"/>   
+       <Parameter name="p_isvendor"/>
+      <Parameter name="p_isemployee"/>
+      <Parameter name="p_paymentrule"/>
+      <Parameter name="p_payterm"/>
+      <Parameter name="p_incoterms"/>
+  </SqlMethod>
+  <SqlMethod name="selectUpdateBank" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+    <![CDATA[
+      SELECT c_Bpartner_updateFastEntryDataBank(?,?,?,?,?) as dummy from dual
+      ]]></Sql>
+      <Parameter name="cBpartnerId"/>
+      <Parameter name="adUserId"/>
+      <Parameter name="p_BANK_NAME"/>
+      <Parameter name="p_IBAN"/>
+      <Parameter name="p_SWIFTCODE"/>    
+  </SqlMethod>
+  <SqlMethod name="selectPartnerIDfromValue" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+    <![CDATA[
+      SELECT c_bpartner_id from c_bpartner where value= ?
+      ]]></Sql>
+      <Parameter name="value"/>
+  </SqlMethod>
+  <SqlMethod name="selectEmployeefromBP" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+    <![CDATA[
+      SELECT isemployee from c_bpartner where c_bpartner_id= ?
+      ]]></Sql>
+      <Parameter name="bpartnerID"/>
+  </SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod> 
+  </SqlClass>

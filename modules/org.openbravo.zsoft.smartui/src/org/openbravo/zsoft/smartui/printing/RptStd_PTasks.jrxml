@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.1.1  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Rpt_Productionreport" language="groovy" pageWidth="595" pageHeight="842" columnWidth="591" leftMargin="2" rightMargin="2" topMargin="2" bottomMargin="2" isIgnorePagination="true" uuid="52fa489a-98d6-46c0-adca-97c27caed16e">
+	<property name="ireport.zoom" value="5.706233412220006"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DEMODB"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="160"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="835"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="default" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="10" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Report_Title" fontName="OpenZ Sans" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="GroupHeader_DarkGray" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="GroupHeader_Gray" mode="Opaque" backcolor="#999999"/>
+	<style name="Detail_Line">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Total_Gray" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC"/>
+	<style name="Group_Footer" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Footer" isDefault="true" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="11"/>
+	<parameter name="ATTACH" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_WEB" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_CLIENT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('1000000')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_ORG" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('0')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_TITLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["REPORT TITLE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_SUBTITLE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_InvoiceLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_OrderLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_Manufacturer_single" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_TaxLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="LANGUAGE2" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="M_PRODUCT_ID" class="java.lang.String"/>
+	<parameter name="SUBREP_RptStd_Manufacturer_single_small" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select 
+ zssi_getelementtextbycolumname ('productionorder', $P{LANGUAGE}) as po,
+ zssi_getelementtextbycolumname ('workplace', $P{LANGUAGE}) as ap,
+ zssi_getelementtextbycolumname ('employee', $P{LANGUAGE}) as emp,
+  zssi_getelementtextbycolumname ('product', $P{LANGUAGE}) as prodname,
+ zssi_getelementtextbycolumname ('prodno', $P{LANGUAGE}) as prodno,
+  zssi_getelementtextbycolumname ('startdate', $P{LANGUAGE}) as start,
+   zssi_getelementtextbycolumname ('qty', $P{LANGUAGE}) as qty,
+   zssi_getelementtextbycolumname ('workdescription', $P{LANGUAGE}) as wd,
+zssi_getelementtextbycolumname ('Triggerreason', $P{LANGUAGE}) as treason,
+replace(rpad('X',10,'X'),'X','&nbsp;') as nbsp10,
+'pdc_bc_btn_ready' as ctrl1,
+'pdc_bc_btn_next' as ctrl2,
+'pdc_bc_btn_cancel' as ctrl3,
+'pdc_bc_consumption' as ctrl4,
+'pdc_bc_intern_transport_inbound' as ctrl5,
+'pdc_bc_intern_transport_outbound' as ctrl6,
+'pdc_bc_production' as ctrl9,
+ coalesce(pt.value,'') as value,
+  coalesce(pt.name,'') as name,
+ coalesce( (select lo.value from m_locator lo where lo.m_locator_id=pt.issuing_locator),'') as ilocator,
+   zssi_getproductname(pt.m_product_id, $P{LANGUAGE} ) as productname,
+   zssi_getproductkey(pt.m_product_id ) as productvalue,
+   coalesce(pt.triggerreason,'''') as triggerreason,
+   zssi_getusername(p.ad_user_id) as employee, 
+to_char(pt.startdate,'DD.MM.YYYY') as startdt,
+   coalesce(m.name,'') as machine,
+  zssi_strNumber(coalesce(pt.qty,0),$P{LANGUAGE} )  as qtypo,
+ zssi_getDescriptiontext4Workorder(pt.c_projecttask_id, $P{LANGUAGE} )  as description
+   from c_project p, c_projecttask pt 
+   left join zspm_ptaskmachineplan ptm on ptm.c_projecttask_id=pt.c_projecttask_id  
+   left join ma_machine m  on ptm.ma_machine_id=m.ma_machine_id 
+   where p.c_project_id=pt.c_project_id 
+   and pt.c_project_id in ($P{DOCUMENT_ID})
+   order by pt.seqno]]>
+	</queryString>
+	<field name="po" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="po"/>
+	</field>
+	<field name="ap" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ap"/>
+	</field>
+	<field name="emp" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="emp"/>
+	</field>
+	<field name="prodname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="prodname"/>
+	</field>
+	<field name="prodno" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="prodno"/>
+	</field>
+	<field name="start" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="start"/>
+	</field>
+	<field name="qty" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="qty"/>
+	</field>
+	<field name="wd" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="wd"/>
+	</field>
+	<field name="treason" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="treason"/>
+	</field>
+	<field name="nbsp10" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="nbsp10"/>
+	</field>
+	<field name="ctrl1" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ctrl1"/>
+	</field>
+	<field name="ctrl2" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ctrl2"/>
+	</field>
+	<field name="ctrl3" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ctrl3"/>
+	</field>
+	<field name="ctrl4" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ctrl4"/>
+	</field>
+	<field name="ctrl5" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ctrl5"/>
+	</field>
+	<field name="ctrl6" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ctrl6"/>
+	</field>
+	<field name="ctrl9" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ctrl9"/>
+	</field>
+	<field name="value" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="value"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="c_projecttask"/>
+	</field>
+	<field name="name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="name"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="c_projecttask"/>
+	</field>
+	<field name="ilocator" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="ilocator"/>
+	</field>
+	<field name="productname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="productname"/>
+	</field>
+	<field name="productvalue" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="productvalue"/>
+	</field>
+	<field name="triggerreason" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="triggerreason"/>
+	</field>
+	<field name="employee" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="employee"/>
+	</field>
+	<field name="startdt" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="startdt"/>
+	</field>
+	<field name="machine" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="machine"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="ma_machine"/>
+	</field>
+	<field name="qtypo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="qtypo"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="c_projecttask"/>
+	</field>
+	<field name="description" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="description"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="c_projecttask"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="702" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<rectangle>
+				<reportElement x="476" y="439" width="110" height="232" uuid="5aa77bfe-84f7-46e1-900a-66bf53c58c9c">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.25"/>
+				</graphicElement>
+			</rectangle>
+			<rectangle>
+				<reportElement x="476" y="124" width="110" height="232" uuid="1d359a67-640e-4150-bf95-5956e1e202f2">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<graphicElement>
+					<pen lineWidth="0.25"/>
+				</graphicElement>
+			</rectangle>
+			<image scaleImage="FillFrame" hAlign="Center">
+				<reportElement x="505" y="126" width="60" height="60" uuid="8d4b423c-f4db-4e07-86e1-1799ffb4fc89">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{ctrl4},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="20" y="30" width="550" height="80" uuid="0f62c73b-0b8a-476c-9db9-1c04e90b6809">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement verticalAlignment="Top" markup="html"/>
+				<textFieldExpression><![CDATA["<b>"+$F{emp}+": </b>"+$F{employee}+"<br/>"+
+"<b>"+$F{ap}+": </b>"+$F{machine}+"<br/>"+
+"<b>"+$F{start}+": </b>"+$F{startdt}+"<br/>"+
+"<b>"+$F{prodno}+": </b>"+$F{productvalue}+"&nbsp;&nbsp;<b>"+$F{prodname}+": </b>"+$F{productname}+"<br/>"+
+"<b>"+$F{qty}+": </b>"+$F{qtypo}+"&nbsp;&nbsp;("+$F{ilocator}+")"+"<br/>"+
+"<b>"+$F{treason}+": </b>"+$F{triggerreason}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="20" y="124" width="441" height="548" uuid="5b03a4b1-efe9-40e2-bded-78e7fa80c67e">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box padding="2">
+					<pen lineWidth="0.25"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="html">
+					<paragraph lineSpacingSize="1.25"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<b>"+$F{wd}+": </b><br/>"+$F{description}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="FillFrame" hAlign="Center">
+				<reportElement x="505" y="201" width="60" height="60" uuid="d2c51273-a140-462c-b819-793979786daa">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{value},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+			</image>
+			<image scaleImage="FillFrame" hAlign="Center">
+				<reportElement x="505" y="275" width="60" height="60" uuid="3f80e131-8329-4bfc-a582-0154c74c21a9">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{ctrl1},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+			</image>
+			<image scaleImage="FillFrame" hAlign="Center">
+				<reportElement x="505" y="441" width="60" height="60" uuid="ede7c2b9-9042-4a20-89a2-c7779fbd8736">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{ctrl9},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+			</image>
+			<image scaleImage="FillFrame" hAlign="Center">
+				<reportElement x="505" y="516" width="60" height="60" uuid="b48d1e7f-8152-461d-87d9-64acbb8da894">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{value},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+			</image>
+			<image scaleImage="FillFrame" hAlign="Center">
+				<reportElement x="505" y="590" width="60" height="60" uuid="01adfc1c-233a-480a-9658-18ee68ad5845">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{ctrl1},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="20" y="0" width="550" height="30" uuid="c9536a3d-29e5-4327-a738-0a187b8c2e7e"/>
+				<textElement textAlignment="Left" markup="html">
+					<font size="15" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<b>"+$F{po}+": "+$F{value}+"</b>"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="510" y="181" width="50" height="20" uuid="5d548ea5-cbdd-4ae6-9229-d6d31b44448d">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Beginn"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="510" y="256" width="50" height="20" uuid="5ba77e21-6499-4fcd-8ac3-49a7698c653f">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Auftrag"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="510" y="330" width="50" height="20" uuid="951cf595-7f75-45f5-a60a-7d74f8054d76">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Fertig"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="510" y="495" width="50" height="22" uuid="198d626c-64f2-477c-97b8-a34fbcb727e6">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Ende"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="510" y="571" width="50" height="20" uuid="9e82853d-ea9a-47dc-b87e-be5f7bba4b83">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Auftrag"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="510" y="645" width="50" height="20" uuid="301777cf-f5ad-4104-b0d1-bc0b75fdc487">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Fertig"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

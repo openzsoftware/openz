@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T09:47:19 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="BOMReport" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="50" uuid="edf8c697-14fb-4f0e-9f3b-d6ed56c4bdeb">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="60"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="default" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="8"/>
+	<style name="Report_Title" fontName="OpenZ Sans" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Data_Label" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Data_Field" fontName="OpenZ Sans" fontSize="11" isBold="false"/>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="11" isBold="true">
+		<box leftPadding="5"/>
+	</style>
+	<style name="GroupHeader_DarkGray" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="12" isBold="true">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Group_Data_Label" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Group_Data_Field" fontName="OpenZ Sans" fontSize="11"/>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#5D5D5D" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="10" isBold="true">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="Detail_Line" fontName="OpenZ Sans" fontSize="8">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Total_Gray" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC"/>
+	<style name="Detail_Data_Label" mode="Opaque" backcolor="#CCCCCC" fontName="OpenZ Sans" fontSize="10" isBold="true"/>
+	<style name="Detail_Data_Field" mode="Opaque" backcolor="#CCCCCC" fontName="OpenZ Sans" fontSize="10"/>
+	<style name="Group_Footer" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Footer" isDefault="true" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="11"/>
+	<parameter name="ATTACH" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_WEB" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="issparepart" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["N"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ad_org_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AD_LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="c_bpartner_id" class="java.lang.String"/>
+	<parameter name="c_project_id" class="java.lang.String"/>
+	<parameter name="ad_user_id" class="java.lang.String"/>
+	<parameter name="startdate" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="enddate" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_Rpt_Salesforecast_lines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["C:\\xampp\\tomcat\\webapps\\openz\\src-loc\\design\\org\\openbravo\\zsoft\\smartui\\printing\\"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT  	zssi_strDate(current_date,$P{AD_LANGUAGE}) as curdate,
+        	ad_image.binarydata as logo,
+        	zssi_strDate($P{startdate},$P{AD_LANGUAGE})||' - '||zssi_strDate($P{enddate},$P{AD_LANGUAGE}) as datefromto,
+        	zspr.addressheader, zspr.address1, zspr.address2, zspr.address3, zspr.address4, zspr.address5, zspr.address6, 		zspr.address7, zspr.address8, zspr.address9, zspr.footer1, zspr.footer2, zspr.footer3, zspr.footer4,
+	zspr.footer5, zspr.onelineadr,
+       	(select c_bpartner.name from c_bpartner where c_bpartner.c_bpartner_id = $P{c_bpartner_id}) as bpartner,
+       	zssi_getprojectorcostcentername($P{c_project_id},$P{c_project_id}) as project,
+	zssi_getusernamecomplete($P{ad_user_id},$P{AD_LANGUAGE}) as salesrep
+
+FROM	zspr_printinfo zspr
+        	LEFT JOIN AD_ORGINFO on  zspr.ad_org_id=AD_ORGINFO.ad_org_id
+        	LEFT JOIN ad_image on AD_ORGINFO.your_company_document_image=ad_image.ad_image_id
+
+WHERE 	zspr.ad_org_id=$P{ad_org_id}]]>
+	</queryString>
+	<field name="curdate" class="java.lang.String"/>
+	<field name="logo" class="java.io.InputStream"/>
+	<field name="datefromto" class="java.lang.String"/>
+	<field name="addressheader" class="java.lang.String"/>
+	<field name="address1" class="java.lang.String"/>
+	<field name="address2" class="java.lang.String"/>
+	<field name="address3" class="java.lang.String"/>
+	<field name="address4" class="java.lang.String"/>
+	<field name="address5" class="java.lang.String"/>
+	<field name="address6" class="java.lang.String"/>
+	<field name="address7" class="java.lang.String"/>
+	<field name="address8" class="java.lang.String"/>
+	<field name="address9" class="java.lang.String"/>
+	<field name="footer1" class="java.lang.String"/>
+	<field name="footer2" class="java.lang.String"/>
+	<field name="footer3" class="java.lang.String"/>
+	<field name="footer4" class="java.lang.String"/>
+	<field name="footer5" class="java.lang.String"/>
+	<field name="onelineadr" class="java.lang.String"/>
+	<field name="bpartner" class="java.lang.String"/>
+	<field name="project" class="java.lang.String"/>
+	<field name="salesrep" class="java.lang.String"/>
+	<variable name="TOTAL_LINENETAMT" class="java.math.BigDecimal"/>
+	<variable name="TOTAL_TAXAMT" class="java.math.BigDecimal"/>
+	<group name="Product">
+		<groupHeader>
+			<band splitType="Stretch"/>
+		</groupHeader>
+		<groupFooter>
+			<band height="42" splitType="Stretch">
+				<line>
+					<reportElement key="line-35" style="Detail_Data_Field" x="0" y="0" width="802" height="1" uuid="8e31019f-6643-43a1-9c5d-91cdf5453c44"/>
+				</line>
+				<subreport isUsingCache="true">
+					<reportElement key="subreport-1" style="Detail_Line" x="0" y="0" width="802" height="42" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" backcolor="#FFFFFF" uuid="2fbdef9f-0afd-40db-a5f4-f089f9f29501"/>
+					<subreportParameter name="c_project_id">
+						<subreportParameterExpression><![CDATA[$P{c_project_id}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="SUBREP_Rpt_Salesforecast_Lines">
+						<subreportParameterExpression><![CDATA[$P{SUBREP_Rpt_Salesforecast_lines}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="c_bpartner_id">
+						<subreportParameterExpression><![CDATA[$P{c_bpartner_id}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="AD_LANGUAGE">
+						<subreportParameterExpression><![CDATA[$P{AD_LANGUAGE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LANGUAGE">
+						<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="BASE_WEB">
+						<subreportParameterExpression><![CDATA[$P{BASE_WEB}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="BASE_DESIGN">
+						<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="issparepart">
+						<subreportParameterExpression><![CDATA[$P{issparepart}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="startdate">
+						<subreportParameterExpression><![CDATA[$P{startdate}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ATTACH">
+						<subreportParameterExpression><![CDATA[$P{ATTACH}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ad_org_id">
+						<subreportParameterExpression><![CDATA[$P{ad_org_id}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="enddate">
+						<subreportParameterExpression><![CDATA[$P{enddate}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ad_user_id">
+						<subreportParameterExpression><![CDATA[$P{ad_user_id}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[$P{SUBREP_Rpt_Salesforecast_lines}
+/*"/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src/org/openbravo/zsoft/smartui/printing/Bom_Lines.jasper"*/]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="115" splitType="Stretch">
+			<staticText>
+				<reportElement key="textField" x="0" y="20" width="515" height="24" uuid="f7b82315-ff0e-4551-8a8d-dee06137d277">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($P{issparepart}.equals("N"))]]></printWhenExpression>
+				</reportElement>
+				<textElement markup="none">
+					<font size="18"/>
+				</textElement>
+				<text><![CDATA[Sales forecast evaluation]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-12" positionType="Float" x="0" y="0" width="515" height="12" isRemoveLineWhenBlank="true" uuid="133a8e58-81d2-4bbd-8445-83c746ff9e08"/>
+				<textElement textAlignment="Left">
+					<font size="10" isBold="true" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{onelineadr}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-13" x="179" y="44" width="336" height="14" uuid="90cd6647-65de-4f56-ad1f-0d8a72f05308"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{datefromto}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-13" x="179" y="58" width="336" height="14" uuid="82e5b19c-a2fc-4ffb-a2ac-98d47a8f27bd"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bpartner}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-13" x="179" y="72" width="336" height="14" uuid="11c262df-9801-4cf3-a6e5-b29e51820719"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{project}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-13" x="179" y="86" width="336" height="14" uuid="65de0b53-cc70-448f-99c8-e5fb15a04c72"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{salesrep}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="textField-13" x="0" y="86" width="179" height="14" uuid="fd5c3750-8289-46b8-9f23-7e39cdfa794f"/>
+				<textElement markup="none">
+					<font size="12"/>
+				</textElement>
+				<text><![CDATA[Sales representative:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField-13" x="0" y="72" width="179" height="14" uuid="4a4b654f-6507-48bc-b201-a48400fab8f0"/>
+				<textElement markup="none">
+					<font size="12"/>
+				</textElement>
+				<text><![CDATA[Project:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField-13" x="0" y="58" width="179" height="14" uuid="bd87806d-ff8a-4186-87a2-93e07485c719"/>
+				<textElement markup="none">
+					<font size="12"/>
+				</textElement>
+				<text><![CDATA[Business partner:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField-13" x="0" y="44" width="179" height="14" uuid="82b2104c-ced1-4f6f-9089-dee49b6720fd"/>
+				<textElement markup="none">
+					<font size="12"/>
+				</textElement>
+				<text><![CDATA[Date, from - to:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField" x="0" y="20" width="515" height="24" uuid="0d5539c8-6bef-40b1-bcc1-16ccdbabd7bc">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($P{issparepart}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<textElement markup="none">
+					<font size="18"/>
+				</textElement>
+				<text><![CDATA[Sales forecast evaluation (only estimated invoice dates)]]></text>
+			</staticText>
+			<image scaleImage="RetainShape" hAlign="Right" vAlign="Top" isUsingCache="true" isLazy="true">
+				<reportElement key="image-2" style="Report_Footer" x="555" y="0" width="247" height="80" uuid="eada4e43-c0ef-42e3-8ce7-d514b5749467"/>
+				<imageExpression><![CDATA[$F{logo}]]></imageExpression>
+			</image>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band splitType="Stretch"/>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="16" splitType="Stretch">
+			<line>
+				<reportElement key="line-38" style="Report_Footer" x="0" y="0" width="802" height="1" uuid="36f04445-ae5d-4950-a02a-bc45a2963a61"/>
+			</line>
+			<staticText>
+				<reportElement key="staticText-4" style="Report_Footer" x="711" y="4" width="37" height="12" forecolor="#666666" uuid="528779cf-fdc0-4777-a65c-a2f3397d9d03"/>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Page:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-9" style="Report_Footer" x="748" y="4" width="24" height="12" uuid="f1eb8918-b6b9-40a7-8102-9d8cfd1586c8"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}.toString()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" isBlankWhenNull="false">
+				<reportElement key="textField-10" style="Report_Footer" x="778" y="4" width="24" height="12" uuid="3c5e469e-573e-4d22-a49f-b43b0d424324"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}.toString()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-5" style="Report_Footer" x="772" y="4" width="6" height="12" uuid="71213ecd-5d21-4795-8f9c-cc0762e5f377"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[/]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-6" style="Report_Footer" x="0" y="4" width="68" height="12" forecolor="#666666" uuid="cd61c530-3405-4fe1-acb0-ce838c2d4050"/>
+				<textElement>
+					<font size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Printdate:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-11" x="68" y="4" width="61" height="12" uuid="28d67e60-62a0-4485-96dc-851f0a5e755f"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curdate}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

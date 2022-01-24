@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+<SqlClass name="ProductPriceData" package="org.openbravo.erpCommon.ad_process">
+
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+				SELECT pp.M_Product_ID, pv.M_PriceList_Version_ID, pv.M_PriceList_ID, pp.PriceList, pp.PriceStd, pp.PriceLimit, p.C_UOM_ID,
+				pv.ValidFrom, pl.C_Currency_ID
+				FROM M_Product p
+				INNER JOIN M_ProductPrice pp ON (p.M_Product_ID=pp.M_Product_ID)
+				INNER JOIN  M_PriceList_Version pv ON (pp.M_PriceList_Version_ID=pv.M_PriceList_Version_ID)
+				INNER JOIN M_Pricelist pl ON (pv.M_PriceList_ID=pl.M_PriceList_ID)
+				WHERE pv.IsActive='Y'
+				AND p.M_Product_ID=?
+				AND pv.M_PriceList_Version_ID=?
+			]]>
+    </Sql>
+    <Parameter name="mProductId"/>
+    <Parameter name="mPricelistVersionId"/>
+  </SqlMethod>
+
+  <SqlMethod name="selectPL" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+				SELECT M_BOM_PriceStd(p.M_Product_ID,pv.M_PriceList_Version_ID) AS PriceStd,
+				M_BOM_PriceList(p.M_Product_ID,pv.M_PriceList_Version_ID) AS PriceList,
+				M_BOM_PriceLimit(p.M_Product_ID,pv.M_PriceList_Version_ID) AS PriceLimit,
+				p.C_UOM_ID,pv.ValidFrom,pl.C_Currency_ID
+				FROM M_Product p
+				INNER JOIN M_ProductPrice pp ON (p.M_Product_ID=pp.M_Product_ID)
+				INNER JOIN  M_PriceList_Version pv ON (pp.M_PriceList_Version_ID=pv.M_PriceList_Version_ID)
+				INNER JOIN M_Pricelist pl ON (pv.M_PriceList_ID=pl.M_PriceList_ID)
+				WHERE pv.IsActive='Y'
+				AND p.M_Product_ID=?
+				AND pv.M_PriceList_ID=?
+				ORDER BY pv.ValidFrom DESC
+			]]>
+    </Sql>
+    <Parameter name="mProductId"/>
+    <Parameter name="mPricelistId"/>
+  </SqlMethod>
+
+<SqlMethod name="selectCTaxId" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+				select max(c_tax_id)
+				from c_tax
+				where ad_client_id = ?
+				and isdefault = 'Y'
+			]]>
+    </Sql>
+    <Parameter name="adClientId"/>
+  </SqlMethod>
+
+<SqlMethod name="selectCUomIdDefault" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+				select max(c_uom_id)
+				from c_uom
+				where isdefault='Y'
+				]]>
+    </Sql>
+  </SqlMethod>
+
+<SqlMethod name="selectCUomIdByProduct" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+				SELECT C_UOM_ID
+				FROM M_Product
+				WHERE M_Product_ID=?
+			]]>
+    </Sql>
+		<Parameter name="mProductId"/>
+	</SqlMethod>
+</SqlClass>

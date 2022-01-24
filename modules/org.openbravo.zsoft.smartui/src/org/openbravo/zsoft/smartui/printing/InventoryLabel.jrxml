@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-03-27T08:30:55 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Rpt_Standard" pageWidth="230" pageHeight="407" columnWidth="230" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="762032c0-bc4b-4897-89af-0b717d18bb03">
+	<property name="ireport.zoom" value="3.7565740045078884"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="steuermann.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="default" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="10" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Report_Title" fontName="OpenZ Sans" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="GroupHeader_DarkGray" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="GroupHeader_Gray" mode="Opaque" backcolor="#999999"/>
+	<style name="Detail_Line">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Total_Gray" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC"/>
+	<style name="Group_Footer" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Footer" isDefault="true" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="11"/>
+	<parameter name="ATTACH" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_WEB" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_CLIENT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('1000000')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_ORG" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('0')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_TITLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["REPORT TITLE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_SUBTITLE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_InvoiceLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_OrderLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_Manufacturer" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_TaxLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="LANGUAGE2" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+        snr.snr_masterdata_id as id,
+        coalesce(snr.vendor,'') as vendor,
+        m_product.value as product,
+        m_product.name as productname,
+        coalesce(snr.model,'') as geraetetext,
+        to_char(snr.firstseen,'dd.mm.yyyy') as wareneingang,
+        snr.serialnumber,
+        coalesce(snr.identifier2,'xxxxxxx') as serialofitem,
+        coalesce(snr.identifier3,'xxxxxxx') as inventarnummer,
+        coalesce(snr.externaltrackingno,'') as sigmaauftragsnummer,
+        coalesce(orderreference,'') as betellid,
+        m_product_category.name as category,
+        m_product.m_product_id as PRODUCT_ID,
+        coalesce(zssi_getusername(snr.ad_user_id),'') as username,
+        coalesce(zssi_getusername(snr.responsible_user_id),'') as backto,
+        coalesce(snr.remark,'') as bemerkung,
+        coalesce(snr.itemname,'') as rechnername,
+        coalesce(snr.location,'') as raumnummer
+from
+        snr_masterdata snr
+                left join m_product on snr.m_product_id = m_product.m_product_id
+                left join m_product_category on m_product.m_product_category_id = m_product_category.m_product_category_id
+
+where snr.snr_masterdata_id in  ($P{DOCUMENT_ID})]]>
+	</queryString>
+	<field name="id" class="java.lang.String"/>
+	<field name="vendor" class="java.lang.String"/>
+	<field name="product" class="java.lang.String"/>
+	<field name="productname" class="java.lang.String"/>
+	<field name="geraetetext" class="java.lang.String"/>
+	<field name="wareneingang" class="java.lang.String"/>
+	<field name="serialnumber" class="java.lang.String"/>
+	<field name="serialofitem" class="java.lang.String"/>
+	<field name="inventarnummer" class="java.lang.String"/>
+	<field name="sigmaauftragsnummer" class="java.lang.String"/>
+	<field name="betellid" class="java.lang.String"/>
+	<field name="category" class="java.lang.String"/>
+	<field name="product_id" class="java.lang.String"/>
+	<field name="username" class="java.lang.String"/>
+	<field name="backto" class="java.lang.String"/>
+	<field name="bemerkung" class="java.lang.String"/>
+	<field name="rechnername" class="java.lang.String"/>
+	<field name="raumnummer" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="407" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="230" height="20" uuid="eb1f1371-7b73-4f76-99b0-26da07c8dc10">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement>
+					<font size="15"/>
+				</textElement>
+				<text><![CDATA[Warenbegleitzettel]]></text>
+			</staticText>
+			<staticText>
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="35" width="100" height="10" uuid="c760b26b-fd72-4017-bfb4-fd5ac260c200"/>
+				<textElement verticalAlignment="Middle">
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[zurück an: ]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="19" width="230" height="1" uuid="0f965777-f7b4-4628-b050-4075fb8c8f8f"/>
+			</line>
+			<line>
+				<reportElement x="0" y="43" width="230" height="1" uuid="78093500-570f-4036-b287-0a21f7372bc4"/>
+			</line>
+			<textField>
+				<reportElement x="0" y="44" width="230" height="16" uuid="6a8b4bee-df82-4eb6-be70-70742bd7ca1a"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{vendor}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="60" width="100" height="10" uuid="f1d0c06d-419b-40fc-9a0b-8be815aaabfd"/>
+				<textElement>
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[Lieferant]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="97" width="230" height="1" uuid="489cdf32-da6b-4166-8977-d11b7f4913c2"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="114" width="100" height="10" uuid="61003134-a899-4147-b1f9-6b29c05fc59f"/>
+				<textElement>
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[Wareneingang]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="98" width="230" height="16" uuid="e3ca4c0d-bfdf-4603-8e99-addfe412300a"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{wareneingang}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="182" width="100" height="10" uuid="4488da8c-640e-437c-8d78-c7b0b2dc92ab"/>
+				<textElement>
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[Inventarnummer]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="122" width="230" height="1" uuid="2423b9f0-dcf0-4ea4-a8dd-1c6d2218c112"/>
+			</line>
+			<line>
+				<reportElement x="0" y="191" width="230" height="1" uuid="00a4e85d-ffbd-4215-a76b-dec4302478ca"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="245" width="100" height="10" uuid="12d60048-72de-4361-a621-2f924f83235f"/>
+				<textElement>
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[Seriennummer]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="254" width="230" height="1" uuid="60ee9bd6-c36b-46bb-9bb4-497c4d10ac6e"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="271" width="100" height="10" uuid="b4d4c0db-e582-4105-bb95-1eaaba96c0b3"/>
+				<textElement>
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[BM-Nummer]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="255" width="230" height="16" uuid="03f4c582-b22b-40b8-8840-43731bf5e850"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sigmaauftragsnummer}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="282" width="230" height="16" uuid="ad04885f-5a7e-44ce-8ed9-32853bdea801"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{betellid}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="281" width="230" height="1" uuid="0b48dee8-c1fd-43b7-b27b-45f083e7c6ee"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="298" width="100" height="10" uuid="0cb84591-06a0-4268-9ef4-b5ac3da9777e"/>
+				<textElement>
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[Bestell-ID]]></text>
+			</staticText>
+			<componentElement>
+				<reportElement x="20" y="124" width="170" height="58" uuid="93141b00-491f-4d28-96d5-4969c401fa8d"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code39 (Extended)" drawText="false" checksumRequired="false">
+					<jr:codeExpression><![CDATA[$F{serialnumber}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<componentElement>
+				<reportElement x="20" y="192" width="170" height="52" uuid="5db1f625-7fc3-460e-acd1-f71c812e69f6"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code39 (Extended)" drawText="false" checksumRequired="false">
+					<jr:codeExpression><![CDATA[$F{serialofitem}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<staticText>
+				<reportElement x="0" y="324" width="100" height="10" uuid="247a0524-1709-4feb-92da-f38ed6989268"/>
+				<textElement>
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[Bemerkung]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="309" width="230" height="16" uuid="242af224-4280-41db-9c3a-8fd7cf20b862"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bemerkung}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="308" width="230" height="1" uuid="b0982dad-a4ce-4254-8b05-8d4d03d04669"/>
+			</line>
+			<line>
+				<reportElement x="0" y="333" width="230" height="1" uuid="c16b7c39-6ba1-4598-a87e-b11b5e4afe2f"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="349" width="100" height="10" uuid="ad1bccf7-7a62-40fa-af59-ed10335fbd01"/>
+				<textElement>
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[Bearbeiter-IT-KZZ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="100" y="349" width="100" height="10" uuid="eaff661c-81d7-468a-a6f7-ebf1268aa52d"/>
+				<textElement>
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[Empfänger-KZZ/Gruppen OE]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="358" width="230" height="1" uuid="ec99f831-7f6a-400f-9929-5eb9e99d679b"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="374" width="100" height="10" uuid="9f8a5081-607e-4ad6-ab70-ee0fcde68045"/>
+				<textElement>
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[Rechnername]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="359" width="100" height="16" uuid="45169bdc-0f5b-46ef-b585-e7c5dbd86f10"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{rechnername}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="100" y="374" width="100" height="10" uuid="317e68df-0663-4cc9-8453-308bd803ed51"/>
+				<textElement>
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[Raumnummer]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="100" y="359" width="100" height="16" uuid="871f1df2-b026-4a4f-9b3b-0e6fce921bac"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{raumnummer}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="384" width="230" height="1" uuid="d18b903a-bad5-4e08-9fb6-7d904bdbe722"/>
+			</line>
+			<line>
+				<reportElement x="0" y="405" width="230" height="1" uuid="cd2b43b7-4fdf-4727-9547-83a9f5a5cfd9"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="395" width="100" height="10" uuid="52431c99-f565-4fab-8ecc-9d31e0afa39f"/>
+				<textElement>
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[Datum / Unterschrift]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="100" y="182" width="120" height="10" uuid="77dd5c2a-54b6-4215-a0de-ca4de94ca71e"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{serialnumber}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="100" y="244" width="120" height="10" uuid="55a9872b-144c-4dda-8be7-ee31f5cb1223"/>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{serialofitem}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="100" y="334" width="125" height="16" uuid="f4939cb8-6150-453e-9046-8b5db4418c61"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{username}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="70" width="230" height="1" uuid="08616f43-839a-4520-a363-5736c65faed5"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="87" width="100" height="10" uuid="1c22042e-f0f3-4b69-a0a9-685e3976dc95"/>
+				<textElement>
+					<font size="5"/>
+				</textElement>
+				<text><![CDATA[Ware]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="71" width="230" height="16" uuid="0c75f67d-9c0d-4c9d-9cfe-f2141f22748c"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{geraetetext}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="20" width="230" height="16" uuid="0af40339-c878-4de4-9a76-1c704a804044"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{backto}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

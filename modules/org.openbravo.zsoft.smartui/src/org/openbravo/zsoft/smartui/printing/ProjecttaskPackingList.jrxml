@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T08:23:05 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ProjecttaskPackingList" language="groovy" pageWidth="595" pageHeight="842" columnWidth="585" leftMargin="5" rightMargin="5" topMargin="5" bottomMargin="0" isIgnorePagination="true" uuid="55e694ab-5d11-49cd-8a61-ae68a9ad1319">
+	<property name="ireport.zoom" value="0.7513148009015777"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="default" vTextAlign="Middle" vImageAlign="Middle" fontName="SansSerif" fontSize="10" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Report_Title" fontName="SansSerif" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="SansSerif" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="GroupHeader_DarkGray" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle" fontName="SansSerif" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="GroupHeader_Gray" mode="Opaque" backcolor="#999999"/>
+	<style name="Detail_Line">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Total_Gray" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC"/>
+	<style name="Group_Footer" fontName="SansSerif" fontSize="11" isBold="true"/>
+	<style name="Report_Footer" isDefault="true" vTextAlign="Middle" vImageAlign="Middle" fontName="SansSerif" fontSize="11"/>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DOCUMENT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_PTask_Products" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_PTask_Machines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/danny/OpenZ/OpenSourceTrunc/openz/modules/org.openbravo.zsoft.smartui/src/org/openbravo/zsoft/smartui/printing/"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[Select
+--Query Header
+$P{DOCUMENT_ID} as id,
+zssi_getElementTextByColumname('PackagingList',$P{LANGUAGE}) as packlist,
+zssi_getElementTextByColumname('Customer',$P{LANGUAGE}) as cus,
+zssi_getElementTextByColumname('Project',$P{LANGUAGE}) as Reac,
+zssi_getElementTextByColumname('Start',$P{LANGUAGE}) as start,
+zssi_getElementTextByColumname('Contacts',$P{LANGUAGE}) as Leader,
+zssi_getElementTextByColumname('Contact Person',$P{LANGUAGE}) as contact,
+zssi_getElementTextByColumname('Task',$P{LANGUAGE}) as ordernr,
+zssi_getElementTextByColumname('Num',$P{LANGUAGE}) as tasknum,
+ad_image.binarydata as logo,
+l.address1,
+l.address2,
+l.address3,
+l.address4,
+l.address5,
+l.address6,
+l.address7,
+l.address8,
+l.address9,
+zssi_getbpname(cp.c_bpartner_id) as customer,
+cp.name as reactor,
+cp.ad_org_id,
+p.startdate,
+zssi_getusername(cp.responsible_id) as lead,
+zssi_getusername(cp.ad_user_id) as cont,
+cp.POReference as order,
+p.name as task,
+zssi_getElementTextByColumname('Comments',$P{LANGUAGE}) as commenttext,
+p.help as comment
+from c_projecttask p left join c_project cp on p.c_project_id=cp.c_project_id,AD_ORGINFO LEFT JOIN ad_image on AD_ORGINFO.your_company_document_image=ad_image.ad_image_id, zspr_printinfo l
+where
+cp.ad_org_id = AD_ORGINFO.ad_org_id
+AND l.ad_org_id=cp.ad_org_id
+AND p.c_projecttask_id in ($P{DOCUMENT_ID})]]>
+	</queryString>
+	<field name="id" class="java.lang.String"/>
+	<field name="packlist" class="java.lang.String"/>
+	<field name="cus" class="java.lang.String"/>
+	<field name="reac" class="java.lang.String"/>
+	<field name="start" class="java.lang.String"/>
+	<field name="leader" class="java.lang.String"/>
+	<field name="contact" class="java.lang.String"/>
+	<field name="ordernr" class="java.lang.String"/>
+	<field name="tasknum" class="java.lang.String"/>
+	<field name="logo" class="java.io.InputStream"/>
+	<field name="address1" class="java.lang.String"/>
+	<field name="address2" class="java.lang.String"/>
+	<field name="address3" class="java.lang.String"/>
+	<field name="address4" class="java.lang.String"/>
+	<field name="address5" class="java.lang.String"/>
+	<field name="address6" class="java.lang.String"/>
+	<field name="address7" class="java.lang.String"/>
+	<field name="address8" class="java.lang.String"/>
+	<field name="address9" class="java.lang.String"/>
+	<field name="customer" class="java.lang.String"/>
+	<field name="reactor" class="java.lang.String"/>
+	<field name="ad_org_id" class="java.lang.String"/>
+	<field name="startdate" class="java.sql.Timestamp"/>
+	<field name="lead" class="java.lang.String"/>
+	<field name="cont" class="java.lang.String"/>
+	<field name="order" class="java.lang.String"/>
+	<field name="task" class="java.lang.String"/>
+	<field name="commenttext" class="java.lang.String"/>
+	<field name="comment" class="java.lang.String"/>
+	<title>
+		<band height="341" splitType="Stretch">
+			<rectangle>
+				<reportElement x="0" y="0" width="585" height="71" uuid="1e9a10ee-2f32-4f32-ae28-f08e65ae5b71"/>
+			</rectangle>
+			<textField>
+				<reportElement x="42" y="31" width="191" height="26" uuid="3f0678d6-6a06-4235-bdf2-65459ddb2146"/>
+				<textElement>
+					<font size="16" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{packlist}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="RetainShape" hAlign="Right" vAlign="Top" isUsingCache="true" isLazy="true" onErrorType="Blank">
+				<reportElement key="image-1" style="Report_Footer" x="317" y="16" width="268" height="53" uuid="b8c88276-1df6-43c2-b6d0-794d6bcce820"/>
+				<imageExpression><![CDATA[$F{logo}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="94" y="81" width="205" height="20" uuid="1f62fef8-4730-40a8-a899-f74fcd1c8843"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cus}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="94" y="101" width="205" height="20" uuid="eb9d7d7a-0463-47cd-b628-14a92fb51845"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{reac}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="94" y="121" width="205" height="20" uuid="86e17633-2a1a-4239-ae59-d25bd9c62214"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{start}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="94" y="141" width="205" height="20" uuid="f42fe682-ca4e-4f2c-85bb-fb60b8da68a2"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{leader}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="94" y="161" width="205" height="20" uuid="b0835e8b-633f-42be-948e-569f87cf4f23"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{contact}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="94" y="181" width="205" height="20" uuid="0b4e9ce1-261e-4179-8ff7-91a20aabf112"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ordernr}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="94" y="201" width="205" height="20" uuid="73eefff5-4293-4d14-a0a6-6e342756de7f"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{tasknum}+": "]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="307" y="141" width="205" height="20" uuid="bd67d74f-8b12-48c1-9ea4-5469e56d2617"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lead}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="307" y="161" width="205" height="20" uuid="78e24e11-7a8a-47a4-8077-30d800d07222"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cont}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="307" y="181" width="205" height="20" uuid="48b29586-c948-4fb3-a88b-954ea8f16b6a"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{order}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="307" y="201" width="205" height="20" uuid="31fba2da-0197-4ad7-a839-c0c582e9be09"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{task}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yy" isBlankWhenNull="true">
+				<reportElement x="307" y="121" width="205" height="20" uuid="0cd30e8d-3dad-4db5-b50f-faf5250d2e30"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{startdate}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="307" y="101" width="205" height="20" uuid="549ac436-c77d-4239-bff8-74dd42f3602b"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{reactor}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="307" y="81" width="205" height="20" uuid="8aebaf5e-a8b1-40be-b24a-604454edd128"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{customer}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="195" height="14" uuid="80d3e64d-6769-4952-a1f7-da24c95d3b75"/>
+				<textElement>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{address1}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="194" y="0" width="195" height="14" uuid="89e659e7-fc35-4d44-97fe-021ae422ab64"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{address3}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="389" y="0" width="195" height="14" uuid="c2a2452d-ccd9-4feb-8dad-d5f2f56c4454"/>
+				<textElement textAlignment="Right">
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{address4}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="0" y="280" width="575" height="59" isPrintWhenDetailOverflows="true" uuid="9178f390-2008-455a-9187-7333ccb2064f"/>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="C_PROJECT_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREP_PTask_Machines}]]></subreportExpression>
+			</subreport>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="221" width="205" height="20" uuid="fb14d2ac-b633-4fd9-a3da-1c1430512ac3"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{commenttext} + ":"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="0" y="241" width="575" height="30" uuid="3029e32c-726f-4603-a9ff-d51d2466d4ab"/>
+				<textElement>
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{comment}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="405">
+			<subreport>
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="0" y="0" width="575" height="400" isPrintWhenDetailOverflows="true" uuid="bfe6b4d6-180c-4ab1-841c-2f0724604814"/>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="C_PROJECT_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREP_PTask_Products}]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

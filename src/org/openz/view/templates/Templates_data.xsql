@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2012 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+
+
+<SqlClass name="TemplatesData" package="org.openz.view.templates">
+
+   <SqlMethod name="getSelectorInputColumns" type="preparedStatement" return="multiple">
+      <Sql>
+        SELECT sc.columnname as selectorcolumnname 
+        from  ad_ref_search_column sc,ad_ref_search rs,ad_reference r
+        where r.ad_reference_id=rs.ad_reference_id and rs.ad_ref_search_id=sc.ad_ref_search_id
+        and sc.columntype='I'  and lower(sc.columnname)!='ad_org_id'
+        and lower(sc.columnname) in (select lower(cv.columnname) from ad_column_v cv,ad_field_v v where v.ad_column_v_id=cv.ad_column_v_id and v.ad_tab_id=?)
+        and r.ad_reference_id= ? 
+      </Sql>
+      <Parameter name="tabId"/>
+      <Parameter name="selectorreferenceId"/>
+   </SqlMethod>
+  
+</SqlClass>

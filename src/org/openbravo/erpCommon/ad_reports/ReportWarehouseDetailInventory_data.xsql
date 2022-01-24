@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="ReportWarehouseDetailInventoryData" package="org.openbravo.erpCommon.ad_reports">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT SUM(INMOVEMENT) AS INMOVEMENT, SUM(INORDER) AS INORDER, SUM(OUTMOVEMENT) AS OUTMOVEMENT, SUM(OUTORDER) AS OUTORDER, 
+      SUM(INITIALMOVEMENT) AS INITIALMOVEMENT, SUM(INITIALORDER) AS INITIALORDER, 
+      A.WAREHOUSE, A.PRODUCT, A.UOM, A.CATEGORY_ID, (SUM(INITIALORDER) + SUM(INORDER) + SUM(OUTORDER)) AS OUTERORDER, A.MULTIPLYRATE, ((SUM(INITIALORDER) + SUM(INORDER) + SUM(OUTORDER))*A.MULTIPLYRATE) AS OUTERMOVEMENT
+      FROM (SELECT SUM(M_T_A.MOVEMENTQTY) AS INMOVEMENT, SUM(M_T_A.QUANTITYORDER) AS INORDER,
+      0 AS OUTMOVEMENT, 0 AS OUTORDER, 0 AS INITIALMOVEMENT, 0 AS INITIALORDER, 
+      M_WAREHOUSE.NAME AS WAREHOUSE, M_PRODUCT.NAME AS PRODUCT, C_UOM.NAME AS UOM, 
+      M_WAREHOUSE.M_WAREHOUSE_ID, M_PRODUCT.M_PRODUCT_ID, M_PRODUCT.M_PRODUCT_CATEGORY_ID AS CATEGORY_ID, C_UOM_CONVERSION.MULTIPLYRATE
+      FROM M_TRANSACTION M_T_A, M_LOCATOR, M_WAREHOUSE, M_PRODUCT, M_PRODUCT_UOM, C_UOM, C_UOM_CONVERSION
+      WHERE M_T_A.M_LOCATOR_ID = M_LOCATOR.M_LOCATOR_ID
+      AND M_LOCATOR.M_WAREHOUSE_ID = M_WAREHOUSE.M_WAREHOUSE_ID
+      AND M_T_A.M_PRODUCT_ID = M_PRODUCT.M_PRODUCT_ID
+      AND M_T_A.M_PRODUCT_UOM_ID = M_PRODUCT_UOM.M_PRODUCT_UOM_ID
+      AND M_PRODUCT_UOM.C_UOM_ID = C_UOM.C_UOM_ID
+      AND C_UOM.C_UOM_ID = C_UOM_CONVERSION.C_UOM_ID
+      AND M_T_A.AD_CLIENT_ID IN ('1')
+      AND M_T_A.AD_ORG_ID IN ('1')
+      AND 1=1
+      AND M_T_A.MOVEMENTQTY > 0
+      GROUP BY M_WAREHOUSE.NAME, M_PRODUCT.NAME, C_UOM.NAME, M_WAREHOUSE.M_WAREHOUSE_ID, M_PRODUCT.M_PRODUCT_ID, 
+      M_PRODUCT.M_PRODUCT_CATEGORY_ID, C_UOM_CONVERSION.MULTIPLYRATE
+      UNION
+      SELECT 0 AS INMOVEMENT, 0 AS INORDER, SUM(M_T_B.MOVEMENTQTY) AS OUTMOVEMENT, 
+      SUM(M_T_B.QUANTITYORDER) AS OUTORDER, 0 AS INITIALMOVEMENT, 0 AS INITIALORDER, 
+      M_WAREHOUSE.NAME AS WAREHOUSE, M_PRODUCT.NAME AS PRODUCT, C_UOM.NAME AS UOM, 
+      M_WAREHOUSE.M_WAREHOUSE_ID, M_PRODUCT.M_PRODUCT_ID, M_PRODUCT.M_PRODUCT_CATEGORY_ID AS CATEGORY_ID, C_UOM_CONVERSION.MULTIPLYRATE
+      FROM M_TRANSACTION M_T_B, M_LOCATOR, M_WAREHOUSE, M_PRODUCT, M_PRODUCT_UOM, C_UOM, C_UOM_CONVERSION
+      WHERE M_T_B.M_LOCATOR_ID = M_LOCATOR.M_LOCATOR_ID
+      AND M_LOCATOR.M_WAREHOUSE_ID = M_WAREHOUSE.M_WAREHOUSE_ID
+      AND M_T_B.M_PRODUCT_ID = M_PRODUCT.M_PRODUCT_ID
+      AND M_T_B.M_PRODUCT_UOM_ID = M_PRODUCT_UOM.M_PRODUCT_UOM_ID
+      AND M_PRODUCT_UOM.C_UOM_ID = C_UOM.C_UOM_ID
+      AND C_UOM.C_UOM_ID = C_UOM_CONVERSION.C_UOM_ID
+      AND M_T_B.AD_CLIENT_ID IN ('1')
+      AND M_T_B.AD_ORG_ID IN ('1')
+      AND 2=2
+      AND M_T_B.MOVEMENTQTY < 0
+      GROUP BY M_WAREHOUSE.NAME, M_PRODUCT.NAME, C_UOM.NAME, M_WAREHOUSE.M_WAREHOUSE_ID, M_PRODUCT.M_PRODUCT_ID, 
+      M_PRODUCT.M_PRODUCT_CATEGORY_ID, C_UOM_CONVERSION.MULTIPLYRATE
+      UNION
+      SELECT 0 AS INMOVEMENT, 0 AS INORDER, 0 AS OUTMOVEMENT, 0 AS OUTORDER, 
+      SUM(M_T_C.MOVEMENTQTY) AS INITIALMOVEMENT, SUM(M_T_C.QUANTITYORDER) AS INITIALORDER, 
+      M_WAREHOUSE.NAME AS WAREHOUSE, M_PRODUCT.NAME AS PRODUCT, C_UOM.NAME AS NAME, 
+      M_WAREHOUSE.M_WAREHOUSE_ID, M_PRODUCT.M_PRODUCT_ID, M_PRODUCT.M_PRODUCT_CATEGORY_ID AS CATEGORY_ID, C_UOM_CONVERSION.MULTIPLYRATE
+      FROM M_TRANSACTION M_T_C, M_LOCATOR, M_WAREHOUSE, M_PRODUCT, M_PRODUCT_UOM, C_UOM, C_UOM_CONVERSION
+      WHERE M_T_C.M_LOCATOR_ID = M_LOCATOR.M_LOCATOR_ID
+      AND M_LOCATOR.M_WAREHOUSE_ID = M_WAREHOUSE.M_WAREHOUSE_ID
+      AND M_T_C.M_PRODUCT_ID = M_PRODUCT.M_PRODUCT_ID
+      AND M_T_C.M_PRODUCT_UOM_ID = M_PRODUCT_UOM.M_PRODUCT_UOM_ID
+      AND M_PRODUCT_UOM.C_UOM_ID = C_UOM.C_UOM_ID
+      AND C_UOM.C_UOM_ID = C_UOM_CONVERSION.C_UOM_ID
+      AND M_T_C.AD_CLIENT_ID IN ('1')
+      AND M_T_C.AD_ORG_ID IN ('1')
+      AND 3=3
+      GROUP BY M_WAREHOUSE.NAME, M_PRODUCT.NAME, C_UOM.NAME, M_WAREHOUSE.M_WAREHOUSE_ID, M_PRODUCT.M_PRODUCT_ID, 
+      M_PRODUCT.M_PRODUCT_CATEGORY_ID, C_UOM_CONVERSION.MULTIPLYRATE) A
+      GROUP BY A.PRODUCT, A.WAREHOUSE, A.UOM, A.CATEGORY_ID, A.MULTIPLYRATE
+      HAVING (CASE SUM(INORDER) WHEN 0 THEN (CASE SUM(INITIALORDER) WHEN 0 THEN (CASE SUM(OUTORDER) WHEN 0 THEN (CASE (SUM(INITIALORDER)+SUM(INORDER)+SUM(OUTORDER)) WHEN 0 THEN 0 ELSE 1 END) ELSE 1 END) ELSE 1 END) ELSE 1 END)<>0
+     ]]></Sql>
+    <Parameter name="adUserClient" type="replace" optional="true" after="AND M_T_A.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="adOrgClient" type="replace" optional="true" after="AND M_T_A.AD_ORG_ID IN (" text="'1'"/>
+    <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[ AND M_T_A.MOVEMENTDATE >= to_date(?)]]></Parameter>
+    <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[ AND M_T_A.MOVEMENTDATE < to_date(?)]]></Parameter>
+    <Parameter name="mWarehouseId" optional="true" after="AND 1=1"><![CDATA[ AND M_WAREHOUSE.M_WAREHOUSE_ID = ?]]></Parameter>
+    <Parameter name="adUserClient" type="replace" optional="true" after="AND M_T_B.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="adOrgClient" type="replace" optional="true" after="AND M_T_B.AD_ORG_ID IN (" text="'1'"/>
+    <Parameter name="parDateFrom" optional="true" after="AND 2=2"><![CDATA[ AND M_T_B.MOVEMENTDATE >= to_date(?)]]></Parameter>
+    <Parameter name="parDateTo" optional="true" after="AND 2=2"><![CDATA[ AND M_T_B.MOVEMENTDATE < to_date(?)]]></Parameter>
+    <Parameter name="mWarehouseId" optional="true" after="AND 2=2"><![CDATA[ AND M_WAREHOUSE.M_WAREHOUSE_ID = ?]]></Parameter>
+    <Parameter name="adUserClient" type="replace" optional="true" after="AND M_T_C.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="adOrgClient" type="replace" optional="true" after="AND M_T_C.AD_ORG_ID IN (" text="'1'"/>
+    <Parameter name="parDateFrom" optional="true" after="AND 3=3"><![CDATA[ AND M_T_C.MOVEMENTDATE < to_date(?)]]></Parameter>
+    <Parameter name="mWarehouseId" optional="true" after="AND 3=3"><![CDATA[ AND M_WAREHOUSE.M_WAREHOUSE_ID = ?]]></Parameter>
+  </SqlMethod>
+
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+</SqlClass>

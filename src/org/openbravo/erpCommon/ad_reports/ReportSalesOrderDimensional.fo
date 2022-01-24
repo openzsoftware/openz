@@ -1,0 +1,787 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+<fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
+	<fo:layout-master-set>
+		<fo:simple-page-master master-name="first" page-height="21cm" page-width="29.7cm" margin-top="0.5cm" margin-bottom="0.25cm" margin-left="0.5cm" margin-right="0.5cm">
+			<fo:region-before extent="1.5cm"/>
+			<fo:region-body margin-top="1.5cm"/>
+		</fo:simple-page-master>
+		<fo:simple-page-master master-name="rest" page-height="21cm" page-width="29.7cm" margin-top="0.5cm" margin-bottom="0.25cm" margin-left="0.5cm" margin-right="0.5cm">
+			<fo:region-before extent="1.5cm"/>
+			<fo:region-body margin-top="1.5cm"/>
+		</fo:simple-page-master>
+		<fo:simple-page-master master-name="second" page-height="29.7cm" page-width="21cm" margin-top="0.5cm" margin-bottom="0.25cm" margin-left="0.5cm" margin-right="0.5cm">
+			<fo:region-before extent="1.5cm"/>
+			<fo:region-body margin-top="1.5cm"/>
+		</fo:simple-page-master>
+		<fo:simple-page-master master-name="secondRest" page-height="29.7cm" page-width="21cm" margin-top="0.5cm" margin-bottom="0.25cm" margin-left="0.5cm" margin-right="0.5cm">
+			<fo:region-before extent="1.5cm"/>
+			<fo:region-body margin-top="1.5cm"/>
+		</fo:simple-page-master>
+		<fo:page-sequence-master master-name="basicPSM">
+			<fo:repeatable-page-master-alternatives>
+				<fo:conditional-page-master-reference master-reference="first" page-position="first"/>
+				<fo:conditional-page-master-reference master-reference="rest" page-position="rest"/>
+				<fo:conditional-page-master-reference master-reference="rest"/>
+			</fo:repeatable-page-master-alternatives>
+		</fo:page-sequence-master>
+		<fo:page-sequence-master master-name="basicPSMSecond">
+			<fo:repeatable-page-master-alternatives>
+				<fo:conditional-page-master-reference master-reference="second" page-position="first"/>
+				<fo:conditional-page-master-reference master-reference="secondRest" page-position="rest"/>
+				<fo:conditional-page-master-reference master-reference="secondRest"/>
+			</fo:repeatable-page-master-alternatives>
+		</fo:page-sequence-master>
+	</fo:layout-master-set>
+	<fo:page-sequence master-reference="yy" id="paramPage">
+		<fo:static-content flow-name="xsl-region-before">
+			<fo:block start-indent="1cm" text-align="left" font-weight="bold" font-size="10pt" id="fieldEntity">xx</fo:block>
+			<fo:block font-size="12pt" font-weight="bold" text-align="center">Sales order report&#160;<fo:inline id="fieldTitle">xxdesde hasta</fo:inline>
+			</fo:block>
+			<fo:block end-indent="1cm" text-align="end" font-size="8pt">Page<fo:page-number/>
+			</fo:block>
+		</fo:static-content>
+		<fo:flow flow-name="xsl-region-body">
+			<fo:block font-size="10pt" id="selEliminarBody1">
+				<fo:table space-after.optimum="1cm">
+					<fo:table-column column-width="2.8cm"/>
+					<fo:table-column column-width="2.8cm"/>
+					<fo:table-column column-width="2.8cm"/>
+					<fo:table-column column-width="2.8cm"/>
+					<fo:table-column column-width="2.8cm"/>
+					<fo:table-column column-width="2.8cm"/>
+					<fo:table-column column-width="2.8cm"/>
+					<fo:table-column column-width="2.8cm"/>
+					<fo:table-column column-width="2.8cm"/>
+					<fo:table-column column-width="2.8cm"/>
+					<fo:table-body>
+						<fo:table-row>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold">Total amount</fo:block>
+							</fo:table-cell>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold" id="fieldTotal"/>
+							</fo:table-cell>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold">Total amount ref</fo:block>
+							</fo:table-cell>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold" id="fieldTotalRef"/>
+							</fo:table-cell>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold">% amount</fo:block>
+							</fo:table-cell>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold" id="fieldTotalAvg"/>
+							</fo:table-cell>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold">Total weight</fo:block>
+							</fo:table-cell>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold" id="fieldTotalWeight"/>
+							</fo:table-cell>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold">Total weight ref</fo:block>
+							</fo:table-cell>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold" id="fieldTotalWeightRef"/>
+							</fo:table-cell>
+						</fo:table-row>
+					</fo:table-body>
+				</fo:table>
+				<fo:table>
+					<fo:table-column column-width="8.1cm"/>
+					<fo:table-column column-width="2.3cm"/>
+					<fo:table-column column-width="2.3cm"/>
+					<fo:table-column column-width="2.3cm"/>
+					<fo:table-column column-width="2.3cm"/>
+					<fo:table-column column-width="2.3cm"/>
+					<fo:table-column column-width="2.3cm"/>
+					<fo:table-column column-width="0.8cm"/>
+					<fo:table-column column-width="2.3cm"/>
+					<fo:table-column column-width="0.8cm"/>
+					<fo:table-column column-width="2.3cm"/>
+					<fo:table-column column-width="0.8cm"/>
+					<fo:table-header>
+						<fo:table-row>
+							<fo:table-cell>
+								<fo:block/>
+							</fo:table-cell>
+							<fo:table-cell>
+								<fo:block text-align="end" font-weight="bold">Amount</fo:block>
+							</fo:table-cell>
+							<fo:table-cell>
+								<fo:block text-align="end" font-weight="bold">Amount ref</fo:block>
+							</fo:table-cell>
+							<fo:table-cell>
+								<fo:block text-align="end" font-weight="bold">%amount</fo:block>
+							</fo:table-cell>
+							<fo:table-cell>
+								<fo:block text-align="end" font-weight="bold">Weight</fo:block>
+							</fo:table-cell>
+							<fo:table-cell>
+								<fo:block text-align="end" font-weight="bold">Weight ref</fo:block>
+							</fo:table-cell>
+							<fo:table-cell number-columns-spanned="2">
+								<fo:block text-align="end" font-weight="bold" id="fieldNonComparativeEliminar">Quantity</fo:block>
+							</fo:table-cell>
+							<fo:table-cell number-columns-spanned="2">
+								<fo:block text-align="end" font-weight="bold" id="fieldNonComparativeEliminarRef">Quantity ref</fo:block>
+							</fo:table-cell>
+							<fo:table-cell number-columns-spanned="2">
+								<fo:block text-align="end" font-weight="bold" id="fieldNonComparativeEliminarAvg">%quantity</fo:block>
+							</fo:table-cell>
+						</fo:table-row>
+					</fo:table-header>
+					<fo:table-body>
+						<DIVFO id="sectionNivel1">
+							<fo:table-row>
+								<fo:table-cell>
+									<fo:block font-size="10pt" start-indent="8pt" id="fieldNivel1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" id="fieldTotalNivel1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" id="fieldTotalRefNivel1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" id="fieldTotal1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" id="fieldTotalWeightNivel1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" id="fieldTotalRefWeightNivel1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" id="fieldTotalQtyNivel1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" id="fieldUomsymbol1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" id="fieldTotalRefQtyNivel1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" id="fieldUomsymbol1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" id="fieldTotalQty1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" id="fieldUomsymbol1"/>
+									<fo:block font-size="0.1pt" id="fieldAuxTotalNivel1"/>
+									<fo:block font-size="0.1pt" id="fieldAuxTotalRefNivel1"/>
+									<fo:block font-size="0.1pt" id="fieldAuxTotalQtyNivel1"/>
+									<fo:block font-size="0.1pt" id="fieldAuxTotalRefQtyNivel1"/>
+								</fo:table-cell>
+							</fo:table-row>
+							<DIVFO id="sectionNivel2">
+								<fo:table-row id="fieldEliminar2" font-size="xxpt">
+									<fo:table-cell>
+										<fo:block font-size="9pt" start-indent="0.5cm" id="fieldNivel2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" id="fieldTotalNivel2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" id="fieldTotalRefNivel2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" id="fieldTotal2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" id="fieldTotalWeightNivel2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" id="fieldTotalRefWeightNivel2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" id="fieldTotalQtyNivel2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" id="fieldUomsymbol2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" id="fieldTotalRefQtyNivel2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" id="fieldUomsymbol2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" id="fieldTotalQty2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" id="fieldUomsymbol2"/>
+										<fo:block font-size="0.1pt" id="fieldAuxTotalNivel2"/>
+										<fo:block font-size="0.1pt" id="fieldAuxTotalRefNivel2"/>
+										<fo:block font-size="0.1pt" id="fieldAuxTotalQtyNivel2"/>
+										<fo:block font-size="0.1pt" id="fieldAuxTotalRefQtyNivel2"/>
+									</fo:table-cell>
+								</fo:table-row>
+								<DIVFO id="sectionNivel3">
+									<fo:table-row id="fieldEliminar3" font-size="xxpt">
+										<fo:table-cell>
+											<fo:block font-size="8pt" start-indent="1cm" id="fieldNivel3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" id="fieldTotalNivel3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" id="fieldTotalRefNivel3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" id="fieldTotal3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" id="fieldTotalWeightNivel3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" id="fieldTotalRefWeightNivel3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" id="fieldTotalQtyNivel3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" id="fieldUomsymbol3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" id="fieldTotalRefQtyNivel3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" id="fieldUomsymbol3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" id="fieldTotalQty3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" id="fieldUomsymbol3"/>
+											<fo:block font-size="0.1pt" id="fieldAuxTotalNivel3"/>
+											<fo:block font-size="0.1pt" id="fieldAuxTotalRefNivel3"/>
+											<fo:block font-size="0.1pt" id="fieldAuxTotalQtyNivel3"/>
+											<fo:block font-size="0.1pt" id="fieldAuxTotalRefQtyNivel3"/>
+										</fo:table-cell>
+									</fo:table-row>
+									<DIVFO id="sectionNivel4">
+										<fo:table-row id="fieldEliminar4" font-size="xxpt">
+											<fo:table-cell>
+												<fo:block font-size="7pt" start-indent="1.5cm" id="fieldNivel4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" id="fieldTotalNivel4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" id="fieldTotalRefNivel4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" id="fieldTotal4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" id="fieldTotalWeightNivel4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" id="fieldTotalRefWeightNivel4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" id="fieldTotalQtyNivel4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" id="fieldUomsymbol4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" id="fieldTotalRefQtyNivel4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" id="fieldUomsymbol4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" id="fieldTotalQty4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" id="fieldUomsymbol4"/>
+												<fo:block font-size="0.1pt" id="fieldAuxTotalNivel4"/>
+												<fo:block font-size="0.1pt" id="fieldAuxTotalRefNivel4"/>
+												<fo:block font-size="0.1pt" id="fieldAuxTotalQtyNivel4"/>
+												<fo:block font-size="0.1pt" id="fieldAuxTotalRefQtyNivel4"/>
+											</fo:table-cell>
+										</fo:table-row>
+										<DIVFO id="sectionNivel5">
+											<fo:table-row id="fieldEliminar5" font-size="xxpt">
+												<fo:table-cell>
+													<fo:block font-size="7pt" start-indent="2cm" id="fieldNivel5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" id="fieldTotalNivel5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" id="fieldTotalRefNivel5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" id="fieldTotal5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" id="fieldTotalWeightNivel5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" id="fieldTotalRefWeightNivel5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" id="fieldTotalQtyNivel5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" id="fieldUomsymbol5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" id="fieldTotalRefQtyNivel5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" id="fieldUomsymbol5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" id="fieldTotalQty5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" id="fieldUomsymbol5"/>
+													<fo:block font-size="0.1pt" id="fieldAuxTotalNivel5"/>
+													<fo:block font-size="0.1pt" id="fieldAuxTotalRefNivel5"/>
+													<fo:block font-size="0.1pt" id="fieldAuxTotalQtyNivel5"/>
+													<fo:block font-size="0.1pt" id="fieldAuxTotalRefQtyNivel5"/>
+												</fo:table-cell>
+											</fo:table-row>
+											<DIVFO id="sectionNivel6">
+												<fo:table-row id="fieldEliminar6" font-size="xxpt">
+													<fo:table-cell>
+														<fo:block font-size="7pt" start-indent="2.5cm" id="fieldNivel6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" id="fieldTotalNivel6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" id="fieldTotalRefNivel6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" id="fieldTotal6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" id="fieldTotalWeightNivel6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" id="fieldTotalRefWeightNivel6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" id="fieldTotalQtyNivel6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" id="fieldUomsymbol6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" id="fieldTotalRefQtyNivel6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" id="fieldUomsymbol6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" id="fieldTotalQty6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" id="fieldUomsymbol6"/>
+														<fo:block font-size="0.1pt" id="fieldAuxTotalNivel6"/>
+														<fo:block font-size="0.1pt" id="fieldAuxTotalRefNivel6"/>
+														<fo:block font-size="0.1pt" id="fieldAuxTotalQtyNivel6"/>
+														<fo:block font-size="0.1pt" id="fieldAuxTotalRefQtyNivel6"/>
+													</fo:table-cell>
+												</fo:table-row>
+												<DIVFO id="sectionNivel7">
+													<fo:table-row id="fieldEliminar7" font-size="xxpt">
+														<fo:table-cell>
+															<fo:block font-size="7pt" start-indent="3cm" id="fieldNivel7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" id="fieldTotalNivel7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" id="fieldTotalRefNivel7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" id="fieldTotal7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" id="fieldTotalWeightNivel7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" id="fieldTotalRefWeightNivel7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" id="fieldTotalQtyNivel7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" id="fieldUomsymbol7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" id="fieldTotalRefQtyNivel7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" id="fieldUomsymbol7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" id="fieldTotalQty7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" id="fieldUomsymbol7"/>
+															<fo:block font-size="0.1pt" id="fieldAuxTotalNivel7"/>
+															<fo:block font-size="0.1pt" id="fieldAuxTotalRefNivel7"/>
+															<fo:block font-size="0.1pt" id="fieldAuxTotalQtyNivel7"/>
+															<fo:block font-size="0.1pt" id="fieldAuxTotalRefQtyNivel7"/>
+														</fo:table-cell>
+													</fo:table-row>
+													<DIVFO id="sectionNivel8">
+														<fo:table-row id="fieldEliminar8" font-size="xxpt">
+															<fo:table-cell>
+																<fo:block font-size="7pt" start-indent="3.5cm" id="fieldNivel8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" id="fieldTotalNivel8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" id="fieldTotalRefNivel8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" id="fieldTotal8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" id="fieldTotalWeightNivel8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" id="fieldTotalRefWeightNivel8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" id="fieldTotalQtyNivel8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" id="fieldUomsymbol8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" id="fieldTotalRefQtyNivel8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" id="fieldUomsymbol8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" id="fieldTotalQty8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" id="fieldUomsymbol8"/>
+																<fo:block font-size="0.1pt" id="fieldAuxTotalNivel8"/>
+																<fo:block font-size="0.1pt" id="fieldAuxTotalRefNivel8"/>
+																<fo:block font-size="0.1pt" id="fieldAuxTotalQtyNivel8"/>
+																<fo:block font-size="0.1pt" id="fieldAuxTotalRefQtyNivel8"/>
+															</fo:table-cell>
+														</fo:table-row>
+														<DIVFO id="sectionNivel9">
+															<DIVFO id="sectionDetail">
+																<fo:table-row id="fieldEliminar9" font-size="xxpt">
+																	<fo:table-cell>
+																		<fo:block font-size="7pt" start-indent="4cm" id="fieldNivel9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" id="fieldTotalNivel9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" id="fieldTotalRefNivel9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" id="fieldTotal9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" id="fieldTotalWeightNivel9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" id="fieldTotalRefWeightNivel9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" id="fieldTotalQtyNivel9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" id="fieldUomsymbol9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" id="fieldTotalRefQtyNivel9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" id="fieldUomsymbol9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" id="fieldTotalQty9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" id="fieldUomsymbol9"/>
+																		<fo:block font-size="0.1pt" id="fieldAuxTotalNivel9"/>
+																		<fo:block font-size="0.1pt" id="fieldAuxTotalRefNivel9"/>
+																		<fo:block font-size="0.1pt" id="fieldAuxTotalQtyNivel9"/>
+																		<fo:block font-size="0.1pt" id="fieldAuxTotalRefQtyNivel9"/>
+																	</fo:table-cell>
+																</fo:table-row>
+															</DIVFO>
+														</DIVFO>
+													</DIVFO>
+												</DIVFO>
+											</DIVFO>
+										</DIVFO>
+									</DIVFO>
+								</DIVFO>
+							</DIVFO>
+						</DIVFO>
+					</fo:table-body>
+				</fo:table>
+			</fo:block>
+			<fo:block font-size="10pt" space-before.optimum="1cm" id="selEliminarBody2">
+				<fo:table space-after.optimum="1cm">
+					<fo:table-column column-width="2cm"/>
+					<fo:table-column column-width="4cm"/>
+					<fo:table-column column-width="4cm"/>
+					<fo:table-column column-width="4cm"/>
+					<fo:table-column column-width="4cm"/>
+					<fo:table-column column-width="2cm"/>
+					<fo:table-body>
+						<fo:table-row>
+							<fo:table-cell>
+								<fo:block/>
+							</fo:table-cell>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold">Total amount</fo:block>
+							</fo:table-cell>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold" id="fieldNoncomparativeTotal"/>
+							</fo:table-cell>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold">Total weight</fo:block>
+							</fo:table-cell>
+							<fo:table-cell border-width="0.5pt" border-style="solid">
+								<fo:block start-indent="2pt" padding-top="2pt" font-size="12pt" font-weight="bold" id="fieldNoncomparativeTotalWeight"/>
+							</fo:table-cell>
+							<fo:table-cell>
+								<fo:block/>
+							</fo:table-cell>
+						</fo:table-row>
+					</fo:table-body>
+				</fo:table>
+				<fo:table>
+					<fo:table-column column-width="11.5cm"/>
+					<fo:table-column column-width="2.5cm"/>
+					<fo:table-column column-width="2.5cm"/>
+					<fo:table-column column-width="2.5cm"/>
+					<fo:table-column column-width="1cm"/>
+					<fo:table-header>
+						<fo:table-row>
+							<fo:table-cell>
+								<fo:block/>
+							</fo:table-cell>
+							<fo:table-cell>
+								<fo:block text-align="end" font-weight="bold">Amount</fo:block>
+							</fo:table-cell>
+							<fo:table-cell>
+								<fo:block text-align="end" font-weight="bold">Weight</fo:block>
+							</fo:table-cell>
+							<fo:table-cell number-columns-spanned="2">
+								<fo:block text-align="end" font-weight="bold" id="fieldEliminar">Quantity</fo:block>
+							</fo:table-cell>
+						</fo:table-row>
+					</fo:table-header>
+					<fo:table-body>
+						<DIVFO id="sectionNoncomparativeNivel1">
+							<fo:table-row>
+								<fo:table-cell>
+									<fo:block font-size="10pt" start-indent="0.5cm" id="fieldNoncomparativeNivel1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" id="fieldNoncomparativeTotalNivel1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" start-indent="2pt" id="fieldNoncomparativeTotalWeightNivel1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="end" id="fieldNoncomparativeTotalQtyNivel1"/>
+								</fo:table-cell>
+								<fo:table-cell>
+									<fo:block text-align="left" start-indent="2pt" id="fieldNoncomparativeUomsymbol1"/>
+								</fo:table-cell>
+							</fo:table-row>
+							<DIVFO id="sectionNoncomparativeNivel2">
+								<fo:table-row id="fieldNoncomparativeEliminar2" font-size="xxpt">
+									<fo:table-cell>
+										<fo:block font-size="9pt" start-indent="1cm" id="fieldNoncomparativeNivel2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" id="fieldNoncomparativeTotalNivel2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" start-indent="2pt" id="fieldNoncomparativeTotalWeightNivel2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="end" id="fieldNoncomparativeTotalQtyNivel2"/>
+									</fo:table-cell>
+									<fo:table-cell>
+										<fo:block text-align="left" start-indent="2pt" id="fieldNoncomparativeUomsymbol2"/>
+									</fo:table-cell>
+								</fo:table-row>
+								<DIVFO id="sectionNoncomparativeNivel3">
+									<fo:table-row id="fieldNoncomparativeEliminar3" font-size="xxpt">
+										<fo:table-cell>
+											<fo:block font-size="8pt" start-indent="1.5cm" id="fieldNoncomparativeNivel3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" id="fieldNoncomparativeTotalNivel3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" start-indent="2pt" id="fieldNoncomparativeTotalWeightNivel3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="end" id="fieldNoncomparativeTotalQtyNivel3"/>
+										</fo:table-cell>
+										<fo:table-cell>
+											<fo:block text-align="left" start-indent="2pt" id="fieldNoncomparativeUomsymbol3"/>
+										</fo:table-cell>
+									</fo:table-row>
+									<DIVFO id="sectionNoncomparativeNivel4">
+										<fo:table-row id="fieldNoncomparativeEliminar4" font-size="xxpt">
+											<fo:table-cell>
+												<fo:block font-size="7pt" start-indent="2cm" id="fieldNoncomparativeNivel4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" padding-top="2pt" id="fieldNoncomparativeTotalNivel4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" start-indent="2pt" id="fieldNoncomparativeTotalWeightNivel4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="end" id="fieldNoncomparativeTotalQtyNivel4"/>
+											</fo:table-cell>
+											<fo:table-cell>
+												<fo:block text-align="left" start-indent="2pt" id="fieldNoncomparativeUomsymbol4"/>
+											</fo:table-cell>
+										</fo:table-row>
+										<DIVFO id="sectionNoncomparativeNivel5">
+											<fo:table-row id="fieldNoncomparativeEliminar5" font-size="xxpt">
+												<fo:table-cell>
+													<fo:block font-size="7pt" start-indent="2.5cm" id="fieldNoncomparativeNivel5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" id="fieldNoncomparativeTotalNivel5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" start-indent="2pt" id="fieldNoncomparativeTotalWeightNivel5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="end" id="fieldNoncomparativeTotalQtyNivel5"/>
+												</fo:table-cell>
+												<fo:table-cell>
+													<fo:block text-align="left" start-indent="2pt" id="fieldNoncomparativeUomsymbol5"/>
+												</fo:table-cell>
+											</fo:table-row>
+											<DIVFO id="sectionNoncomparativeNivel6">
+												<fo:table-row id="fieldNoncomparativeEliminar6" font-size="xxpt">
+													<fo:table-cell>
+														<fo:block font-size="7pt" start-indent="3cm" id="fieldNoncomparativeNivel6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" id="fieldNoncomparativeTotalNivel6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" start-indent="2pt" id="fieldNoncomparativeTotalWeightNivel6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="end" id="fieldNoncomparativeTotalQtyNivel6"/>
+													</fo:table-cell>
+													<fo:table-cell>
+														<fo:block text-align="left" start-indent="2pt" id="fieldNoncomparativeUomsymbol6"/>
+													</fo:table-cell>
+												</fo:table-row>
+												<DIVFO id="sectionNoncomparativeNivel7">
+													<fo:table-row id="fieldNoncomparativeEliminar7" font-size="xxpt">
+														<fo:table-cell>
+															<fo:block font-size="7pt" start-indent="3.5cm" id="fieldNoncomparativeNivel7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" id="fieldNoncomparativeTotalNivel7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" start-indent="2pt" id="fieldNoncomparativeTotalWeightNivel7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="end" id="fieldNoncomparativeTotalQtyNivel7"/>
+														</fo:table-cell>
+														<fo:table-cell>
+															<fo:block text-align="left" start-indent="2pt" id="fieldNoncomparativeUomsymbol7"/>
+														</fo:table-cell>
+													</fo:table-row>
+													<DIVFO id="sectionNoncomparativeNivel8">
+														<fo:table-row id="fieldNoncomparativeEliminar8" font-size="xxpt">
+															<fo:table-cell>
+																<fo:block font-size="7pt" start-indent="4cm" id="fieldNoncomparativeNivel8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" id="fieldNoncomparativeTotalNivel8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" start-indent="2pt" id="fieldNoncomparativeTotalWeightNivel8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="end" id="fieldNoncomparativeTotalQtyNivel8"/>
+															</fo:table-cell>
+															<fo:table-cell>
+																<fo:block text-align="left" start-indent="2pt" id="fieldNoncomparativeUomsymbol8"/>
+															</fo:table-cell>
+														</fo:table-row>
+														<DIVFO id="sectionNoncomparativeNivel9">
+															<DIVFO id="sectionNoncomparativeDetail">
+																<fo:table-row id="fieldNoncomparativeEliminar9" font-size="xxpt">
+																	<fo:table-cell>
+																		<fo:block font-size="7pt" start-indent="4.5cm" id="fieldNoncomparativeNivel9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" id="fieldNoncomparativeTotalNivel9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" start-indent="2pt" id="fieldNoncomparativeTotalWeightNivel9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="end" id="fieldNoncomparativeTotalQtyNivel9"/>
+																	</fo:table-cell>
+																	<fo:table-cell>
+																		<fo:block text-align="left" start-indent="2pt" id="fieldNoncomparativeUomsymbol9"/>
+																	</fo:table-cell>
+																</fo:table-row>
+															</DIVFO>
+														</DIVFO>
+													</DIVFO>
+												</DIVFO>
+											</DIVFO>
+										</DIVFO>
+									</DIVFO>
+								</DIVFO>
+							</DIVFO>
+						</DIVFO>
+					</fo:table-body>
+				</fo:table>
+			</fo:block>
+		</fo:flow>
+	</fo:page-sequence>
+</fo:root>

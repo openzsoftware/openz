@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+
+<SqlClass name="OrderlineFastEntryData" package="org.openz.controller.manualTabPane">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      select ol.c_orderline_ID,ol.C_Projecttask_ID,case when ol.linegrossamt=0 then ol.linenetamt else ol.linegrossamt end as amount,ol.Line,ol.M_Product_ID,
+             ol.pricelist,ol.priceactual,ol.qtyordered,ol.qtydelivered,ol.qtyinvoiced,ol.discount,ol.description,
+             'N' as preselected,c.name as productcategory,zssi_getuom(p.c_uom_id,?) as uom,
+             ol.ignoreresidue,ol.deliverycomplete,ol.line as seqno
+             from c_orderline ol,m_product p , m_product_category c
+             where ol.c_order_ID = ? 
+             and p.m_product_id=ol.m_product_id and c.m_product_category_id=p.m_product_category_id 
+             and p.value like ?
+             and upper(zssi_getproductname(p.m_product_id,?)) like upper(?)
+        order by ol.line
+      ]]></Sql>
+      <Parameter name="cOrderID"/>
+      <Parameter name="productvalue"/>
+      <Parameter name="lang"/>
+      <Parameter name="productname"/>
+      <Parameter name="lang"/>
+  </SqlMethod>
+  
+  <SqlMethod name="insert" connection="true" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      select zsse_createOrderLineWithPrices(?,?,to_number(?),to_number(?),to_number(?),to_number(?),to_number(?),?,null);
+      </Sql>
+      <Parameter name="idValue"/>
+      <Parameter name="productId"/>
+      <Parameter name="qty"/>
+      <Parameter name="price"/>
+      <Parameter name="listprice"/>
+      <Parameter name="stdprice"/>
+      <Parameter name="discountprice"/>
+      <Parameter name="description"/>
+  </SqlMethod>
+   <SqlMethod name="update" connection="true" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      UPDATE c_orderline  set m_product_id=?,QTYORDERED=to_number(?),description=?,updatedby=?,updated=now(),pricelist=to_number(?),priceactual=to_number(?),discount=to_number(?)
+      WHERE c_orderline_id = ?
+      </Sql>
+       <Parameter name="productId"/>
+      <Parameter name="qty"/>
+      <Parameter name="description"/>
+      <Parameter name="updatedby"/>
+      <Parameter name="pricelist"/>
+      <Parameter name="priceactual"/>
+      <Parameter name="discount"/>
+       <Parameter name="corderlineId"/>
+  </SqlMethod>
+  <SqlMethod name="isExisting" type="preparedStatement" return="string">
+    <Sql>  
+        SELECT count(*) from c_orderline where c_orderline_id = ?
+    </Sql>
+    <Parameter name="porderlineId"/>
+  </SqlMethod>
+  <SqlMethod name="delete" connection="true" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       delete from c_orderline where c_orderline_id = ?
+    </Sql>
+    <Parameter name="orderlineId"/>
+  </SqlMethod>
+  <SqlMethod name="gfetNextLine" type="preparedStatement" return="string">
+    <Sql>  
+        SELECT COALESCE(MAX(Line),0)+10 AS DefaultValue FROM c_orderline WHERE  C_order_ID = ?
+    </Sql>
+    <Parameter name="orderId"/>
+  </SqlMethod>
+  <SqlMethod name="getOffersPrice" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT ROUND(M_GET_OFFERS_PRICE(TO_DATE(o.dateordered),o.c_bpartner_id,?,TO_NUMBER(?), o.m_pricelist_id,'N',null,'N',null,null,null),c.PRICEPRECISION ) as total
+             from C_ORDER    O ,C_CURRENCY C WHERE C.C_CURRENCY_ID = O.C_CURRENCY_ID AND O.C_ORDER_ID    = ?
+    </Sql>
+    
+    <Parameter name="mProductId"/>
+    <Parameter name="qty"/>
+    <Parameter name="orderid"/>
+    
+  </SqlMethod>
+  <SqlMethod name="getStdPrice" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT ROUND(m_bom_pricestd(?, o.m_pricelist_id,null,null,null),c.PRICEPRECISION ) as total
+             from C_ORDER    O ,C_CURRENCY C WHERE C.C_CURRENCY_ID = O.C_CURRENCY_ID AND O.C_ORDER_ID    = ?
+    </Sql>
+    
+    <Parameter name="mProductId"/>
+    <Parameter name="orderid"/>
+    
+  </SqlMethod>
+  <SqlMethod name="getListPrice" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT ROUND(m_bom_pricelist(?, o.m_pricelist_id,null,null),c.PRICEPRECISION ) as total
+             from C_ORDER    O ,C_CURRENCY C WHERE C.C_CURRENCY_ID = O.C_CURRENCY_ID AND O.C_ORDER_ID    = ?
+    </Sql>
+    
+    <Parameter name="mProductId"/>
+    <Parameter name="orderid"/>
+    
+  </SqlMethod>
+  <SqlMethod name="isFreight" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT  c_orderneedsfreight(?) from dual
+    </Sql>
+    <Parameter name="orderid"/>
+  </SqlMethod>
+  <SqlMethod name="getDiscount" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT case when to_number(?)>0 then ROUND(100*((to_number(?)-to_number(?))/(to_number(?))),2) else 0 end as total
+             from C_ORDER    O where O.C_ORDER_ID    = ?
+    </Sql>
+    <Parameter name="pricestd"/>
+    <Parameter name="pricestd"/>
+    <Parameter name="priceactual"/>
+    <Parameter name="pricestd"/>
+    <Parameter name="orderid"/>
+    
+  </SqlMethod>
+ </SqlClass>

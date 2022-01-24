@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Controlcodes128" language="groovy" pageWidth="700" pageHeight="520" orientation="Landscape" columnWidth="700" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<queryString>
+		<![CDATA[select
+
+'pdc_bc_btn_ready' as ctrl1,
+'pdc_bc_btn_next' as ctrl2,
+'pdc_bc_btn_cancel' as ctrl3,
+'pdc_bc_feedback' as ctrl4,
+'pdc_bc_production' as ctrl5,
+'pdc_bc_consumption' as ctrl6,
+'pdc_bc_return' as ctrl7,
+'pdc_bc_finish' as ctrl8,
+'pdc_bc_all' as ctrl9]]>
+	</queryString>
+	<field name="ctrl1" class="java.lang.String"/>
+	<field name="ctrl2" class="java.lang.String"/>
+	<field name="ctrl3" class="java.lang.String"/>
+	<field name="ctrl4" class="java.lang.String"/>
+	<field name="ctrl5" class="java.lang.String"/>
+	<field name="ctrl6" class="java.lang.String"/>
+	<field name="ctrl7" class="java.lang.String"/>
+	<field name="ctrl8" class="java.lang.String"/>
+	<field name="ctrl9" class="java.lang.String"/>
+	<title>
+		<band height="520" splitType="Prevent">
+			<staticText>
+				<reportElement x="1" y="2" width="699" height="20"/>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Kontrollbarcodes]]></text>
+			</staticText>
+			<componentElement>
+				<reportElement x="14" y="41" width="150" height="114"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code128" drawText="false" checksumRequired="false" barWidth="1" barHeight="100">
+					<jr:codeExpression><![CDATA[$F{ctrl3}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<componentElement>
+				<reportElement x="472" y="41" width="150" height="114"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code128" drawText="false" checksumRequired="false" barWidth="1" barHeight="100">
+					<jr:codeExpression><![CDATA[$F{ctrl1}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<componentElement>
+				<reportElement x="239" y="41" width="150" height="114"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code128" drawText="false" checksumRequired="false" barWidth="1" barHeight="100">
+					<jr:codeExpression><![CDATA[$F{ctrl2}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<componentElement>
+				<reportElement x="239" y="335" width="150" height="114"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code128" drawText="false" checksumRequired="false" barWidth="1" barHeight="100">
+					<jr:codeExpression><![CDATA[$F{ctrl6}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<componentElement>
+				<reportElement x="14" y="189" width="150" height="114"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code128" drawText="false" checksumRequired="false" barWidth="1" barHeight="100">
+					<jr:codeExpression><![CDATA[$F{ctrl4}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<componentElement>
+				<reportElement x="239" y="189" width="150" height="114"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code128" drawText="false" checksumRequired="false" barWidth="1" barHeight="100">
+					<jr:codeExpression><![CDATA[$F{ctrl5}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<componentElement>
+				<reportElement x="14" y="335" width="150" height="114"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code128" drawText="false" checksumRequired="false" barWidth="1" barHeight="100">
+					<jr:codeExpression><![CDATA[$F{ctrl7}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<componentElement>
+				<reportElement x="472" y="189" width="150" height="114"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code128" drawText="false" checksumRequired="false" barWidth="1" barHeight="100">
+					<jr:codeExpression><![CDATA[$F{ctrl8}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<textField>
+				<reportElement x="14" y="22" width="150" height="20"/>
+				<textElement textAlignment="Center">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Abbrechen"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="239" y="22" width="150" height="20"/>
+				<textElement textAlignment="Center">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Nächster"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="472" y="22" width="150" height="20"/>
+				<textElement textAlignment="Center">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Fertig"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1" y="170" width="238" height="20"/>
+				<textElement textAlignment="Center">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Zeitrückmeldung/Prod. B."]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="239" y="170" width="233" height="20"/>
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Produktionsrückmeldung"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="223" y="316" width="207" height="20"/>
+				<textElement textAlignment="Center">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Material Entnahme"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="14" y="316" width="209" height="20"/>
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Material Rückgabe"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="472" y="170" width="197" height="20"/>
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["Arbeitsgang beenden"]]></textFieldExpression>
+			</textField>
+			<componentElement>
+				<reportElement x="472" y="335" width="150" height="114"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code128" drawText="false" checksumRequired="false" barWidth="1" barHeight="100">
+					<jr:codeExpression><![CDATA[$F{ctrl9}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<textField>
+				<reportElement x="462" y="315" width="207" height="20"/>
+				<textElement textAlignment="Center">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["alle Positionen wählen"]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+</jasperReport>

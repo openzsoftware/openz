@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+<SqlClass name="ReportTaxInvoiceData" package="org.openbravo.erpCommon.ad_reports">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT C_INVOICE.ISSOTRX AS SALES, 'Y' AS NATIONAL, C_INVOICE.DOCUMENTNO AS DOCUMENTNO, C_INVOICE.DATEINVOICED, C_BPARTNER.NAME AS BPARTNER, LTRIM(RTRIM(C_TAX.NAME, ' '), ' ') AS TAXNAME, 
+      SUM(CASE WHEN DOCBASETYPE IN ('ARC','APC') THEN -1 * (C_CURRENCY_CONVERT(C_INVOICETAX.TAXBASEAMT, C_INVOICE.C_CURRENCY_ID, ?, TO_DATE(COALESCE(C_INVOICE.DATEINVOICED, NOW())), NULL, C_INVOICETAX.AD_CLIENT_ID, C_INVOICETAX.AD_ORG_ID)) 
+      ELSE C_CURRENCY_CONVERT(C_INVOICETAX.TAXBASEAMT, C_INVOICE.C_CURRENCY_ID, ?, TO_DATE(COALESCE(C_INVOICE.DATEINVOICED, NOW())), NULL, C_INVOICETAX.AD_CLIENT_ID, C_INVOICETAX.AD_ORG_ID) END) AS TAXBASEAMT, 
+      SUM(CASE WHEN DOCBASETYPE IN ('ARC','APC') THEN -1 * ( C_CURRENCY_CONVERT(C_INVOICETAX.TAXAMT, C_INVOICE.C_CURRENCY_ID, ?, TO_DATE(COALESCE(C_INVOICE.DATEINVOICED, NOW())), NULL, C_INVOICETAX.AD_CLIENT_ID, C_INVOICETAX.AD_ORG_ID)) ELSE ( C_CURRENCY_CONVERT(C_INVOICETAX.TAXAMT, C_INVOICE.C_CURRENCY_ID, ?, TO_DATE(COALESCE(C_INVOICE.DATEINVOICED, NOW())), NULL, C_INVOICETAX.AD_CLIENT_ID, C_INVOICETAX.AD_ORG_ID)) END) AS TAXAMT,'' AS ADTREEID
+      FROM C_TAX, C_INVOICETAX, C_INVOICE, C_BPARTNER_LOCATION, C_LOCATION, C_BPARTNER, C_DOCTYPE
+      WHERE C_TAX.C_TAX_ID=C_INVOICETAX.C_TAX_ID
+      AND C_INVOICETAX.C_INVOICE_ID=C_INVOICE.C_INVOICE_ID
+      AND C_INVOICE.C_BPARTNER_LOCATION_ID = C_BPARTNER_LOCATION.C_BPARTNER_LOCATION_ID
+      AND C_BPARTNER_LOCATION.C_LOCATION_ID = C_LOCATION.C_LOCATION_ID
+      AND C_INVOICE.C_BPARTNER_ID = C_BPARTNER.C_BPARTNER_ID
+      AND C_INVOICE.C_DOCTYPE_ID = C_DOCTYPE.C_DOCTYPE_ID
+      AND C_LOCATION.C_COUNTRY_ID = ?
+      AND C_INVOICE.PROCESSED = 'Y'
+      AND C_INVOICE.ISACTIVE = 'Y'
+      AND C_INVOICE.AD_CLIENT_ID IN ('1')
+      AND 1=1
+      AND C_INVOICE.ISSOTRX = ?
+      AND C_INVOICE.AD_ORG_ID IN ('1')
+      GROUP BY C_INVOICE.DOCUMENTNO, C_INVOICE.DATEINVOICED, C_TAX.NAME, C_BPARTNER.NAME, C_INVOICE.ISSOTRX
+      HAVING SUM(C_INVOICETAX.TAXBASEAMT) <> 0
+      ORDER BY C_TAX.NAME, C_INVOICE.DATEINVOICED
+     ]]></Sql>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="cCountryId"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="AND C_INVOICE.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[ AND C_INVOICE.DATEINVOICED >= TO_DATE(?)]]></Parameter>
+    <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[ AND C_INVOICE.DATEINVOICED < TO_DATE(?)]]></Parameter>
+    <Parameter name="issotrx"/>
+    <Parameter name="adOrgId" optional="true" type="replace" after="AND C_INVOICE.AD_ORG_ID IN (" text="'1'"/>
+  </SqlMethod>
+
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+
+  <SqlMethod name="selectTreeNode" type="preparedStatement" return="string" default="">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT MAX(AD_TREE_ID) AS ADTREEID
+      FROM AD_TREE
+      WHERE TREETYPE = 'OO'
+      AND AD_CLIENT_ID IN ('1')
+     ]]></Sql>
+    <Parameter name="adUserClient" type="replace" optional="true" after="AND AD_CLIENT_ID IN (" text="'1'"/>
+  </SqlMethod>
+
+  <SqlMethod name="selectForeign" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT C_INVOICE.ISSOTRX AS SALES, 'N' AS NATIONAL, C_INVOICE.DOCUMENTNO AS DOCUMENTNO, C_INVOICE.DATEINVOICED, 
+      C_BPARTNER.NAME AS BPARTNER, LTRIM(RTRIM(C_TAX.NAME, ' '), ' ') AS TAXNAME, 
+      SUM(CASE WHEN DOCBASETYPE IN ('ARC','APC') THEN -1 * (C_CURRENCY_CONVERT(C_INVOICETAX.TAXBASEAMT, C_INVOICE.C_CURRENCY_ID, ?, TO_DATE(COALESCE(C_INVOICE.DATEINVOICED, NOW())), NULL, C_INVOICETAX.AD_CLIENT_ID, C_INVOICETAX.AD_ORG_ID)) 
+      ELSE C_CURRENCY_CONVERT(C_INVOICETAX.TAXBASEAMT, C_INVOICE.C_CURRENCY_ID, ?, TO_DATE(COALESCE(C_INVOICE.DATEINVOICED, NOW())), NULL, C_INVOICETAX.AD_CLIENT_ID, C_INVOICETAX.AD_ORG_ID) END) AS TAXBASEAMT, 
+      SUM(CASE WHEN DOCBASETYPE IN ('ARC','APC') THEN -1 * ( C_CURRENCY_CONVERT(C_INVOICETAX.TAXAMT, C_INVOICE.C_CURRENCY_ID, ?, TO_DATE(COALESCE(C_INVOICE.DATEINVOICED, NOW())), NULL, C_INVOICETAX.AD_CLIENT_ID, C_INVOICETAX.AD_ORG_ID)) ELSE ( C_CURRENCY_CONVERT(C_INVOICETAX.TAXAMT, C_INVOICE.C_CURRENCY_ID, ?, TO_DATE(COALESCE(C_INVOICE.DATEINVOICED, NOW())), NULL, C_INVOICETAX.AD_CLIENT_ID, C_INVOICETAX.AD_ORG_ID)) END) AS TAXAMT,'' AS ADTREEID
+      FROM C_TAX, C_INVOICETAX, C_INVOICE, C_BPARTNER_LOCATION, C_LOCATION, C_BPARTNER, C_DOCTYPE
+      WHERE C_TAX.C_TAX_ID=C_INVOICETAX.C_TAX_ID
+      AND C_INVOICETAX.C_INVOICE_ID=C_INVOICE.C_INVOICE_ID
+      AND C_INVOICE.C_BPARTNER_LOCATION_ID = C_BPARTNER_LOCATION.C_BPARTNER_LOCATION_ID
+      AND C_BPARTNER_LOCATION.C_LOCATION_ID = C_LOCATION.C_LOCATION_ID
+      AND C_INVOICE.C_BPARTNER_ID = C_BPARTNER.C_BPARTNER_ID
+      AND C_INVOICE.C_DOCTYPE_ID = C_DOCTYPE.C_DOCTYPE_ID
+      AND C_LOCATION.C_COUNTRY_ID <> ?
+      AND C_INVOICE.PROCESSED = 'Y'
+      AND C_INVOICE.ISACTIVE = 'Y'
+      AND C_INVOICE.AD_CLIENT_ID IN ('1')
+      AND 1=1
+      AND C_INVOICE.ISSOTRX = ?
+      AND C_INVOICE.AD_ORG_ID IN ('1')
+      GROUP BY C_INVOICE.DOCUMENTNO, C_TAX.NAME, C_INVOICE.DATEINVOICED, C_BPARTNER.NAME, C_INVOICE.ISSOTRX
+      HAVING SUM(C_INVOICETAX.TAXBASEAMT) <> 0
+      ORDER BY C_TAX.NAME, C_INVOICE.DATEINVOICED
+     ]]></Sql>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="cCurrencyConv"/>
+    <Parameter name="cCountryId"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="AND C_INVOICE.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[ AND C_INVOICE.DATEINVOICED >= TO_DATE(?)]]></Parameter>
+    <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[ AND C_INVOICE.DATEINVOICED < TO_DATE(?)]]></Parameter>
+    <Parameter name="issotrx"/>
+    <Parameter name="adOrgId" optional="true" type="replace" after="AND C_INVOICE.AD_ORG_ID IN (" text="'1'"/>
+  </SqlMethod>
+
+</SqlClass>

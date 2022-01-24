@@ -1,0 +1,1557 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.1.1  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RptStd_InvoiceLines" language="groovy" pageWidth="515" pageHeight="802" columnWidth="515" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="86a28d54-6085-4349-a32f-987b31300077">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.771561000000001"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="New Data Adapter "/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="Detail_Line">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Column_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#666666"/>
+	<parameter name="C_INVOICE_ID" class="java.lang.String"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_RptStd_TaxLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="START_PAGE_SUBREP" class="java.lang.Integer" isForPrompting="false"/>
+	<parameter name="LANGUAGE2" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="PAYMENTTERMDETAIL" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select  to_char(zssi_strNumber(c_invoiceline.qtyinvoiced,$P{LANGUAGE})) as qtyinvoiced,zssi_tinymce2jsreportsHTML(c_invoiceline.textposition) as textposition,c_invoiceline.ispagebreak,
+       CASE WHEN C_INVOICELINE.isgrossprice='Y' THEN zssi_strNumber(C_INVOICELINE.linegrossamt,$P{LANGUAGE})
+       ELSE zssi_strNumber(C_INVOICELINE.LINENETAMT,$P{LANGUAGE})
+       END AS "linenetamt",
+       CASE WHEN C_INVOICELINE.isgrossprice='Y' THEN C_INVOICELINE.linegrossamt
+       ELSE C_INVOICELINE.LINENETAMT
+       END AS "numbernetamt",
+       zssi_strNumber2(c_invoiceline.priceactual,$P{LANGUAGE}) as priceactual,
+       zssi_strNumber2(c_invoiceline.pricestd,$P{LANGUAGE}) as pricestd,
+       zssi_strNumber(c_invoiceline.linetaxamt,$P{LANGUAGE}) as taxtotal,
+       c_invoiceline.linetaxamt as numbertaxamt,
+       zssi_tinymce2jsreportsHTML(c_invoiceline.DESCRIPTION) as "DESCRIPTION",
+       c_invoiceline.line as line,
+       zssi_gettax(c_invoiceline.c_tax_id, $P{LANGUAGE}) as TAX,
+       C_CURRENCY.cursymbol,
+       zssi_tinymce2jsreportsHTML(zspr_getProductPrintoutText(c_invoiceline_id,$P{LANGUAGE},$P{LANGUAGE2})) as name,
+       zssi_getuom(c_invoiceline.c_uom_id, $P{LANGUAGE}) as uomid,
+       zssi_getproductuom(c_invoiceline.m_product_uom_id,$P{LANGUAGE}) as uom2,
+       zssi_strnumber(c_invoiceline.quantityorder,$P{LANGUAGE}) as quantityorder,
+       CASE WHEN C_INVOICELINE.isgrossprice='Y' THEN zssi_strNumber(c_invoice.grandtotal,$P{LANGUAGE})
+       ELSE zssi_strNumber(c_invoice.totallines,$P{LANGUAGE})
+       END AS "totallines",
+       zssi_strNumber(c_invoice.grandtotal,$P{LANGUAGE}) as grandtotal,
+       c_invoiceline.isgrossprice,
+       m_attributesetinstance.description as attribute,
+       case when (ispricesuppressed = 'Y' OR iscombined = 'Y') then 'Y' else 'N' end as isborderless,
+       iscombined as iscombined,
+       ispricesuppressed as ispricesuppressed,
+       (select zssi_strNumber2(sum_priceactual,$P{LANGUAGE}) from zssi_getinvoicelinecombinedsums(c_invoiceline.c_invoice_id, c_invoiceline.line)) as sum_priceactual,
+       (select zssi_strNumber2(sum_pricestd, $P{LANGUAGE}) from zssi_getinvoicelinecombinedsums(c_invoiceline.c_invoice_id, c_invoiceline.line)) as sum_pricestd,
+       CASE WHEN c_invoiceline.isgrossprice='N' THEN (select zssi_strNumber(sum_linenetamt,$P{LANGUAGE}) from zssi_getinvoicelinecombinedsums(c_invoiceline.c_invoice_id, c_invoiceline.line)) 
+       else (select zssi_strNumber(sum_linegrossamt,$P{LANGUAGE}) from zssi_getinvoicelinecombinedsums(c_invoiceline.c_invoice_id, c_invoiceline.line)) end as sum_linenetamt,
+       (select isonlyone from zssi_getinvoicelinecombinedsums(c_invoiceline.c_invoice_id, c_invoiceline.line)) as isonlyone,
+       count(zsfi_discount.zsfi_discount_id) as discountcounter,
+       zspr_printinfo.printcashdiscountinfo
+
+from c_invoiceline left join C_TAX on c_invoiceline.c_tax_id=c_tax.c_tax_id
+                   left join m_attributesetinstance on c_invoiceline.m_attributesetinstance_id=m_attributesetinstance.m_attributesetinstance_id
+                   left join m_product on c_invoiceline.m_product_id=m_product.m_product_id,
+     c_invoice     left join C_currency on c_invoice.c_currency_id=c_currency.c_currency_id
+                   left join zsfi_discount on c_invoice.c_paymentterm_id=zsfi_discount.c_paymentterm_id
+                   left join zspr_printinfo on c_invoice.ad_org_id=zspr_printinfo.ad_org_id
+
+where c_invoiceline.c_invoice_id=($P{C_INVOICE_ID})
+AND   c_invoiceline.c_invoice_id=c_invoice.c_invoice_id
+group by qtyinvoiced, C_INVOICELINE.isgrossprice, C_INVOICELINE.linegrossamt, C_INVOICELINE.LINENETAMT, priceactual, pricestd, taxtotal,
+numbertaxamt, "DESCRIPTION", c_invoiceline.line, TAX, C_CURRENCY.cursymbol, m_product.m_product_id, c_invoice.ad_org_id, c_invoice.c_bpartner_id,
+c_invoiceline.c_uom_id, c_invoice.totallines, grandtotal, attribute, zspr_printinfo.printcashdiscountinfo, c_invoiceline.c_invoiceline_id
+order by c_invoiceline.line]]>
+	</queryString>
+	<field name="qtyinvoiced" class="java.lang.String"/>
+	<field name="textposition" class="java.lang.String"/>
+	<field name="ispagebreak" class="java.lang.String"/>
+	<field name="linenetamt" class="java.lang.String"/>
+	<field name="numbernetamt" class="java.math.BigDecimal"/>
+	<field name="priceactual" class="java.lang.String"/>
+	<field name="pricestd" class="java.lang.String"/>
+	<field name="taxtotal" class="java.lang.String"/>
+	<field name="numbertaxamt" class="java.math.BigDecimal"/>
+	<field name="DESCRIPTION" class="java.lang.String"/>
+	<field name="line" class="java.math.BigDecimal"/>
+	<field name="tax" class="java.lang.String"/>
+	<field name="cursymbol" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="uomid" class="java.lang.String"/>
+	<field name="uom2" class="java.lang.String"/>
+	<field name="quantityorder" class="java.lang.String"/>
+	<field name="totallines" class="java.lang.String"/>
+	<field name="grandtotal" class="java.lang.String"/>
+	<field name="isgrossprice" class="java.lang.String"/>
+	<field name="attribute" class="java.lang.String"/>
+	<field name="isborderless" class="java.lang.String"/>
+	<field name="iscombined" class="java.lang.String"/>
+	<field name="ispricesuppressed" class="java.lang.String"/>
+	<field name="sum_priceactual" class="java.lang.String"/>
+	<field name="sum_pricestd" class="java.lang.String"/>
+	<field name="sum_linenetamt" class="java.lang.String"/>
+	<field name="isonlyone" class="java.lang.String"/>
+	<field name="discountcounter" class="java.lang.Long"/>
+	<field name="printcashdiscountinfo" class="java.lang.String"/>
+	<variable name="SUM_LINENETAMT" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{numbernetamt}]]></variableExpression>
+	</variable>
+	<variable name="SUM_LINETAXAMT" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{numbertaxamt}]]></variableExpression>
+	</variable>
+	<group name="Total" isStartNewPage="true">
+		<groupExpression><![CDATA[]]></groupExpression>
+		<groupHeader>
+			<band splitType="Stretch"/>
+		</groupHeader>
+		<groupFooter>
+			<band height="64" splitType="Stretch">
+				<staticText>
+					<reportElement key="staticText-5" x="250" y="0" width="183" height="16" uuid="713726f4-229a-4351-ab54-791af467b9ec"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None">
+						<font size="9"/>
+					</textElement>
+					<text><![CDATA[Positions Total:]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement key="textField-25" x="433" y="0" width="82" height="16" uuid="05de7dbd-a8b2-44e5-85dc-904b62923467"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.0" lineColor="#000000"/>
+						<topPen lineWidth="0.0" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineColor="#000000"/>
+						<bottomPen lineWidth="0.25" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="OpenZ Sans" size="8"/>
+						<paragraph rightIndent="4"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{totallines}+" "+$F{cursymbol}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="false">
+					<reportElement key="textField-26" x="501" y="0" width="14" height="16" uuid="3d69107c-2d66-4a63-8200-ec3089ed3207"/>
+					<box>
+						<pen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement key="line-4" x="0" y="0" width="515" height="1" uuid="b41eb693-1d67-4276-94d6-0e8485f99d9c"/>
+				</line>
+				<staticText>
+					<reportElement key="staticText-8" positionType="Float" x="250" y="32" width="183" height="16" uuid="23036d4f-4900-4dbe-a930-c3137ee8439a"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.0" lineStyle="Double" lineColor="#000000"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Double" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Double" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<text><![CDATA[Grand Total:]]></text>
+				</staticText>
+				<textField pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+					<reportElement key="textField-31" positionType="Float" x="433" y="32" width="82" height="16" uuid="f0fa3858-45fa-4f1a-9141-c14579c340ff"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.0" lineStyle="Double"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Double"/>
+						<bottomPen lineWidth="1.0" lineStyle="Double" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Double" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+						<paragraph rightIndent="4"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{grandtotal}+" "+$F{cursymbol}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="false">
+					<reportElement key="textField-32" positionType="Float" x="501" y="32" width="14" height="16" uuid="75056af9-eac1-48df-8c51-742acc4ff408"/>
+					<box leftPadding="2">
+						<pen lineWidth="0.0" lineStyle="Double" lineColor="#000000"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Double" lineColor="#000000"/>
+						<bottomPen lineWidth="1.0" lineStyle="Double" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<subreport isUsingCache="true">
+					<reportElement key="subreport-1" positionType="Float" x="0" y="16" width="515" height="16" uuid="8751814f-2395-4bf1-ad47-ace8c1523249"/>
+					<subreportParameter name="DOCUMENT_ID">
+						<subreportParameterExpression><![CDATA[$P{C_INVOICE_ID}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="NUMBERFORMAT">
+						<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LOCALE">
+						<subreportParameterExpression><![CDATA[$P{LOCALE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LANGUAGE">
+						<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="BASE_DESIGN">
+						<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LANGUAGE2">
+						<subreportParameterExpression><![CDATA[$P{LANGUAGE2}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[/*"C:/Users/Frank/Documents/OBproject/Reports/RptStd_TaxLines.jasper"*/
+						$P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/RptStd_TaxLines.jasper"]]></subreportExpression>
+				</subreport>
+				<subreport isUsingCache="true">
+					<reportElement key="subreport-2" positionType="Float" x="0" y="48" width="515" height="16" isRemoveLineWhenBlank="true" uuid="e5d61ead-56dc-43ac-a7f6-bbf0f6c251e7">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{discountcounter}.intValue()!=0 && $F{printcashdiscountinfo}.equals("Y") && $P{PAYMENTTERMDETAIL}.equals("N"))]]></printWhenExpression>
+					</reportElement>
+					<subreportParameter name="DOCUMENT_ID">
+						<subreportParameterExpression><![CDATA[$P{C_INVOICE_ID}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="NUMBERFORMAT">
+						<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LOCALE">
+						<subreportParameterExpression><![CDATA[$P{LOCALE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LANGUAGE">
+						<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="BASE_DESIGN">
+						<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LANGUAGE2">
+						<subreportParameterExpression><![CDATA[$P{LANGUAGE2}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[/*"C:/Users/Frank/Documents/OBproject/Reports/RptStd_TaxLines.jasper"*/
+$P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/RptStd_DiscountLines.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="16" splitType="Stretch">
+			<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField-27" x="433" y="0" width="82" height="16" uuid="c35abd2b-845c-4f33-8b50-f87bc25ff9e4">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{LANGUAGE}.equals("en_US")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue()).replace(",", "x").replace(".", ",").replace("x", "."):$P{LANGUAGE}.equals("de_DE")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue())+" "+$F{cursymbol}:$V{SUM_LINENETAMT}+" "+$F{cursymbol}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-28" x="501" y="0" width="14" height="16" uuid="b4a68fd3-5ef0-4926-b43c-765a0fbef3a0">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-9" x="427" y="0" width="6" height="16" uuid="aa18b01e-dcb0-43be-bd60-c229896a7ac5">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-18" x="293" y="0" width="124" height="16" uuid="a21681f5-d9af-46e2-919b-bf8bb12452f3"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Transfer Page]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-46" x="417" y="0" width="10" height="16" uuid="225164c4-86a0-489f-824a-56ce7acee4ad"/>
+				<box leftPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.lang.Integer($V{PAGE_NUMBER}.intValue() + $P{START_PAGE_SUBREP}.intValue() - 2)]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<staticText>
+				<reportElement key="staticText-10" style="Column_Header" mode="Opaque" x="27" y="0" width="50" height="20" forecolor="#FFFFFF" backcolor="#666666" uuid="c0b2de49-8512-4641-b636-892676881e2f">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#FF0000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Quantity Ord-Qty]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-11" style="Column_Header" x="77" y="0" width="35" height="20" forecolor="#FFFFFF" uuid="443fa364-b604-45f1-94d0-184b177e9c2a">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#FF0000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Unit Ord-Unit]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-12" style="Column_Header" mode="Opaque" x="112" y="0" width="249" height="20" forecolor="#FFFFFF" uuid="6b5ae691-6760-4ecf-8b27-78632bbfcae0">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#FF0000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Product]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-13" style="Column_Header" x="424" y="0" width="28" height="20" forecolor="#FFFFFF" uuid="1a823201-0e05-42ae-8989-5953d07e2f26">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#FF0000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Tax]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-14" style="Column_Header" x="452" y="0" width="63" height="20" forecolor="#FFFFFF" uuid="3fbc8bac-1c6b-448a-b10f-a61b3c91dd16">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isgrossprice}.matches("N"))]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#FF0000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Net-Total]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-16" style="Column_Header" x="361" y="0" width="63" height="20" forecolor="#FFFFFF" uuid="92a7e538-3508-4568-860c-4d5bbf070f42">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#FF0000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Price]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-17" style="Column_Header" mode="Opaque" x="0" y="0" width="27" height="20" forecolor="#FFFFFF" backcolor="#666666" uuid="5aef9bd8-763f-4305-b969-fc3976b651ae">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#FF0000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Pos.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-19" style="Column_Header" x="452" y="0" width="63" height="20" forecolor="#FFFFFF" uuid="fc9c00ec-101a-430b-b91a-a2478dbf98a3">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{isgrossprice}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.0" lineColor="#FF0000"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#FF0000"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF0000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+				</textElement>
+				<text><![CDATA[Gross-Total]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="11" splitType="Stretch">
+			<printWhenExpression><![CDATA[new java.lang.Boolean($F{textposition} != null)]]></printWhenExpression>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="0" y="0" width="515" height="11" uuid="3b892ef8-b77f-4bb9-8c8b-e0fe451f5a51"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" markup="html">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{textposition}==null ? "" : $F{textposition}+"<br/>")]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="18">
+			<frame>
+				<reportElement key="Border" x="0" y="0" width="515" height="18" uuid="d9644961-c0c9-4bca-8747-735fc034cd64">
+					<printWhenExpression><![CDATA[$F{isborderless}.equals('N')]]></printWhenExpression>
+				</reportElement>
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+					<reportElement key="textField-34" stretchType="RelativeToTallestObject" x="112" y="0" width="249" height="18" forecolor="#000000" uuid="c9596e33-8dd1-455c-8349-4cf7f4b8d65a"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{name}+ (($F{DESCRIPTION} == null) ? "" : $F{DESCRIPTION})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+					<reportElement key="textField-35" stretchType="RelativeToTallestObject" x="507" y="0" width="8" height="18" uuid="c4104d1d-34ff-4be9-b15d-79341c97800f"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-37" stretchType="RelativeToTallestObject" x="361" y="0" width="63" height="18" uuid="ceab3b49-91ee-4dd2-bcd5-9f591ce99a31"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
+						<font size="8"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($F{quantityorder}==null?$F{priceactual}+" "+$F{cursymbol}:"<br/>"+ $F{priceactual}+" "+$F{cursymbol}))]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-38" stretchType="RelativeToTallestObject" x="416" y="0" width="8" height="18" uuid="e5f7d054-39ff-4a77-aaba-1a4f2fae129f"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement key="textField-39" stretchType="RelativeToTallestObject" x="27" y="0" width="50" height="18" uuid="1106c4d7-ef47-400d-aaf2-fe763e6d0fbd"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
+						<font size="8"/>
+						<paragraph rightIndent="0"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{qtyinvoiced}+ (($F{quantityorder}==null?"":"<br/>"+ $F{quantityorder}))]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-40" stretchType="RelativeToTallestObject" x="77" y="0" width="35" height="18" uuid="b6bb84e7-4f4c-430d-9dfc-75dd9fd68b1d"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{uomid}+ (($F{uom2}==null?"":"<br/>"+ $F{uom2}))]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-41" stretchType="RelativeToTallestObject" x="424" y="0" width="28" height="18" uuid="c1d8314a-a822-46df-94f7-735c3b83a5e8"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{tax}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-42" stretchType="RelativeToTallestObject" x="452" y="0" width="63" height="18" uuid="5796474d-3761-4fc1-950b-3a4f31bba394"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
+						<font size="8"/>
+						<paragraph rightIndent="3"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($F{quantityorder}==null?$F{linenetamt}+" "+$F{cursymbol}:"<br/>"+ $F{linenetamt}+" "+$F{cursymbol}))]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
+					<reportElement key="textField-45" stretchType="RelativeToTallestObject" x="0" y="0" width="27" height="18" uuid="b09774ba-4208-4425-a6e9-3bc939e22470"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{line}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+					<reportElement key="textField-34" stretchType="RelativeToTallestObject" x="112" y="0" width="249" height="18" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="c9596e33-8dd1-455c-8349-4cf7f4b8d65a"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-35" stretchType="RelativeToTallestObject" x="507" y="0" width="8" height="18" isPrintWhenDetailOverflows="true" uuid="c4104d1d-34ff-4be9-b15d-79341c97800f"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-37" stretchType="RelativeToTallestObject" x="361" y="0" width="63" height="18" isPrintWhenDetailOverflows="true" uuid="ceab3b49-91ee-4dd2-bcd5-9f591ce99a31"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-38" stretchType="RelativeToTallestObject" x="416" y="0" width="8" height="18" isPrintWhenDetailOverflows="true" uuid="e5f7d054-39ff-4a77-aaba-1a4f2fae129f"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement key="textField-39" stretchType="RelativeToTallestObject" x="27" y="0" width="50" height="18" isPrintWhenDetailOverflows="true" uuid="1106c4d7-ef47-400d-aaf2-fe763e6d0fbd"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="0"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-40" stretchType="RelativeToTallestObject" x="77" y="0" width="35" height="18" isPrintWhenDetailOverflows="true" uuid="b6bb84e7-4f4c-430d-9dfc-75dd9fd68b1d"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-41" stretchType="RelativeToTallestObject" x="424" y="0" width="28" height="18" isPrintWhenDetailOverflows="true" uuid="c1d8314a-a822-46df-94f7-735c3b83a5e8"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-42" stretchType="RelativeToTallestObject" x="452" y="0" width="63" height="18" isPrintWhenDetailOverflows="true" uuid="5796474d-3761-4fc1-950b-3a4f31bba394"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="3"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
+					<reportElement key="textField-45" stretchType="RelativeToTallestObject" x="0" y="0" width="27" height="18" isPrintWhenDetailOverflows="true" uuid="b09774ba-4208-4425-a6e9-3bc939e22470"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<break>
+					<reportElement x="0" y="0" width="100" height="1" uuid="d0ca5d90-5e7d-4054-a121-7f155081a073">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{ispagebreak}.equals("Y"))]]></printWhenExpression>
+					</reportElement>
+				</break>
+			</frame>
+			<frame>
+				<reportElement key="Border" x="0" y="0" width="515" height="18" uuid="0ffff6db-ddbe-4095-90ca-abedf16a35ce">
+					<printWhenExpression><![CDATA[$F{isborderless}.equals('Y')]]></printWhenExpression>
+				</reportElement>
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+					<reportElement key="textField-34" stretchType="RelativeToTallestObject" x="112" y="0" width="249" height="18" forecolor="#000000" uuid="2ff92640-b7ca-4a1c-9070-402b52ec0e57"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{name}+ (($F{DESCRIPTION} == null) ? "" : $F{DESCRIPTION})]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+					<reportElement key="textField-35" stretchType="RelativeToTallestObject" x="507" y="0" width="8" height="18" uuid="dca84ae5-bef6-4f19-8b79-b162f9690d76"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-37" stretchType="RelativeToTallestObject" x="361" y="0" width="63" height="18" uuid="69111f30-79db-4643-b296-0905dc57f9bb"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-38" stretchType="RelativeToTallestObject" x="416" y="0" width="8" height="18" uuid="9f662799-352d-4a7f-97aa-f1e96fc26008"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement key="textField-39" stretchType="RelativeToTallestObject" x="27" y="0" width="50" height="18" uuid="afa280ad-aa1c-47ae-907b-a12fbf6f5ada"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
+						<font size="8"/>
+						<paragraph rightIndent="0"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{qtyinvoiced}+ (($F{quantityorder}==null?"":"<br/>"+ $F{quantityorder}))]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-40" stretchType="RelativeToTallestObject" x="77" y="0" width="35" height="18" uuid="6387da0f-3f14-4d00-b295-26ca0be65b79"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{uomid}+ (($F{uom2}==null?"":"<br/>"+ $F{uom2}))]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-41" stretchType="RelativeToTallestObject" x="424" y="0" width="28" height="18" uuid="2399c226-47b4-41df-8068-4a752ad76978"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-42" stretchType="RelativeToTallestObject" x="452" y="0" width="63" height="18" uuid="0d7cff41-7265-4894-a14b-dd77828f5af8"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="3"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
+					<reportElement key="textField-45" stretchType="RelativeToTallestObject" x="0" y="0" width="27" height="18" uuid="cb034564-457e-475d-9209-3f677bb952ed"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{line}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+					<reportElement key="textField-34" stretchType="RelativeToTallestObject" x="112" y="0" width="249" height="18" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="2ff92640-b7ca-4a1c-9070-402b52ec0e57"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-35" stretchType="RelativeToTallestObject" x="507" y="0" width="8" height="18" isPrintWhenDetailOverflows="true" uuid="dca84ae5-bef6-4f19-8b79-b162f9690d76"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-37" stretchType="RelativeToTallestObject" x="361" y="0" width="63" height="18" isPrintWhenDetailOverflows="true" uuid="69111f30-79db-4643-b296-0905dc57f9bb"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-38" stretchType="RelativeToTallestObject" x="416" y="0" width="8" height="18" isPrintWhenDetailOverflows="true" uuid="9f662799-352d-4a7f-97aa-f1e96fc26008"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement key="textField-39" stretchType="RelativeToTallestObject" x="27" y="0" width="50" height="18" isPrintWhenDetailOverflows="true" uuid="afa280ad-aa1c-47ae-907b-a12fbf6f5ada"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="0"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-40" stretchType="RelativeToTallestObject" x="77" y="0" width="35" height="18" isPrintWhenDetailOverflows="true" uuid="6387da0f-3f14-4d00-b295-26ca0be65b79"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-41" stretchType="RelativeToTallestObject" x="424" y="0" width="28" height="18" isPrintWhenDetailOverflows="true" uuid="2399c226-47b4-41df-8068-4a752ad76978"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-42" stretchType="RelativeToTallestObject" x="452" y="0" width="63" height="18" isPrintWhenDetailOverflows="true" uuid="0d7cff41-7265-4894-a14b-dd77828f5af8"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="3"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
+					<reportElement key="textField-45" stretchType="RelativeToTallestObject" x="0" y="0" width="27" height="18" isPrintWhenDetailOverflows="true" uuid="cb034564-457e-475d-9209-3f677bb952ed"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<break>
+					<reportElement x="0" y="0" width="100" height="1" uuid="c0d86412-cc48-4c31-903c-429519341436">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{ispagebreak}.equals("Y"))]]></printWhenExpression>
+					</reportElement>
+				</break>
+			</frame>
+			<frame>
+				<reportElement x="0" y="0" width="515" height="18" uuid="70bd37ed-5b72-4086-857d-e9884e438e7e">
+					<printWhenExpression><![CDATA[$F{iscombined}.equals('Y')]]></printWhenExpression>
+				</reportElement>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+					<reportElement key="textField-35" stretchType="RelativeToTallestObject" x="507" y="0" width="8" height="18" uuid="bd72f9e8-d7be-460d-9d7d-0bba61c77ad1"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-37" stretchType="RelativeToTallestObject" x="361" y="0" width="63" height="18" uuid="338543c9-5b5c-4f4a-a1c8-567de6a25da7"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-41" stretchType="RelativeToTallestObject" x="424" y="0" width="28" height="18" uuid="bae73a5b-6ef2-4b8c-b505-8c5ee8eaf166"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{tax}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-42" stretchType="RelativeToTallestObject" x="452" y="0" width="63" height="18" uuid="73841476-d908-4b62-b493-f0a12f7cf554"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
+						<font size="8"/>
+						<paragraph rightIndent="3"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($F{quantityorder}==null?$F{sum_linenetamt}+" "+$F{cursymbol}:"<br/>"+ $F{sum_linenetamt}+" "+$F{cursymbol}))]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-38" stretchType="RelativeToTallestObject" x="416" y="0" width="8" height="18" uuid="aa17dcdb-0e64-45a6-9482-de6f496065e7"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+					<reportElement key="textField-34" stretchType="RelativeToTallestObject" x="112" y="0" width="249" height="18" forecolor="#000000" uuid="1c8bfeaf-4731-4f23-8889-d12f5c2fe383"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement key="textField-39" stretchType="RelativeToTallestObject" x="27" y="0" width="50" height="18" uuid="d5dd13e7-697e-4438-8d9a-c0528d66fc62"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="0"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-40" stretchType="RelativeToTallestObject" x="77" y="0" width="35" height="18" uuid="9f567c63-ae82-454e-aed9-f86fad9c7456"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
+					<reportElement key="textField-45" stretchType="RelativeToTallestObject" x="0" y="0" width="27" height="18" uuid="0cfcbb75-a023-4b5f-8872-f56ca9e38b7c"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-35" stretchType="RelativeToTallestObject" x="507" y="0" width="8" height="18" isPrintWhenDetailOverflows="true" uuid="bd72f9e8-d7be-460d-9d7d-0bba61c77ad1"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-37" stretchType="RelativeToTallestObject" x="361" y="0" width="63" height="18" isPrintWhenDetailOverflows="true" uuid="338543c9-5b5c-4f4a-a1c8-567de6a25da7"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-41" stretchType="RelativeToTallestObject" x="424" y="0" width="28" height="18" isPrintWhenDetailOverflows="true" uuid="bae73a5b-6ef2-4b8c-b505-8c5ee8eaf166"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-42" stretchType="RelativeToTallestObject" x="452" y="0" width="63" height="18" isPrintWhenDetailOverflows="true" uuid="73841476-d908-4b62-b493-f0a12f7cf554"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="3"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-38" stretchType="RelativeToTallestObject" x="416" y="0" width="8" height="18" isPrintWhenDetailOverflows="true" uuid="aa17dcdb-0e64-45a6-9482-de6f496065e7"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+					<reportElement key="textField-34" stretchType="RelativeToTallestObject" x="112" y="0" width="249" height="18" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="1c8bfeaf-4731-4f23-8889-d12f5c2fe383"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement key="textField-39" stretchType="RelativeToTallestObject" x="27" y="0" width="50" height="18" isPrintWhenDetailOverflows="true" uuid="d5dd13e7-697e-4438-8d9a-c0528d66fc62"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="0"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-40" stretchType="RelativeToTallestObject" x="77" y="0" width="35" height="18" isPrintWhenDetailOverflows="true" uuid="9f567c63-ae82-454e-aed9-f86fad9c7456"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
+					<reportElement key="textField-45" stretchType="RelativeToTallestObject" x="0" y="0" width="27" height="18" isPrintWhenDetailOverflows="true" uuid="0cfcbb75-a023-4b5f-8872-f56ca9e38b7c"/>
+					<box leftPadding="2" bottomPadding="0" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<break>
+					<reportElement x="0" y="0" width="100" height="1" uuid="aaf601a9-ba8a-4bbb-a93d-720a63bbb64a">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{ispagebreak}.equals("Y"))]]></printWhenExpression>
+					</reportElement>
+				</break>
+			</frame>
+			<frame>
+				<reportElement key="Border" x="0" y="0" width="515" height="18" uuid="12a59786-bdb3-4784-b085-81e6bffe6806">
+					<printWhenExpression><![CDATA[$F{isonlyone}.equals('Y')]]></printWhenExpression>
+				</reportElement>
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+					<reportElement key="textField-34" stretchType="RelativeToTallestObject" x="112" y="0" width="249" height="18" forecolor="#000000" uuid="b2311bab-2b16-49cc-a33e-a6f5b09c8261"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+					<reportElement key="textField-35" stretchType="RelativeToTallestObject" x="507" y="0" width="8" height="18" uuid="2924b641-6b7b-4cc2-bbfa-6f8f4992b18f"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-37" stretchType="RelativeToTallestObject" x="361" y="0" width="63" height="18" uuid="28a139d2-2e88-4c7d-9ddc-9fd5bd4832c3"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-38" stretchType="RelativeToTallestObject" x="416" y="0" width="8" height="18" uuid="0a02236e-9e9b-47fd-b4a8-466b9a933009"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement key="textField-39" stretchType="RelativeToTallestObject" x="27" y="0" width="50" height="18" uuid="3e7dcf26-5971-4903-b77e-e249e2010d0f"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="0"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-40" stretchType="RelativeToTallestObject" x="77" y="0" width="35" height="18" uuid="9297dfc1-daaa-43cf-b9dc-6e5033ac2999"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-41" stretchType="RelativeToTallestObject" x="424" y="0" width="28" height="18" uuid="253b4d21-2335-44dc-848c-005dd0366120"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-42" stretchType="RelativeToTallestObject" x="452" y="0" width="63" height="18" uuid="10e68916-d70b-47cc-986a-960fe659740c"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="3"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
+					<reportElement key="textField-45" stretchType="RelativeToTallestObject" x="0" y="0" width="27" height="18" uuid="223b9813-0fde-460e-a786-dfad7f18a587"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+					<reportElement key="textField-34" stretchType="RelativeToTallestObject" x="112" y="0" width="249" height="18" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="b2311bab-2b16-49cc-a33e-a6f5b09c8261"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-35" stretchType="RelativeToTallestObject" x="507" y="0" width="8" height="18" isPrintWhenDetailOverflows="true" uuid="2924b641-6b7b-4cc2-bbfa-6f8f4992b18f"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-37" stretchType="RelativeToTallestObject" x="361" y="0" width="63" height="18" isPrintWhenDetailOverflows="true" uuid="28a139d2-2e88-4c7d-9ddc-9fd5bd4832c3"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-38" stretchType="RelativeToTallestObject" x="416" y="0" width="8" height="18" isPrintWhenDetailOverflows="true" uuid="0a02236e-9e9b-47fd-b4a8-466b9a933009"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement key="textField-39" stretchType="RelativeToTallestObject" x="27" y="0" width="50" height="18" isPrintWhenDetailOverflows="true" uuid="3e7dcf26-5971-4903-b77e-e249e2010d0f"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="0"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-40" stretchType="RelativeToTallestObject" x="77" y="0" width="35" height="18" isPrintWhenDetailOverflows="true" uuid="9297dfc1-daaa-43cf-b9dc-6e5033ac2999"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-41" stretchType="RelativeToTallestObject" x="424" y="0" width="28" height="18" isPrintWhenDetailOverflows="true" uuid="253b4d21-2335-44dc-848c-005dd0366120"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-42" stretchType="RelativeToTallestObject" x="452" y="0" width="63" height="18" isPrintWhenDetailOverflows="true" uuid="10e68916-d70b-47cc-986a-960fe659740c"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8"/>
+						<paragraph rightIndent="3"/>
+					</textElement>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
+					<reportElement key="textField-45" stretchType="RelativeToTallestObject" x="0" y="0" width="27" height="18" isPrintWhenDetailOverflows="true" uuid="223b9813-0fde-460e-a786-dfad7f18a587"/>
+					<box leftPadding="2" rightPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font size="8"/>
+					</textElement>
+				</textField>
+				<break>
+					<reportElement x="0" y="0" width="100" height="1" uuid="ccf1ef6c-535c-45ec-b657-2ecf4382b1e8">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{ispagebreak}.equals("Y"))]]></printWhenExpression>
+					</reportElement>
+				</break>
+			</frame>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="16" splitType="Stretch">
+			<line>
+				<reportElement key="line-1" x="0" y="0" width="515" height="1" uuid="22956594-259d-44f9-be40-9faf2578d682"/>
+			</line>
+			<staticText>
+				<reportElement key="staticText-1" x="293" y="0" width="140" height="16" uuid="44fc5ff2-7639-4676-ab2e-3ed78cda5ce1"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Transfer:]]></text>
+			</staticText>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField-8" x="433" y="0" width="82" height="16" uuid="6c1e5134-b507-4a4b-8c8b-11019e60239b"/>
+				<box leftPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{LANGUAGE}.equals("en_US")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue()).replace(",", "x").replace(".", ",").replace("x", "."):$P{LANGUAGE}.equals("de_DE")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue())+" "+$F{cursymbol}:$V{SUM_LINENETAMT}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-9" x="501" y="0" width="14" height="16" uuid="4ccab472-e796-419b-b299-1e8d29921fe8"/>
+				<box>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="1" splitType="Stretch"/>
+	</lastPageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

@@ -1,0 +1,200 @@
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+
+<SqlClass name="ProductData" package="org.zsoft.ecommerce.product" accessModifier="public">
+    <SqlMethod name="select" type="preparedStatement" return="multiple">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+        
+              <![CDATA[select p.ad_client_id,p.m_product_ID,p.AD_ORG_ID, p.updated as LASTUPDATED, value,
+                    name,upc as eancode,p.description,documentnote,
+                    (select value from m_product_category where m_product_category.m_product_category_id=p.m_product_category_id) as product_category_key,
+                    (select name from c_uom where c_uom.c_uom_id=p.c_uom_id) as uom_key,isfreightproduct,
+                    s.eccategory,s.isorderable,coalesce(s.ecpriority,0) as ecpriority,
+                    coalesce(weight,0) as weight,imageurl,descriptionurl,
+                    (select  name from c_tax where c_tax_id=zsfi_gettax(null,p.m_product_ID,?)) as taxname,
+                    (select  rate from c_tax where c_tax_id=zsfi_gettax(null,p.m_product_ID,?)) as taxrate,
+                    '' as curronhandqty, '' as nextdeliveryqty, '' as nextdeliverydate,
+                    coalesce((SELECT istaxincluded  FROM M_PRICELIST    WHERE ISDEFAULT = 'Y'  AND AD_ORG_ID in ('0', ?) and issopricelist='Y' AND ISACTIVE = 'Y'),'N') as isgrossprice
+                    from m_product p,zse_product_shop s
+                    where p.m_product_id=s.m_product_id and p.isactive='Y' and s.isactive='Y' and
+                    p.ad_org_id in ('0',?)              
+              ]]>
+         </Sql>
+        <Parameter name="adOrgId"/>
+        <Parameter name="adOrgId"/>
+        <Parameter name="adOrgId"/>
+        <Parameter name="adOrgId"/>
+    </SqlMethod>
+    <SqlMethod name="getStockQty" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+          <Sql>
+                SELECT coalesce(to_char(sum(coalesce(qtyonhand,0)-coalesce(qtyreserved,0))),'0') as qtyavail from zssi_onhanqty
+                where m_product_id= ? and ad_org_id in ('0',?) and
+                m_warehouse_id in (select m_warehouse_id from zse_warehouse_shop)
+          </Sql>
+          <Parameter name="mProductId"/>
+          <Parameter name="adOrgId"/>
+    </SqlMethod>
+     <SqlMethod name="getQuantities" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+          <Sql>
+                SELECT coalesce(to_char(sum(coalesce(qtyonhand,0)-coalesce(qtyreserved,0))),'0') as curronhandqty,
+                zssi_get_nextdeliverydate(?,?,m_warehouse_id) as nextdeliverydate,
+                coalesce(zssi_get_nextdeliveryqty(?,?,m_warehouse_id),0) as nextdeliveryqty
+                from zssi_onhanqty
+                where m_product_id= ? and ad_org_id in ('0',?) and
+                m_warehouse_id in (select m_warehouse_id from zse_warehouse_shop where ad_org_id in ('0',?) )
+                group by zssi_onhanqty.m_warehouse_id
+          </Sql>
+          <Parameter name="mProductId"/>
+          <Parameter name="adOrgId"/>
+          <Parameter name="mProductId"/>
+          <Parameter name="adOrgId"/>
+          <Parameter name="mProductId"/>
+          <Parameter name="adOrgId"/>
+          <Parameter name="adOrgId"/>
+    </SqlMethod>
+    
+    <SqlMethod name="getProductPrice" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+          <Sql>
+                SELECT zsco_prod_offerpricestdplist(?, ?, ?,?)                
+          </Sql>
+          <Parameter name="adOrgd"/>
+          <Parameter name="cBpaernerId"/>
+          <Parameter name="mProductId"/>
+          <Parameter name="quantity"/>
+    </SqlMethod>
+            <SqlMethod name="isExstingCategory" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+          <Sql>
+                select m_product_category_id from m_product where name=? 
+          </Sql>
+          <Parameter name="Name"/>
+    </SqlMethod>
+         <SqlMethod name="insertProductCategory"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+          <Sql>
+                insert into m_product   (ad_client_id,updated,created,updatedby,createdby,isactive,ad_org_id,
+                                        m_product_id,value,name, description) 
+                                        Values(?,now(),now(),?,?,'Y',?,?,?,?)
+          </Sql>
+          <Parameter name="adClientId"/>
+          <Parameter name="User"/>
+          <Parameter name="User"/>
+          <Parameter name="orgId"/>        
+          <Parameter name="Value"/>
+          <Parameter name="Name"/>
+          <Parameter name="description"/>    
+    </SqlMethod>
+        <SqlMethod name="isExstingProduct" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+          <Sql>
+                select m_product_id from m_product where value=? 
+          </Sql>
+          <Parameter name="Value"/>
+    </SqlMethod>
+
+ <SqlMethod name="insertProduct"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+          <Sql>
+                insert into m_product   (ad_client_id,updated,created,updatedby,createdby,isactive,ad_org_id,
+                                        m_product_id,value,name, shelfwidth,shelfheight,weight,description,documentnote,m_product_category_id,typeofproduct,producttype) 
+                                        Values(?,now(),now(),?,'Y',?,?,get_uuid(),?,?,to_number(?),to_number(?),to_number(?),?,?,(select m_product_category_id from m_product_category where name like=?),'ST','I')
+          </Sql>
+          <Parameter name="adClientId"/>
+          <Parameter name="User"/>
+          <Parameter name="User"/>
+          <Parameter name="orgId"/>        
+          <Parameter name="Value"/>
+          <Parameter name="Name"/>
+          <Parameter name="width"/>
+          <Parameter name="height"/>
+          <Parameter name="weight"/>
+          <Parameter name="description"/>
+          <Parameter name="documentnote"/>        
+          <Parameter name="category"/>    
+    </SqlMethod>
+    
+     <SqlMethod name="updateProduct"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+          <Sql>
+                update m_product   set(shelfwidth=?,shelfheight=?,weight=?,description=?,documentnote=?) where m_product_id=? 
+                                        
+          </Sql>
+          <Parameter name="width"/>
+          <Parameter name="height"/>
+          <Parameter name="weight"/>
+          <Parameter name="description"/>
+          <Parameter name="documentnote"/>   
+          <Parameter name="ProductId"/>        
+    </SqlMethod>
+    
+         <SqlMethod name="insertPPurchase"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+          <Sql>
+                insert into m_product_po   (ad_client_id,updated,created,updatedby,createdby,isactive,ad_org_id,
+                                            c_bpartner_id,pricelist,pricepo,c_currency_id,m_product_id) 
+                                        Values(?,now(),now(),?,'Y',?,?,(select c_bpartner_id from zse_ecommercegrant where zse_shop_id=?),to_number(?).to_number(?),(select c_currency_id from c_currency where isocode=?),?) 
+          </Sql>
+          <Parameter name="adClientId"/>
+          <Parameter name="User"/>
+          <Parameter name="User"/>
+          <Parameter name="orgId"/>
+          <Parameter name="cBPartnerId"/>
+          <Parameter name="Pricelist"/>
+          <Parameter name="PricePO"/>
+          <Parameter name="Currency"/>          
+          <Parameter name="ProductId"/>
+       
+    </SqlMethod>
+             <SqlMethod name="updatePPurchase"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+          <Sql>
+                update m_product_po  set (pricelist=to_number(?),pricepo=to_number(?)) where m_product_id=?
+                                        
+          </Sql>
+          <Parameter name="Pricelist"/>
+          <Parameter name="PricePO"/>         
+          <Parameter name="ProductId"/>
+       
+    </SqlMethod>
+    <SqlMethod name="updateSPrice"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+          <Sql>
+                update m_productprice   set (pricelist=to_number(?),pricestd=to_number(?)) where m_product_id=?
+                                        
+          </Sql>        
+          <Parameter name="pricelist"/>
+          <Parameter name="pricestd"/>
+          <Parameter name="ProductId"/>
+    </SqlMethod>
+        <SqlMethod name="insertSPrice"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+          <Sql>
+                insert into m_productprice (ad_client_id,updated,created,updatedby,createdby,isactive,ad_org_id,
+                                            m_pricelist_version_id,pricelist,pricepo,c_currency_id,m_product_id) 
+                                        Values(?,now(),now(),?,'Y',?,?,(select m_pricelist_version_id from m_pricelist_version plv, m_pricelist pl where plv.m_pricelist_id=pl.m_pricelist_id and pl.issopricelist='Y' and pl.istaxincluded='Y' and plv.isactive='Y' and c_currency_id=(select c_currency_id from c_currency where iso_code=?),to_number(?),to_number(?),?,?)
+          </Sql>        
+          <Parameter name="adClientId"/>
+          <Parameter name="User"/>
+          <Parameter name="User"/>
+          <Parameter name="orgId"/>
+          <Parameter name="CurrencyId"/>
+          <Parameter name="pricelist"/>
+          <Parameter name="pricestd"/>
+          <Parameter name="CurrencyId"/>
+          <Parameter name="ProductId"/>
+    </SqlMethod>
+</SqlClass>

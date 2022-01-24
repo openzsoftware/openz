@@ -1,0 +1,437 @@
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2009 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Expenses invoice</title>
+<link rel="shortcut icon" href="../../../../../web/images/favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" type="text/css" href="../../../../../web/skins/Default/Openbravo_ERP_250.css" id="paramCSS"/>
+<script language="JavaScript" src="../../../../../web/js/messages.js" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/shortcuts.js" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/utils.js" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/windowKeyboard.js" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/searchs.js" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/jscalendar/calendar.js" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/multilinea.js" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/ajax.js" type="text/javascript"></script>
+<script language="JavaScript" src="../utility/DynamicJS.js" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/ajax.js" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/default/MessageBox.js" type="text/javascript"></script>
+<script language="JavaScript" type="text/javascript" id="paramDirectory">var baseDirectory = "../../../../../web/";</script>
+<script language="JavaScript" type="text/javascript" id="paramLanguage">	defaultLang = "en_US";</script>
+<script language="javascript" type="text/javascript">
+
+  function enableLocalShortcuts() {
+    keyArray[0] = new keyArrayItem("ENTER", "openProductSearch(true);", "inpmProductId_D%", "null");
+  }
+</script>
+<script language="JavaScript" type="text/javascript">
+  gColorNormal = "#F2EEEE";
+  frmFormulario = "InvoiceVendorMultiline_Lines.html";
+  gTargetFrame = "parent";
+  gHiddenFrame = "frameMultiOculto";
+  gBolEvtEnviarLinea = true;
+  gIsAutoInsertRows = true;
+  gBolEvtAntesDeActualizar = true;
+  hasAcctDimension = true;
+
+  function callback(paramXMLParticular, XMLHttpRequestObj) {
+    var strText = "";
+    if (getReadyStateHandler(XMLHttpRequestObj)) {
+      try {
+        if (XMLHttpRequestObj.responseText) strText = XMLHttpRequestObj.responseText;
+      } catch (e) {
+      }
+      var nd = buscarHijo(gFilaActual, "name", "inpcTaxId");
+      if (nd!=null) ponerTexto(nd, strText);
+      gBolBloqueado = false;
+    }
+    return true;
+  }
+
+function debugSearch(strClave, strTexto, gCampoClave) {
+  document.frmSecond.inpmProductId.value = strClave;
+  var nd = buscarHijo(gFilaActual, "id", "M_Product_ID_D");
+  if (nd != null) nd.onchange();
+  gBolBloqueado = true;
+  var paramXMLReq = null;
+  submitXmlHttpRequest(callback, document.frmSecond, "PRODUCT_CALLOUT", "InvoiceVendorMultiline_Lines.html", false, null, paramXMLReq);
+  return true;
+}
+
+function alEnviarLinea(fila, parametros, strAccion)
+{
+  if (strAccion=="DELETE") {
+    if (!showJSMessage(2)) return false;
+  } else {
+    var id = obtenerValor(parametros,"inpcInvoicelineId");
+    if (!validateNumber(obtenerValor(parametros,"inpqtyinvoiced"), true, true)) {
+      showJSMessage(4);
+      return false;
+    } else if (!validateNumber(obtenerValor(parametros,"inppriceactual"), true, true)) {
+      showJSMessage(4);
+      return false;
+    } else if (obtenerValor(parametros,"inpmProductId" + id)==null || obtenerValor(parametros,"inpmProductId" + id)=="") {
+      showJSMessage(1);
+      return false;
+    }
+  }
+  parametros[parametros.length] = new Array("inpcInvoiceId", document.forms[0].inpcInvoiceId.value);
+  return true;
+}
+
+function antesDeActualizar(respuesta, objFila) {
+  var strCommand = obtenerValor(respuesta, "Command");
+  if (strCommand=="ERROR") return true;
+  if(fila!=null) fila=null;
+  var isNew=false;
+  var claveLinea = obtenerValor(respuesta, "inpcInvoicelineIdNew");
+  var nd=buscarHijo(objFila, "name", "inpcInvoicelineId");
+  if (nd!=null) {
+    if (nd.value==null || nd.value=="") isNew = true;
+    ponerTexto(nd, claveLinea);
+  }
+  var numlinea = obtenerValor(respuesta, "inplineno");
+  nd = buscarHijo(objFila, "name", "LineNo");
+  if (nd!=null) ponerTexto(nd, numlinea);
+  var qty = obtenerValor(respuesta, "inpqtyinvoiced");
+  nd = buscarHijo(objFila, "name", "inpqtyinvoiced");
+  if (nd!=null) ponerTexto(nd, qty);
+  var price = obtenerValor(respuesta, "inppriceactual");
+  nd = buscarHijo(objFila, "name", "inppriceactual");
+  if (nd!=null) ponerTexto(nd, price);
+  var product;
+  if (isNew) {
+    product = obtenerValor(respuesta, "inpmProductId");
+    nd = buscarHijo(objFila, "id", "M_Product_ID");
+    if (nd!=null) {
+      ponerTexto(nd, product);
+      nd.name="inpmProductId" + claveLinea;
+    }
+    nd = buscarHijo(objFila, "id", "M_Product_ID_D");
+    if (nd!=null) {
+      nd.name="inpmProductId_D" + claveLinea;
+    }
+  } else {
+    product = obtenerValor(respuesta, "inpmProductId");
+    nd = buscarHijo(objFila, "id", "M_Product_ID");
+    if (nd!=null) ponerTexto(nd, product);
+  }
+  var tax = obtenerValor(respuesta, "inpcTaxId");
+  nd = buscarHijo(objFila, "name", "inpcTaxId");
+  if (nd!=null) ponerTexto(nd, tax);
+
+  if (isNew && hasAcctDimension) {
+    acctDimensionButton(claveLinea, qty);
+  }
+
+  return true;
+}
+
+function ejecutarRespuesta(respuesta, objFila)
+{
+  var strCommand = obtenerValor(respuesta, "Command");
+  if (strCommand != "SAVE_NEW") return true;
+  if(fila!=null) fila=null;
+  var ndFila = buscarHijo(gFilaActual, "name", "inpqtyinvoiced");
+  if (ndFila!=null) ponerTexto(ndFila, "0");
+  var ndFila = buscarHijo(gFilaActual, "name", "inppriceactual");
+  if (ndFila!=null) ponerTexto(ndFila, "1");
+  ndFila = buscarHijo(gFilaActual, "id", "M_Product_ID");
+  if (ndFila!=null) ndFila.name="inpmProductId";
+  ndFila = buscarHijo(gFilaActual, "id", "M_Product_ID_D");
+  if (ndFila!=null) ndFila.name="inpmProductId_D";
+  return true;
+}
+
+function openProductSearch(isKeySearch) {
+  var clave = "", productId="", productIdD="";
+  var ndFila = buscarHijo(gFilaActual, "name", "inpcInvoicelineId");
+  if (ndFila!=null) clave = ndFila.value;
+  ndFila = buscarHijo(gFilaActual, "id", "M_Product_ID");
+  if (ndFila!=null) productId = ndFila.value;
+  ndFila = buscarHijo(gFilaActual, "id", "M_Product_ID_D");
+  if (ndFila!=null) productIdD = ndFila.value;
+  return openSearch(null, null, '../info/Product.html', null, true, 'frmMain', 'inpmProductId' + clave, 'inpmProductId_D' + clave, productIdD, 'inpIDValue', productId, 'Command', (isKeySearch?'KEY':'DEFAULT'), 'WindowID', 'InvoiceVendorMultiline', 'isMultiLine', 'Y');
+}
+
+function openAcctDimension() {
+  var clave = "", qty = "0";
+  var ndFila = buscarHijo(gFilaActual, "name", "inpcInvoicelineId");
+  if (ndFila!=null) clave = ndFila.value;
+  var ndFila = buscarHijo(gFilaActual, "name", "inpqtyinvoiced");
+  if (ndFila!=null) qty = ndFila.value;
+  return acctDimensionButton(clave, qty);
+}
+
+function acctDimensionButton(cInvoicelineId, qty) {
+  if (!hasAcctDimension) return showJSMessage(3);
+  if (cInvoicelineId==null || cInvoicelineId=="") return false;
+  openPopUpDefaultSize("InvoiceVendorMultiline_Analitica.html?inpcInvoicelineId=" + cInvoicelineId + "&inpqtyinvoiced=" + qty, "ANALITICA", "300", "400", true, true);
+  return true;
+}
+</script>
+	<script language="JavaScript" type="text/javascript">
+	function onLoadDo(){
+		this.windowTables = new Array(
+		  new windowTableId('client')
+		);
+		setWindowTableParentElement();
+		this.tabsTables = new Array(
+		  new tabTableId('tdtopTabs')
+		);
+		setTabTableParentElement();
+		enableShortcuts('edition');
+		setBrowserAutoComplete(false);
+		
+		enableLocalShortcuts();
+
+		setWindowElementFocus('firstElement');
+	}
+
+	function onResizeDo(){
+	}
+	</script>
+</head>
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" onload="onLoadDo();" onresize="onResizeDo();">
+  <iframe name="frameMultiOculto" src="InvoiceVendorMultiline_Lines.html?Command=HIDDEN" width="0" height="0" style="visibility: hidden; overflow:hidden; display: none;"></iframe>
+  <form name="frmMain" method="post" action="InvoiceVendorMultiline_Lines.html">
+    <input type="hidden" name="Command"></input>
+    <input type="hidden" name="inpCommandType" value="" id="paramCommandType"></input> 
+    <input type="hidden" name="inpcInvoiceId" value="" id="C_Invoice_ID"></input> 
+    <table width="705" border="1" cellpadding="0" cellspacing="0"  summary="">
+      <div id="sectionDetail"> 
+        <tr name="Fila"> 
+          <input type="hidden" name="inpcInvoicelineId" value="" id="C_InvoiceLine_ID"></input>
+          <td class="ContentCell" valign="middle" width="4%"> <div style="position:relative; visibility: hidden;" name="Editable"> 
+              <img class="Popup_Client_Help_Icon_edit" src="../../../../../web/images/blank.gif" border="0"  alt="Editing" title="Editing"></img></div></td>
+          <td class="ContentCell" valign="middle" width="5%" name="LineNo" id="LineNo">10</td>
+          <td class="TextBox_btn_ContentCell" valign="middle" width="38%"> 
+            <input type="hidden" name="inpmProductIdxx" id="M_Product_ID" value="xxV"></input> 
+            <table border="0" cellspacing="0" cellpadding="0" summary="">
+              <tr> 
+                <td class="TextBox_ContentCell">
+                  <input type="text" size="40" class="dojoValidateValid TextBox_btn_TwoCell_width" maxlength="22" name="inpmProductId_Dxx" id="M_Product_ID_D" value="xxV" onchange="marcarFila(this);" onfocus="seleccionarFila(this);"></input>
+                </td>  
+                <td class="FieldButton_ContentCell">
+                  <a class="FieldButtonLink_hover" href="#" onfocus="setWindowElementFocus(this); window.status='Product'; return true;" onblur="window.status=''; return true;" onkeypress="this.className='FieldButtonLink_active'; return true;" onkeyup="this.className='FieldButtonLink_focus'; return true;" onclick="seleccionarFila(this);openProductSearch(false);return false;"id="M_Product_ID_BUTTON">
+                    <table class="FieldButton" onmousedown="this.className='FieldButton_active'; return true;" onmouseup="this.className='FieldButton'; return true;" onmouseover="this.className='FieldButton_hover'; window.status='Product'; return true;" onmouseout="this.className='FieldButton'; window.status=''; return true;" id="M_Product_IDlinkProduct">
+                      <tr>
+                        <td class="FieldButton_bg">
+                          <img style="width: 27px; height: 20px;" alt="Product" class="FieldButton_Icon FieldButton_Icon_Product" title="Product" src="../../../../../web/images/blank.gif" id="buttonProduct" border="0">
+                        </td>
+                      </tr>
+                    </table>
+                </a></td>
+              </tr>
+          </table></td>
+          <td class="TextBox_ContentCell" valign="middle" width="18%"> <input type="text" name="inppriceactual" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="1" id="PriceActual" ></input>
+          </td>
+          <td class="TextBox_ContentCell" valign="middle" width="18%"> <input type="text" name="inpqtyinvoiced" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="0" id="QtyInvoiced" ></input>
+          </td>
+          <td class="Combo_ContentCell" valign="middle" width="17%"> <select class"Combo" name="inpcTaxId" id="reportC_Tax_ID" onchange="marcarFila(this);" onfocus="seleccionarFila(this);">
+              <option value="1" class="discard">xxNormal 16%</option>
+              <option value="2" class="discard">xxReduced 7%</option>
+              <option value="2" class="discard">xxIVA 16% + recharge</option>
+          </select></td>
+          <td class="ContentCell" valign="middle"> <a href="#" onclick="seleccionarFila(this);openAcctDimension();return false;" onmouseout="window.status='';return true;" onmouseover="window.status='Acct Dimension';return true;" > 
+              <img class="FieldButton_Icon FieldButton_Icon_AccountDimension"  alt="Acct Dimension" title="Acct Dimension" width="16" height="16" border="0" src="../../../../../web/images/blank.gif" id="buttonAcctDimension"></img></a></td>
+        </tr>
+      </div>
+      <div id="discard"> 
+        <tr name="Fila"> 
+          <input type="hidden" name="inpcInvoicelineId" value="" id="C_Invoiceline_ID"></input>
+          <td valign="middle" width="4%"> <div style="position:relative; visibility: hidden;" name="Editable"> 
+              <img src="../../../../../web/images/Editando.jpg" border="0"  alt="Editing" title="Editing"></img></div></td>
+          <td valign="middle" width="5%">20</td>
+          <td valign="middle"> <input type="hidden" name="inpmProductIdxx" id="M_Product_ID" value="xxV" ></input> 
+            <table border="0" cellspacing="0" cellpadding="0" summary="">
+              <tr> 
+                <td > <input type="text" size="40"  maxlength="22" name="inpmProductId_Dxx" id="M_Product_ID_D" value="xxV" onchange="marcarFila(this);" onfocus="seleccionarFila(this);"></input>
+                </td>
+                <td > <a href="#" onclick="openSearch(null, null, '../info/Product.html', null, true, 'frmMain', 'inpmProductIdxx', 'inpmProductId_Dxx', document.frmMain.inpmProductId_Dxx.value, 'inpIDValue', document.frmMain.inpmProductIdxx.value, 'WindowID', 'InvoiceVendorMultiline_Lines');return false;" onmouseout="window.status='';return true;" onmouseover="window.status='Search';return true;"> 
+                    <img  alt="Product" title="Product" width="16" height="16" border="0" src="../../../../../web/images/Product.jpg" id="buttonProduct"></img></a></td>
+              </tr>
+          </table></td>
+          <td valign="middle" width="18%"> <input type="text" name="inppriceactual" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="1" id="PriceActual" ></input>
+          </td>
+          <td valign="middle" width="18%"> <span class="CuadroNumerico"> 
+              <input type="text" name="inpqtyinvoiced" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="0" id="Price"></input>
+          </span></td>
+          <td valign="middle" width="17%"> <select name="inpcTaxId" id="reportC_Tax_ID" onchange="marcarFila(this);" onfocus="seleccionarFila(this);">
+              <option value="1" class="discard">xxNormal 16%</option>
+              <option value="2" class="discard">xxReduced 7%</option>
+          </select></td>
+          <td valign="middle"> <a href="#" onclick="openSearch(null, null, '../info/Product.html', null, true, 'frmMain', 'inpmProductIdxx', 'inpmProductId_Dxx', document.frmMain.inpmProductId_Dxx.value, 'inpIDValue', document.frmMain.inpmProductIdxx.value, 'WindowID', 'InvoiceVendorMultiline_Lines');return false;" onmouseout="window.status='';return true;" onmouseover="window.status='Search';return true;"> 
+              <img  alt="Product" title="Product" width="16" height="16" border="0" src="../../../../../web/images/Product.jpg" id="buttonProduct"></img></a></td>
+        </tr>
+        <tr name="Fila"> 
+          <input type="hidden" name="inpcInvoicelineId" value="" id="C_Invoiceline_ID"></input>
+          <td valign="middle" width="4%"> <div style="position:relative; visibility: hidden;" name="Editable"> 
+              <img src="../../../../../web/images/Editando.jpg" border="0"  alt="Editing" title="Editing"></img></div></td>
+          <td valign="middle" width="5%">30</td>
+          <td valign="middle" width="56%"> <input type="hidden" name="inpmProductIdxx" id="M_Product_ID" value="xxV" ></input> 
+            <table border="0" cellspacing="0" cellpadding="0" summary="">
+              <tr> 
+                <td > <input type="text" size="40"  maxlength="22" name="inpmProductId_Dxx" id="M_Product_ID_D" value="xxV" onchange="marcarFila(this);" onfocus="seleccionarFila(this);"></input>
+                </td>
+                <td > <a href="#" onclick="openSearch(null, null, '../info/Product.html', null, true, 'frmMain', 'inpmProductIdxx', 'inpmProductId_Dxx', document.frmMain.inpmProductId_Dxx.value, 'inpIDValue', document.frmMain.inpmProductIdxx.value, 'WindowID', 'InvoiceVendorMultiline_Lines');return false;" onmouseout="window.status='';return true;" onmouseover="window.status='Search';return true;"> 
+                    <img  alt="Product" title="Product" width="16" height="16" border="0" src="../../../../../web/images/Product.jpg" id="buttonProduct"></img></a></td>
+              </tr>
+          </table></td>
+          <td valign="middle" width="18%"> <input type="text" name="inppriceactual" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="1" id="PriceActual" ></input>
+          </td>
+          <td valign="middle" width="18%"> <span class="CuadroNumerico"> 
+              <input type="text" name="inpqtyinvoiced" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="0" id="Price"></input>
+          </span></td>
+          <td valign="middle" width="17%"> <select name="inpcTaxId" id="reportC_Tax_ID" onchange="marcarFila(this);" onfocus="seleccionarFila(this);">
+              <option value="1" class="discard">xxNormal 16%</option>
+              <option value="2" class="discard">xxReduced 7%</option>
+          </select></td>
+        </tr>
+        <tr name="Fila"> 
+          <input type="hidden" name="inpcInvoicelineId" value="" id="C_Invoiceline_ID"></input>
+          <td valign="middle" width="4%"> <div style="position:relative; visibility: hidden;" name="Editable"> 
+              <img src="../../../../../web/images/Editando.jpg" border="0"  alt="Editing" title="Editing"></img></div></td>
+          <td valign="middle" width="5%">40</td>
+          <td valign="middle" width="56%"> <input type="hidden" name="inpmProductIdxx" id="M_Product_ID" value="xxV" ></input> 
+            <table border="0" cellspacing="0" cellpadding="0" summary="">
+              <tr> 
+                <td > <input type="text" size="40"  maxlength="22" name="inpmProductId_Dxx" id="M_Product_ID_D" value="xxV" onchange="marcarFila(this);" onfocus="seleccionarFila(this);"></input>
+                </td>
+                <td > <a href="#" onclick="openSearch(null, null, '../info/Product.html', null, true, 'frmMain', 'inpmProductIdxx', 'inpmProductId_Dxx', document.frmMain.inpmProductId_Dxx.value, 'inpIDValue', document.frmMain.inpmProductIdxx.value, 'WindowID', 'InvoiceVendorMultiline_Lines');return false;" onmouseout="window.status='';return true;" onmouseover="window.status='Search';return true;"> 
+                    <img  alt="Product" title="Product" width="16" height="16" border="0" src="../../../../../web/images/Product.jpg" id="buttonProduct"></img></a></td>
+              </tr>
+          </table></td>
+          <td valign="middle" width="18%"> <input type="text" name="inppriceactual" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="1" id="PriceActual" ></input>
+          </td>
+          <td valign="middle" width="18%"> <span class="CuadroNumerico"> 
+              <input type="text" name="inpqtyinvoiced" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="0" id="Price"></input>
+          </span></td>
+          <td valign="middle" width="17%"> <select name="inpcTaxId" id="reportC_Tax_ID" onchange="marcarFila(this);" onfocus="seleccionarFila(this);">
+              <option value="1" class="discard">xxNormal 16%</option>
+              <option value="2" class="discard">xxReduced 7%</option>
+          </select></td>
+        </tr>
+        <tr name="Fila"> 
+          <input type="hidden" name="inpcInvoicelineId" value="" id="C_Invoiceline_ID"></input>
+          <td valign="middle" width="4%"> <div style="position:relative; visibility: hidden;" name="Editable"> 
+              <img src="../../../../../web/images/Editando.jpg" border="0"  alt="Editing" title="Editing"></img></div></td>
+          <td valign="middle" width="5%">50</td>
+          <td valign="middle" width="56%"> <input type="hidden" name="inpmProductIdxx" id="M_Product_ID" value="xxV" ></input> 
+            <table border="0" cellspacing="0" cellpadding="0" summary="">
+              <tr> 
+                <td > <input type="text" size="40"  maxlength="22" name="inpmProductId_Dxx" id="M_Product_ID_D" value="xxV" onchange="marcarFila(this);" onfocus="seleccionarFila(this);"></input>
+                </td>
+                <td > <a href="#" onclick="openSearch(null, null, '../info/Product.html', null, true, 'frmMain', 'inpmProductIdxx', 'inpmProductId_Dxx', document.frmMain.inpmProductId_Dxx.value, 'inpIDValue', document.frmMain.inpmProductIdxx.value, 'WindowID', 'InvoiceVendorMultiline_Lines');return false;" onmouseout="window.status='';return true;" onmouseover="window.status='Search';return true;"> 
+                    <img  alt="Product" title="Product" width="16" height="16" border="0" src="../../../../../web/images/Product.jpg" id="buttonProduct"></img></a></td>
+              </tr>
+          </table></td>
+          <td valign="middle" width="18%"> <input type="text" name="inppriceactual" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="1" id="PriceActual" ></input>
+          </td>
+          <td valign="middle" width="18%"> <span class="CuadroNumerico"> 
+              <input type="text" name="inpqtyinvoiced" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="0" id="Price"></input>
+          </span></td>
+          <td valign="middle" width="17%"> <select name="inpcTaxId" id="reportC_Tax_ID" onchange="marcarFila(this);" onfocus="seleccionarFila(this);">
+              <option value="1" class="discard">xxNormal 16%</option>
+              <option value="2" class="discard">xxReduced 7%</option>
+          </select></td>
+        </tr>
+        <tr name="Fila"> 
+          <input type="hidden" name="inpcInvoicelineId" value="" id="C_Invoiceline_ID"></input>
+          <td valign="middle" width="4%"> <div style="position:relative; visibility: hidden;" name="Editable"> 
+              <img src="../../../../../web/images/Editando.jpg" border="0"  alt="Editing" title="Editing"></img></div></td>
+          <td valign="middle" width="5%">60</td>
+          <td valign="middle" width="56%"> <input type="hidden" name="inpmProductIdxx" id="M_Product_ID" value="xxV" ></input> 
+            <table border="0" cellspacing="0" cellpadding="0" summary="">
+              <tr> 
+                <td > <input type="text" size="40"  maxlength="22" name="inpmProductId_Dxx" id="M_Product_ID_D" value="xxV" onchange="marcarFila(this);" onfocus="seleccionarFila(this);"></input>
+                </td>
+                <td > <a href="#" onclick="openSearch(null, null, '../info/Product.html', null, true, 'frmMain', 'inpmProductIdxx', 'inpmProductId_Dxx', document.frmMain.inpmProductId_Dxx.value, 'inpIDValue', document.frmMain.inpmProductIdxx.value, 'WindowID', 'InvoiceVendorMultiline_Lines');return false;" onmouseout="window.status='';return true;" onmouseover="window.status='Search';return true;"> 
+                    <img  alt="Product" title="Product" width="16" height="16" border="0" src="../../../../../web/images/Product.jpg" id="buttonProduct"></img></a></td>
+              </tr>
+          </table></td>
+          <td valign="middle" width="18%"> <input type="text" name="inppriceactual" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="1" id="PriceActual" ></input>
+          </td>
+          <td valign="middle" width="18%"> <span class="CuadroNumerico"> 
+              <input type="text" name="inpqtyinvoiced" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="0" id="Price"></input>
+          </span></td>
+          <td valign="middle" width="17%"> <select name="inpcTaxId" id="reportC_Tax_ID" onchange="marcarFila(this);" onfocus="seleccionarFila(this);">
+              <option value="1" class="discard">xxNormal 16%</option>
+              <option value="2" class="discard">xxReduced 7%</option>
+          </select></td>
+        </tr>
+        <tr name="Fila"> 
+          <input type="hidden" name="inpcInvoicelineId" value="" id="C_Invoiceline_ID"></input>
+          <td valign="middle" width="4%"> <div style="position:relative; visibility: hidden;" name="Editable"> 
+              <img src="../../../../../web/images/Editando.jpg" border="0"  alt="Editing" title="Editing"></img></div></td>
+          <td valign="middle" width="5%">70</td>
+          <td valign="middle" width="56%"> <input type="hidden" name="inpmProductIdxx" id="M_Product_ID" value="xxV" ></input> 
+            <table border="0" cellspacing="0" cellpadding="0" summary="">
+              <tr> 
+                <td > <input type="text" size="40"  maxlength="22" name="inpmProductId_Dxx" id="M_Product_ID_D" value="xxV" onchange="marcarFila(this);" onfocus="seleccionarFila(this);"></input>
+                </td>
+                <td > <a href="#" onclick="openSearch(null, null, '../info/Product.html', null, true, 'frmMain', 'inpmProductIdxx', 'inpmProductId_Dxx', document.frmMain.inpmProductId_Dxx.value, 'inpIDValue', document.frmMain.inpmProductIdxx.value, 'WindowID', 'InvoiceVendorMultiline_Lines');return false;" onmouseout="window.status='';return true;" onmouseover="window.status='Search';return true;"> 
+                    <img  alt="Product" title="Product" width="16" height="16" border="0" src="../../../../../web/images/Product.jpg" id="buttonProduct"></img></a></td>
+              </tr>
+          </table></td>
+          <td valign="middle" width="18%"> <input type="text" name="inppriceactual" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="1" id="PriceActual" ></input>
+          </td>
+          <td valign="middle" width="18%"> <span class="CuadroNumerico"> 
+              <input type="text" name="inpqtyinvoiced" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="0" id="Price"></input>
+          </span></td>
+          <td valign="middle" width="17%"> <select name="inpcTaxId" id="reportC_Tax_ID" onchange="marcarFila(this);" onfocus="seleccionarFila(this);">
+              <option value="1" class="discard">xxNormal 16%</option>
+              <option value="2" class="discard">xxReduced 7%</option>
+          </select></td>
+        </tr>
+        <tr name="Fila"> 
+          <input type="hidden" name="inpcInvoicelineId" value="" id="C_Invoiceline_ID"></input>
+          <td valign="middle" width="4%"> <div style="position:relative; visibility: hidden;" name="Editable"> 
+              <img src="../../../../../web/images/Editando.jpg" border="0"  alt="Editing" title="Editing"></img></div></td>
+          <td valign="middle" width="5%">80</td>
+          <td valign="middle" width="56%"> <input type="hidden" name="inpmProductIdxx" id="M_Product_ID" value="xxV" ></input> 
+            <table border="0" cellspacing="0" cellpadding="0" summary="">
+              <tr> 
+                <td > <input type="text" size="40"  maxlength="22" name="inpmProductId_Dxx" id="M_Product_ID_D" value="xxV" onchange="marcarFila(this);" onfocus="seleccionarFila(this);"></input>
+                </td>
+                <td > <a href="#" onclick="openSearch(null, null, '../info/Product.html', null, true, 'frmMain', 'inpmProductIdxx', 'inpmProductId_Dxx', document.frmMain.inpmProductId_Dxx.value, 'inpIDValue', document.frmMain.inpmProductIdxx.value, 'WindowID', 'InvoiceVendorMultiline_Lines');return false;" onmouseout="window.status='';return true;" onmouseover="window.status='Search';return true;"> 
+                    <img  alt="Product" title="Product" width="16" height="16" border="0" src="../../../../../web/images/Product.jpg" id="buttonProduct"></img></a></td>
+              </tr>
+          </table></td>
+          <td valign="middle" width="18%"> <input type="text" name="inppriceactual" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="1" id="PriceActual" ></input>
+          </td>
+          <td valign="middle" width="18%"> <span class="CuadroNumerico"> 
+              <input type="text" name="inpqtyinvoiced" size="10" onchange="marcarFila(this);" onfocus="seleccionarFila(this);" value="0" id="Price"></input>
+          </span></td>
+          <td valign="middle" width="17%"> <select name="inpcTaxId" id="reportC_Tax_ID" onchange="marcarFila(this);" onfocus="seleccionarFila(this);">
+              <option value="1" class="discard">xxNormal 16%</option>
+              <option value="2" class="discard">xxReduced 7%</option>
+          </select></td>
+        </tr>
+      </div>
+    </table>
+  </form>
+  <form name="frmSecond" method="post" action="">
+    <input type="hidden" name="Command"></input>
+    <input type="hidden" name="inpmProductId"></input>
+    <input type="hidden" name="inpcInvoiceId" value="" id="C_Invoice_ID"></input>
+  </form>
+</body>
+</html>

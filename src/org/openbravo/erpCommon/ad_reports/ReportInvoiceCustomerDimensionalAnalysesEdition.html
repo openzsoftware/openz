@@ -1,0 +1,738 @@
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2009 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Sale invoices report</title>
+<link rel="shortcut icon" href="../../../../../web/images/favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" type="text/css" href="../../../../../web/skins/Default/Openbravo_ERP_250.css" id="paramCSS" /> 
+<script language="JavaScript" src="../../../../../web/js/messages.js" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/utils.js" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/jscalendar/calendar.js" type="text/javascript"></script>
+<script language="JavaScript" type="text/javascript" id="paramDirectory">var baseDirectory = "../../../../../web/";</script>
+<script language="JavaScript" type="text/javascript" id="paramLanguage">
+defaultLang="en_US";
+
+</script>
+</head>
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" style="background-color: #FFFFFF;">
+<form method="post" action="ReportInvoiceCustomerDimensionalAnalyzeEdition.html" name="frmMain">
+  <br></br>
+
+  <table border="0" cellpadding="0" cellspacing="0" width="90%" align="center">
+    <tr><td width="4%"></td><td class="ReportTitle">Sale Invoices Report<hr width="100%" align="center"></td><tr>
+    <tr><td width="4%"></td><td id="paramTitle" class="ReportSubTitle">From 02-02-1082 to 10-07-3007<hr width="100%" align="center"></td><tr>
+  </table>
+
+  <div id="selEliminarBody1"> 
+
+    <table border="0" cellpadding="0" cellspacing="0" width="90%" align="center" id="selEliminar1" >
+      <tr>
+        <td width="4%"> </td>
+        <td class="Total_Field_Title">Total amount</td>
+        <td class="Total_Field" id="fieldTotal"></td>
+        <td class="Total_Field_Title">Total amount ref</td>
+        <td class="Total_Field" id="fieldTotalRef">xx3455.45</td>
+        <td class="Total_Field_Title">Total % amount</td> 
+        <td class="Total_Field" id="fieldTotalAvg">xx3455.45</td>
+        <td class="Total_Field_Title">Total weight</td>
+        <td class="Total_Field" id="fieldTotalWeight">xx</td>
+        <td class="Total_Field_Title">Total weight ref.</td> 
+        <td class="Total_Field" id="fieldTotalWeightRef">xx</td>
+      </tr>
+    </table>
+    <br></br>
+    <table width="95%" align="center" id="selEliminar1">
+      <tr> 
+        <td width="2%">&nbsp;</td>
+        <td width="2%">&nbsp;</td>
+        <td width="2%">&nbsp;</td>
+        <td width="2%">&nbsp;</td>
+        <td width="2%">&nbsp;</td>
+        <td width="2%">&nbsp;</td>
+        <td width="2%">&nbsp;</td>
+        <td width="2%">&nbsp;</td>
+        <td width="3%">&nbsp;</td>
+        <td width="6%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+        <td width="5%" align="right">&nbsp;</td>
+      </tr>
+      <tr> 
+        <td colspan="10" class="Bold"></td>
+        <td width="5%" class="Bold">Amount</td>
+        <td width="5%" class="Bold">Cost</td>
+        <td width="5%" class="Bold">Prof.</td>
+        <td width="5%" class="Bold">% marg.</td>
+        <td width="5%" class="Bold">Ref amt</td>
+        <td width="5%" class="Bold">Ref cost</td>
+        <td width="5%" class="Bold">Prof. ref.</td>
+        <td width="5%" class="Bold">% marg. ref.</td>
+        <td width="5%" class="Bold">% amt.</td>
+        <td width="5%" class="Bold">Mar.diff.</td>
+        <td width="5%" class="Bold">Weight</td>
+        <td width="5%" class="Bold">Weight ref</td>
+        <td width="5%" class="Bold">Quant.</td>
+        <td width="5%" class="Bold">Quant. Ref.</td>
+        <td width="5%" class="Bold">% qty.</td>
+      </tr>
+      <div id="sectionNivel1"> 
+        <tr> 
+          <td colspan="10"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+              <tr> 
+                <td width="50%" class="TableHeaderLevel1" id="fieldNivel1">xxTercero<span>&nbsp;&nbsp;:&nbsp;&nbsp;</span> 
+                  <span  id="fieldTotalAverageNivel1"></span> 
+                  <span>%</span></td>
+              </tr>
+            </table></td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldTotalNivel1">xx56.34</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldCost1">xx56.34</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldProfit1">xx56.34</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldMargin1">xx56.34</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldTotalRefNivel1">xx56.34</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldCostRef1">xx56.34</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldProfitRef1">xx56.34</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldMarginRef1">xx56.34</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldTotal1">xx</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldDifTotalMargin1">xx</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldTotalWeightNivel1">xx</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldTotalRefWeightNivel1">xx</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldTotalQtyNivel1">xx</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldTotalRefQtyNivel1">xx</td>
+          <td width="5%" align="right" class="TableHeaderLevel1" id="fieldTotalQty1">xx</td>
+          <input type="hidden" name="inpAux1" value="" id="fieldAuxTotalQtyNivel1"></input>
+          <input type="hidden" name="inpAuxQty1" value="" id="fieldAuxTotalRefQtyNivel1"></input>
+        </tr>
+        <div id="sectionNivel2"> 
+          <tr id="paramEliminar2" style=""> 
+            <td width="2%"></td>
+            <td colspan="9"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                <tr > 
+                  <td width="50%" class="TableHeaderLevel2" id="fieldNivel2">xxCategoria 
+                    tercero</td>
+                </tr>
+              </table></td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldTotalNivel2">xx2344</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldCost2">xx2344</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldProfit2">xx2344</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldMargin2">xx2344</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldTotalRefNivel2">xx34</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldCostRef2">xx2344</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldProfitRef2">xx2344</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldMarginRef2">xx2344</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldTotal2">xx</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldDifTotalMargin2">xx</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldTotalWeightNivel2">xx</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldTotalRefWeightNivel2">xx</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldTotalQtyNivel2">xx</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldTotalRefQtyNivel2">xx</td>
+            <td width="5%" align="right" class="TableHeaderLevel2" id="fieldTotalQty2">xx</td>
+            <input type="hidden" name="inpAux2" value="" id="fieldAuxTotalQtyNivel2"></input>
+            <input type="hidden" name="inpAuxQty2" value="" id="fieldAuxTotalRefQtyNivel2"></input>
+          </tr>
+          <div id="sectionNivel3"> 
+            <tr id="paramEliminar3" style=""> 
+              <td width="2%"></td>
+              <td width="2%"></td>
+              <td colspan="8"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                  <tr > 
+                    <td width="50%" class="TableHeaderLevel3" id="fieldNivel3">xxProducto</td>
+                  </tr>
+                </table></td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldTotalNivel3">xx56.34</td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldCost3">xx56.34</td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldProfit3">xx56.34</td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldMargin3">xx56.34</td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldTotalRefNivel3">xx56.34</td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldCostRef3">xx56.34</td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldProfitRef3">xx56.34</td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldMarginRef3">xx56.34</td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldTotal3">xx56.34</td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldDifTotalMargin3">xx56.34</td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldTotalWeightNivel3">xx</td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldTotalRefWeightNivel3">xx</td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldTotalQtyNivel3"></td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldTotalRefQtyNivel3"></td>
+              <td width="5%" align="right" class="TableHeaderLevel3" id="fieldTotalQty3">xx56.34</td>
+              <input type="hidden" name="inpAux3" value="" id="fieldAuxTotalQtyNivel3"></input>
+              <input type="hidden" name="inpAuxQty3" value="" id="fieldAuxTotalRefQtyNivel3"></input>
+            </tr>
+            <div id="sectionNivel4"> 
+              <tr id="paramEliminar4" style=""> 
+                <td width="2%"></td>
+                <td width="2%"></td>
+                <td width="2%"></td>
+                <td colspan="7"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                    <tr > 
+                      <td width="50%" class="TableHeaderLevel4" id="fieldNivel4">xxCategoria 
+                        producto</td>
+                    </tr>
+                  </table></td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldTotalNivel4">xx56.34</td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldCost4">xx56.34</td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldProfit4">xx56.34</td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldMargin4">xx56.34</td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldTotalRefNivel4">xx56.34</td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldCostRef4">xx56.34</td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldProfitRef4">xx56.34</td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldMarginRef4">xx56.34</td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldTotal4">xx56.34</td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldDifTotalMargin4">xx56.34</td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldTotalWeightNivel4">xx</td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldTotalRefWeightNivel4">xx</td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldTotalQtyNivel4"></td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldTotalRefQtyNivel4"></td>
+                <td width="5%" align="right" class="TableHeaderLevel4" id="fieldTotalQty4">xx56.34</td>
+                <input type="hidden" name="inpAux4" value="" id="fieldAuxTotalQtyNivel4"></input>
+                <input type="hidden" name="inpAuxQty4" value="" id="fieldAuxTotalRefQtyNivel4"></input>
+              </tr>
+              <div id="sectionNivel5"> 
+                <tr id="paramEliminar5" style=""> 
+                  <td width="2%"></td>
+                  <td width="2%"></td>
+                  <td width="2%"></td>
+                  <td width="2%"></td>
+                  <td colspan="6"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                      <tr > 
+                        <td width="50%" class="TableHeaderLevel5" id="fieldNivel5">xxAlmacen</td>
+                      </tr>
+                    </table></td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldTotalNivel5">xx56.34</td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldCost5">xx56.34</td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldProfit5">xx56.34</td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldMargin5">xx56.34</td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldTotalRefNivel5">xx56.34</td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldCostRef5">xx56.34</td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldProfitRef5">xx56.34</td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldMarginRef5">xx56.34</td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldTotal5">xx56.34</td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldDifTotalMargin5">xx56.34</td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldTotalWeightNivel5">xx</td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldTotalRefWeightNivel5">xx</td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldTotalQtyNivel5"></td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldTotalRefQtyNivel5"></td>
+                  <td width="5%" align="right" class="TableHeaderLevel5" id="fieldTotalQty5">xx56.34</td>
+                  <input type="hidden" name="inpAux5" value="" id="fieldAuxTotalQtyNivel5"></input>
+                  <input type="hidden" name="inpAuxQty5" value="" id="fieldAuxTotalRefQtyNivel5"></input>
+                </tr>
+                <div id="sectionNivel6"> 
+                  <tr id="paramEliminar6" style=""> 
+                    <td width="2%"></td>
+                    <td width="2%"></td>
+                    <td width="2%"></td>
+                    <td width="2%"></td>
+                    <td width="2%"></td>
+                    <td colspan="5"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                        <tr > 
+                          <td width="50%" class="TableHeaderLevel6" id="fieldNivel6">xxAlmacen</td>
+                        </tr>
+                      </table></td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldTotalNivel6">xx56.34</td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldCost6">xx56.34</td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldProfit6">xx56.34</td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldMargin6">xx56.34</td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldTotalRefNivel6">xx56.34</td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldCostRef6">xx56.34</td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldProfitRef6">xx56.34</td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldMarginRef6">xx56.34</td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldTotal6">xx56.34</td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldDifTotalMargin6">xx56.34</td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldTotalWeightNivel6">xx</td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldTotalRefWeightNivel6">xx</td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldTotalQtyNivel6"></td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldTotalRefQtyNivel6"></td>
+                    <td width="5%" align="right" class="TableHeaderLevel6" id="fieldTotalQty6">xx56.34</td>
+                    <input type="hidden" name="inpAux6" value="" id="fieldAuxTotalQtyNivel6"></input>
+                    <input type="hidden" name="inpAuxQty6" value="" id="fieldAuxTotalRefQtyNivel6"></input>
+                  </tr>
+                  <div id="sectionNivel7"> 
+                    <tr id="paramEliminar7" style=""> 
+                      <td width="2%"></td>
+                      <td width="2%"></td>
+                      <td width="2%"></td>
+                      <td width="2%"></td>
+                      <td width="2%"></td>
+                      <td width="2%"></td>
+                      <td colspan="4"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                          <tr > 
+                            <td width="50%" class="TableHeaderLevel7" id="fieldNivel7">xxComercial</td>
+                          </tr>
+                        </table></td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldTotalNivel7">xx56.34</td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldCost7">xx56.34</td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldProfit7">xx56.34</td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldMargin7">xx56.34</td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldTotalRefNivel7">xx56.34</td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldCostRef7">xx56.34</td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldProfitRef7">xx56.34</td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldMarginRef7">xx56.34</td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldTotal7">xx56.34</td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldDifTotalMargin7">xx56.34</td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldTotalWeightNivel7">xx</td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldTotalRefWeightNivel7">xx</td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldTotalQtyNivel7"></td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldTotalRefQtyNivel7"></td>
+                      <td width="5%" align="right" class="TableHeaderLevel7" id="fieldTotalQty7">xx56.34</td>
+                      <input type="hidden" name="inpAux7" value="" id="fieldAuxTotalQtyNivel7"></input>
+                      <input type="hidden" name="inpAuxQty7" value="" id="fieldAuxTotalRefQtyNivel7"></input>
+                    </tr>
+                    <div id="sectionNivel8"> 
+                      <tr id="paramEliminar8" style=""> 
+                        <td width="2%"></td>
+                        <td width="2%"></td>
+                        <td width="2%"></td>
+                        <td width="2%"></td>
+                        <td width="2%"></td>
+                        <td width="2%"></td>
+                        <td width="2%"></td>
+                        <td colspan="3"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                            <tr > 
+                              <td width="50%" class="TableHeaderLevel8" id="fieldNivel8">xxComercial</td>
+                            </tr>
+                          </table></td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldTotalNivel8">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldCost8">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldProfit8">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldMargin8">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldTotalRefNivel8">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldCostRef8">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldProfitRef8">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldMarginRef8">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldTotal8">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldDifTotalMargin8">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldTotalWeightNivel8">xx</td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldTotalRefWeightNivel8">xx</td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldTotalQtyNivel8"></td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldTotalRefQtyNivel8"></td>
+                        <td width="5%" align="right" class="TableHeaderLevel8" id="fieldTotalQty8">xx56.34</td>
+                        <input type="hidden" name="inpAux8" value="" id="fieldAuxTotalQtyNivel8"></input>
+                        <input type="hidden" name="inpAuxQty8" value="" id="fieldAuxTotalRefQtyNivel8"></input>
+                      </tr>
+                    <div id="sectionNivel9"> 
+                      <tr id="paramEliminar9" style=""> 
+                        <td width="2%"></td>
+                        <td width="2%"></td>
+                        <td width="2%"></td>
+                        <td width="2%"></td>
+                        <td width="2%"></td>
+                        <td width="2%"></td>
+                        <td width="2%"></td>
+                        <td width="2%"></td>
+                        <td colspan="2"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                            <tr > 
+                              <td width="50%" class="TableHeaderLevel8" id="fieldNivel9">xxComercial</td>
+                            </tr>
+                          </table></td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldTotalNivel9">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldCost9">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldProfit9">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldMargin9">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldTotalRefNivel9">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldCostRef9">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldProfitRef9">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldMarginRef9">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldTotal9">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldDifTotalMargin9">xx56.34</td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldTotalWeightNivel9">xx</td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldTotalRefWeightNivel9">xx</td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldTotalQtyNivel9"></td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldTotalRefQtyNivel9"></td>
+                        <td width="5%" align="right" class="TableHeaderLevel9" id="fieldTotalQty9">xx56.34</td>
+                        <input type="hidden" name="inpAux8" value="" id="fieldAuxTotalQtyNivel9"></input>
+                        <input type="hidden" name="inpAuxQty8" value="" id="fieldAuxTotalRefQtyNivel9"></input>
+                      </tr>
+                        <div id="sectionNivel10"> 
+                          <tr id="paramEliminar10" style=""> 
+                            <td width="2%"></td>
+                            <td width="2%"></td>
+                            <td width="2%"></td>
+                            <td width="2%"></td>
+                            <td width="2%"></td>
+                            <td width="2%"></td>
+                            <td width="2%"></td>
+                            <td width="2%"></td>
+                            <td width="2%"></td>
+                            <td> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                                <div id="sectionDetail"> 
+                                  <tr > 
+                                    <td width="50%" class="TableDetailRow1" id="fieldNivel10">xxComercial</td>
+                                  </tr>
+                                </div>
+                              </table></td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldTotalNivel10">xx56.34</td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldCost10">xx56.34</td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldProfit10">xx56.34</td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldMargin10">xx56.34</td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldTotalRefNivel10">xx56.34</td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldCostRef10">xx56.34</td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldProfitRef10">xx56.34</td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldMarginRef10">xx56.34</td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldTotal10">xx56.34</td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldDifTotalMargin10">xx56.34</td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldTotalWeightNivel10">xx</td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldTotalRefWeightNivel10">xx</td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldTotalQtyNivel10"></td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldTotalRefQtyNivel10"></td>
+                            <td width="5%" align="right" class="TableDetailRow1" id="fieldTotalQty10">xx56.34</td>
+                            <input type="hidden" name="inpAux9" value="" id="fieldAuxTotalQtyNivel10"></input>
+                            <input type="hidden" name="inpAuxQty9" value="" id="fieldAuxTotalRefQtyNivel10"></input>
+                          </tr>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <tr> 
+          <td width="2%">&nbsp;</td>
+          <td width="2%">&nbsp;</td>
+          <td width="2%">&nbsp;</td>
+          <td width="2%">&nbsp;</td>
+          <td width="2%">&nbsp;</td>
+          <td width="2%">&nbsp;</td>
+          <td width="2%">&nbsp;</td>
+          <td width="2%">&nbsp;</td>
+          <td width="3%">&nbsp;</td>
+          <td width="6%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+          <td width="5%" align="right">&nbsp;</td>
+        </tr>
+      </div>
+    </table>
+  </div>
+  <br></br>
+  <br></br>
+  <div id="selEliminarBody2"> 
+
+    <table width="90%" align="center" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="4%"> </td>
+        <td class="Total_Field_Title">Total amount</td> 
+        <td class="Total_Field" id="fieldNoncomparativeTotal"></td>
+        <td class="Total_Field_Title">Total weight</td> 
+        <td class="Total_Field" id="fieldNoncomparativeTotalWeight"></td>
+      </tr>
+    </table>
+
+    <br></br>
+    <table border="0" cellpadding="0" cellspacing="0" width="90%" align="center" id="selEliminar1" >
+      <tr> 
+        <td width="4%">&nbsp;</td>
+        <td width="4%">&nbsp;</td>
+        <td width="4%">&nbsp;</td>
+        <td width="4%">&nbsp;</td>
+        <td width="4%">&nbsp;</td>
+        <td width="4%">&nbsp;</td>
+        <td width="5%">&nbsp;</td>
+        <td width="5%">&nbsp;</td>
+        <td width="5%">&nbsp;</td>
+        <td width="5%">&nbsp;</td>
+        <td width="14%" align="right">&nbsp;</td>
+        <td width="7%" align="right">&nbsp;</td>
+        <td width="7%" align="right">&nbsp;</td>
+        <td width="7%" align="right">&nbsp;</td>
+        <td width="7%" align="right">&nbsp;</td>
+        <td width="7%" align="right">&nbsp;</td>
+        <td width="7%" align="right">&nbsp;</td>
+      </tr>
+      <tr> 
+        <td width="4%" height="16"></td>
+        <td colspan="10" class="Bold"></td>
+        <td width="7%" align="right" class="TableDetailHeader"> <span class="Bold">Amount</span></td>
+        <td width="7%" align="right" class="TableDetailHeader"> <span class="Bold">Cost</span></td>
+        <td width="7%" align="right" class="TableDetailHeader"> <span class="Bold">Profit</span></td>
+        <td width="7%" align="right" class="TableDetailHeader"> <span class="Bold">% margin</span></td>
+        <td width="7%" align="right" class="TableDetailHeader"> <span class="Bold">Weight</span></td>
+        <td width="7%"align="right" class="TableDetailHeader"> <span class="Bold">Quantity</span></td>
+      </tr>
+      <div id="sectionNoncomparativeNivel1"> 
+        <tr> 
+          <td width="4%"></td>
+          <td colspan="10"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+              <tr> 
+                <td width="50%" class="TableHeaderLevel1" id="fieldNoncomparativeNivel1">xxTercero<span>&nbsp;&nbsp;:&nbsp;&nbsp;</span> 
+                  <span  id="fieldNoncomparativeTotalAvgNivel1"></span> 
+                  <span>%</span></td>
+              </tr>
+            </table></td>
+          <td width="7%" align="right" class="TableHeaderLevel1" id="fieldNoncomparativeTotalNivel1">xx56.34</td>
+          <td width="7%" align="right" class="TableHeaderLevel1" id="fieldNoncomparativeCost1">xx56.34</td>
+          <td width="7%" align="right" class="TableHeaderLevel1" id="fieldNoncomparativeProfit1">xx56.34</td>
+          <td width="7%" align="right" class="TableHeaderLevel1" id="fieldNoncomparativeMargin1">xx56.34</td>
+          <td width="7%" align="right" class="TableHeaderLevel1" id="fieldNoncomparativeTotalWeightNivel1">xx</td>
+          <td width="7%" align="right" class="TableHeaderLevel1" id="fieldNoncomparativeTotalQtyNivel1">xx</td>
+          <input type="hidden" name="inpAux1" value="" id="fieldNoncomparativeAuxTotalQtyNivel1"></input>
+        </tr>
+        <div id="sectionNoncomparativeNivel2"> 
+          <tr id="paramEliminar2" style=""> 
+            <td width="4%"></td>
+            <td width="4%"></td>
+            <td colspan="9"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                <tr > 
+                  <td width="50%" class="TableHeaderLevel2" id="fieldNoncomparativeNivel2">xxCategoria 
+                    tercero</td>
+                </tr>
+              </table></td>
+            <td width="7%" align="right" class="TableHeaderLevel2" id="fieldNoncomparativeTotalNivel2">xx2344</td>
+            <td width="7%" align="right" class="TableHeaderLevel2" id="fieldNoncomparativeCost2">xx2344</td>
+            <td width="7%" align="right" class="TableHeaderLevel2" id="fieldNoncomparativeProfit2">xx2344</td>
+            <td width="7%" align="right" class="TableHeaderLevel2" id="fieldNoncomparativeMargin2">xx2344</td>
+            <td width="7%" align="right" class="TableHeaderLevel2" id="fieldNoncomparativeTotalWeightNivel2">xx</td>
+            <td width="7%" align="right" class="TableHeaderLevel2" id="fieldNoncomparativeTotalQtyNivel2">xx</td>
+            <input type="hidden" name="inpAux2" value="" id="fieldNoncomparativeAuxTotalQtyNivel2"></input>
+          </tr>
+          <div id="sectionNoncomparativeNivel3"> 
+            <tr id="paramEliminar3" style=""> 
+              <td width="4%"></td>
+              <td width="4%"></td>
+              <td width="4%"></td>
+              <td colspan="8"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                  <tr > 
+                    <td width="50%" class="TableHeaderLevel3" id="fieldNoncomparativeNivel3">xxProducto</td>
+                  </tr>
+                </table></td>
+              <td width="7%" align="right" class="TableHeaderLevel3" id="fieldNoncomparativeTotalNivel3">xx56.34</td>
+              <td width="7%" align="right" class="TableHeaderLevel3" id="fieldNoncomparativeCost3">xx56.34</td>
+              <td width="7%" align="right" class="TableHeaderLevel3" id="fieldNoncomparativeProfit3">xx56.34</td>
+              <td width="7%" align="right" class="TableHeaderLevel3" id="fieldNoncomparativeMargin3">xx56.34</td>
+              <td width="7%" align="right" class="TableHeaderLevel3" id="fieldNoncomparativeTotalWeightNivel3">xx</td>
+              <td width="7%" align="right" class="TableHeaderLevel3" id="fieldNoncomparativeTotalQtyNivel3"></td>
+              <input type="hidden" name="inpAux3" value="" id="fieldNoncomparativeAuxTotalQtyNivel3"></input>
+            </tr>
+            <div id="sectionNoncomparativeNivel4"> 
+              <tr id="paramEliminar4" style=""> 
+                <td width="4%"></td>
+                <td width="4%"></td>
+                <td width="4%"></td>
+                <td width="4%"></td>
+                <td colspan="7"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                    <tr > 
+                      <td width="50%" class="TableHeaderLevel4" id="fieldNoncomparativeNivel4">xxCategoria 
+                        producto</td>
+                    </tr>
+                  </table></td>
+                <td width="7%" align="right" class="TableHeaderLevel4" id="fieldNoncomparativeTotalNivel4">xx56.34</td>
+                <td width="7%" align="right" class="TableHeaderLevel4" id="fieldNoncomparativeCost4">xx56.34</td>
+                <td width="7%" align="right" class="TableHeaderLevel4" id="fieldNoncomparativeProfit4">xx56.34</td>
+                <td width="7%" align="right" class="TableHeaderLevel4" id="fieldNoncomparativeMargin4">xx56.34</td>
+                <td width="7%" align="right" class="TableHeaderLevel4" id="fieldNoncomparativeTotalWeightNivel4">xx</td>
+                <td width="7%" align="right" class="TableHeaderLevel4" id="fieldNoncomparativeTotalQtyNivel4"></td>
+                <input type="hidden" name="inpAux4" value="" id="fieldNoncomparativeAuxTotalQtyNivel4"></input>
+              </tr>
+              <div id="sectionNoncomparativeNivel5"> 
+                <tr id="paramEliminar5" style=""> 
+                  <td width="4%"></td>
+                  <td width="4%"></td>
+                  <td width="4%"></td>
+                  <td width="4%"></td>
+                  <td width="4%"></td>
+                  <td colspan="6"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                      <tr > 
+                        <td width="50%" class="TableHeaderLevel5" id="fieldNoncomparativeNivel5">xxAlmacen</td>
+                      </tr>
+                    </table></td>
+                  <td width="7%" align="right" class="TableHeaderLevel5" id="fieldNoncomparativeTotalNivel5">xx56.34</td>
+                  <td width="7%" align="right" class="TableHeaderLevel5" id="fieldNoncomparativeCost5">xx56.34</td>
+                  <td width="7%" align="right" class="TableHeaderLevel5" id="fieldNoncomparativeProfit5">xx56.34</td>
+                  <td width="7%" align="right" class="TableHeaderLevel5" id="fieldNoncomparativeMargin5">xx56.34</td>
+                  <td width="7%" align="right" class="TableHeaderLevel5" id="fieldNoncomparativeTotalWeightNivel5">xx</td>
+                  <td width="7%" align="right" class="TableHeaderLevel5" id="fieldNoncomparativeTotalQtyNivel5"></td>
+                  <input type="hidden" name="inpAux5" value="" id="fieldNoncomparativeAuxTotalQtyNivel5"></input>
+                </tr>
+                <div id="sectionNoncomparativeNivel6"> 
+                  <tr id="paramEliminar6" style=""> 
+                    <td width="4%"></td>
+                    <td width="4%"></td>
+                    <td width="4%"></td>
+                    <td width="4%"></td>
+                    <td width="4%"></td>
+                    <td width="4%"></td>
+                    <td colspan="5"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                        <tr > 
+                          <td width="50%" class="TableHeaderLevel6" id="fieldNoncomparativeNivel6">xxAlmacen</td>
+                        </tr>
+                      </table></td>
+                    <td width="7%" align="right" class="TableHeaderLevel6" id="fieldNoncomparativeTotalNivel6">xx56.34</td>
+                    <td width="7%" align="right" class="TableHeaderLevel6" id="fieldNoncomparativeCost6">xx56.34</td>
+                    <td width="7%" align="right" class="TableHeaderLevel6" id="fieldNoncomparativeProfit6">xx56.34</td>
+                    <td width="7%" align="right" class="TableHeaderLevel6" id="fieldNoncomparativeMargin6">xx56.34</td>
+                    <td width="7%" align="right" class="TableHeaderLevel6" id="fieldNoncomparativeTotalWeightNivel6">xx</td>
+                    <td width="7%" align="right" class="TableHeaderLevel6" id="fieldNoncomparativeTotalQtyNivel6"></td>
+                    <input type="hidden" name="inpAux6" value="" id="fieldNoncomparativeAuxTotalQtyNivel6"></input>
+                  </tr>
+                  <div id="sectionNoncomparativeNivel7"> 
+                    <tr id="paramEliminar7" style=""> 
+                      <td width="4%"></td>
+                      <td width="4%"></td>
+                      <td width="4%"></td>
+                      <td width="4%"></td>
+                      <td width="4%"></td>
+                      <td width="4%"></td>
+                      <td width="5%"></td>
+                      <td colspan="4"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                          <div id="sectionNoncomparativeDetail"> 
+                            <tr > 
+                              <td width="50%" class="TableHeaderLevel7" id="fieldNoncomparativeNivel7">xxComercial</td>
+                            </tr>
+                          </div>
+                        </table></td>
+                      <td width="7%" align="right" class="TableHeaderLevel7" id="fieldNoncomparativeTotalNivel7">xx56.34</td>
+                      <td width="7%" align="right" class="TableHeaderLevel7" id="fieldNoncomparativeCost7">xx56.34</td>
+                      <td width="7%" align="right" class="TableHeaderLevel7" id="fieldNoncomparativeProfit7">xx56.34</td>
+                      <td width="7%" align="right" class="TableHeaderLevel7" id="fieldNoncomparativeMargin7">xx56.34</td>
+                      <td width="7%" align="right" class="TableHeaderLevel7" id="fieldNoncomparativeTotalWeightNivel7">xx</td>
+                      <td width="7%" align="right" class="TableHeaderLevel7" id="fieldNoncomparativeTotalQtyNivel7"></td>
+                      <input type="hidden" name="inpAux7" value="" id="fieldNoncomparativeAuxTotalQtyNivel7"></input>
+                    </tr>
+                    <div id="sectionNoncomparativeNivel8"> 
+                      <tr id="paramEliminar8" style=""> 
+                        <td width="4%"></td>
+                        <td width="4%"></td>
+                        <td width="4%"></td>
+                        <td width="4%"></td>
+                        <td width="4%"></td>
+                        <td width="4%"></td>
+                        <td width="5%"></td>
+                        <td width="5%"></td>
+                        <td colspan="3"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                            <tr > 
+                              <td width="50%" class="TableHeaderLevel8" id="fieldNoncomparativeNivel8">xxComercial</td>
+                            </tr>
+                          </table></td>
+                        <td width="7%" align="right" class="TableHeaderLevel8" id="fieldNoncomparativeTotalNivel8">xx56.34</td>
+                        <td width="7%" align="right" class="TableHeaderLevel8" id="fieldNoncomparativeCost8">xx56.34</td>
+                        <td width="7%" align="right" class="TableHeaderLevel8" id="fieldNoncomparativeProfit8">xx56.34</td>
+                        <td width="7%" align="right" class="TableHeaderLevel8" id="fieldNoncomparativeMargin8">xx56.34</td>
+                        <td width="7%" align="right" class="TableHeaderLevel8" id="fieldNoncomparativeTotalWeightNivel8">xx</td>
+                        <td width="7%" align="right" class="TableHeaderLevel8" id="fieldNoncomparativeTotalQtyNivel8"></td>
+                        <input type="hidden" name="inpAux8" value="" id="fieldNoncomparativeAuxTotalQtyNivel8"></input>
+                      </tr>
+                    <div id="sectionNoncomparativeNivel9"> 
+                      <tr id="paramEliminar9" style=""> 
+                        <td width="4%"></td>
+                        <td width="4%"></td>
+                        <td width="4%"></td>
+                        <td width="4%"></td>
+                        <td width="4%"></td>
+                        <td width="4%"></td>
+                        <td width="5%"></td>
+                        <td width="5%"></td>
+                        <td width="5%"></td>
+                        <td colspan="2"> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                            <tr > 
+                              <td width="50%" class="TableHeaderLevel8" id="fieldNoncomparativeNivel9">xxComercial</td>
+                            </tr>
+                          </table></td>
+                        <td width="7%" align="right" class="TableHeaderLevel8" id="fieldNoncomparativeTotalNivel9">xx56.34</td>
+                        <td width="7%" align="right" class="TableHeaderLevel8" id="fieldNoncomparativeCost9">xx56.34</td>
+                        <td width="7%" align="right" class="TableHeaderLevel8" id="fieldNoncomparativeProfit9">xx56.34</td>
+                        <td width="7%" align="right" class="TableHeaderLevel8" id="fieldNoncomparativeMargin9">xx56.34</td>
+                        <td width="7%" align="right" class="TableHeaderLevel8" id="fieldNoncomparativeTotalWeightNivel9">xx</td>
+                        <td width="7%" align="right" class="TableHeaderLevel8" id="fieldNoncomparativeTotalQtyNivel9"></td>
+                        <input type="hidden" name="inpAux9" value="" id="fieldNoncomparativeAuxTotalQtyNivel9"></input>
+                      </tr>
+                        <div id="sectionNoncomparativeNivel10"> 
+                        <tr id="paramEliminar10" style=""> 
+                          <td width="4%"></td>
+                          <td width="4%"></td>
+                          <td width="4%"></td>
+                          <td width="4%"></td>
+                          <td width="4%"></td>
+                          <td width="4%"></td>
+                          <td width="5%"></td>
+                          <td width="5%"></td>
+                          <td width="5%"></td>
+                          <td width="5%"></td>
+                          <td> <table width="100%" align="center" border="0" cellspacing="0" cellpadding="0">
+                              <div id="sectionNoncomparativeDetail"> 
+                                <tr > 
+                                  <td width="50%" class="TableDetailRow1" id="fieldNoncomparativeNivel10">xxComercial</td>
+                                </tr>
+                              </div>
+                            </table></td>
+                          <td width="7%" align="right" class="TableDetailRow1" id="fieldNoncomparativeTotalNivel10">xx56.34</td>
+                          <td width="7%" align="right" class="TableDetailRow1" id="fieldNoncomparativeCost10">xx56.34</td>
+                          <td width="7%" align="right" class="TableDetailRow1" id="fieldNoncomparativeProfit10">xx56.34</td>
+                          <td width="7%" align="right" class="TableDetailRow1" id="fieldNoncomparativeMargin10">xx56.34</td>
+                          <td width="7%" align="right" class="TableDetailRow1" id="fieldNoncomparativeTotalWeightNivel10">xx</td>
+                          <td width="7%" align="right" class="TableDetailRow1" id="fieldNoncomparativeTotalQtyNivel10"></td>
+                          <input type="hidden" name="inpAux10" value="" id="fieldNoncomparativeAuxTotalQtyNivel10"></input>
+                        </tr>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <tr> 
+          <td width="4%">&nbsp;</td>
+          <td width="4%">&nbsp;</td>
+          <td width="4%">&nbsp;</td>
+          <td width="4%">&nbsp;</td>
+          <td width="4%">&nbsp;</td>
+          <td width="4%">&nbsp;</td>
+          <td width="5%">&nbsp;</td>
+          <td width="5%">&nbsp;</td>
+          <td width="5%">&nbsp;</td>
+          <td width="5%">&nbsp;</td>
+          <td width="18%" align="right">&nbsp;</td>
+          <td width="7%" align="right">&nbsp;</td>
+          <td width="7%" align="right">&nbsp;</td>
+          <td width="7%" align="right">&nbsp;</td>
+          <td width="7%" align="right">&nbsp;</td>
+          <td width="7%" align="right">&nbsp;</td>
+          <td width="7%" align="right">&nbsp;</td>
+        </tr>
+      </div>
+    </table>
+  </div>
+</form>
+</body>
+</html>

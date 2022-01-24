@@ -1,0 +1,563 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T09:47:10 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Bom_Lines" language="groovy" pageWidth="802" pageHeight="100" orientation="Landscape" columnWidth="802" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="e8c3fe2a-189a-4ede-a435-fde1b81561e3">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="67"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="Detail_Line" fontName="OpenZ Sans" fontSize="8">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#5D5D5D" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="10" isBold="true">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="c_bpartner_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="c_project_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ad_user_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AD_LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="startdate" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="enddate" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ad_org_id" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="issparepart" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select 	zssi_tinymce2jsreportsHTML(m.description) as description,
+	(select c_bpartner.name from c_bpartner where c_bpartner.c_bpartner_id = m.c_bpartner_id)||', '||
+	(zssi_getlocationcity(m.c_bpartner_location_id)||', '||zssi_getlocationcountry(m.c_bpartner_location_id, $P{LANGUAGE})) as bpartner,
+	zssi_getusernamecomplete(m.ad_user_id, $P{LANGUAGE}) as contact,
+	zssi_getprojectorcostcentername(m.c_project_id, $P{LANGUAGE}) as project,
+	zssi_getusernamecomplete(m.salesrep_id, $P{LANGUAGE}) as salesrep,
+	(m.estpropability|| ' %') as propability,
+	zssi_strdate(m.startdate, $P{LANGUAGE}) as startdate,
+	zssi_strdate(m.enddate, $P{LANGUAGE}) as enddate,
+	(zssi_strint(m.linenetamt,$P{LANGUAGE})|| ' €') as amount,
+	m.linenetamt as numbernettotal,
+	(select m.linenetamt from mrp_salesforecast where
+	m.mrp_salesforecast_id=mrp_salesforecast.mrp_salesforecast_id and
+	case when $P{c_bpartner_id} is not null then m.c_bpartner_id = $P{c_bpartner_id} else 1=1 end and
+	case when $P{c_project_id} is not null then m.c_project_id = $P{c_project_id} else 1=1 end and
+	case when $P{ad_user_id} is not null then m.salesrep_id = $P{ad_user_id} else 1=1 end and
+	m.estpropability = '90' and
+	(case when $P{issparepart} = 'Y' then zssi_isdateinrange(m.enddate, $P{startdate}, $P{enddate}) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange(m.enddate, $P{startdate}, $P{enddate}) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange(m.startdate, $P{startdate}, $P{enddate}) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange($P{startdate}, m.startdate, m.enddate) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange($P{enddate}, m.startdate, m.enddate) = 'Y' end))
+	as numbernet90,
+	(select m.linenetamt from mrp_salesforecast where
+	m.mrp_salesforecast_id=mrp_salesforecast.mrp_salesforecast_id and
+	case when $P{c_bpartner_id} is not null then m.c_bpartner_id = $P{c_bpartner_id} else 1=1 end and
+	case when $P{c_project_id} is not null then m.c_project_id = $P{c_project_id} else 1=1 end and
+	case when $P{ad_user_id} is not null then m.salesrep_id = $P{ad_user_id} else 1=1 end and
+	m.estpropability = '75' and
+	(case when $P{issparepart} = 'Y' then zssi_isdateinrange(m.enddate, $P{startdate}, $P{enddate}) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange(m.enddate, $P{startdate}, $P{enddate}) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange(m.startdate, $P{startdate}, $P{enddate}) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange($P{startdate}, m.startdate, m.enddate) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange($P{enddate}, m.startdate, m.enddate) = 'Y' end))
+	as numbernet75,
+	(select m.linenetamt from mrp_salesforecast where
+	m.mrp_salesforecast_id=mrp_salesforecast.mrp_salesforecast_id and
+	case when $P{c_bpartner_id} is not null then m.c_bpartner_id = $P{c_bpartner_id} else 1=1 end and
+	case when $P{c_project_id} is not null then m.c_project_id = $P{c_project_id} else 1=1 end and
+	case when $P{ad_user_id} is not null then m.salesrep_id = $P{ad_user_id} else 1=1 end and
+	m.estpropability = '50' and
+	(case when $P{issparepart} = 'Y' then zssi_isdateinrange(m.enddate, $P{startdate}, $P{enddate}) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange(m.enddate, $P{startdate}, $P{enddate}) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange(m.startdate, $P{startdate}, $P{enddate}) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange($P{startdate}, m.startdate, m.enddate) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange($P{enddate}, m.startdate, m.enddate) = 'Y' end))
+	as numbernet50
+
+from 	mrp_salesforecast m
+
+
+where	case when $P{c_bpartner_id} is not null then m.c_bpartner_id = $P{c_bpartner_id} else 1=1 end and
+	case when $P{c_project_id} is not null then m.c_project_id = $P{c_project_id} else 1=1 end and
+	case when $P{ad_user_id} is not null then m.salesrep_id = $P{ad_user_id} else 1=1 end and
+	(case when $P{issparepart} = 'Y' then zssi_isdateinrange(m.enddate, $P{startdate}, $P{enddate}) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange(m.enddate, $P{startdate}, $P{enddate}) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange(m.startdate, $P{startdate}, $P{enddate}) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange($P{startdate}, m.startdate, m.enddate) = 'Y' end or
+	case when $P{issparepart} = 'N' then zssi_isdateinrange($P{enddate}, m.startdate, m.enddate) = 'Y' end)
+
+order by m.enddate asc]]>
+	</queryString>
+	<field name="description" class="java.lang.String"/>
+	<field name="bpartner" class="java.lang.String"/>
+	<field name="contact" class="java.lang.String"/>
+	<field name="project" class="java.lang.String"/>
+	<field name="salesrep" class="java.lang.String"/>
+	<field name="propability" class="java.lang.String"/>
+	<field name="startdate" class="java.lang.String"/>
+	<field name="enddate" class="java.lang.String"/>
+	<field name="amount" class="java.lang.String"/>
+	<field name="numbernettotal" class="java.math.BigDecimal"/>
+	<field name="numbernet90" class="java.math.BigDecimal"/>
+	<field name="numbernet75" class="java.math.BigDecimal"/>
+	<field name="numbernet50" class="java.math.BigDecimal"/>
+	<variable name="grandtotal" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{numbernettotal}]]></variableExpression>
+	</variable>
+	<variable name="total75" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{numbernet75}]]></variableExpression>
+	</variable>
+	<variable name="total90" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{numbernet90}]]></variableExpression>
+	</variable>
+	<variable name="total50" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{numbernet50}]]></variableExpression>
+	</variable>
+	<group name="Sum Footer">
+		<groupFooter>
+			<band splitType="Prevent">
+				<printWhenExpression><![CDATA[]]></printWhenExpression>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="17" splitType="Stretch">
+			<staticText>
+				<reportElement key="staticText-9" style="Detail_Header" x="254" y="0" width="188" height="17" uuid="be56df92-0f3e-4b2b-a578-17b1f2d6dcda"/>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Project]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-2" style="Detail_Header" x="0" y="0" width="174" height="17" uuid="15361079-fb83-4f3f-ab54-c8f89380e017"/>
+				<box leftPadding="5" rightPadding="7">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Business Partner]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-8" style="Detail_Header" x="174" y="0" width="80" height="17" uuid="96dd80ae-07ed-4353-97ec-024af789a16e"/>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Contact]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-3" style="Detail_Header" x="442" y="0" width="80" height="17" uuid="18157bcc-4830-4e8b-84da-7c48643727ae"/>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Sales rep.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-10" style="Detail_Header" x="762" y="0" width="40" height="17" uuid="d55f328b-b45f-40d8-bb8d-74a344844526"/>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Propability]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-10" style="Detail_Header" x="682" y="0" width="80" height="17" uuid="75dc1a9d-44ba-4809-94fe-432e7ac4adba"/>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Amount]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-10" style="Detail_Header" x="522" y="0" width="80" height="17" uuid="5f0e6eaf-28f2-4c1c-b4cc-590ce20aa2bc"/>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Start date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-10" style="Detail_Header" x="602" y="0" width="80" height="17" uuid="e85d863e-414d-4840-ba66-7fac3366a6ba"/>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[End date]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="32" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="254" y="0" width="188" height="16" uuid="857a8833-5010-407a-b284-1e24fe409df9"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{project}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="174" y="0" width="80" height="16" uuid="cf11be12-738e-4b9e-8d8e-c319c9d57c2f"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{contact}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="174" y="16" width="628" height="16" uuid="e88e4d6d-ca18-41ff-afe9-8555758dfa3f"/>
+				<box leftPadding="5"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="442" y="0" width="80" height="16" uuid="9d869aff-a6c3-414a-8326-7849420996ab"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{salesrep}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="522" y="0" width="80" height="16" uuid="d6626505-e366-4bc2-8a9c-58c209893376"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{startdate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="602" y="0" width="80" height="16" uuid="3710612d-4a3f-4184-85a6-d3fc911bcce5"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{enddate}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="682" y="0" width="80" height="16" uuid="79a0119a-d827-4ca0-915e-dcf6d6635b05"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{amount}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="762" y="0" width="40" height="16" uuid="2d1a3635-5ec0-4e67-a336-5ada2e9338f6"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{propability}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="0" width="174" height="16" isPrintWhenDetailOverflows="true" uuid="f2e9367b-8aa5-435f-a05c-89b0a5ce1b42"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bpartner}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="82" splitType="Stretch">
+			<staticText>
+				<reportElement key="staticText-2" style="Detail_Header" x="0" y="1" width="267" height="17" uuid="e4be1e90-16c8-44ba-974a-a2175910794b"/>
+				<box leftPadding="5" rightPadding="7">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Summary]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="122" y="18" width="145" height="16" uuid="68184d96-bbec-4606-91c9-389373c28b0b"/>
+				<box>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{grandtotal}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="18" width="122" height="16" uuid="3155a910-4e26-4874-a3cf-cd0990744a91"/>
+				<box>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Total sales forecast amount:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="34" width="122" height="16" uuid="d28a6364-f9b1-4fd6-8d46-3cd1e659eb16"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[90% Propability:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="50" width="122" height="16" uuid="fca857a6-f04f-4ee7-aee6-535d7c6c3ff4"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[75% Propability:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="0" y="66" width="122" height="16" uuid="90fe2669-1cd2-4346-9b4a-56fe3e1dcca0"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[50% Propability:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="267" y="18" width="122" height="16" uuid="b583fdd5-1c18-4a73-b661-55cdd6a9e534"/>
+				<box>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Total offer amount:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="267" y="50" width="122" height="16" uuid="10b4be78-ba4a-4529-849e-99bcaf0e033a"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[75% Propability:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="267" y="66" width="122" height="16" uuid="f04e908a-8496-448e-9fc4-5551861b7bbd"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[50% Propability:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="267" y="34" width="122" height="16" uuid="309141ea-7137-463e-a088-ed9290449d0b"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[90% Propability:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="534" y="18" width="122" height="16" uuid="559df44f-e5f9-41bb-98b5-8c08a2aa6935"/>
+				<box>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Total order amount:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-2" style="Detail_Header" x="267" y="1" width="267" height="17" uuid="e3bb7d14-9cb9-452e-b47b-9b70e02561c0"/>
+				<box leftPadding="5" rightPadding="7">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Offers comparison]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-2" style="Detail_Header" x="534" y="1" width="268" height="17" uuid="b13dc5f7-bd8d-432e-a207-5d575eea201a"/>
+				<box leftPadding="5" rightPadding="7">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Orders comparison]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="0" width="802" height="1" uuid="23ac8cf1-fb41-4099-86a8-504785c40c7b"/>
+			</line>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00 €" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="122" y="50" width="145" height="16" uuid="521047ca-331f-469c-a106-af0a9b0e3915"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{total75}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00 €" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="122" y="34" width="145" height="16" uuid="8ea7070d-a565-4b81-aff2-54269d41ddb1"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{total90}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00 €" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="122" y="66" width="145" height="16" uuid="0699dfa8-3a98-4c5b-87f2-337be61ead1a"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{total50}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00 €" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="389" y="50" width="145" height="16" uuid="b151c655-b471-430a-a27b-9d9430e74657"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00 €" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="389" y="18" width="145" height="16" uuid="69085e74-7b15-4d3b-a4fa-ec85f02fffc5"/>
+				<box>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00 €" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="389" y="34" width="145" height="16" uuid="3cc8eed5-2bb4-4065-a781-d783ee2f032a"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00 €" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="389" y="66" width="145" height="16" uuid="1fd48d97-2e36-4ea7-ab31-cd6055ef0d66"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00 €" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="656" y="18" width="146" height="16" uuid="415bf368-4d52-4751-98dd-308bf23405f9"/>
+				<box>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

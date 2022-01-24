@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2009 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+<SqlClass name="ReportAssetDepreciationScheduleData" package="org.openbravo.erpCommon.ad_reports">
+  <SqlClassComment>Report for asset depreciation schedule</SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Method used for search(HTML) and PDF </SqlMethodComment>
+    <Sql><![CDATA[
+    SELECT A.NAME AS ASSETNAME,A.DESCRIPTION AS ASSETDESCRIPTION,to_char(am.dateacct,'YYYY') AS FIELDFISCALYEAR,zssi_strDate(AM.STARTDATE,?) AS STARTDATE,
+    zssi_strDate(AM.ENDDATE,?) AS ENDDATE,coalesce(AML.Amortizationamt,0) AS AMOUNT,C.ISO_CODE AS CURRENCY, coalesce(a.assetvalueamt,0) AS initAmt,coalesce(a.assetvalueamt,0)-coalesce(a.depreciatedvalue,0) as currentamt, COALESCE(zssi_strDate(A.AMORTIZATIONSTARTDATE,?), '') AS AMORTIZATIONSTARTDATE, COALESCE(zssi_strDate(a_get_AmortizationenddateOrAlternative(A.A_ASSET_ID),?), '') AS AMORTIZATIONENDDATE
+    FROM A_ASSET_GROUP AG, A_ASSET A, A_AMORTIZATION AM, A_AMORTIZATIONLINE AML, C_CURRENCY C
+    WHERE AG.A_ASSET_GROUP_ID = A.A_ASSET_GROUP_ID AND A.A_ASSET_ID=AML.A_ASSET_ID AND AM.A_AMORTIZATION_ID=AML.A_AMORTIZATION_ID
+    AND C.C_CURRENCY_ID= AML.C_CURRENCY_ID
+    AND AM.POSTED='Y'
+    AND A.AD_CLIENT_ID = ?
+    AND 1=1
+    AND A.AD_ORG_ID IN ('1')
+    ORDER BY A.NAME, AM.STARTDATE, AM.ENDDATE]]></Sql>
+    <Parameter name="lang"></Parameter>  
+    <Parameter name="lang"></Parameter>  
+    <Parameter name="lang"></Parameter>  
+    <Parameter name="lang"></Parameter>  
+    <Parameter name="client"></Parameter>    
+    <Parameter name="DateFrom" optional="true" after="AND 1=1"><![CDATA[ AND AM.STARTDATE >= TO_DATE(?)]]></Parameter> 
+    <Parameter name="DateTo" optional="true" after="AND 1=1"><![CDATA[ AND AM.ENDDATE <= TO_DATE(?)]]></Parameter> 
+    <Parameter name="assetSeaKey" ignoreValue="%" optional="true" after="AND 1=1"><![CDATA[ AND UPPER(A.VALUE) LIKE UPPER(?)]]></Parameter>       
+    <Parameter name="assetDescription" ignoreValue="%" optional="true" after="AND 1=1"><![CDATA[ AND UPPER(A.DESCRIPTION) LIKE UPPER(?)]]></Parameter>
+    <Parameter name="cAssetCategoryId" optional="true" after="AND 1=1"><![CDATA[  AND AG.A_ASSET_GROUP_ID = ?]]></Parameter>
+    <Parameter name="Org" type="replace" optional="true" after="AND A.AD_ORG_ID IN (" text="'1'"/>
+  </SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod> 
+</SqlClass>

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ ****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2012 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+<SqlClass name="UtilsData" package="org.openz.util"  accessModifier="public">
+   <SqlClassComment></SqlClassComment>
+   <SqlMethod name="getElementTextByColumname" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select zssi_getElementTextByColumname(?,?) from dual
+      </Sql>
+      <Parameter name="dbcolumnname"/>
+      <Parameter name="adLanguage"/>
+   </SqlMethod>
+   <SqlMethod name="getElementTextByID" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select zssi_getElementTextByID(?,?) from dual
+      </Sql>
+      <Parameter name="adelementId"/>
+      <Parameter name="adLanguage"/>
+   </SqlMethod>
+   <SqlMethod name="getListTextByValue" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select zssi_getListTextByValue(?,?,?) from dual
+      </Sql>
+      <Parameter name="refListName"/>
+      <Parameter name="adLanguage"/>
+      <Parameter name="refListValue"/>
+   </SqlMethod>
+   <SqlMethod name="getMessageText" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select zssi_getText(?,?) from dual
+      </Sql>
+      <Parameter name="messageValue"/>
+      <Parameter name="adLanguage"/>
+   </SqlMethod>
+   <SqlMethod name="getWindowText" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select zssi_getWindowText(?,?) from dual
+      </Sql>
+      <Parameter name="objectname"/>
+      <Parameter name="adLanguage"/>
+   </SqlMethod>
+   <SqlMethod name="getProcessDescriptionText" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select zssi_getProcessDescriptionText(?,?) from dual
+      </Sql>
+      <Parameter name="ProcessID"/>
+      <Parameter name="adLanguage"/>
+   </SqlMethod>
+   <SqlMethod name="getProcessInfoText" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select zssi_getProcessInfoText(?,?) from dual
+      </Sql>
+      <Parameter name="ProcessID"/>
+      <Parameter name="adLanguage"/>
+   </SqlMethod>
+   <SqlMethod name="getProcessNumOfParams" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select count(*) as num from ad_process_para where ad_process_id= ?
+      </Sql>
+      <Parameter name="ProcessID"/>
+   </SqlMethod>
+   <SqlMethod name="getUUID" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select get_uuid() from dual
+      </Sql>
+   </SqlMethod>
+   <SqlMethod name="getFilenameTimestamp" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select to_char(now(),'yyyymmddhh24miss') from dual
+      </Sql>
+   </SqlMethod>
+   <SqlMethod name="getHTMLMapping4REFName" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select a.mappingname from ad_model_object_mapping a,ad_model_object b, ad_reference c 
+               where c.name= ? and c.ad_reference_id=b.ad_reference_id and 
+               b.ad_model_object_id=a.ad_model_object_id
+      </Sql>
+      <Parameter name="referenceName"/>
+   </SqlMethod>
+ <SqlMethod name="isModuleActive" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        select m.isactive 
+        from ad_module m
+        where m.ad_module_id = ?
+       ]]>
+      </Sql>
+      <Parameter name="modulId"/>
+  </SqlMethod>
+  <SqlMethod name="isProcessJasper" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql>select isjasper from ad_process where ad_process_id= ?
+      </Sql>
+      <Parameter name="processId"/>
+  </SqlMethod>
+  <SqlMethod name="isProcessDocAction" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql>select count(*) as num from ad_column c,ad_table t,ad_process p  where t.ad_table_id=c.ad_table_id and c.ad_process_id=p.ad_process_id and lower(columnname)='docaction' and p.ad_process_id = ?
+      </Sql>
+      <Parameter name="processId"/>
+  </SqlMethod>
+  <SqlMethod name="getDocStatus" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql>select getDocStatus(?,?)
+      </Sql>
+      <Parameter name="tableId"/>
+      <Parameter name="identifierId"/>
+  </SqlMethod>
+  <SqlMethod name="getFieldgroupText" type="preparedStatement" return="string">
+      <Sql>
+      SELECT ad_getFieldGroupText(?,?) 
+      </Sql>
+       <Parameter name="fieldgroupid"/>
+       <Parameter name="language"/>
+   </SqlMethod>
+    <SqlMethod name="getOrgConfigOption" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT c_getconfigoption(?, ?) from dual
+      ]]></Sql>
+    <Parameter name="optionName"/>
+    <Parameter name="orgid"/>
+   </SqlMethod>
+   <SqlMethod name="getCurSymbolFromOrg" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT c.cursymbol from c_currency c, c_acctschema ac,ad_org_acctschema oc where
+             c.c_currency_id=ac.c_currency_id and oc.c_acctschema_id=ac.c_acctschema_id and oc.ad_org_id=?
+      ]]></Sql>
+    <Parameter name="orgid"/>
+   </SqlMethod>
+   <SqlMethod name="getGlobalCurSymbol" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT c.cursymbol from c_currency c, ad_client oc where
+             c.c_currency_id=oc.c_currency_id 
+      ]]></Sql>
+   </SqlMethod>
+   <SqlMethod name="getdefaultLanguage" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT ad_language from ad_client where ad_client_id='C726FEC915A54A0995C568555DA5BB3C'
+      ]]></Sql>
+   </SqlMethod>
+   <SqlMethod name="attachFile" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT ad_addfile(?,?,?,?,?,?) from dual
+      ]]></Sql>
+       <Parameter name="tableId"/>
+       <Parameter name="recordId"/>
+       <Parameter name="userId"/>
+       <Parameter name="filename"/>
+       <Parameter name="orgId"/>
+       <Parameter name="text"/>
+   </SqlMethod>
+   <SqlMethod name="remeveAttachFile" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT ad_delfile(?,?,?) from dual
+      ]]></Sql>
+       <Parameter name="tableId"/>
+       <Parameter name="recordId"/>
+       <Parameter name="filename"/>
+   </SqlMethod>
+   <SqlMethod name="copyImage" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      select ad_copyimage(?,?) as result from dual
+      ]]></Sql>
+   <Parameter name="adImageId"/>
+   <Parameter name="adUserId"/>
+  </SqlMethod>
+  <SqlMethod name="selectDisplayDatevalue" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT to_char(to_date(?,?),?) as result from dual
+      ]]></Sql>
+       <Parameter name="strvalue"/>
+       <Parameter name="strdbformat"/>
+       <Parameter name="strLangFormat"/>
+   </SqlMethod>
+   <SqlMethod name="setDUserHist" type="preparedStatement" return="string" connection="true">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT ad_duserhist(?) as result from dual
+      ]]></Sql>
+       <Parameter name="struser"/>
+   </SqlMethod>
+   <SqlMethod name="getParentID" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT ad_getParentID(?,?,?) as result from dual
+      ]]></Sql>
+       <Parameter name="strparenttablename"/>
+       <Parameter name="strchildtablename"/>
+       <Parameter name="strchildkey"/>
+   </SqlMethod>
+ </SqlClass>

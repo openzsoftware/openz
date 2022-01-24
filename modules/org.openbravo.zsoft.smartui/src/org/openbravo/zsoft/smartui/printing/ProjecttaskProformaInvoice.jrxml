@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T08:22:53 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ProjecttaskProformaInvoice" language="groovy" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="0" uuid="b9ed4a07-0888-4337-8b06-c82e3e588823">
+	<property name="ireport.zoom" value="1.2100000000000002"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="61"/>
+	<style name="Title" forecolor="#FFFFFF" fontName="Times New Roman" fontSize="50" isBold="false" pdfFontName="Times-Bold"/>
+	<style name="SubTitle" forecolor="#666666" fontName="Times New Roman" fontSize="18" isBold="false" pdfFontName="Times-Roman"/>
+	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true" pdfFontName="Times-Roman"/>
+	<style name="Detail" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman"/>
+	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<style name="Report_Footer" isDefault="true" vTextAlign="Middle" vImageAlign="Middle" fontName="SansSerif" fontSize="11"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String"/>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_ProjecttaskProformalines" class="net.sf.jasperreports.engine.JasperReport"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/danny/OpenZ/OpenSourceTrunc/openz/modules/org.openbravo.zsoft.smartui/src/org/openbravo/zsoft/smartui/printing/"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+ad_image.binarydata as logo,
+zssi_getElementTextByColumname('Return to', $P{LANGUAGE}) as ret,
+zssi_getElementTextByColumname('Customs EORI-No.', $P{LANGUAGE}) as eorih,
+zssi_getElementTextByColumname('Proforma Invoice', $P{LANGUAGE}) as header,
+zssi_getElementTextByColumname('Department', $P{LANGUAGE}) as dep,
+zssi_getElementTextByColumname('Inv.No.', $P{LANGUAGE}) as inv,
+zssi_getElementTextByColumname('Contact Person', $P{LANGUAGE}) as cont,
+to_char(now(),'DD.MM.YYYY') as date,
+
+--Adress
+l.address1,
+l.address2,
+l.address3,
+l.address4,
+l.address5,
+l.address6,
+l.address7,
+l.address8,
+l.address9,
+l.footer1,
+l.footer2,
+l.footer3,
+l.footer4,
+l.footer5,
+--Employee
+coalesce(zssi_getusername(p.responsible_id),'') as contact,
+coalesce(a.description,'') as description,
+coalesce((Select ll.Eoriidentification from c_bpartner_location ll where ll.C_bpartner_id=p.c_bpartner_id and ll.c_location_id=p.c_location_id),'') as eori,
+p.name as rnr,
+coalesce(coalesce(a.phone2,a.phone),'') as phone
+from zspr_printinfo l,c_projecttask cp
+left join c_project p on cp.c_project_id=p.c_project_id
+left join ad_user a on p.responsible_id=a.ad_user_id,AD_ORGINFO LEFT JOIN ad_image on AD_ORGINFO.your_company_document_image=ad_image.ad_image_id
+where
+cp.ad_org_id=AD_ORGINFO.ad_org_id AND
+cp.c_projecttask_id in ($P{DOCUMENT_ID})]]>
+	</queryString>
+	<field name="logo" class="java.io.InputStream"/>
+	<field name="ret" class="java.lang.String"/>
+	<field name="eorih" class="java.lang.String"/>
+	<field name="header" class="java.lang.String"/>
+	<field name="dep" class="java.lang.String"/>
+	<field name="inv" class="java.lang.String"/>
+	<field name="cont" class="java.lang.String"/>
+	<field name="date" class="java.lang.String"/>
+	<field name="address1" class="java.lang.String"/>
+	<field name="address2" class="java.lang.String"/>
+	<field name="address3" class="java.lang.String"/>
+	<field name="address4" class="java.lang.String"/>
+	<field name="address5" class="java.lang.String"/>
+	<field name="address6" class="java.lang.String"/>
+	<field name="address7" class="java.lang.String"/>
+	<field name="address8" class="java.lang.String"/>
+	<field name="address9" class="java.lang.String"/>
+	<field name="footer1" class="java.lang.String"/>
+	<field name="footer2" class="java.lang.String"/>
+	<field name="footer3" class="java.lang.String"/>
+	<field name="footer4" class="java.lang.String"/>
+	<field name="footer5" class="java.lang.String"/>
+	<field name="contact" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="eori" class="java.lang.String"/>
+	<field name="rnr" class="java.lang.String"/>
+	<field name="phone" class="java.lang.String"/>
+	<variable name="SUMQTY" class="java.math.BigDecimal" calculation="System"/>
+	<variable name="SUMWEIGHT" class="java.math.BigDecimal" calculation="System"/>
+	<variable name="SUMCOST" class="java.math.BigDecimal" calculation="System"/>
+	<title>
+		<band height="366">
+			<subreport>
+				<reportElement x="-14" y="311" width="593" height="26" uuid="ba49894d-1d63-45d7-b950-2154e5de887c"/>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="C_PROJECT_ID">
+					<subreportParameterExpression><![CDATA[$P{DOCUMENT_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="SUMQTY" toVariable="SUMQTY"/>
+				<returnValue subreportVariable="SUMWEIGHT" toVariable="SUMWEIGHT"/>
+				<returnValue subreportVariable="SUMCOST" toVariable="SUMCOST"/>
+				<subreportExpression><![CDATA[$P{SUBREP_ProjecttaskProformalines}]]></subreportExpression>
+			</subreport>
+			<textField>
+				<reportElement x="36" y="67" width="231" height="20" uuid="021e41e1-3e7e-4e4c-b1d4-5e8391fc3ac7"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ret}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="36" y="107" width="231" height="20" uuid="e3ec17f8-8c00-47f3-b02c-e9918fca2f89"/>
+				<textElement>
+					<font size="12" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{address3}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="36" y="87" width="231" height="20" uuid="02c4219e-f4cb-4c48-95a5-478559b25a4b"/>
+				<textElement>
+					<font size="12" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{address1}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="36" y="148" width="231" height="20" uuid="4309732e-41da-4acd-bc74-34a2a0c9aa3d"/>
+				<textElement>
+					<font size="12" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{address4}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="418" y="107" width="137" height="10" uuid="4dce6a9d-eb2b-4ec6-98cc-94dac72376e4"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{address4}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="418" y="97" width="137" height="10" uuid="94cc6383-fb2b-4f3e-8822-cb788852dd6d"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{address3}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="418" y="87" width="137" height="10" uuid="1e6719f4-4c93-48f7-9f45-0d5bd4c7ef28"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{address1}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="418" y="67" width="137" height="10" uuid="400a6e14-6de7-4614-91d8-2725d317059f"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{address5}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="418" y="117" width="137" height="10" uuid="8488ae33-22a7-4b25-8c70-b514f0cc1495"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Tel: "+$F{address6}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="418" y="127" width="137" height="10" uuid="266d117d-b505-40db-913c-fd88cd44d0b8"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Fax: "+$F{address7}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="418" y="168" width="137" height="10" uuid="cc1a4aea-68d7-4fda-9903-66e0cdd9b033"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dep}+" "+$F{description}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="418" y="178" width="137" height="10" uuid="ffd00353-54fa-4ad1-8c26-c6f98e3fce49"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cont}+" "+$F{contact}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="418" y="188" width="137" height="10" uuid="15080519-b17e-4eb5-bdb7-b3178c72a732"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Tel: "+$F{phone}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="36" y="198" width="231" height="20" uuid="215e07dc-b2a0-42f6-badd-fd82b4d12509"/>
+				<textElement>
+					<font size="12" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{eorih}+$F{eori}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="36" y="242" width="231" height="20" uuid="c35ab970-82d8-4472-a313-4763da01920c"/>
+				<textElement>
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{header}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="36" y="272" width="231" height="20" uuid="58498b9b-b983-4998-8099-33e8ea419e21"/>
+				<textElement>
+					<font size="12" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{inv}+": "+$F{rnr}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="418" y="218" width="137" height="12" uuid="77b0787c-8611-4872-8877-e4deac64f7d3"/>
+				<textElement>
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{date}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="RetainShape" hAlign="Right" vAlign="Top" isUsingCache="true" isLazy="true" onErrorType="Blank">
+				<reportElement key="image-2" style="Report_Footer" x="40" y="0" width="515" height="52" uuid="388674c4-3eee-4f21-bc20-764dea28c12a"/>
+				<imageExpression><![CDATA[$F{logo}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement positionType="Float" x="23" y="337" width="80" height="13" uuid="7fc07b5f-f1e8-4ab8-a487-ec6a64ee5e83"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" x="356" y="337" width="80" height="13" uuid="0c714b35-9a84-4284-9175-c81e72118a10"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" x="436" y="337" width="135" height="13" uuid="a089d575-ba8f-42d6-ba70-11b687b77aa8"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" x="103" y="337" width="253" height="13" uuid="c339376a-089f-4ef2-b765-6923e76ccd74"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Auto" pattern="###0.00;-###0.00">
+				<reportElement positionType="Float" x="23" y="350" width="80" height="13" uuid="e53a9663-902b-404d-8af0-ee165d8fd43e"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="10"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{SUMQTY} == null ? new java.math.BigDecimal("0") : $V{SUMQTY})]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Auto" pattern="###0.00;-###0.00">
+				<reportElement positionType="Float" x="356" y="350" width="80" height="13" uuid="f8b385a6-fc75-457b-be9f-2b4462b518fd"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="10"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{SUMWEIGHT} == null ? new java.math.BigDecimal("0") : $V{SUMWEIGHT})]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Auto" pattern="###0.00;-###0.00">
+				<reportElement positionType="Float" x="436" y="350" width="135" height="13" uuid="4b3da987-8754-4b43-af22-478f618046d9"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="10"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{SUMCOST} == null ? new java.math.BigDecimal("0") : $V{SUMCOST})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" x="103" y="350" width="253" height="13" uuid="805c1fd6-576c-4a95-89db-547bc4d14417"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" x="-14" y="337" width="37" height="13" uuid="36b287b4-100a-4ac0-9ccf-151a594d5ffd"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" x="-14" y="350" width="37" height="13" uuid="d65155a3-13e7-4c00-9ac1-c7440cc736fd"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageFooter>
+		<band height="120">
+			<textField isBlankWhenNull="true">
+				<reportElement x="331" y="49" width="87" height="36" isRemoveLineWhenBlank="true" uuid="dc1fb9ad-aba1-4e88-9d87-454503011f01"/>
+				<box>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer2}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="468" y="13" width="87" height="36" isRemoveLineWhenBlank="true" uuid="08d0880b-4995-4bc8-8879-531fffc48f97"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer3}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="468" y="48" width="87" height="36" isRemoveLineWhenBlank="true" uuid="d29eb434-1fb1-44a3-a7ea-2cb40f12304c"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer4}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="468" y="83" width="87" height="36" isRemoveLineWhenBlank="true" uuid="63c5cc3b-3365-4ae3-8fca-a1c0b9b12f8b"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{footer5}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

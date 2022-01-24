@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+
+<SqlClass name="ProductTextData" package="org.openbravo.erpCommon.ad_callouts">
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       select cpy_proddesc2docnote , coalesce(proddesc_ordernum,0) as proddesc_ordernum, 
+              cpy_proddocnote2docnote, coalesce(proddocnote_ordernum,0) as proddocnote_ordernum,
+              cpy_vendpnumber2docnote, coalesce(vendpnumberdn_ordernum,0) as vendpnumberdn_ordernum 
+       from zspr_printinfo
+       where AD_Org_ID IN ('0',?)
+       order by AD_Org_ID desc
+      ]]>
+    </Sql>
+    <Parameter name="adOrgId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="getVendorProductNo" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT vendorproductno  
+            FROM m_product_po
+            WHERE 
+            m_product_id = ?
+            AND c_bpartner_id = ?
+            and c_uom_id is null and m_manufacturer_id is null
+            AND ISACTIVE ='Y' and iscurrentvendor='Y'  
+            order by coalesce(qualityrating,0) desc,updated desc  LIMIT 1
+     </Sql>
+     <Parameter name="mProductId"/>
+     <Parameter name="cBpartnerId"/>
+  </SqlMethod>
+
+  <SqlMethod name="getVendorProductNoWithMFAndUOM" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT vendorproductno  
+            FROM m_product_po 
+            WHERE 
+            m_product_id = ?
+            AND c_bpartner_id = ?
+            AND ISACTIVE ='Y' and iscurrentvendor='Y'  
+            AND CASE when ? is not null then c_uom_id=? else c_uom_id is null end
+            and case when ? is not null then m_product_po_id=? else 1=1 end
+            order by coalesce(qualityrating,0) desc,updated desc  LIMIT 1
+     </Sql>
+     <Parameter name="mProductId"/>
+     <Parameter name="cBpartnerId"/>
+     <Parameter name="cUomIdId"/>
+     <Parameter name="cUomIdId"/>
+     <Parameter name="mproductPOId"/>
+     <Parameter name="mproductPOId"/>
+  </SqlMethod>
+  <SqlMethod name="isManufacturerdataSpecific" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT count(*) as mtext 
+            FROM m_product_po po left join m_manufacturer m on m.m_manufacturer_id = po.m_manufacturer_id
+            WHERE 
+            po.m_product_id = ?
+            AND po.c_bpartner_id = ?
+            AND po.ISACTIVE ='Y' and po.iscurrentvendor='Y'  
+            AND CASE when ? is not null then po.c_uom_id=? else po.c_uom_id is null end
+            and case when ? is not null then m_product_po_id=? else 1=1 end
+            
+     </Sql>
+     <Parameter name="mProductId"/>
+     <Parameter name="cBpartnerId"/>
+     <Parameter name="cUomIdId"/>
+     <Parameter name="cUomIdId"/>
+     <Parameter name="mproductPOId"/>
+     <Parameter name="mproductPOId"/>
+  </SqlMethod>
+  <SqlMethod name="getManufacturerdataSpecific" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT coalesce(m.name,'') ||'-'||coalesce(po.manufacturernumber,'') as mtext 
+            FROM m_product_po po left join m_manufacturer m on m.m_manufacturer_id = po.m_manufacturer_id
+            WHERE 
+            po.m_product_id = ?
+            AND po.c_bpartner_id = ?
+            AND po.ISACTIVE ='Y' and po.iscurrentvendor='Y'  
+            AND CASE when ? is not null then po.c_uom_id=? else po.c_uom_id is null end
+            and case when ? is not null then m_product_po_id=? else 1=1 end
+            order by coalesce(po.qualityrating,0) desc,po.updated desc  LIMIT 1
+     </Sql>
+     <Parameter name="mProductId"/>
+     <Parameter name="cBpartnerId"/>
+     <Parameter name="cUomIdId"/>
+     <Parameter name="cUomIdId"/>
+     <Parameter name="mproductPOId"/>
+     <Parameter name="mproductPOId"/>
+  </SqlMethod>
+   <SqlMethod name="getManufacturerdata" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT coalesce(manufacturer,'')||'-'||coalesce(manufacturernumber,'') as mtext  
+            FROM m_product
+            WHERE 
+            m_product_id = ?
+            LIMIT 1
+     </Sql>
+     <Parameter name="mProductId"/>
+  </SqlMethod>
+  <SqlMethod name="isManufacturerdata" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT count(*) as text
+            FROM m_product
+            WHERE 
+            m_product_id = ?
+            and manufacturer is not null and manufacturernumber is not null
+            LIMIT 1
+     </Sql>
+     <Parameter name="mProductId"/>
+  </SqlMethod>
+  <SqlMethod name="getCustomerdata" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT customerproducttext as mtext  
+            FROM m_product
+            WHERE 
+            m_product_id = ?
+            LIMIT 1
+     </Sql>
+     <Parameter name="mProductId"/>
+  </SqlMethod>
+  <SqlMethod name="isCustomerdata" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT count(*) as text
+            FROM m_product
+            WHERE 
+            m_product_id = ?
+            and customerproducttext is not null
+            LIMIT 1
+     </Sql>
+     <Parameter name="mProductId"/>
+  </SqlMethod>
+  <SqlMethod name="getProductDocNote" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT documentnote  
+            FROM m_product
+            WHERE m_product_id = ?
+     </Sql>
+     <Parameter name="mProductId"/>  
+  </SqlMethod>
+  <SqlMethod name="getProductDescription" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT description  
+            FROM m_product
+            WHERE m_product_id = ?
+     </Sql>
+     <Parameter name="mProductId"/>  
+  </SqlMethod>
+</SqlClass>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2009 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="ReportTrialBalanceDetailData" package="org.openbravo.erpCommon.ad_reports">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT B.ID, B.NAME, B.ACCOUNT_ID, SUM(A.AMTACCTDR) AS AMTACCTDR, 
+      SUM(A.AMTACCTCR) AS AMTACCTCR,  TO_CHAR(to_date(ADD_MONTHS(TO_DATE('01/12/2000', 'DD/MM/YYYY'), A.MONTH_N)),to_char('MONTH')) AS MONTH 
+      FROM
+      (SELECT SUM((CASE f.FACTACCTTYPE WHEN 'O' THEN 0 ELSE F.AMTACCTDR END)) AS AMTACCTDR, 
+      SUM((CASE f.FACTACCTTYPE WHEN 'O' THEN 0 ELSE f.AMTACCTCR END)) AS AMTACCTCR , TO_NUMBER(TO_CHAR(F.DATEACCT,to_char('MM'))) AS MONTH_N
+      FROM FACT_ACCT F, C_ELEMENTVALUE EV
+      WHERE F.ACCOUNT_ID = EV.C_ELEMENTVALUE_ID
+      AND f.AD_ORG_ID IN('2')
+      AND F.AD_CLIENT_ID IN ('1')
+      AND F.AD_ORG_ID IN('1')
+      AND 1=1
+      AND F.FACTACCTTYPE <> 'R'
+      AND F.FACTACCTTYPE <> 'C'
+      AND F.ACCOUNT_ID IN ('3')
+      AND F.ISACTIVE = 'Y'
+      GROUP BY TO_CHAR(F.DATEACCT, to_char('MM')))A ,
+      (SELECT c_elementvalue_id AS ID,NAME AS NAME, VALUE AS ACCOUNT_ID
+	      FROM C_ELEMENTVALUE WHERE c_elementvalue_id = ?) B
+	    WHERE ID = ?
+      GROUP BY ID, NAME, ACCOUNT_ID, MONTH_N
+      ORDER BY MONTH_N
+      ]]></Sql>
+    <Field name="rownum" value="count"/>
+    <Parameter name="orgFamily" type="replace" optional="true" after="f.AD_ORG_ID IN(" text="'2'"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="F.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="adUserOrg" type="replace" optional="true" after="F.AD_ORG_ID IN(" text="'1'"/>
+    <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[AND F.DATEACCT >= TO_DATE(?)]]></Parameter>
+    <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[AND F.DATEACCT < TO_DATE(?)]]></Parameter>
+    <Parameter name="idFamily" type="replace" optional="true" after="AND F.ACCOUNT_ID IN (" text="'3'"/>
+    <Parameter name="id"/>
+    <Parameter name="id"/>
+  </SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+  <SqlMethod name="treeOrg" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT AD_TREE_ORG_ID FROM AD_CLIENTINFO
+        WHERE AD_CLIENT_ID = ?
+    </Sql>
+    <Parameter name="client"/>
+  </SqlMethod>
+  <SqlMethod name="treeAccount" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT AD_TREE_ID FROM AD_TREE
+        WHERE AD_CLIENT_ID = ?
+        AND TREETYPE = 'EV'
+        
+    </Sql>
+    <Parameter name="client"/>
+  </SqlMethod>
+  <SqlMethod name="selectCompany" type="preparedStatement" return="string" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT NAME
+        FROM AD_CLIENT
+        WHERE AD_CLIENT_ID = ?
+    </Sql>
+    <Parameter name="client"/>
+  </SqlMethod>
+  <SqlMethod name="selectAccountName" type="preparedStatement" return="string" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT NAME
+        FROM C_ELEMENTVALUE
+        WHERE C_ELEMENTVALUE_ID = ?
+    </Sql>
+    <Parameter name="id"/>
+  </SqlMethod>
+</SqlClass>

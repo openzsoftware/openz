@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2009 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s): Stefan Zimmermann, 2016.
+ ************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="ReportTrialBalanceData" package="org.openbravo.erpCommon.ad_reports">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT
+      MAX(parent_id) AS parent_id,
+      ad_org_id,
+      id,
+      name, 
+      account_id, 
+      elementlevel, 
+      SUM(saldo_inicial) AS saldo_inicial,
+      SUM(amtacctcr) AS AMTACCTCR, 
+      SUM(amtacctdr) AS AMTACCTDR, 
+      0 AS totalamtacctcr,
+      0 AS totalamtacctdr,
+      0 as saldo_inicialVJ,
+      0 as saldo_finalVJ,
+      SUM(saldo_inicial) + zsfi_GetBalanceAmount(ad_org_id, ?, id, TO_DATE(?), TO_DATE(?)) AS saldo_final,
+      TO_DATE(?) AS date_from, 
+      TO_DATE(?) AS date_to, 
+      '' AS bp, 
+      '' AS padre,
+      ''  as orgname,
+      '' as datefrom,
+      '' AS dateto,
+      '' AS datefromvgl,
+      '' AS datetovgl,
+      '' as value,
+      '' as accountsign
+      FROM (
+        SELECT 
+          AD_TREENODE.PARENT_ID, 
+          C_ELEMENTVALUE.ad_org_id,        
+          C_ELEMENTVALUE.C_ELEMENTVALUE_ID AS ID, 
+          C_ELEMENTVALUE.elementlevel, 
+          coalesce(c_elementvalue_trl.name,C_ELEMENTVALUE.NAME) AS NAME, 
+          C_ELEMENTVALUE.VALUE AS ACCOUNT_ID, 
+          0 AS SALDO_INICIAL, 
+          0 AS AMTACCTCR, 
+          0 AS AMTACCTDR
+        FROM AD_TREENODE, C_ELEMENTVALUE left join c_elementvalue_trl on c_elementvalue_trl.C_ELEMENTVALUE_id=C_ELEMENTVALUE.C_ELEMENTVALUE_id and ad_language =?
+        WHERE AD_TREENODE.NODE_ID = C_ELEMENTVALUE.C_ELEMENTVALUE_ID
+        AND AD_TREENODE.AD_TREE_ID = ?
+        AND AD_TREENODE.ISACTIVE = 'Y'
+        AND C_ELEMENTVALUE.ISACTIVE = 'Y'
+        AND (
+          select max(c_element_id) 
+          from c_acctschema_element
+          where 1=1
+            and c_acctschema_id = ?
+            and ELEMENTTYPE = 'AC') = C_ELEMENTVALUE.C_ELEMENT_ID
+      UNION
+        SELECT
+          '0' AS PARENT_ID,
+          f.ad_org_id,
+          F.ACCOUNT_ID AS ID,
+          EV.elementlevel,
+          coalesce(c_elementvalue_trl.name,EV.NAME) AS NAME,
+          EV.VALUE AS ACCOUNT_ID,
+          zsfi_GetBalanceAtTime(f.ad_org_id, ?, f.account_id, TO_DATE(?)) AS SALDO_INICIAL,
+          SUM((CASE f.FACTACCTTYPE WHEN 'O' THEN 0 ELSE f.AMTACCTCR END)) AS AMTACCTCR_soll,
+          SUM((CASE f.FACTACCTTYPE WHEN 'O' THEN 0 ELSE F.AMTACCTDR END)) AS AMTACCTDR_haben 
+        FROM FACT_ACCT F, C_ELEMENTVALUE EV left join c_elementvalue_trl on c_elementvalue_trl.C_ELEMENTVALUE_id=ev.C_ELEMENTVALUE_id and ad_language = ?
+        WHERE F.ACCOUNT_ID = EV.C_ELEMENTVALUE_ID
+          AND f.AD_ORG_ID = ?
+          AND F.AD_CLIENT_ID IN ('1')
+          AND F.AD_ORG_ID IN('1')
+          AND 1=1
+          AND F.FACTACCTTYPE <> 'R'
+          AND F.FACTACCTTYPE <> 'C'
+          AND F.ISACTIVE = 'Y'
+        GROUP BY f.ad_org_id, account_id, ev.name, ev.value, ev.elementlevel,c_elementvalue_trl.name
+        ) A
+      GROUP BY ad_org_id, id, name, account_id, elementlevel
+      ORDER BY parent_id, ad_org_id, account_id,name, elementlevel;
+      ]]></Sql>
+    <Field name="rownum" value="count"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="language"/>
+    <Parameter name="treeAcct"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="language"/>
+    <Parameter name="adorgid"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="F.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="adUserOrg" type="replace" optional="true" after="F.AD_ORG_ID IN(" text="'1'"/>
+    <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[AND F.DATEACCT >= TO_DATE(?)]]></Parameter>
+    <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[AND F.DATEACCT <= TO_DATE(?)]]></Parameter>
+    <Parameter name="accountFrom" optional="true" after="AND 1=1"><![CDATA[AND EV.VALUE >= ?]]></Parameter>
+    <Parameter name="accountTo" optional="true" after="AND 1=1"><![CDATA[AND EV.VALUE <= ?]]></Parameter>
+    <Parameter name="acctSchema" optional="true" after="AND 1=1"><![CDATA[ AND F.C_ACCTSCHEMA_ID = ?]]></Parameter>
+  </SqlMethod>
+
+<SqlMethod name="selectComparative" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT
+      (select name from ad_org where ad_org_id = ?) as orgname,
+      id,
+      name, 
+      value,
+      account_id, 
+      SUM(saldo_inicial) AS saldo_inicial, 
+      SUM(saldo_inicialVJ) AS saldo_inicialVJ,
+      SUM(saldo_inicial) + zsfi_GetBalanceAmount(ad_org_id, ?, id, TO_DATE(?), TO_DATE(?)) AS saldo_final,
+      SUM(saldo_inicialVJ) + zsfi_GetBalanceAmount(ad_org_id, ?, id, TO_DATE(?) - INTERVAL '1 YEAR', TO_DATE(?)- INTERVAL '1 YEAR') AS saldo_finalVJ,
+      zssi_strDate(to_date(?),?) as datefrom,
+      zssi_strDate(to_date(?),?) AS dateto,
+      zssi_strDate(to_date(?)-INTERVAL '1 YEAR',?) AS datefromvgl,
+      zssi_strDate(to_date(?)-INTERVAL '1 YEAR',?) AS datetovgl
+      FROM (
+        SELECT
+          f.ad_org_id,
+          F.ACCOUNT_ID AS ID,
+          ev.value,
+          EV.value||' '||coalesce(trl.name,EV.NAME) AS NAME,
+          EV.VALUE AS ACCOUNT_ID,
+          zsfi_GetBalanceAtTime(f.ad_org_id, ?, f.account_id, TO_DATE(?)) AS SALDO_INICIAL,
+          zsfi_GetBalanceAtTime(f.ad_org_id, ?, f.account_id, TO_DATE(?)-INTERVAL '1 YEAR') AS SALDO_INICIALVJ
+        FROM FACT_ACCT F, C_ELEMENTVALUE EV left join c_elementvalue_trl trl on trl.C_ELEMENTVALUE_id=ev.C_ELEMENTVALUE_id and ad_language = ?
+        WHERE F.ACCOUNT_ID = EV.C_ELEMENTVALUE_ID
+          AND f.AD_ORG_ID = ?
+          AND F.AD_ORG_ID IN('1')
+          AND F.FACTACCTTYPE <> 'R'
+          AND F.FACTACCTTYPE <> 'C'
+          AND F.ISACTIVE = 'Y'
+          AND F.DATEACCT >= TO_DATE(?)
+          AND F.DATEACCT <= TO_DATE(?)
+        GROUP BY f.ad_org_id, account_id, ev.name, ev.value, ev.elementlevel,trl.name
+        ) A
+      GROUP BY ad_org_id, value,id, name, account_id
+      ORDER BY ad_org_id, value
+      ]]></Sql>
+    <Field name="rownum" value="count"/>
+    <Parameter name="adorgid"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="language"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="language"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="language"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="language"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="language"/>
+    <Parameter name="adorgid"/>
+    <Parameter name="adUserOrg" type="replace" optional="true" after="F.AD_ORG_ID IN(" text="'1'"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+  </SqlMethod>
+
+  <SqlMethod name="selectComparativeSorted" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT
+      (select name from ad_org where ad_org_id = ?) as orgname,
+      id,
+      name, 
+      value,
+      account_id, 
+      accountsign,
+      SUM(saldo_inicial) AS saldo_inicial, 
+      SUM(saldo_inicialVJ) AS saldo_inicialVJ,
+      SUM(saldo_inicial) + zsfi_GetBalanceAmount(ad_org_id, ?, id, TO_DATE(?), TO_DATE(?)) AS saldo_final,
+      SUM(saldo_inicial) + zsfi_GetBalanceAmount(ad_org_id, ?, id, TO_DATE(?) - INTERVAL '1 YEAR', TO_DATE(?)- INTERVAL '1 YEAR') AS saldo_finalVJ,
+      zssi_strDate(to_date(?),?) as datefrom,
+      zssi_strDate(to_date(?),?) AS dateto,
+      zssi_strDate(to_date(?)-INTERVAL '1 YEAR',?) AS datefromvgl,
+      zssi_strDate(to_date(?)-INTERVAL '1 YEAR',?) AS datetovgl
+      FROM (
+        SELECT
+          f.ad_org_id,
+          F.ACCOUNT_ID AS ID,
+          ev.value,
+          EV.value||' '||coalesce(trl.name,EV.NAME) AS NAME,
+          EV.VALUE AS ACCOUNT_ID,
+          EV.accountsign,
+          zsfi_GetBalanceAtTime(f.ad_org_id, ?, f.account_id, TO_DATE(?)) AS SALDO_INICIAL,
+          zsfi_GetBalanceAtTime(f.ad_org_id, ?, f.account_id, TO_DATE(?)-INTERVAL '1 YEAR') AS SALDO_INICIALVJ
+        FROM FACT_ACCT F, C_ELEMENTVALUE EV left join c_elementvalue_trl trl on trl.C_ELEMENTVALUE_id=ev.C_ELEMENTVALUE_id and ad_language = ?
+        WHERE F.ACCOUNT_ID = EV.C_ELEMENTVALUE_ID
+          AND f.AD_ORG_ID = ?
+          AND F.AD_ORG_ID IN('1')
+          AND F.FACTACCTTYPE <> 'R'
+          AND F.FACTACCTTYPE <> 'C'
+          AND F.ISACTIVE = 'Y'
+          AND F.DATEACCT >= TO_DATE(?)
+          AND F.DATEACCT <= TO_DATE(?)
+        GROUP BY f.ad_org_id, account_id, ev.name, ev.value, ev.accountsign,ev.elementlevel,trl.name
+        ) A
+      GROUP BY ad_org_id, value,id, name, account_id,accountsign
+      ORDER BY ad_org_id, accountsign,value
+      ]]></Sql>
+    <Field name="rownum" value="count"/>
+    <Parameter name="adorgid"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="language"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="language"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="language"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="language"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="language"/>
+    <Parameter name="adorgid"/>
+    <Parameter name="adUserOrg" type="replace" optional="true" after="F.AD_ORG_ID IN(" text="'1'"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+  </SqlMethod>
+  
+   
+  <SqlMethod name="selectBP" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT 0 AS PARENT_ID, bp, ID, NAME, ACCOUNT_ID, ELEMENTLEVEL, SUM(AMTACCTDR) AS AMTACCTDR, 
+      SUM(AMTACCTCR) AS AMTACCTCR, SUM(SALDO_INICIAL) AS SALDO_INICIAL,0 AS TOTALAMTACCTDR, 0 AS TOTALAMTACCTCR,
+      SUM(SALDO_INICIAL+AMTACCTDR-AMTACCTCR) AS SALDO_FINAL, TO_DATE(?) AS DATE_FROM, TO_DATE(?) AS DATE_TO, ? AS AD_ORG_ID
+      FROM
+      (SELECT f.c_bpartner_id, bp.name as bp, 0 AS PARENT_ID, F.ACCOUNT_ID AS ID, EV.ELEMENTLEVEL, EV.NAME AS NAME, EV.VALUE AS ACCOUNT_ID, 
+      SUM((CASE f.FACTACCTTYPE WHEN 'O' THEN F.AMTACCTDR-F.AMTACCTCR ELSE 0 END)) AS SALDO_INICIAL, 
+      SUM((CASE f.FACTACCTTYPE WHEN 'O' THEN 0 ELSE F.AMTACCTDR END)) AS AMTACCTDR, 
+      SUM((CASE f.FACTACCTTYPE WHEN 'O' THEN 0 ELSE f.AMTACCTCR END)) AS AMTACCTCR 
+      FROM C_ELEMENTVALUE EV, 
+           FACT_ACCT F left join c_bpartner bp on bp.c_bpartner_id = f.c_bpartner_id
+      WHERE F.ACCOUNT_ID = EV.C_ELEMENTVALUE_ID
+      AND f.AD_ORG_ID IN('2')
+      AND F.AD_CLIENT_ID IN ('1')
+      AND F.AD_ORG_ID IN('1')
+      AND 1=1
+      AND F.FACTACCTTYPE <> 'R'
+      AND F.FACTACCTTYPE <> 'C'
+      AND F.ISACTIVE = 'Y'
+      GROUP BY f.c_bpartner_id, bp.name, ACCOUNT_ID,EV.NAME, EV.VALUE, EV.ELEMENTLEVEL) A
+      GROUP BY bp, ID, NAME, ACCOUNT_ID, ELEMENTLEVEL
+      ORDER BY bp, ID, ACCOUNT_ID
+      ]]></Sql>
+    <Field name="rownum" value="count"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="org"/>
+    <Parameter name="orgFamily" type="replace" optional="true" after="f.AD_ORG_ID IN(" text="'2'"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="F.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="adUserOrg" type="replace" optional="true" after="F.AD_ORG_ID IN(" text="'1'"/>
+    <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[AND F.DATEACCT >= TO_DATE(?)]]></Parameter>
+    <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[AND F.DATEACCT < TO_DATE(?)]]></Parameter>
+    <Parameter name="accountFrom" optional="true" after="AND 1=1"><![CDATA[AND EV.VALUE >= ?]]></Parameter>
+    <Parameter name="accountTo" optional="true" after="AND 1=1"><![CDATA[AND EV.VALUE <= ?]]></Parameter>
+    <Parameter name="cBpartnerId" optional="true" type="argument" after="AND 1=1"><![CDATA[ AND F.C_BPARTNER_ID IN]]></Parameter>
+    <Parameter name="acctSchema" optional="true" after="AND 1=1"><![CDATA[ AND F.C_ACCTSCHEMA_ID = ?]]></Parameter>        
+  </SqlMethod>
+  
+  <SqlMethod name="selectSorted" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT
+      MAX(parent_id) AS parent_id,
+      ad_org_id,
+      id,
+      name, 
+      account_id, 
+      elementlevel, 
+      accountsign,
+      SUM(saldo_inicial) AS saldo_inicial,
+      SUM(amtacctcr) AS AMTACCTCR, 
+      SUM(amtacctdr) AS AMTACCTDR, 
+      0 AS totalamtacctcr,
+      0 AS totalamtacctdr,
+      0 as saldo_inicialVJ,
+      0 as saldo_finalVJ,
+      SUM(saldo_inicial) + zsfi_GetBalanceAmount(ad_org_id, ?, id, TO_DATE(?), TO_DATE(?)) AS saldo_final,
+      TO_DATE(?) AS date_from, 
+      TO_DATE(?) AS date_to, 
+      '' AS bp, 
+      '' AS padre,
+      ''  as orgname,
+      '' as datefrom,
+      '' AS dateto,
+      '' AS datefromvgl,
+      '' AS datetovgl,
+      '' as value
+      FROM (
+        SELECT 
+          AD_TREENODE.PARENT_ID, 
+          C_ELEMENTVALUE.ad_org_id,        
+          C_ELEMENTVALUE.C_ELEMENTVALUE_ID AS ID, 
+          C_ELEMENTVALUE.elementlevel, 
+          coalesce(c_elementvalue_trl.name,C_ELEMENTVALUE.NAME) AS NAME, 
+          C_ELEMENTVALUE.VALUE AS ACCOUNT_ID, 
+          C_ELEMENTVALUE.accountsign,
+          0 AS SALDO_INICIAL, 
+          0 AS AMTACCTCR, 
+          0 AS AMTACCTDR
+        FROM AD_TREENODE, C_ELEMENTVALUE left join c_elementvalue_trl on c_elementvalue_trl.C_ELEMENTVALUE_id=C_ELEMENTVALUE.C_ELEMENTVALUE_id and ad_language =?
+        WHERE AD_TREENODE.NODE_ID = C_ELEMENTVALUE.C_ELEMENTVALUE_ID
+        AND AD_TREENODE.AD_TREE_ID = ?
+        AND AD_TREENODE.ISACTIVE = 'Y'
+        AND C_ELEMENTVALUE.ISACTIVE = 'Y'
+        AND (
+          select max(c_element_id) 
+          from c_acctschema_element
+          where 1=1
+            and c_acctschema_id = ?
+            and ELEMENTTYPE = 'AC') = C_ELEMENTVALUE.C_ELEMENT_ID
+      UNION
+        SELECT
+          '0' AS PARENT_ID,
+          f.ad_org_id,
+          F.ACCOUNT_ID AS ID,
+          EV.elementlevel,
+          coalesce(c_elementvalue_trl.name,EV.NAME) AS NAME,
+          EV.VALUE AS ACCOUNT_ID,
+          EV.accountsign,
+          zsfi_GetBalanceAtTime(f.ad_org_id, ?, f.account_id, TO_DATE(?)) AS SALDO_INICIAL,
+          SUM((CASE f.FACTACCTTYPE WHEN 'O' THEN 0 ELSE f.AMTACCTCR END)) AS AMTACCTCR_soll,
+          SUM((CASE f.FACTACCTTYPE WHEN 'O' THEN 0 ELSE F.AMTACCTDR END)) AS AMTACCTDR_haben 
+        FROM FACT_ACCT F, C_ELEMENTVALUE EV left join c_elementvalue_trl on c_elementvalue_trl.C_ELEMENTVALUE_id=ev.C_ELEMENTVALUE_id and ad_language = ?
+        WHERE F.ACCOUNT_ID = EV.C_ELEMENTVALUE_ID
+          AND f.AD_ORG_ID = ?
+          AND F.AD_CLIENT_ID IN ('1')
+          AND F.AD_ORG_ID IN('1')
+          AND 1=1
+          AND F.FACTACCTTYPE <> 'R'
+          AND F.FACTACCTTYPE <> 'C'
+          AND F.ISACTIVE = 'Y'
+        GROUP BY f.ad_org_id, accountsign,account_id, ev.name, ev.value, ev.elementlevel,c_elementvalue_trl.name
+        ) A
+      GROUP BY ad_org_id, id, name, accountsign, account_id, elementlevel
+      ORDER BY parent_id, ad_org_id, accountsign,to_number(account_id), elementlevel;
+      ]]></Sql>
+    <Field name="rownum" value="count"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="dateTo"/>
+    <Parameter name="language"/>
+    <Parameter name="treeAcct"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="acctSchema"/>
+    <Parameter name="dateFrom"/>
+    <Parameter name="language"/>
+    <Parameter name="adorgid"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="F.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="adUserOrg" type="replace" optional="true" after="F.AD_ORG_ID IN(" text="'1'"/>
+    <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[AND F.DATEACCT >= TO_DATE(?)]]></Parameter>
+    <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[AND F.DATEACCT <= TO_DATE(?)]]></Parameter>
+    <Parameter name="accountFrom" optional="true" after="AND 1=1"><![CDATA[AND EV.VALUE >= ?]]></Parameter>
+    <Parameter name="accountTo" optional="true" after="AND 1=1"><![CDATA[AND EV.VALUE <= ?]]></Parameter>
+    <Parameter name="acctSchema" optional="true" after="AND 1=1"><![CDATA[ AND F.C_ACCTSCHEMA_ID = ?]]></Parameter>
+  </SqlMethod>
+  
+  
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+  <SqlMethod name="treeAccount" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT AD_TREE_ID FROM AD_TREE
+        WHERE AD_CLIENT_ID = ?
+        AND TREETYPE = 'EV'
+        
+    </Sql>
+    <Parameter name="client"/>
+  </SqlMethod>
+  <SqlMethod name="selectCompany" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT NAME
+        FROM AD_CLIENT
+        WHERE AD_CLIENT_ID = ?
+    </Sql>
+    <Parameter name="client"/>
+  </SqlMethod>
+  <SqlMethod name="selectOrgName" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT NAME
+        FROM AD_ORG
+        WHERE AD_ORG_ID = ?
+    </Sql>
+    <Parameter name="organization"/>
+  </SqlMethod>
+  <SqlMethod name="selectAcctSchemaName" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT NAME
+        FROM C_ACCTSCHEMA
+        WHERE C_ACCTSCHEMA_ID = ?
+    </Sql>
+    <Parameter name="acctSchema"/>
+  </SqlMethod>
+  <SqlMethod name="selectAccount" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+        SELECT C_ElementValue.value as id, 
+        ((CASE C_ElementValue.isActive WHEN 'N' THEN '**' ELSE '' END) || C_ElementValue.value || ' - ' || C_ElementValue.Name) as name 
+        FROM C_ElementValue
+        WHERE C_ElementValue.AD_Org_ID IN('1') 
+        AND C_ElementValue.AD_Client_ID IN('1')  
+        AND C_ElementValue.IsSummary='N' 
+        AND (C_ElementValue.isActive = 'Y' OR C_ElementValue.C_ElementValue_ID = ? ) 
+        AND 1=1
+        ORDER BY C_ElementValue.Value
+    ]]></Sql>
+  <Parameter name="adOrgClient" type="replace" optional="true" after="C_ElementValue.AD_Org_ID IN(" text="'1'"/>
+  <Parameter name="adUserClient" type="replace" optional="true" after="C_ElementValue.AD_Client_ID IN(" text="'1'"/>
+  <Parameter name="cElementvalueId"/>
+  <Parameter name="schema" optional="true" after="AND 1=1"><![CDATA[ AND (select max(c_element_id) from c_acctschema_element where c_acctschema_id = ? and ELEMENTTYPE = 'AC') = C_ElementValue.c_element_id ]]></Parameter>  
+  </SqlMethod>
+  <SqlMethod name="selectAccountDouble" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+        SELECT c_acctschema_element.c_acctschema_id AS PADRE, C_ElementValue.value as id, 
+        ((CASE C_ElementValue.isActive WHEN 'N' THEN '**' ELSE '' END) || C_ElementValue.value || ' - ' || C_ElementValue.Name) as name 
+        FROM c_acctschema, c_acctschema_element, c_element, c_elementvalue
+        WHERE C_ElementValue.AD_Org_ID IN('1') 
+        AND C_ElementValue.AD_Client_ID IN('1')  
+        AND C_ElementValue.IsSummary='N' 
+        AND (C_ElementValue.isActive = 'Y' OR C_ElementValue.C_ElementValue_ID = ? ) 
+        AND 1=1
+        AND c_acctschema_element.ELEMENTTYPE = 'AC'
+        AND c_acctschema.c_acctschema_id = c_acctschema_element.c_acctschema_id
+        AND c_acctschema_element.c_element_id = c_element.c_element_id
+        AND c_element.c_element_id = c_elementvalue.c_element_id
+        ORDER BY C_ElementValue.Value
+    ]]></Sql>
+  <Parameter name="adOrgClient" type="replace" optional="true" after="C_ElementValue.AD_Org_ID IN(" text="'1'"/>
+  <Parameter name="adUserClient" type="replace" optional="true" after="C_ElementValue.AD_Client_ID IN(" text="'1'"/>
+  <Parameter name="cElementvalueId"/>  
+  </SqlMethod>  
+
+  <SqlMethod name="selectAccountingName" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+        SELECT C_ELEMENTVALUE.VALUE||'-'||C_ELEMENTVALUE.NAME
+        FROM C_ELEMENTVALUE
+        WHERE C_ELEMENTVALUE.VALUE = ?
+        AND C_ELEMENTVALUE.ISACTIVE = 'Y'
+    ]]></Sql>
+  <Parameter name="cElementvalueId"/>
+  </SqlMethod>
+  <SqlMethod name="selectLastAccount" type="preparedStatement" return="string" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+	    SELECT MAX(C_ELEMENTVALUE.VALUE) AS ID 
+        FROM C_ELEMENTVALUE
+        WHERE C_ELEMENTVALUE.AD_Org_ID IN('1') 
+       AND C_ELEMENTVALUE.AD_Client_ID IN('1')  
+       AND C_ELEMENTVALUE.IsSummary='N'
+    ]]></Sql>
+  <Parameter name="adOrgClient" type="replace" optional="true" after="C_ELEMENTVALUE.AD_Org_ID IN(" text="'1'"/>
+  <Parameter name="adUserClient" type="replace" optional="true" after="C_ELEMENTVALUE.AD_Client_ID IN(" text="'1'"/>
+  </SqlMethod>
+  <SqlMethod name="selectAcctSchemadefault" type="preparedStatement" return="string" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      SELECT c_acctschema_id from (
+        SELECT c_acctschema_id from  ad_org_acctschema where ad_org_id = ?
+        union
+        SELECT c_acctschema_id from  c_acctschema where exists (select 0 from ad_org_acctschema where ad_org_acctschema.c_acctschema_id=c_acctschema.c_acctschema_id)
+      ) a LIMIT 1
+        
+    ]]></Sql>
+  <Parameter name="adOrgId"/>
+  </SqlMethod>
+</SqlClass>

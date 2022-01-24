@@ -1,0 +1,90 @@
+         <TD colspan="@NUMCOLS@" class="Form_ContentCell"  >
+            <TABLE cellpadding="0" cellspacing="0"   style="padding-bottom:5px" class="Celltable" id="@LEFTSIDEFIELDNAME@td">
+            <TR>
+                    <TD class="List_ContentCell">
+                      <SELECT name="inp@LEFTSIDEFIELDNAME@" multiple="" id="@LEFTSIDEFIELDNAME@" class="Dimension_LeftSelect_width Dimension_LeftSelect_height" title="@TITLE@" @READONLY@>
+                       @LEFTSIDECONTENT@
+                      </SELECT>
+                    </TD>
+                  <TD class="Arrows_ContentCell">
+                      <TABLE border="0" cellspacing="0" cellpadding="0">
+                        <TR>
+                          <TD>
+                            <A class="Dimension_LeftRight_Button_TopLink" href="#" onclick="addList(document.@FORMNAME@.@LEFTSIDEFIELDNAME@, document.@FORMNAME@.@RIGHTSIDEFIELDNAME@);return false;" onfocus="setWindowElementFocus(this); window.status='Include'; return true;" onblur="window.status=''; return true;" onkeypress="this.className='Dimension_LeftRight_Button_TopLink_active'; return true;" onkeyup="this.className='Dimension_LeftRight_Button_TopLink_focus'; return true;">
+                              <TABLE class="Dimension_LeftRight_Button_Top" onmousedown="this.className='Dimension_LeftRight_Button_Top_active'; return true;" onmouseup="this.className='Dimension_LeftRight_Button_Top'; return true;" onmouseover="this.className='Dimension_LeftRight_Button_Top_hover'; window.status='Include'; return true;" onmouseout="this.className='Dimension_LeftRight_Button_Top'; window.status=''; return true;">
+                                <TR>
+                                  <TD class="Dimension_LeftRight_Button_Top_bg">
+                                    <IMG class="Dimension_LeftRight_Button_Icon Dimension_LeftRight_Button_Icon_Include" src="../web/images/blank.gif" alt="@INCLUDEMSG@" title="@INCLUDEMSG@">
+                                  </TD>
+                                </TR>
+                              </TABLE>
+                            </A>
+                          </TD>
+                        </TR>
+                        <TR>
+                          <TD class="Dimension_LeftRight_Button_Separator">
+                          </TD>
+                        </TR>
+                        <TR>
+                          <TD>
+                            <A class="Dimension_LeftRight_Button_BottomLink" href="#" onclick="addList(document.@FORMNAME@.@RIGHTSIDEFIELDNAME@, document.@FORMNAME@.@LEFTSIDEFIELDNAME@);return false;" onfocus="setWindowElementFocus(this); window.status='Exclude'; return true;" onblur="this.className='Dimension_LeftRight_Button_BottomLink'; window.status=''; return true;" onkeypress="this.className='Dimension_LeftRight_Button_BottomLink_active'; return true;" onkeyup="this.className='Dimension_LeftRight_Button_BottomLink_focus'; return true;">
+                              <TABLE class="Dimension_LeftRight_Button_Bottom Celltable" onmousedown="this.className='Dimension_LeftRight_Button_Bottom_active'; return true;" onmouseup="this.className='Dimension_LeftRight_Button_Bottom'; return true;" onmouseover="this.className='Dimension_LeftRight_Button_Bottom_hover'; window.status='Exclude'; return true;" onmouseout="this.className='Dimension_LeftRight_Button_Bottom'; window.status=''; return true;">
+                                <TR>
+                                  <TD class="Dimension_LeftRight_Button_Bottom_bg">
+                                    <IMG class="Dimension_LeftRight_Button_Icon Dimension_LeftRight_Button_Icon_Exclude" src="../web/images/blank.gif" alt="@EXCLUDEMSG@" title="@EXCLUDEMSG@">
+                                  </TD>
+                                </TR>
+                              </TABLE>
+                            </A>
+                          </TD>
+                        </TR>
+                      </TABLE>
+                    </TD>
+                    <TD class="List_ContentCell">
+                      <TABLE border="0" cellspacing="0" cellpadding="0">
+                        <TR>
+                        <TD>
+                            <SELECT name="inp@RIGHTSIDEFIELDNAME@" multiple="" id="@RIGHTSIDEFIELDNAME@" class="Dimension_RightSelect_width Dimension_RightSelect_height" @READONLY@>
+                                  @RIGHTSIDECONTENT@
+                            </SELECT>
+                          </TD>
+                        <TD class="List_Button_ContentCell">
+                          <TABLE border="0" cellspacing="0" cellpadding="0">
+                            <TR>
+                              <TD>
+                                <A class="Dimension_UpDown_Button_TopLink" href="#" onclick="moveElementInList(document.@FORMNAME@.@RIGHTSIDEFIELDNAME@, -1);return false;" onfocus="setWindowElementFocus(this); window.status='Go up'; return true;" onblur="window.status=''; return true;" onkeypress="this.className='Dimension_UpDown_Button_TopLink_active'; return true;" onkeyup="this.className='Dimension_UpDown_Button_TopLink_focus'; return true;">
+                                  <TABLE class="Dimension_UpDown_Button_Top" onmousedown="this.className='Dimension_UpDown_Button_Top_active'; return true;" onmouseup="this.className='Dimension_UpDown_Button_Top'; return true;" onmouseover="this.className='Dimension_UpDown_Button_Top_hover'; window.status='Go up'; return true;" onmouseout="this.className='Dimension_UpDown_Button_Top'; window.status=''; return true;">
+                                    <TR>
+                                      <TD class="Dimension_UpDown_Button_Top_bg">
+                                        <IMG class="Dimension_UpDown_Button_Icon Dimension_UpDown_Button_Icon_Up" src="../web/images/blank.gif" alt="@GOUPMSG@" title="@GOUPMSG@">
+                                      </TD>
+                                    </TR>
+                                  </TABLE>
+                            </A>
+                          </TD>
+                        </TR>
+                        <TR>
+                          <TD class="Dimension_UpDown_Button_Separator">
+                          </TD>
+                        </TR>
+                        <TR>
+                          <TD>
+                            <A class="Dimension_UpDown_Button_BottomLink" href="#" onclick="moveElementInList(document.@FORMNAME@.@RIGHTSIDEFIELDNAME@, 1);return false;" onfocus="setWindowElementFocus(this); window.status='Go down'; return true;" onblur="window.status=''; return true;" onkeypress="this.className='Dimension_UpDown_Button_BottomLink_active'; return true;" onkeyup="this.className='Dimension_UpDown_Button_BottomLink_focus'; return true;">
+                              <TABLE class="Dimension_UpDown_Button_Bottom" onmousedown="this.className='Dimension_UpDown_Button_Bottom_active'; return true;" onmouseup="this.className='Dimension_UpDown_Button_Bottom'; return true;" onmouseover="this.className='Dimension_UpDown_Button_Bottom_hover'; window.status='Go down'; return true;" onmouseout="this.className='Dimension_UpDown_Button_Bottom'; window.status=''; return true;">
+                                <TR>
+                                  <TD class="Dimension_UpDown_Button_Bottom_bg">
+                                    <IMG class="Dimension_UpDown_Button_Icon Dimension_UpDown_Button_Icon_Down" src="../web/images/blank.gif" alt="@GODOWNMSG@" title="@GODOWNMSG@">
+                                  </TD>
+                                </TR>
+                              </TABLE>
+                            </A>
+                              </TD>
+                            </TR>
+                          </TABLE>
+                          </TD>
+                        </TR>
+                      </TABLE>
+                    </TD> 
+             </TR>
+             </TABLE>
+            </TD>

@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2016-10-17T17:15:00 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ProjectSalesCalculationEmployees" language="groovy" pageWidth="585" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="585" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" whenResourceMissingType="Key" uuid="f26e7d2b-5c22-468f-a10d-1ef838e1bbb7">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="steuermann.xml"/>
+	<parameter name="C_PROJECT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DOCUMENT_ID" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select 
+--HEADERS
+zssi_getElementTextByColumname('DESCRIPTIONh',$P{LANGUAGE}) as desch,
+zssi_getElementTextByColumname('AMOUNTh',$P{LANGUAGE}) as amth,
+zssi_getElementTextByColumname('HOURSh',$P{LANGUAGE}) as hourh,
+zssi_getElementTextByColumname('SHIFTh',$P{LANGUAGE}) as shifth,
+zssi_getElementTextByColumname('PRICEh',$P{LANGUAGE}) as priceh,
+zssi_getElementTextByColumname('TOTALh',$P{LANGUAGE}) as totalh,
+zssi_getElementTextByColumname('O.C.h',$P{LANGUAGE}) as och,
+zssi_getElementTextByColumname('PROFITh',$P{LANGUAGE}) as profh,
+zssi_getElementTextByColumname('COMERCh',$P{LANGUAGE}) as comerch,
+p.ZSPM_PTASKHRPLAN_ID, p.C_SALARY_CATEGORY_ID, 
+	       p.description,
+	        zssi_strNumber(p.employee_amt, $P{LANGUAGE}) as employee_amt, 
+	        	   zssi_strNumber(p.hours, $P{LANGUAGE}) as hours,
+	        	    zssi_strNumber(p.shifts, $P{LANGUAGE}) as shifts, 
+	         zssi_strNumber(p.quantity , $P{LANGUAGE}) as quantity,
+	         	   zssi_strNumber(p.cost1,  $P{LANGUAGE}) as cost1,
+	         zssi_strNumber(p.PLANNEDAMT, $P{LANGUAGE}) as plannedamt ,
+	          zssi_strNumber(p.triggerday ,  $P{LANGUAGE}) as triggerday,
+	       c.name as cname,
+	          zssi_strNumber(p.triggeramt, $P{LANGUAGE}) as triggeramt,
+            zssi_strNumber(pt.margin_percent, $P{LANGUAGE})  as margin_percent ,
+  zssi_strNumber(zsco_get_indirect_costPercentFromPlan(pt.c_projecttask_id, 'HR'), $P{LANGUAGE})  as oc
+ from ZSPM_PTASKHRPLAN p, C_SALARY_CATEGORY c, c_projecttask pt
+        where c.C_SALARY_CATEGORY_ID= p.C_SALARY_CATEGORY_ID and 
+              pt.c_projecttask_id=p.c_projecttask_id
+              and pt.c_project_id in ($P{C_PROJECT_ID})]]>
+	</queryString>
+	<field name="desch" class="java.lang.String"/>
+	<field name="amth" class="java.lang.String"/>
+	<field name="hourh" class="java.lang.String"/>
+	<field name="shifth" class="java.lang.String"/>
+	<field name="priceh" class="java.lang.String"/>
+	<field name="totalh" class="java.lang.String"/>
+	<field name="och" class="java.lang.String"/>
+	<field name="profh" class="java.lang.String"/>
+	<field name="comerch" class="java.lang.String"/>
+	<field name="zspm_ptaskhrplan_id" class="java.lang.String"/>
+	<field name="c_salary_category_id" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="employee_amt" class="java.lang.String"/>
+	<field name="hours" class="java.lang.String"/>
+	<field name="shifts" class="java.lang.String"/>
+	<field name="quantity" class="java.lang.String"/>
+	<field name="cost1" class="java.lang.String"/>
+	<field name="plannedamt" class="java.lang.String"/>
+	<field name="triggerday" class="java.lang.String"/>
+	<field name="cname" class="java.lang.String"/>
+	<field name="triggeramt" class="java.lang.String"/>
+	<field name="margin_percent" class="java.lang.String"/>
+	<field name="oc" class="java.lang.String"/>
+	<variable name="SUM_Plannedamt" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{plannedamt}]]></variableExpression>
+	</variable>
+	<variable name="OCCALC" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[($F{oc})]]></variableExpression>
+	</variable>
+	<variable name="MarginCalc" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[($F{margin_percent}/100)+1]]></variableExpression>
+	</variable>
+	<variable name="COMERC" class="java.math.BigDecimal" resetType="Column">
+		<variableExpression><![CDATA[(($F{plannedamt}*$V{OCCALC})*$V{MarginCalc})]]></variableExpression>
+	</variable>
+	<variable name="SUM_COMERC" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$V{COMERC}]]></variableExpression>
+	</variable>
+	<variable name="Return_EMP_PA" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$V{SUM_Plannedamt}]]></variableExpression>
+	</variable>
+	<variable name="Return_EMP_COM" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$V{SUM_COMERC}]]></variableExpression>
+	</variable>
+	<title>
+		<band height="25">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<textField>
+				<reportElement x="10" y="15" width="100" height="10" uuid="09630971-a47c-4f63-b42d-1c5d1c9a43e3">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{desch}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="110" y="15" width="50" height="10" uuid="09693324-53de-49a3-87b7-002c0d7ea781">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8" isBold="true"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{amth}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="160" y="15" width="50" height="10" uuid="32764594-56cf-4a3f-bea8-c48f17d3d52d">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8" isBold="true"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{hourh}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="210" y="15" width="50" height="10" uuid="235e36ad-3342-44b6-bf5e-f1b9cbfec122">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8" isBold="true"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{shifth}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="485" y="15" width="80" height="10" uuid="889417ba-ca72-4484-a951-0267e8a002bd">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8" isBold="true"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{comerch}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="260" y="15" width="65" height="10" uuid="8e6a6e7b-ebce-410e-afa4-e25cf555707f">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8" isBold="true"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{priceh}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="325" y="15" width="80" height="10" uuid="80634dd9-a3d0-4e8e-911f-300ef989a098">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8" isBold="true"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{totalh}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="405" y="15" width="40" height="10" uuid="85c7603e-9d77-4abf-9fea-3796f675188e">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8" isBold="true"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{och}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="445" y="15" width="40" height="10" uuid="1334ac1f-2e22-4f84-a4cd-33b1365ae278">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8" isBold="true"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{profh}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="10" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<textField isBlankWhenNull="true">
+				<reportElement x="10" y="0" width="100" height="10" uuid="76a1abcc-9a3f-4e41-9abb-c85affded059">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,###.###" isBlankWhenNull="true">
+				<reportElement x="110" y="0" width="50" height="10" uuid="f42f0e19-5f10-4422-b8df-48a1f8835a41">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{employee_amt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,###.###" isBlankWhenNull="true">
+				<reportElement x="160" y="0" width="50" height="10" uuid="6d8dbb5f-a31d-4c49-9cd9-aaa66b6df88f">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{hours}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,###.###" isBlankWhenNull="true">
+				<reportElement x="210" y="0" width="50" height="10" uuid="05926c40-012c-4ccb-a1e4-c724feef2d30">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{shifts}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="485" y="0" width="80" height="10" uuid="f180e2fb-7a30-4f89-8913-b8b5d0412edc">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8" isBold="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{COMERC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="260" y="0" width="65" height="10" uuid="a1e86bd2-86ae-4cac-8606-128a67981900">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cost1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="325" y="0" width="80" height="10" uuid="2a5e454f-6487-4283-9f34-11e8d06ffb0c">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{plannedamt}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="405" y="0" width="40" height="10" uuid="8379bbd7-fee3-4b33-b242-bd8212307fc7">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{OCCALC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00#" isBlankWhenNull="true">
+				<reportElement x="445" y="0" width="40" height="10" uuid="9ec6445b-bf05-4139-af8b-910b6ad492af">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8"/>
+					<paragraph lineSpacing="1_1_2" rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{MarginCalc}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="25">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<textField>
+				<reportElement x="10" y="0" width="100" height="10" uuid="e291c882-511f-4ba8-8c16-030aaa232c67">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["TOTAL: "]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement x="485" y="0" width="80" height="10" uuid="f758b720-632f-4b7d-8884-d2158baac214">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{SUM_COMERC}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement x="325" y="0" width="80" height="10" uuid="07628c43-ea9f-4ab8-bd41-b26823418e87">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.1"/>
+					<leftPen lineWidth="0.1"/>
+					<bottomPen lineWidth="0.1"/>
+					<rightPen lineWidth="0.1"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="styled">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{SUM_Plannedamt}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

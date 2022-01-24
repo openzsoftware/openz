@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="InformeInOutData" package="org.openbravo.erpCommon.ad_forms">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT ARTICULO, MAX(CLIENTE) AS CLIENTE, MAX(FECHA_ENTRADA) AS FECHA_ENTRADA, 
+      MAX(FECHA_SALIDA) AS FECHA_SALIDA, TO_CHAR(SUM(CANTIDAD) || ' ' || UNIDAD) AS CANTIDAD,
+      ROUND(to_number(COALESCE(Max(FECHA_SALIDA), to_date(?))-COALESCE(max(FECHA_ENTRADA), to_date(?))),0) AS DIAS_ESTANCIA
+      FROM
+      (
+      SELECT TO_CHAR(P.NAME) AS ARTICULO, NULL AS CLIENTE,
+      TO_DATE(I_O.MOVEMENTDATE,to_char(?)) AS FECHA_ENTRADA, to_date(NULL) AS FECHA_SALIDA, 
+      SUM(I_O_L.MOVEMENTQTY)  AS CANTIDAD, U.NAME AS UNIDAD
+      FROM M_PRODUCT P, M_INOUT I_O, M_INOUTLINE I_O_L, C_UOM U, M_PRODUCT_CATEGORY P_C
+      WHERE I_O.M_INOUT_ID = I_O_L.M_INOUT_ID
+      AND I_O_L.M_PRODUCT_ID= P.M_PRODUCT_ID
+      AND I_O_L.C_UOM_ID= U.C_UOM_ID
+      AND P_C.M_PRODUCT_CATEGORY_ID= P.M_PRODUCT_CATEGORY_ID
+      AND I_O.MOVEMENTTYPE='C-'
+      AND 1=1
+      AND I_O.MOVEMENTDATE BETWEEN TO_DATE(?) AND TO_DATE(?)
+      GROUP BY P.NAME, I_O.MOVEMENTDATE, U.NAME 
+      UNION
+      SELECT TO_CHAR(P.NAME) AS ARTICULO, TO_CHAR(BP.NAME) AS CLIENTE, to_date(NULL) AS FECHA_ENTRADA,
+      TO_DATE(TO_CHAR(I_O.MOVEMENTDATE,to_char(?))) AS FECHA_SALIDA, SUM(I_O_L.MOVEMENTQTY) AS CANTIDAD, U.NAME AS UNIDAD  
+      FROM M_PRODUCT P, M_INOUT I_O, M_INOUTLINE I_O_L, C_BPARTNER BP, C_UOM U, M_PRODUCT_CATEGORY P_C
+      WHERE I_O.M_INOUT_ID = I_O_L.M_INOUT_ID
+      AND I_O_L.M_PRODUCT_ID= P.M_PRODUCT_ID
+      AND P_C.M_PRODUCT_CATEGORY_ID= P.M_PRODUCT_CATEGORY_ID
+      AND I_O_L.C_UOM_ID= U.C_UOM_ID
+      AND I_O.C_BPARTNER_ID= BP.C_BPARTNER_ID
+      AND I_O.MOVEMENTTYPE='V+'
+      AND 2=2
+      AND I_O.MOVEMENTDATE BETWEEN ? AND ?
+      GROUP BY P.NAME, BP.NAME, I_O.MOVEMENTDATE, U.NAME
+      ) A
+      GROUP BY ARTICULO, UNIDAD 
+      ORDER BY ARTICULO
+     ]]>
+     </Sql>
+     <Parameter name="dateFormat"/>
+     <Parameter name="fechaHasta"/>
+     <Parameter name="fechaDesde"/>
+     <Parameter name="categoria" optional="true" after="AND 1=1" text=" AND P_C.M_PRODUCT_CATEGORY_ID = ? "/>
+     <Parameter name="dateFormat"/>
+     <Parameter name="fechaDesde"/>
+     <Parameter name="fechaHasta"/>
+     <Parameter name="categoria" optional="true" after="AND 2=2" text=" AND P_C.M_PRODUCT_CATEGORY_ID = ? "/>
+     <Parameter name="fechaDesde"/>
+     <Parameter name="fechaHasta"/>
+   </SqlMethod>
+</SqlClass>

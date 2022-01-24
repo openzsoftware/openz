@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+******************************************************************************
+ * The contents of this file are subject to the   Compiere License  Version 1.1
+ * ("License"); You may not use this file except in compliance with the License
+ * You may obtain a copy of the License at http://www.compiere.org/license.html
+ * Software distributed under the License is distributed on an  "AS IS"  basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+ * the specific language governing rights and limitations under the License.
+ * The Original Code is                  Compiere  ERP & CRM  Business Solution
+ * The Initial Developer of the Original Code is Jorg Janke  and ComPiere, Inc.
+ * Portions created by Jorg Janke are Copyright (C) 1999-2001 Jorg Janke, parts
+ * created by ComPiere are Copyright (C) ComPiere, Inc.;   All Rights Reserved.
+ * Contributor: Openbravo SL (C) 2001-2009 Openbravo S.L. 
+ * Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+ * Contributor:  Stefan Zimmermann, 01/2011, sz@zimmermann-software.de (SZ)
+ * Parts created by Stefan Zimmermann are Copyright (C) 2011-2020 OpenZ Software GmbH
+ * Contribution: Corrected Debt Payment: Select only not generated (Original from Invoice)
+ * Down Payments (2020)
+ ******************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="DocInvoiceData" package="org.openbravo.erpCommon.ad_forms">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT it.C_Tax_ID, t.Name, t.Rate, it.TaxBaseAmt, it.TaxAmt,it.reversetaxamt, '' AS C_INVOICE_ID, '' AS AD_CLIENT_ID, '' AS AD_ORG_ID,
+        '' AS ISACTIVE, '' AS CREATED, '' AS CREATEDBY, '' AS UPDATED, '' AS UPDATEDBY, '' AS ISSOTRX, '' AS DOCUMENTNO,
+        '' AS DOCSTATUS, '' AS DOCACTION, '' AS PROCESSING, '' AS PROCESSED, '' AS POSTED, '' AS C_DOCTYPE_ID, '' AS C_DOCTYPETARGET_ID,
+        '' AS C_ORDER_ID, '' AS DESCRIPTION, '' AS ISTRANSFERRED, '' AS ISPRINTED, '' AS SALESREP_ID, '' AS DATEINVOICED,
+        '' AS DATEPRINTED, '' AS DATEACCT, '' AS C_BPARTNER_ID, '' AS C_BPARTNER_LOCATION_ID, '' AS POREFERENCE, '' AS ISDISCOUNTPRINTED,
+        '' AS DATEORDERED, '' AS C_CURRENCY_ID, '' AS PAYMENTRULE, '' AS C_PAYMENTTERM_ID, '' AS C_CHARGE_ID, '' AS CHARGEAMT, '' AS TOTALLINES,
+        '' AS GRANDTOTAL, '' AS M_PRICELIST_ID, '' AS ISTAXINCLUDED, '' AS C_CAMPAIGN_ID, '' AS C_PROJECT_ID, '' AS C_ACTIVITY_ID,
+        '' AS ISPAID, '' AS CREATEFROM, '' AS GENERATETO, '' AS SENDEMAIL, '' AS AD_USER_ID, '' AS COPYFROM, '' AS ISSELFSERVICE,
+        '' AS AD_ORGTRX_ID, '' AS USER1_ID, '' AS USER2_ID, '' as AMOUNT, '' AS STATUS, '' AS ISRECEIPT, '' AS ISMANUAL, '' AS WRITEOFFAMT, 
+        '' AS C_DEBT_PAYMENT_ID
+        FROM C_Tax t, C_InvoiceTax it
+        WHERE t.C_Tax_ID=it.C_Tax_ID AND it.C_Invoice_ID=?
+     ]]>
+     </Sql>
+     <Parameter name="invoice"/>
+   </SqlMethod>
+  <SqlMethod name="selectRegistro" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT I.AD_CLIENT_ID, I.AD_ORG_ID, I.C_BPARTNER_ID, I.AD_ORGTRX_ID, I.C_PROJECT_ID,
+        I.C_CAMPAIGN_ID, I.C_ACTIVITY_ID, I.USER1_ID, I.USER2_ID, I.DOCUMENTNO, I.DATEACCT,
+        I.C_CURRENCY_ID, I.C_DOCTYPE_ID, I.C_CHARGE_ID, I.CHARGEAMT, I.POSTED, I.DATEINVOICED,
+        I.ISTAXINCLUDED, I.C_BPARTNER_LOCATION_ID, I.GRANDTOTAL, I.TOTALLINES, I.CHARGEAMT
+        FROM C_INVOICE I
+        WHERE AD_Client_ID=? 
+        AND C_INVOICE_ID=?
+     ]]>
+     </Sql>
+     <Parameter name="client"/>
+     <Parameter name="id"/>
+   </SqlMethod>
+  <SqlMethod name="selectDebtPayments" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT (AMOUNT + coalesce(WITHHOLDINGAMOUNT,0)) AS AMOUNT, C_CURRENCY_ID, STATUS_INITIAL AS STATUS, ISRECEIPT, ISPAID, ISMANUAL, WRITEOFFAMT, C_DEBT_PAYMENT_ID
+      FROM C_DEBT_PAYMENT
+      WHERE c_settlement_generate_id is null and C_INVOICE_ID =?
+     ]]>
+     </Sql>
+     <Parameter name="invoice"/>
+   </SqlMethod>
+  <SqlMethod name="isDownPayment" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      select case when count(*) > 0 then 'Y' else 'N' end as retval from c_order_paymentschedule ps where ps.isrevenue='N' and
+             exists (select 0 from c_order_paymentschedule psx where psx.c_order_id=ps.c_order_id and psx.isrevenue='Y'
+                                   and psx.invoicedate>ps.invoicedate) 
+             and ps.c_invoice_id = ?
+     ]]>
+     </Sql>
+     <Parameter name="invoice"/>
+   </SqlMethod>
+   
+  <SqlMethod name="bookDownPayments2Revenue" type="preparedStatement" connection="true" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      select  zsfi_DownPaymentsToRevenue(?,?,?)
+     ]]>
+     </Sql>
+     <Parameter name="invoice"/>
+     <Parameter name="acctSchema"/>
+     <Parameter name="UserId"/>
+   </SqlMethod> 
+   
+   <SqlMethod name="isDownPaymentRevenue" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      select case when count(*) > 0 then 'Y' else 'N' end as retval from c_order_paymentschedule ps where ps.isrevenue='Y'
+             and ps.c_invoice_id = ?
+     ]]>
+     </Sql>
+     <Parameter name="invoice"/>
+   </SqlMethod> 
+   
+  <SqlMethod name="updateProductPO" type="preparedStatement" connection="true" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        UPDATE M_Product_PO SET PriceLastInv = 
+                (SELECT AVG(C_Currency_Convert(il.PriceActual,i.C_Currency_ID,M_Product_PO.C_Currency_ID,i.DateInvoiced,null,i.AD_Client_ID,i.AD_Org_ID))
+                FROM C_Invoice i, C_InvoiceLine il 
+                WHERE i.C_Invoice_ID=il.C_Invoice_ID
+                AND M_Product_PO.M_Product_ID=il.M_Product_ID 
+                AND M_Product_PO.C_BPartner_ID=i.C_BPartner_ID
+                AND i.C_Invoice_ID=?)
+        WHERE EXISTS (SELECT * 
+        FROM C_Invoice i, C_InvoiceLine il 
+        WHERE i.C_Invoice_ID=il.C_Invoice_ID
+        AND M_Product_PO.M_Product_ID=il.M_Product_ID 
+        AND M_Product_PO.C_BPartner_ID=i.C_BPartner_ID
+        AND i.C_Invoice_ID=?)
+     ]]>
+     </Sql>
+     <Parameter name="invoice"/>
+     <Parameter name="invoice"/>
+   </SqlMethod>
+   </SqlClass>

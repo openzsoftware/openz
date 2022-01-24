@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, 2011, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+*                 
+* 
+****************************************************************************************************************************************************/
+-->
+
+
+
+
+
+<SqlClass name="CustomerassetsData" package="org.openz.customerassets" accessModifier="public">
+  <SqlClassComment></SqlClassComment>
+<SqlMethod name="init" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+     SELECT '' as DateFrom, '' as DateTo, '' as columnname , '' as referencename, '' as includesemptyitem, '' as AD_VAL_RULE_ID,'' as m_product_id  from dual
+    </Sql>
+</SqlMethod>
+<SqlMethod name="getProduct" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ca_getproductfromauxtext(?) from dual
+      </Sql>
+      <Parameter name="assetStockedId"/>
+</SqlMethod>
+<SqlMethod name="getQty" type="preparedStatement" return="string">
+      <Sql>
+        SELECT coalesce(sum(actualqty),0) as qty from ca_assetsstocked where m_product_id = ? and c_bpartner_id= ?
+      </Sql>
+      <Parameter name="productId"/>
+      <Parameter name="bPartnerId"/>
+</SqlMethod>
+<SqlMethod name="getUOM" type="preparedStatement" return="string">
+      <Sql>
+        SELECT c_uom_id from m_product where m_product_id = ?
+      </Sql>
+      <Parameter name="productId"/>
+</SqlMethod>
+<SqlMethod name="getPricelist" type="preparedStatement" return="string">
+      <Sql>
+        SELECT m_pricelist_id from m_pricelist  where c_currency_id = ? and issopricelist='Y' order by  isdefault desc limit 1
+      </Sql>
+      <Parameter name="productId"/>
+</SqlMethod>
+<SqlMethod name="getPrice" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ca_offerbuyback(?,?,?,?) as retval from dual
+      </Sql>
+      <Parameter name="bPartnerId"/>
+      <Parameter name="productId"/>
+      <Parameter name="pQty"/>
+      <Parameter name="orderId"/>
+</SqlMethod>
+
+  </SqlClass>

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+
+<SqlClass name="PTaskEquipmentData" package="org.openz.controller.manualTabPane" accessModifier="public">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      select p.zspm_ptaskmachineplan_id, p.ma_machine_id as machine, p.machine_qty as machine_qty,
+            p.costuom as costuom, p.calculated_qty as calculated_qty, p.quantity as qty,  p.plannedamt as total,
+            row_number() OVER (ORDER BY m.name,ZSPM_PTASKMACHINEPLAN_ID) as seqno, p.created,
+            0 as SUM_Machine_Qty,
+            0 as SUM_Calculated_Qty,
+            0 as SUM_Qty,
+            0 as SUM_Total
+
+      from 
+            ZSPM_PTASKMACHINEPLAN p left join ma_machine m on m.ma_machine_id=p.ma_machine_id
+        where  p.C_PROJECTTASK_ID = ?
+        order by m.name
+      ]]></Sql>
+      <Parameter name="projecttaskid"/>
+  </SqlMethod>
+    <SqlMethod name="selectnew" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      select zspm_ptaskmachineplan_id, machine, machine_qty,
+            costuom, calculated_qty, qty,  total,
+            row_number() OVER (ORDER BY created,ZSPM_PTASKMACHINEPLAN_ID) as seqno
+      from (
+            select get_uuid() as zspm_ptaskmachineplan_id, null as machine, 1 as machine_qty,
+            null as costuom, 0 as calculated_qty,0 as qty, 0 as total, now() as created
+      
+      from Dual
+      UNION Select
+            p.zspm_ptaskmachineplan_id, p.ma_machine_id as machine, p.machine_qty as machine_qty,
+            p.costuom as costuom, p.calculated_qty as calculated_qty, p.quantity as qty,  p.plannedamt as total, p.created
+ 
+
+      from 
+            ZSPM_PTASKMACHINEPLAN p left join ma_machine m on m.ma_machine_id=p.ma_machine_id, MA_MACHINE_COST c
+        where c.costuom= p.costuom and
+             p.C_PROJECTTASK_ID = ?
+        ) a order by seqno asc
+      ]]></Sql>
+      <Parameter name="projecttaskid"/>
+  </SqlMethod>
+  <SqlMethod name="getSums" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+    <![CDATA[
+      select sum(coalesce(machine_qty,0)) as SUM_Machine_Qty,
+             sum(coalesce(calculated_qty,0)) as SUM_Calculated_Qty,
+             sum(coalesce(quantity,0)) as SUM_Qty,
+             sum(coalesce(plannedamt,0)) as SUM_Total
+             from       zspm_ptaskmachineplan
+        where C_PROJECTTASK_ID = ?
+      ]]></Sql>
+      <Parameter name="projecttaskid"/>
+  </SqlMethod>
+          <SqlMethod name="insert" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      insert into zspm_ptaskmachineplan(
+      zspm_ptaskmachineplan_id,  
+      c_projecttask_id, 
+      ad_client_id, 
+      ad_org_id,
+      isactive,
+      created,
+      createdby,
+      updated,
+      updatedby,
+      ma_machine_id,
+      quantity,
+      calculated_qty,
+      machine_qty,
+      costuom)values
+      (?,?,?,?,'Y',now(),?,now(),?,?,to_number(?),to_number(?),to_number(?),
+      ?)
+      ]]></Sql>
+      <Parameter name="machineplanId"/>
+      <Parameter name="projecttask"/>
+      <Parameter name="client"/>
+      <Parameter name="org"/>
+      <Parameter name="user"/>
+      <Parameter name="user"/>
+      <Parameter name="ma_machine_id"/>
+      <Parameter name="qty"/>
+      <Parameter name="calculated_qty"/>
+      <Parameter name="machine_qty"/>
+      <Parameter name="costuom"/>
+      
+  </SqlMethod>
+    <SqlMethod name="update" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      update zspm_ptaskmachineplan set
+             ma_machine_id=?,
+             machine_qty=to_number(?),
+             costuom=?,
+             calculated_qty=to_number(?),
+             quantity=to_number(?)
+      where zspm_ptaskmachineplan_id=?            
+             
+      ]]></Sql>
+      <Parameter name="machine"/>
+      <Parameter name="machine_qty"/>
+      <Parameter name="costuom"/>
+      <Parameter name="calculated_qty"/>
+      <Parameter name="qty"/>
+      <Parameter name="ptaskmachine_id"/>
+      
+  </SqlMethod>
+  <SqlMethod name="delete"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       delete from zspm_ptaskmachineplan where zspm_ptaskmachineplan_id = ?
+    </Sql>
+    <Parameter name="ptaskmachine_id"/>
+  </SqlMethod>
+      <SqlMethod name="isExistingID" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select count(*) from zspm_ptaskmachineplan where zspm_ptaskmachineplan_id = ?
+    </Sql>
+    <Parameter name="planId"/>
+  </SqlMethod>
+  </SqlClass>

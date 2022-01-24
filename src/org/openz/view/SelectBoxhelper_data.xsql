@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2012 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+
+
+<SqlClass name="SelectBoxhelperData" package="org.openz.view">
+   <SqlMethod name="select" type="preparedStatement" return="string">
+      <Sql>
+        SELECT '' as name, '' as value, '' as idfield from dual
+      </Sql>
+   </SqlMethod>
+   <SqlMethod name="getSelectorURL" type="preparedStatement" return="string">
+      <Sql>
+        SELECT m.mappingname from ad_model_object_mapping m,ad_model_object o, ad_reference r
+               where m.ad_model_object_id=o.ad_model_object_id and o.ad_reference_id=r.ad_reference_id
+                     and r.name = ? and m.isdefault='Y'
+      </Sql>
+      <Parameter name="selectorname"/>
+   </SqlMethod>
+   <SqlMethod name="getSelectorICON" type="preparedStatement" return="string">
+      <Sql>
+        SELECT coalesce(i.popupsmallicon,r.popupsmallicon) as popupsmallicon from ad_reference r
+               left join ad_referenceinstance i on i.ad_reference_id=r.ad_reference_id AND i.isactive='Y'
+               where r.name = ?
+      </Sql>
+      <Parameter name="selectorname"/>
+   </SqlMethod>
+   <SqlMethod name="getSelectorPopupICON" type="preparedStatement" return="string">
+      <Sql>
+        SELECT coalesce(i.popupbigicon,r.popupbigicon) as popupbigicon from ad_reference r 
+               left join ad_referenceinstance i on i.ad_reference_id=r.ad_reference_id AND i.isactive='Y'
+               where r.name = ?
+      </Sql>
+      <Parameter name="selectorname"/>
+   </SqlMethod>
+   
+   <SqlMethod name="getSelectorValueByID" type="preparedStatement" return="string">
+      <Sql>
+        SELECT zssi_getSelectorIdentifierByID(?,?,?)
+      </Sql>
+      <Parameter name="selectorname"/>
+      <Parameter name="currentid"/>
+      <Parameter name="language"/>
+   </SqlMethod>
+   <SqlMethod name="getReferenceTypeByName" type="preparedStatement" return="string">
+      <Sql>
+        SELECT validationtype from ad_reference where name = ?
+      </Sql>
+      <Parameter name="referencename"/>
+   </SqlMethod>
+   <SqlMethod name="getReferenceTableIDByRefID" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_table_id from  ad_ref_table t 
+               where t.ad_reference_id= ?
+      </Sql>
+      <Parameter name="referenceID"/>
+   </SqlMethod>
+   <SqlMethod name="getTabAccessLevel" type="preparedStatement" return="string">
+      <Sql>
+        SELECT accesslevel from ad_table t, ad_tab ta where ta.ad_table_id=t.ad_table_id and ta.ad_tab_id = ?
+      </Sql>
+      <Parameter name="tabId"/>
+   </SqlMethod>
+   <SqlMethod name="isTabReadOnly" type="preparedStatement" return="string">
+      <Sql>
+        SELECT uipattern from  ad_tab ta where ta.ad_tab_id = ?
+      </Sql>
+      <Parameter name="tabId"/>
+   </SqlMethod>
+   <SqlMethod name="getAttributeSetName" type="preparedStatement" return="string">
+      <Sql>
+        SELECT i.description from m_attributeset a,m_attributesetinstance i where
+            i.m_attributeset_id=a.m_attributeset_id and
+            i.m_attributesetinstance_id= ?
+      </Sql>
+      <Parameter name="referencename"/>
+   </SqlMethod>
+   <SqlMethod name="getTableValueByID" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_column_identifier(?,?,?)
+      </Sql>
+      <Parameter name="tablename"/>
+      <Parameter name="currentid"/>
+      <Parameter name="language"/>
+   </SqlMethod>
+   <SqlMethod name="getKeycolumname" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       SELECT  columnname from ad_column c,ad_reference r,ad_ref_table t where c.ad_column_id = t.ad_key and
+       t.ad_reference_id=r.ad_reference_id and r.name = ?
+      ]]>
+    </Sql>
+    <Parameter name="reference"/>
+  </SqlMethod>
+<SqlMethod name="countFrom" type="preparedStatement" return="String" default="">
+  <Sql>
+    <![CDATA[
+      Select zssi_countrowsfromtable(?,?,?) ]]>
+  </Sql>
+  <Parameter name="tablename"/>
+  <Parameter name="keyid"/>
+<Parameter name="in"/>
+</SqlMethod>
+<SqlMethod name="getdatafromtable" type="preparedStatement" return="multiple" default="">
+  <Sql>
+    <![CDATA[
+      Select valuefield as value,namefield as name, idfield from zssi_getdatafromtable(?,?,?,?) ]]>
+  </Sql>
+  <Parameter name="tablename"/>
+  <Parameter name="keyid"/>
+<Parameter name="in"/>
+<Parameter name="language"/>
+</SqlMethod>
+</SqlClass>

@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/*
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2013 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+*/-->
+
+
+
+
+
+<SqlClass name="SerialNumberData" package="org.openz.pdc.controller" accessModifier="public">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="selectupper" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    Select '' as snr_internal_consumptionline_id,'' as serialnumber ,'' as lotnumber,f.internal_consumptionline_id as m_internal_consumptionline_id,f.locator_id as m_locator_id,'' as quantity,
+            f.product_id as m_product_id, zssi_getproductnamewithvalue(f.product_id,?) as product,f.isserialtracking,f.isbatchtracking,f.iscreated as production,f.qty as qtytodo
+           from pdc_snrtodeliver(?)   f
+    union
+    Select '' as snr_internal_consumptionline_id,'' as serialnumber ,'' as lotnumber,f.internal_consumptionline_id as m_internal_consumptionline_id,f.locator_id as m_locator_id,'' as quantity,
+            f.product_id as m_product_id, zssi_getproductnamewithvalue(f.product_id,?) as product,f.isserialtracking,f.isbatchtracking,f.iscreated as production,f.qty as qtytodo
+           from pdc_snrtodeliver(?)   f
+    </Sql>
+    <Parameter name="language"/>
+    <Parameter name="Productiionid"/>
+     <Parameter name="language"/>
+    <Parameter name="consumptionid"/>
+  </SqlMethod>
+  <SqlMethod name="selectSpecificS" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    Select  f.product_id as m_product_id
+           from pdc_snrtodeliver(?) f group by f.product_id having count(*)>1
+    </Sql>
+    <Parameter name="consumptionid"/>
+  </SqlMethod>
+    <SqlMethod name="selectlower" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    Select l.snr_internal_consumptionline_id,zssi_getproductnamewithvalue(c.m_product_id,?) as product, l.serialnumber , l.lotnumber, l.quantity from snr_internal_consumptionline l,m_internal_consumptionline c
+    where  l.m_internal_consumptionline_id=c.m_internal_consumptionline_id and c.m_internal_consumption_id = ? 
+    union all
+    Select l.snr_internal_consumptionline_id,zssi_getproductnamewithvalue(c.m_product_id,?) as product, l.serialnumber , l.lotnumber, l.quantity from snr_internal_consumptionline l,m_internal_consumptionline c
+    where  l.m_internal_consumptionline_id=c.m_internal_consumptionline_id and c.m_internal_consumption_id = ? 
+    union all
+    Select l.m_inoutline_id as snr_internal_consumptionline_id,zssi_getproductnamewithvalue(c.m_product_id,?) as product, l.serialnumber , l.lotnumber, l.quantity from snr_minoutline l,m_inoutline c
+    where  l.m_inoutline_id=c.m_inoutline_id and c.m_inout_id = ? 
+    </Sql>
+    <Parameter name="language"/>
+    <Parameter name="productionid"/>
+    <Parameter name="language"/>
+    <Parameter name="consumptionid"/>
+    <Parameter name="language"/>
+    <Parameter name="consumptionid"/>
+  </SqlMethod>
+   <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+   </SqlMethod>
+   <SqlMethod name="getProductIdFromSerialOrBatchNumber" type="preparedStatement" return="string">
+      <Sql>
+        SELECT pdc_getProductIdFromSerialOrBatchNumber(?,?)
+      </Sql>
+      <Parameter name="pvalueofserialorbarch"/>
+      <Parameter name="consumptionid"/>
+   </SqlMethod>
+   <SqlMethod name="getProductIdFromSerialATWorkstepReceivingLocator" type="preparedStatement" return="string">
+      <Sql>
+        SELECT m_product_id from snr_masterdata where serialnumber= ? 
+        and m_locator_id=(select receiving_locator from c_projecttask where c_projecttask_id= ?)
+      </Sql>
+      <Parameter name="pvalueofserial"/>
+      <Parameter name="workstepId"/>
+   </SqlMethod>
+   <SqlMethod name="getProductIdFromSerialConsumedINWorkstep" type="preparedStatement" return="string">
+      <Sql>
+        SELECT m_product_id from snr_masterdata where serialnumber= ? 
+        and  c_projecttask_id= ?
+      </Sql>
+      <Parameter name="pvalueofserial"/>
+      <Parameter name="workstepId"/>
+   </SqlMethod>
+   <SqlMethod name="getProductIdFromSerialINLocator" type="preparedStatement" return="string">
+      <Sql>
+        SELECT m_product_id from snr_masterdata where serialnumber= ? 
+        and  m_locator_id= ?
+      </Sql>
+      <Parameter name="pvalueofserial"/>
+      <Parameter name="locator"/>
+   </SqlMethod>
+   <SqlMethod name="getProductIdFromSerial" type="preparedStatement" return="string">
+      <Sql>
+        SELECT m_product_id from snr_masterdata where serialnumber= ? 
+        group by serialnumber,m_product_id having count(*)=1
+      </Sql>
+      <Parameter name="pvalueofserial"/>
+   </SqlMethod>
+   <SqlMethod name="getLocatorIdFromSerialAndProduct" type="preparedStatement" return="string">
+      <Sql>
+        SELECT m_locator_id from snr_masterdata where serialnumber= ? 
+        and  m_product_id= ?
+      </Sql>
+      <Parameter name="pvalueofserial"/>
+       <Parameter name="product"/>
+   </SqlMethod>
+   <SqlMethod name="pdc_getSerialOrBatchType" type="preparedStatement" return="string">
+      <Sql>
+        SELECT pdc_getSerialOrBatchType(?,?)
+      </Sql>
+      <Parameter name="pvalueofserialorbarch"/>
+      <Parameter name="productid"/>
+   </SqlMethod>
+   <SqlMethod name="pdc_getSerialBatchType4product" type="preparedStatement" return="string">
+      <Sql>
+        SELECT case isserialtracking||isbatchtracking when 'YY' then 'BOTH' when 'YN' then 'SERIAL' when 'NY' then 'BATCH' else 'NONE' end from m_product where m_product_id=?
+      </Sql>
+      <Parameter name="productid"/>
+   </SqlMethod>
+   <SqlMethod name="pdc_getBatchNoFromSerialNo" type="preparedStatement" return="string">
+      <Sql>
+        SELECT distinct Lotnumber from snr_serialnumbertracking where serialnumber=? and m_product_id = ?
+        and (select isbatchtracking from m_product where m_product_id= ?) = 'Y'
+      </Sql>
+      <Parameter name="serialno"/>
+      <Parameter name="productId"/>
+      <Parameter name="productId"/>
+   </SqlMethod>
+   <SqlMethod name="getLineIDByProduct" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    Select f.internal_consumptionline_id as m_internal_consumptionline_id 
+           from pdc_snrtodeliver(?)   f where f.product_id= ? 
+    </Sql>
+    <Parameter name="consumptionid"/>
+    <Parameter name="productid"/>
+  </SqlMethod>
+  <SqlMethod name="getQtyByConsumptionLineID" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    Select movementqty from m_internal_consumptionline where m_internal_consumptionline_id = ? 
+    </Sql>
+    <Parameter name="consumptionlineid"/>
+  </SqlMethod>
+   <SqlMethod name="insertSerialLine" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       insert into snr_internal_consumptionline(snr_internal_consumptionline_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY, M_INTERNAL_CONSUMPTIONLINE_ID, 
+                                                  quantity,lotnumber,serialnumber)
+                  values (get_uuid(),?,?,NOW(), ?, NOW(),?,?,
+                          to_number(?),?, ?);
+      ]]>
+    </Sql>
+    <Parameter name="adClientId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="user"/>
+    <Parameter name="user"/>
+    <Parameter name="consumptionLineId"/>
+    <Parameter name="qty"/>
+    <Parameter name="batchno"/>
+    <Parameter name="serialno"/>
+  </SqlMethod>
+  <SqlMethod name="insertSerialLineInOut" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       insert into snr_minoutline(snr_minoutline_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY, m_inoutline_id, 
+                                                  quantity,lotnumber,serialnumber)
+                  values (get_uuid(),?,?,NOW(), ?, NOW(),?,?,
+                          to_number(?),?, ?);
+      ]]>
+    </Sql>
+    <Parameter name="adClientId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="user"/>
+    <Parameter name="user"/>
+    <Parameter name="InOUtLineId"/>
+    <Parameter name="qty"/>
+    <Parameter name="batchno"/>
+    <Parameter name="serialno"/>
+  </SqlMethod>
+  <SqlMethod name="delete" type="preparedStatement" connection="true" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       delete from snr_internal_consumptionline where M_INTERNAL_CONSUMPTIONLINE_ID in (select M_INTERNAL_CONSUMPTIONLINE_ID from M_INTERNAL_CONSUMPTIONLINE where M_INTERNAL_CONSUMPTION_id = ?)
+      ]]>
+    </Sql>
+    <Parameter name="consumption"/>
+  </SqlMethod>
+  <SqlMethod name="deleteInOUt" type="preparedStatement" connection="true" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       delete from snr_minoutline where M_INOUTLINE_ID in (select M_INOUTLINE_ID from M_INOUTLINE where M_INOUT_id = ?)
+      ]]>
+    </Sql>
+    <Parameter name="inoutId"/>
+  </SqlMethod>
+  <SqlMethod name="pdc_InOutPOst" type="preparedStatement" return="string">
+      <Sql>
+        SELECT m_inout_post(null,?)
+      </Sql>
+      <Parameter name="inoutId"/>
+   </SqlMethod>
+    <SqlMethod name="pdc_IsInOutDraft" type="preparedStatement" return="string">
+      <Sql>
+        SELECT case when docstatus='DR' then 'Y' else 'N' end from m_inout where m_inout_id=?
+      </Sql>
+      <Parameter name="inoutId"/>
+   </SqlMethod>
+   <SqlMethod name="isInOutPlus" type="preparedStatement" return="string">
+      <Sql>
+        SELECT movementtype from m_inout where m_inout_id=?
+      </Sql>
+      <Parameter name="inoutId"/>
+   </SqlMethod>
+   <SqlMethod name="snrExists" type="preparedStatement" return="string">
+      <Sql>
+        SELECT case when count(*)=1 then 'Y' else 'N' end as retval from snr_internal_consumptionline where serialnumber=? and m_internal_consumptionline_id=?
+      </Sql>
+      <Parameter name="serialno"/>
+      <Parameter name="consumptionlineId"/>
+   </SqlMethod>
+   <SqlMethod name="getBatchQty" type="preparedStatement" return="string">
+      <Sql>
+        SELECT quantity as retval from snr_internal_consumptionline where  m_internal_consumptionline_id=? and lotnumber=?
+      </Sql>
+      <Parameter name="consumptionlineId"/>
+      <Parameter name="batch"/>
+   </SqlMethod>
+   <SqlMethod name="getCurrentMovementQty" type="preparedStatement" return="string">
+      <Sql>
+        SELECT movementqty as retval from m_internal_consumptionline where  m_internal_consumptionline_id=? 
+      </Sql>
+      <Parameter name="consumptionlineId"/>
+   </SqlMethod>
+   <SqlMethod name="decrementCurrentMovementQty" type="preparedStatement" return="rowCount">
+      <Sql>
+        update m_internal_consumptionline set movementqty=movementqty-1,weight=weight-to_number(?) where  m_internal_consumptionline_id=? 
+      </Sql>
+      <Parameter name="weight"/>
+      <Parameter name="consumptionlineId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="incrementCurrentMovementQty" type="preparedStatement" return="rowCount">
+      <Sql>
+        update m_internal_consumptionline set movementqty=movementqty+1,weight=weight+to_number(?) where  m_internal_consumptionline_id=? 
+      </Sql>
+      <Parameter name="weight"/>
+      <Parameter name="consumptionlineId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="getCurrentBatchOrSerialQtys" type="preparedStatement" return="string">
+      <Sql>
+        SELECT sum(quantity) as retval from snr_internal_consumptionline where  m_internal_consumptionline_id=? 
+      </Sql>
+      <Parameter name="consumptionlineId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="deleteSerialLine" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       delete from snr_internal_consumptionline where m_internal_consumptionline_id=? and (lotnumber=? or serialnumber=?)
+      ]]>
+    </Sql>
+    <Parameter name="consumptionlineId"/>
+    <Parameter name="batchno"/>
+    <Parameter name="serialno"/>
+    </SqlMethod>
+    <SqlMethod name="deleteAllSerialLine" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       delete from snr_internal_consumptionline where m_internal_consumptionline_id=?
+      ]]>
+    </Sql>
+    <Parameter name="consumptionlineId"/>
+    </SqlMethod>
+ </SqlClass>

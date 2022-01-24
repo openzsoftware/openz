@@ -1,0 +1,202 @@
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>SalesCockpit</title>
+  <link rel="shortcut icon" href="../../../../../web/images/favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" type="text/css" href="../../../../../web/skins/Default/Openbravo_ERP_250.css" id="paramCSS"></link>
+  <script language="JavaScript" type="text/javascript" id="paramDirectory">var baseDirectory = "../../../../../web/";</script>
+  <script language="JavaScript" type="text/javascript" id="paramLanguage">var defaultLang = "en_US";</script>
+  <script language="JavaScript" src="../../../../../web/js/shortcuts.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/utils.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/messages.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../utility/DynamicJS.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/windowKeyboard.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/shortcuts.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/utils.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/windowKeyboard.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/searchs.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/jscalendar/calendar.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/calculator.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/ajax.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/default/MessageBox.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/messages.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../utility/DynamicJS.js" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/dojotoolkit/dojo/dojo.js" data-dojo-config="async: true, isDebug: true, parseOnLoad: true" type="text/javascript"></script>
+  <script language="JavaScript" src="../../../../../web/js/zsoft/examples.js" type="text/javascript"></script>
+  		<script type="text/javascript">
+  		require([
+  		    "dojox/charting/Chart",
+  		    "dojox/charting/widget/Legend",
+  		    "dojox/charting/action2d/Tooltip",
+  		    "dojox/charting/action2d/Magnify",
+  		    "dojox/charting/themes/Claro",
+  		    "dojox/charting/plot2d/Columns",
+  		    "dojox/charting/plot2d/Markers",
+  		    "dojox/charting/axis2d/Default",
+  		    "dojo/domReady!"
+  		], function DisplayChart(Chart, Legend, Tooltip, Magnify, theme, chartData) {
+  		    var chartData = GetChartData();
+  		    var chart = new Chart("chartNode", {
+    			  title: "Daily Sales Report",
+      			  titlePos: "top",
+      			  titleGap: 20,
+      			  titleFont: "normal normal normal 16pt Arial",
+      			  titleFontColor: "black"
+      			});
+  		    chart.setTheme(dojox.charting.themes.Claro);
+  		    chart.addPlot("default", {
+  		        type: "Columns",
+  		        animate:{duration: 1000},
+  		        markers: true,
+  		        gap: 5
+  		    });
+  		  chart.addAxis("x", {
+  			font: "normal normal normal 10pt Arial",
+  			labels: [
+  				{value:1, text: "Turnover"},
+  				{value:2, text: "Turnover RR"},
+  				{value:3, text: "Offers"},
+  				{value:4, text: "Orders"},
+  				{value:5, text: "Orders RR"},
+  				{value:6, text: "Backorder"},
+  				{value:7, text: "Backorder RR"},
+  				{value:8, text: "C Forecast"},
+  				{value:9, text: "Payable"},
+  				{value:10, text: "Receivable"}],
+  			rotation: 30});	
+  		  	chart.addAxis("y", {
+  				vertical: true,
+  				fixLower: "major",
+  				fixUpper: "major"});
+  		    chart.addSeries("Monthly Sales",chartData);
+  		    var tip = new Tooltip(chart, "default");
+  		    chart.render(); 
+
+  		    
+  		});
+  		     
+  		</script>
+  <script language="JavaScript" type="text/javascript">
+    function onLoadDo(){
+        this.windowTables = new Array(
+          new windowTableId('client', 'buttonSave')
+        );
+        setWindowTableParentElement();
+        this.tabsTables = new Array(
+          new tabTableId('tdtopTabs')
+        );
+        setTabTableParentElement();
+        enableShortcuts('edition');
+        setBrowserAutoComplete(false);
+        
+        resizeArea();
+        updateMenuIcon('buttonMenu');
+
+        setWindowElementFocus('firstElement');
+    }
+
+    function onResizeDo(){
+        resizeArea();
+    }
+   </script> 
+   <script id="getChartData" language="JavaScript" type="text/javascript">
+    function GetChartData(){
+    	var chartData = [10000,9200,11811,12000,7662,13887,14200,12222,12000,10009,4566,45500];
+    	return chartData;
+    }
+    function onResizeDo(){
+        resizeArea();
+    }
+   </script> 
+   
+   
+</head>
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" onload="onLoadDo();" onresize="onResizeDo();" id="paramMessage">
+<form name="frmMain" method="post" action="UserCockpit.html">
+<input type="hidden" name="Command"></input>
+<!-- Main Table -->
+  <table height="100%" border="0" cellpadding="0" cellspacing="0" id="main">
+    <!-- Main Table All Content-->
+    <tr>
+      <td valign="top" id="tdleftTabs"></td>
+      <td valign="top">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" class="Main_ContentPane_Left">
+          <tr><td class="Main_NavBar_bg_left" id="tdleftSeparator"></td></tr>
+          <tr><td class="Main_ToolBar_bg_left" valign="top"></td></tr>
+          <tr><td class="Main_Client_bg_left"></td></tr>
+          <tr><td class="Main_Bottom_bg_left"></td></tr>
+        </table>
+      </td>
+      <!-- Main Table NavBarToolbarClient (User Data)-->
+      <td valign="top">
+        <div class="Main_ContentPane_NavBar" id="tdtopButtons"></div>
+        <div class="Main_ContentPane_ToolBar" id="paramToolBar"></div>
+       <!-- TabPane -->
+       <table width="100%" border="0" cellspacing="0" cellpadding="0" class="Main_ContentPane_TabPane" id="tdtopTabs">
+          <tr id="paramParentTabContainer"><td class="tabBackGroundInit"></td></tr>
+          <!-- MainTabContainer  -->
+          <tr id="paramMainTabContainer">
+                  <td class="tabBackGroundInit">
+                  <div>
+                  <span class="tabTitle">
+            <div class="tabTitle_background">
+              <span class="tabTitle_elements_container">
+                <span class="tabTitle_elements_text">User Cockpit</span>
+                <span class="tabTitle_elements_separator"><div class="tabTitle_elements_separator_icon"></div></span>
+                <span class="tabTitle_elements_image"><div class="tabTitle_elements_image_normal_icon" id="TabStatusIcon"></div></span>
+              </span>
+        
+            </div>
+          </span>
+                </div>
+                </td>
+        <!-- MainTabContainer  -->
+        </tr>
+        <tr>
+        <td class="tabBackGround">
+          <div class="marginLeft">
+          </div>
+        </td>
+        </tr>
+          <tr id="paramChildTabContainer"><td class="tabTabbarBackGround"></td></tr>
+        <!-- TabPane -->
+        </table>
+        <!-- Main_ContentPane_Client -->
+       
+                                  
+                                         <div id="chartNode" style="width:1000px;height:600px;"></div>
+                       
+            <!-- ContentPane_Bottom -->
+           
+      <!-- Main Table NavBarToolbarClient (User Data)-->
+      </td>
+      <!-- Main Table Footer-->
+      <td valign="top">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" class="Main_ContentPane_Right" id="tdrightSeparator">
+          <tr><td class="Main_NavBar_bg_right"></td></tr>
+          <tr><td class="Main_ToolBar_bg_right" valign="top"></td></tr>
+          <tr><td class="Main_Client_bg_right"></td></tr>
+          <tr><td class="Main_Bottom_bg_right"></td></tr>
+        </table>
+      <!-- Main Table Footer-->
+      </td>
+    <!-- Main Table All Content-->
+    </tr>
+ <!-- Main Table -->           
+  </table>
+
+</form>
+</body>
+</html>

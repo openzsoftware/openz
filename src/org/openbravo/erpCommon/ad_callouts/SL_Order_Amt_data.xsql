@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s): MaHinrichs - function added:  mrp_getpo_qty() 
+ ************************************************************************
+-->
+
+<SqlClass name="SLOrderAmtData" package="org.openbravo.erpCommon.ad_callouts">
+  
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT C_Currency.StdPrecision, C_Currency.PricePrecision, M_PriceList.EnforcePriceLimit, M_PriceList.M_PriceList_ID 
+      FROM C_Order, M_PriceList, C_Currency 
+      WHERE C_Order.M_PriceList_ID = M_PriceList.M_PriceList_ID
+      AND M_PriceList.C_Currency_ID = C_Currency.C_Currency_ID
+      AND C_Order.C_Order_ID = ?
+    </Sql>
+    <Parameter name="cOrderId"/>
+  </SqlMethod>
+  
+  
+  <SqlMethod name="listPriceType" type="preparedStatement" return="boolean">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT (CASE ENFORCEPRICELIMIT WHEN 'Y' THEN 1 ELSE 0 END) AS TYPE FROM M_PRICELIST WHERE M_PRICELIST_ID = ?
+    </Sql>
+    <Parameter name="priceList"/>
+  </SqlMethod>
+ 
+  
+<!-- get qty adjusted by purchasing default settings (m_product_po.qtystd, m_product_po.order_min, m_product_po.ismultipleofminimumqty) -->  
+  <SqlMethod name="mrp_getpo_qty" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT mrp_getpo_qty(?, ?, TO_NUMBER(?),?,?) AS TOTAL FROM DUAL
+    </Sql>
+    <Parameter name="mProductId"/>
+    <Parameter name="cBpartnerId"/>
+    <Parameter name="qty"/>
+    <Parameter name="cUomId"/>
+    <Parameter name="mproductPOId"/>
+  </SqlMethod>
+
+<!-- get minimpositionvalue from purchasing default settings (m_product_po.minimpositionvalue) -->  
+  <SqlMethod name="mrp_getpo_minimpositionvalue" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT mrp_getpo_minimpositionvalue(?, ?,?,?) AS TOTAL FROM DUAL
+    </Sql>
+    <Parameter name="mProductId"/>
+    <Parameter name="cBpartnerId"/>
+    <Parameter name="cUomId"/>
+    <Parameter name="mproductPOId"/>
+  </SqlMethod>
+
+<!-- get qtystd from purchasing default settings (m_product_po.qtystd) -->  
+  <SqlMethod name="mrp_getpo_qtystd" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT mrp_getpo_qtystd(?, ?,?,?) AS TOTAL FROM DUAL
+    </Sql>
+    <Parameter name="mProductId"/>
+    <Parameter name="cBpartnerId"/>
+    <Parameter name="cUomId"/>
+    <Parameter name="mproductPOId"/>
+  </SqlMethod>
+    
+<!-- get qtymin from purchasing default settings (m_product_po.order_min) -->  
+  <SqlMethod name="mrp_getpo_qtymin" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT mrp_getpo_qtymin(?, ?,?,?) AS TOTAL FROM DUAL
+    </Sql>
+    <Parameter name="mProductId"/>
+    <Parameter name="cBpartnerId"/>
+    <Parameter name="cUomId"/>
+    <Parameter name="mproductPOId"/>
+  </SqlMethod>
+    
+<!-- get ismultipleofminimumqty from purchasing default settings (m_product_po.order_min) -->  
+  <SqlMethod name="mrp_getpo_ismultipleofminimumqty" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT mrp_getpo_ismultipleofminimumqty(?, ?,?,?) AS ismultipleofminimumqty FROM DUAL
+    </Sql>
+    <Parameter name="mProductId"/>
+    <Parameter name="cBpartnerId"/>
+    <Parameter name="cUomId"/>
+    <Parameter name="mproductPOId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="getPricelistAmt" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT m_bom_pricelist(?, ?,?,?) AS TOTAL FROM DUAL
+    </Sql>
+    <Parameter name="mProductId"/>
+    <Parameter name="mPricelistId"/>
+    <Parameter name="cUomId"/>
+    <Parameter name="mproductPOId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="getPricestdAmt" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT m_bom_pricestd(?, ?,?,?, ?) AS TOTAL FROM DUAL
+    </Sql>
+    <Parameter name="mProductId"/>
+    <Parameter name="mPricelistId"/>
+    <Parameter name="cUomId"/>
+    <Parameter name="mproductPOId"/>
+    <Parameter name="cBpartnerId"/>
+  </SqlMethod>
+  <SqlMethod name="getPriceListID" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        <![CDATA[
+       SELECT m_offerpartnerpricelist(?,?)
+       ]]>
+    </Sql>
+    <Parameter name="orderId"/>
+    <Parameter name="mProductId"/>
+  </SqlMethod>
+    
+</SqlClass>

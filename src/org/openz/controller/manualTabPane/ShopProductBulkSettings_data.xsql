@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+
+<SqlClass name="ShopProductBulkSettingsData" package="org.openz.controller.manualTabPane">
+  <SqlClassComment></SqlClassComment>
+  
+  
+  
+  <SqlMethod name="insert" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      select zse_bulkproductshopassignment(?,?,?,?,?,?,?,?,to_number(?),to_number(?),to_number(?),to_number(?))
+      </Sql>
+      <Parameter name="userid"/>
+      <Parameter name="shopid"/>
+      <Parameter name="productId"/>
+      <Parameter name="catId"/>
+      <Parameter name="tagId"/>
+      <Parameter name="isorderble"/>
+      <Parameter name="hideonnostock"/>
+      <Parameter name="allowaordernostock"/>
+      <Parameter name="maxstockshown"/>
+       <Parameter name="minorderqtyn"/>
+        <Parameter name="maxorderqty"/>
+        <Parameter name="minstockshown"/>
+  </SqlMethod>
+  
+ </SqlClass>

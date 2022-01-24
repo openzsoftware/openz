@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="InvoiceVendorMultilineLinesData" package="org.openbravo.erpCommon.ad_forms">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT C_INVOICELINE_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE, CREATED, CREATEDBY, UPDATED, UPDATEDBY, C_INVOICE_ID, C_ORDERLINE_ID, M_INOUTLINE_ID, LINE, DESCRIPTION, M_PRODUCT_ID, QTYINVOICED, PRICELIST, PRICEACTUAL, PRICELIMIT, LINENETAMT, C_CHARGE_ID, CHARGEAMT, C_UOM_ID, C_TAX_ID, S_RESOURCEASSIGNMENT_ID, TAXAMT, M_ATTRIBUTESETINSTANCE_ID, ISDESCRIPTION, QUANTITYORDER, M_PRODUCT_UOM_ID, '' as C_INVOICE_DISCOUNT_ID, 
+      AD_COLUMN_IDENTIFIER(TO_CHAR('M_Product'), TO_CHAR(M_PRODUCT_ID), TO_CHAR(?)) AS M_PRODUCT_ID_D, PRICESTD, M_OFFER_ID 
+      FROM C_INVOICELINE 
+      WHERE C_INVOICE_ID = ? 
+      ORDER BY LINE
+     ]]>
+     </Sql>
+     <Parameter name="adLanguage"/>
+     <Parameter name="cInvoiceId"/>
+  </SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql></Sql>
+    <Parameter name="line"/>
+  </SqlMethod>
+  <SqlMethod name="selectLineNo" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT LINE AS TOTAL
+      FROM C_INVOICELINE 
+      WHERE C_INVOICELINE_ID = ? 
+     ]]>
+     </Sql>
+     <Parameter name="cInvoiceId"/>
+  </SqlMethod>
+  <SqlMethod name="selectNextLine" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT COALESCE(MAX(LINE), 0) + 10 AS TOTAL
+      FROM C_INVOICELINE 
+      WHERE C_INVOICE_ID = ? 
+     ]]>
+     </Sql>
+     <Parameter name="cInvoiceId"/>
+  </SqlMethod>
+  <SqlMethod name="selectUOM" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT C_UOM_ID AS TOTAL
+      FROM M_PRODUCT 
+      WHERE M_PRODUCT_ID = ? 
+     ]]>
+     </Sql>
+     <Parameter name="mProductId"/>
+  </SqlMethod>
+  <SqlMethod name="update" type="preparedStatement" static="false" return="rowCount">
+    <Sql><![CDATA[
+        UPDATE C_INVOICELINE SET UPDATEDBY = ?, UPDATED = now(), M_PRODUCT_ID = ?, QTYINVOICED = TO_NUMBER(?), C_TAX_ID = ?, 
+        DESCRIPTION = ?, PRICELIST = TO_NUMBER(?), PRICEACTUAL = TO_NUMBER(?), PRICELIMIT = TO_NUMBER(?), LINENETAMT = (TO_NUMBER(?)*TO_NUMBER(?)), 
+        C_CHARGE_ID = ?, CHARGEAMT = TO_NUMBER(?), C_UOM_ID = ?, S_RESOURCEASSIGNMENT_ID = ?, TAXAMT = TO_NUMBER(?), 
+        M_ATTRIBUTESETINSTANCE_ID = ?, ISDESCRIPTION = ?, QUANTITYORDER = TO_NUMBER(?), M_PRODUCT_UOM_ID = ?, C_INVOICE_DISCOUNT_ID = ?, 
+        PRICESTD = TO_NUMBER(?)
+        WHERE C_INVOICELINE_ID = ? 
+    ]]></Sql>
+    <Parameter name="updatedby"/>
+    <Parameter name="mProductId"/>
+    <Parameter name="qtyinvoiced"/>
+    <Parameter name="cTaxId"/>
+    <Parameter name="description"/>
+    <Parameter name="pricelist"/>
+    <Parameter name="priceactual"/>
+    <Parameter name="pricelimit"/>
+    <Parameter name="priceactual"/>
+    <Parameter name="qtyinvoiced"/>
+    <Parameter name="cChargeId"/>
+    <Parameter name="chargeamt"/>
+    <Parameter name="cUomId"/>
+    <Parameter name="sResourceassignmentId"/>
+    <Parameter name="taxamt"/>
+    <Parameter name="mAttributesetinstanceId"/>
+    <Parameter name="isdescription"/>
+    <Parameter name="quantityorder"/>
+    <Parameter name="mProductUomId"/>
+    <Parameter name="cInvoiceDiscountId"/>
+    <Parameter name="pricestd"/>
+    <Parameter name="cInvoicelineId"/>
+  </SqlMethod>
+  <SqlMethod name="insert" type="preparedStatement" static="false" return="rowCount">
+    <Sql><![CDATA[
+        INSERT INTO C_INVOICELINE (
+    C_INVOICELINE_ID, AD_CLIENT_ID, AD_ORG_ID, 
+    ISACTIVE, CREATED, CREATEDBY, 
+    UPDATED, UPDATEDBY, C_INVOICE_ID, 
+    C_ORDERLINE_ID, M_INOUTLINE_ID, LINE, 
+    DESCRIPTION, M_PRODUCT_ID, QTYINVOICED, 
+    PRICELIST, PRICEACTUAL, PRICELIMIT, 
+    LINENETAMT, C_CHARGE_ID, CHARGEAMT, 
+    C_UOM_ID, C_TAX_ID, S_RESOURCEASSIGNMENT_ID, 
+    TAXAMT, M_ATTRIBUTESETINSTANCE_ID, 
+    ISDESCRIPTION, QUANTITYORDER, M_PRODUCT_UOM_ID, 
+    C_INVOICE_DISCOUNT_ID, PRICESTD) 
+    VALUES ( ?, ?, ?, 
+    'Y', now(), ?, 
+    now(), ?, ?, 
+    ?, ?, (SELECT COALESCE(MAX(LINE), 0) +10 FROM C_INVOICELINE WHERE C_INVOICE_ID=?), 
+    ?, ?, TO_NUMBER(?), 
+    TO_NUMBER(?), TO_NUMBER(?), TO_NUMBER(?), 
+    (TO_NUMBER(?)*TO_NUMBER(?)), ?, TO_NUMBER(?), 
+    ?, ?, ?, 
+    TO_NUMBER(?), ?, ?, 
+    ?, ?, ?, 
+    ?, TO_NUMBER(?))
+    ]]></Sql>
+    <Parameter name="cInvoicelineId"/>
+    <Parameter name="adClientId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="createdby"/>
+    <Parameter name="updatedby"/>
+    <Parameter name="cInvoiceId"/>
+    <Parameter name="cOrderlineId"/>
+    <Parameter name="mInoutlineId"/>
+    <Parameter name="cInvoiceId"/>
+    <Parameter name="description"/>
+    <Parameter name="mProductId"/>
+    <Parameter name="qtyinvoiced"/>
+    <Parameter name="pricelist"/>
+    <Parameter name="priceactual"/>
+    <Parameter name="pricelimit"/>
+    <Parameter name="priceactual"/>
+    <Parameter name="qtyinvoiced"/>
+    <Parameter name="cChargeId"/>
+    <Parameter name="chargeamt"/>
+    <Parameter name="cUomId"/>
+    <Parameter name="cTaxId"/>
+    <Parameter name="sResourceassignmentId"/>
+    <Parameter name="taxamt"/>
+    <Parameter name="mAttributesetinstanceId"/>
+    <Parameter name="isdescription"/>
+    <Parameter name="quantityorder"/>
+    <Parameter name="mProductUomId"/>
+    <Parameter name="cInvoiceDiscountId"/>
+    <Parameter name="pricestd"/>
+  </SqlMethod>
+  <SqlMethod name="delete" type="preparedStatement" connection="true" static="false" return="rowCount">
+    <Sql><![CDATA[
+        DELETE FROM C_INVOICELINE 
+        WHERE C_INVOICELINE_ID = ? 
+    ]]></Sql>
+    <Parameter name="cInvoicelineId"/>
+  </SqlMethod>
+</SqlClass>

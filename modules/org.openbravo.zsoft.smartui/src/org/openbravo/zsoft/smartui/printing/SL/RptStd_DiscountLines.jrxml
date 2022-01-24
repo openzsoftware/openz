@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.1.final using JasperReports Library version 6.2.1  -->
+<!-- 2016-06-15T18:14:41 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RptStd_DiscountLines" pageWidth="388" pageHeight="842" columnWidth="388" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="ad07f65d-74df-4c4e-a0f9-b1cdd53a864f">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.6105100000000008"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT C_ORDER.C_ORDER_ID AS "C_ORDER_ID",
+       zssi_getpaytermdiscdesc(zsfi_discount.zsfi_discount_id,$P{LANGUAGE}) as paytermdiscdesc,
+       zssi_strnumber(c_order.grandtotal / 100 * zssi_getpaytermdisc(zsfi_discount.zsfi_discount_id),$P{LANGUAGE}) as discount,
+       zssi_strnumber(c_order.grandtotal - (c_order.grandtotal / 100 * zssi_getpaytermdisc(zsfi_discount.zsfi_discount_id)),$P{LANGUAGE}) as discounted,
+       CASE when $P{LANGUAGE}='de_DE' then to_char(zssi_getpaytermdisc(zsfi_discount.zsfi_discount_id)) || '% Skonto'
+       ELSE to_char(zssi_getpaytermdisc(zsfi_discount.zsfi_discount_id)) || '% Discount'
+       END as discdesc,
+       C_CURRENCY.cursymbol,
+       zsfi_discount.description as description
+        FROM C_ORDER left join zsfi_discount on c_order.c_paymentterm_id=zsfi_discount.c_paymentterm_id,
+             C_CURRENCY
+        WHERE C_ORDER.C_CURRENCY_ID = C_CURRENCY.C_CURRENCY_ID
+        AND C_ORDER.C_ORDER_ID IN ($P{DOCUMENT_ID})
+        AND c_order.c_paymentterm_id=zsfi_discount.c_paymentterm_id
+
+UNION
+SELECT C_INVOICE.C_INVOICE_ID AS "C_INVOICE_ID",
+       zssi_getpaytermdiscdesc(zsfi_discount.zsfi_discount_id,$P{LANGUAGE}) as paytermdiscdesc,
+       zssi_strnumber(c_invoice.grandtotal / 100 * zssi_getpaytermdisc(zsfi_discount.zsfi_discount_id),$P{LANGUAGE}) as discount,
+       zssi_strnumber(c_invoice.grandtotal - (c_invoice.grandtotal / 100 * zssi_getpaytermdisc(zsfi_discount.zsfi_discount_id)),$P{LANGUAGE}) as discounted,
+       CASE when $P{LANGUAGE}='de_DE' then to_char(zssi_getpaytermdisc(zsfi_discount.zsfi_discount_id)) || '% Skonto'
+       ELSE to_char(zssi_getpaytermdisc(zsfi_discount.zsfi_discount_id)) || '% Discount'
+       END as discdesc,
+       C_CURRENCY.cursymbol,
+      zsfi_discount.description as description
+        FROM C_INVOICE left join zsfi_discount on c_invoice.c_paymentterm_id=zsfi_discount.c_paymentterm_id,
+             C_CURRENCY
+        WHERE C_INVOICE.C_CURRENCY_ID = C_CURRENCY.C_CURRENCY_ID
+        AND C_INVOICE.C_INVOICE_ID IN ($P{DOCUMENT_ID})]]>
+	</queryString>
+	<field name="C_ORDER_ID" class="java.lang.String"/>
+	<field name="paytermdiscdesc" class="java.lang.String"/>
+	<field name="discount" class="java.lang.String"/>
+	<field name="discounted" class="java.lang.String"/>
+	<field name="discdesc" class="java.lang.String"/>
+	<field name="cursymbol" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="32" splitType="Stretch">
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-1" x="305" y="0" width="82" height="16" uuid="af74efda-372d-4c45-a670-17704e7bab32"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{discount}+" "+$F{cursymbol}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-3" x="373" y="0" width="14" height="16" uuid="26b470dd-78dd-4d99-986a-c10c13f58203"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-1" x="299" y="0" width="6" height="16" isPrintWhenDetailOverflows="true" uuid="f40c5a21-54c0-4d41-8cb8-057e8eb9aaed"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" x="123" y="0" width="177" height="16" uuid="15f69ad3-ec31-4c68-8e9b-8515b8f427e4"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{discdesc}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-4" x="305" y="16" width="82" height="16" uuid="e04e25a9-36a4-4dfc-a920-43dccaef0a8c"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{discounted}+" "+$F{cursymbol}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-5" x="373" y="16" width="14" height="16" uuid="30d41171-0a9b-40fe-94eb-5cda1d920723"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-2" x="299" y="16" width="6" height="16" isPrintWhenDetailOverflows="true" uuid="b952fbfd-0479-4e6c-8036-fce7ef4dd2cf"/>
+				<box leftPadding="2">
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-6" x="123" y="16" width="177" height="16" uuid="de78e07d-a176-4a3a-9cf4-62ae34416082"/>
+				<box>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{paytermdiscdesc}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

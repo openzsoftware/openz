@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+<SqlClass name="ExternalSalesProductData" package="org.openbravo.erpCommon.ws.externalSales">
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT M_PRODUCT.M_PRODUCT_ID AS ID, M_PRODUCT.NAME AS NAME,
+        M_PRODUCT.VALUE AS NUMBER1, M_PRODUCT.DESCRIPTION AS DESCRIPTION, 
+        M_PRODUCTPRICE.PRICESTD AS LIST_PRICE, COALESCE(M_Get_Purchase_Price(M_PRODUCT.M_PRODUCT_ID),0) AS PURCHASE_PRICE, 
+        C_TAX.C_TAX_ID AS TAX_ID, C_TAX.NAME AS TAX_NAME, C_TAX.RATE AS PERCENTAGE,
+        M_PRODUCT.IMAGEURL AS IMAGE_URL, M_PRODUCT.UPC AS EAN, 
+        M_PRODUCT_CATEGORY.M_PRODUCT_CATEGORY_ID AS M_PRODUCT_CATEGORY_ID, M_PRODUCT_CATEGORY.NAME AS M_PRODUCT_CATEGORY_NAME, 
+        M_PRODUCT_CATEGORY.DESCRIPTION AS M_PRODUCT_CATEGORY_DESCRIPTION,
+				(SELECT SUM(S.QTYONHAND)
+						FROM M_STORAGE_DETAIL S, M_LOCATOR L
+						WHERE S.M_LOCATOR_ID = L.M_LOCATOR_ID
+						AND S.M_PRODUCT_ID = M_PRODUCT.M_PRODUCT_ID AND L.M_WAREHOUSE_ID = CEPOS.M_WAREHOUSE_ID) AS QTYONHAND        
+        FROM C_EXTERNALPOS CEPOS, M_PRODUCT, M_PRODUCT_CATEGORY, C_TAX,  M_PRODUCTPRICE
+        WHERE CEPOS.AD_CLIENT_ID = ?
+        AND CEPOS.VALUE = ?
+        AND CEPOS.AD_ORG_ID = ?
+        AND CEPOS.AD_ORG_ID = ?
+        AND CEPOS.ISACTIVE = 'Y'
+        AND C_TAX.C_TAX_ID = M_PRODUCT.C_TAX_ID
+        AND M_PRODUCT.M_PRODUCT_CATEGORY_ID = M_PRODUCT_CATEGORY.M_PRODUCT_CATEGORY_ID
+        AND M_PRODUCTPRICE.AD_CLIENT_ID= CEPOS.AD_CLIENT_ID 
+        AND M_PRODUCTPRICE.ISACTIVE = 'Y'
+        AND M_PRODUCTPRICE.M_PRODUCT_ID = M_PRODUCT.M_PRODUCT_ID
+        AND M_PRODUCTPRICE.M_PRICELIST_VERSION_ID = M_Get_Pricelist_Version(CEPOS.M_PRICELIST_ID, TO_DATE(now()))
+        AND ((COALESCE(CEPOS.INCLUDE_PRODUCT_CATEGORY,'Y') = 'N' 
+              AND EXISTS (SELECT 1 FROM C_EXTERNALPOS_CATEGORY CEPOS_CAT
+                          WHERE CEPOS_CAT.C_EXTERNALPOS_ID = CEPOS.C_EXTERNALPOS_ID
+                          AND CEPOS_CAT.M_PRODUCT_CATEGORY_ID = M_PRODUCT.M_PRODUCT_CATEGORY_ID)) OR 
+             (COALESCE(CEPOS.INCLUDE_PRODUCT_CATEGORY,'Y') = 'Y' 
+             AND NOT EXISTS (SELECT 1 FROM C_EXTERNALPOS_CATEGORY CEPOS_CAT
+                             WHERE CEPOS_CAT.C_EXTERNALPOS_ID = CEPOS.C_EXTERNALPOS_ID
+                             AND CEPOS_CAT.M_PRODUCT_CATEGORY_ID = M_PRODUCT.M_PRODUCT_CATEGORY_ID)))
+        AND ((COALESCE(CEPOS.INCLUDE_PRODUCT,'Y') = 'N' 
+              AND EXISTS (SELECT 1 FROM C_EXTERNALPOS_PRODUCT CEPOS_PROD
+                          WHERE CEPOS_PROD.C_EXTERNALPOS_ID = CEPOS.C_EXTERNALPOS_ID
+                          AND CEPOS_PROD.M_PRODUCT_ID = M_PRODUCT.M_PRODUCT_ID)) OR 
+             (COALESCE(CEPOS.INCLUDE_PRODUCT,'Y') = 'Y' 
+              AND NOT EXISTS (SELECT 1 FROM C_EXTERNALPOS_PRODUCT CEPOS_PROD
+                              WHERE CEPOS_PROD.C_EXTERNALPOS_ID = CEPOS.C_EXTERNALPOS_ID
+                              AND CEPOS_PROD.M_PRODUCT_ID = M_PRODUCT.M_PRODUCT_ID)))
+      ]]>
+    </Sql>
+    <Parameter name="client"/>
+    <Parameter name="salesChannel"/>
+    <Parameter name="organizationId"/>
+    <Parameter name="organizationId"/>
+  </SqlMethod>
+</SqlClass>

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/*__________| PDC - Material Return Data |__________________________________________________
+ * The contents of this file are subject to the Mozilla Public License Version 1.1
+ * Copyright:           OpenZ
+ * Author:              Frank.Wohlers@OpenZ.de          (2013)
+ * Contributor(s):      Danny.Heuduk@OpenZ.de           (2013)
+ *_________________________________________________________________________| MPL1.1 |___fw_*/
+-->
+
+<SqlClass name="PdcMaterialReturnData" package="org.openz.pdc.controller" accessModifier="public">
+<SqlClassComment></SqlClassComment>
+<!-- MUUH -->
+-- Test
+/* TEST */
+<SqlMethod name="initialize" type="preparedStatement" return="multiple">
+<SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select 
+            -- selectupper
+            '' as pdcmaterialreturnproduct,
+            '' as pdcmaterialreturnlocator,
+            '' as pdcmaterialreturnplannedqty,
+            '' as pdcmaterialreturnreceivedqty, 
+            '' as pdcmaterialreturnavailableqty,
+            '' as pdc_workstepbom_v_id,
+            -- selectlower              
+            '' as m_internal_consumptionline_id,
+            -- selectbarcode
+            '' as barcode,
+            '' as type,
+            '' as id,
+            '' as mess,
+            '' as ad_message_value,
+            '' as serialnumber,
+            '' as lotnumber,
+            '' as m_product_id,
+            '' as m_locator_id,
+            '' as line
+    </Sql>
+</SqlMethod>
+  
+<SqlMethod name="selectupper" type="preparedStatement" return="multiple">
+<SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select
+            zssi_getproductnamewithvalue(pdc_workstepbom_v.m_product_id, ?) as pdcmaterialreturnproduct,
+                m_locator.value as pdcmaterialreturnlocator,
+                qtyrequired as pdcmaterialreturnplannedqty,
+                qtyreceived - coalesce((select sum(m_internal_consumptionline.movementqty)), 0) as pdcmaterialreturnreceivedqty,
+                qty_available as pdcmaterialreturnavailableqty,
+                pdc_workstepbom_v_id,pdc_workstepbom_v.m_product_id,m_locator.m_locator_id, pdc_workstepbom_v.line
+        from
+            pdc_workstepbom_v
+        left join m_locator on 
+            coalesce(pdc_workstepbom_v.issuing_locator,pdc_workstepbom_v.m_locator_id) = m_locator.m_locator_id
+        left join m_internal_consumptionline on
+            m_internal_consumptionline.m_internal_consumption_id = ? and
+            m_internal_consumptionline.m_product_id = pdc_workstepbom_v.m_product_id
+        where 
+            pdc_workstepbom_v.zssm_workstep_v_id = ?
+        group by
+            pdc_workstepbom_v.line,
+            pdc_workstepbom_v.value,
+            pdc_workstepbom_v.m_product_id,
+            m_locator.value,
+            m_locator.m_locator_id,
+            qtyrequired,
+            qtyreceived,
+            qty_available,
+            pdc_workstepbom_v_id
+        having qtyreceived - coalesce((select sum(m_internal_consumptionline.movementqty)), 0) > 0
+        order by  pdc_workstepbom_v.value;
+    </Sql>
+    <Parameter name = "language"/>
+    <Parameter name = "pconsumptionid"/>
+    <Parameter name = "workstepid"/>
+</SqlMethod>
+
+  <SqlMethod name="countupper" type="preparedStatement" return="String">
+<SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select count(*)
+        from
+            pdc_workstepbom_v
+        left join m_locator on 
+            coalesce(pdc_workstepbom_v.issuing_locator,pdc_workstepbom_v.m_locator_id) = m_locator.m_locator_id
+        left join m_internal_consumptionline on
+            m_internal_consumptionline.m_internal_consumption_id = ? and
+            m_internal_consumptionline.m_product_id = pdc_workstepbom_v.m_product_id
+        where 
+            pdc_workstepbom_v.zssm_workstep_v_id = ?
+        group by
+            pdc_workstepbom_v.line,
+            pdc_workstepbom_v.m_product_id,
+            m_locator.value,
+            m_locator.m_locator_id,
+            qtyrequired,
+            qtyreceived,
+            qty_available,
+            pdc_workstepbom_v_id
+        having qtyreceived - coalesce((select sum(m_internal_consumptionline.movementqty)), 0) > 0
+        order by  pdc_workstepbom_v.line;
+    </Sql>
+    <Parameter name = "pconsumptionid"/>
+    <Parameter name = "workstepid"/>
+</SqlMethod>
+<SqlMethod name="countlower" type="preparedStatement" return="String">
+<SqlMethodComment></SqlMethodComment>
+    <Sql>
+    select count(*)
+           from m_internal_consumptionline f left join  m_locator l on  f.m_locator_id=l.m_locator_id
+                                             left join snr_internal_consumptionline snr on f.m_internal_consumptionline_id=snr.m_internal_consumptionline_id
+           where f.m_internal_consumption_id=?
+    </Sql>
+    <Parameter name = "pconsumptionid"/>
+</SqlMethod>
+
+<SqlMethod name="selectlower" type="preparedStatement" return="multiple">
+<SqlMethodComment></SqlMethodComment>
+    <Sql>
+    Select f.m_internal_consumptionline_id,zssi_getproductnamewithvalue(f.m_product_id,?) AS pdcmaterialreturnproduct,
+         l.value as pdcmaterialreturnlocator,f.movementqty as pdcmaterialreturnreceivedqty,
+           snr.serialnumber,snr.lotnumber
+           from m_product p,m_internal_consumptionline f left join  m_locator l on  f.m_locator_id=l.m_locator_id
+                                             left join snr_internal_consumptionline snr on f.m_internal_consumptionline_id=snr.m_internal_consumptionline_id
+           where f.m_internal_consumption_id=?
+           and p.m_product_id=f.m_product_id order by p.value
+    </Sql>
+    <Parameter name = "language"/>
+    <Parameter name = "pconsumptionid"/>
+</SqlMethod>
+    
+<SqlMethod name="insertConsumption" type="preparedStatement"  return="rowCount">
+<SqlMethodComment>Initializes a D- (Internal Consumption) Transaction</SqlMethodComment>
+    <Sql>
+        insert into M_INTERNAL_CONSUMPTION(
+            M_INTERNAL_CONSUMPTION_ID,
+            AD_CLIENT_ID,
+            AD_ORG_ID,
+            CREATED,
+            CREATEDBY,
+            UPDATED,
+            UPDATEDBY,
+            NAME,
+            DESCRIPTION,
+            MOVEMENTDATE, 
+            C_PROJECT_ID,
+            C_PROJECTTASK_ID,
+            MOVEMENTTYPE,
+            DOCUMENTNO,
+            DATEACCT,
+            plannedserialnumber)
+        values(
+            ?,
+            ?,
+            ?,
+            NOW(),
+            ?,
+            NOW(),
+            ?,
+            'Production-Process',
+            'Generated by PDC -> Return Material to Stock',
+            now(),
+            ?,
+            ?,
+            'D+',
+            ad_sequence_doc('Production',?,'Y'),trunc(now()),
+            ?)
+    </Sql>
+    <Parameter name="uuId"/>
+    <Parameter name="adClientId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="user"/>
+    <Parameter name="user"/>
+    <Parameter name="cProjectId"/>
+    <Parameter name="cProjecttaskId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="plannedserialnumber"/>
+</SqlMethod>
+    
+<SqlMethod name="getQty" type="preparedStatement" return="string">
+      <Sql>
+        SELECT sum(qtyreceived - coalesce(movementqty, 0))
+        from
+            pdc_workstepbom_v
+            left join m_internal_consumptionline on
+            m_internal_consumptionline.m_internal_consumption_id = ? and
+            m_internal_consumptionline.m_product_id = pdc_workstepbom_v.m_product_id
+        where 
+            pdc_workstepbom_v.zssm_workstep_v_id = ? and
+            pdc_workstepbom_v.m_product_id = ? and
+            coalesce(pdc_workstepbom_v.issuing_locator,pdc_workstepbom_v.m_locator_id)= ?
+      </Sql>
+      <Parameter name = "pconsumptionid"/>
+      <Parameter name="workstepid"/>
+      <Parameter name="mProductId"/>
+      <Parameter name="mLocatorId"/>
+  </SqlMethod>
+  
+ <SqlMethod name="getRetQty" type="preparedStatement" return="string">
+      <Sql>
+     select sum(a.retqty) as retval from (
+        SELECT  coalesce(pl.movementqty*-1,0) as retqty
+            from  m_internal_consumption m ,m_internal_consumptionline pl where pl.m_internal_consumption_id=m.m_internal_consumption_id 
+            and  pl.m_product_id=? and m.m_internal_consumption_id = ?
+        UNION
+        SELECT pdc_getReturnQtyBomProduct(?,?,?) as retqty
+	 ) a
+      </Sql>
+      <Parameter name="mProductId"/>
+      <Parameter name = "pconsumptionid"/>
+      <Parameter name="workstepid"/>
+      <Parameter name="mProductId"/>  
+      <Parameter name = "snr"/>
+  </SqlMethod>
+ 
+  <SqlMethod name="getLocatorReturn" type="preparedStatement" return="string">
+      <Sql>
+        SELECT coalesce(issuing_locator,pdc_workstepbom_v.m_locator_id) as issuing_locator
+        from
+            pdc_workstepbom_v
+            left join m_internal_consumptionline on
+            m_internal_consumptionline.m_internal_consumption_id = ? and
+            m_internal_consumptionline.m_product_id = pdc_workstepbom_v.m_product_id
+        where 
+            pdc_workstepbom_v.zssm_workstep_v_id = ? and
+            pdc_workstepbom_v.m_product_id = ? 
+        group by
+            pdc_workstepbom_v.m_product_id,
+            qtyrequired,
+            qtyreceived,
+            qty_available,
+            issuing_locator,pdc_workstepbom_v.m_locator_id,
+            pdc_workstepbom_v_id limit 1 
+      </Sql>
+      <Parameter name = "pconsumptionid"/>
+      <Parameter name="workstepid"/>
+      <Parameter name="mProductId"/>
+  </SqlMethod>
+</SqlClass>

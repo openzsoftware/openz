@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, 2011, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+*                 
+* 
+****************************************************************************************************************************************************/
+-->
+
+
+
+
+
+<SqlClass name="CalloutData" package="org.openz.controller.callouts" accessModifier="public">
+  <SqlClassComment></SqlClassComment>
+<SqlMethod name="init" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+     SELECT '' as DateFrom, '' as DateTo, '' as columnname , '' as referencename, '' as includesemptyitem, '' as AD_VAL_RULE_ID,'' as m_product_id  from dual
+    </Sql>
+</SqlMethod>
+<SqlMethod name="getSalCategoryOfUser" type="preparedStatement" return="string">
+      <Sql>
+        SELECT C_Salary_Category_id from c_bpartner 
+        WHERE c_bpartner_id = (select c_bpartner_id from ad_user where ad_user_id= ? ) 
+        AND isactive='Y'
+      </Sql>
+      <Parameter name="adUserId"/>
+</SqlMethod>
+<SqlMethod name="getProductfromBatch" type="preparedStatement" return="string">
+      <Sql>
+        SELECT m_product_id from snr_batchlocator,snr_batchmasterdata 
+        WHERE snr_batchlocator_id = ?
+        and snr_batchlocator.snr_batchmasterdata_id=snr_batchmasterdata.snr_batchmasterdata_id
+      </Sql>
+      <Parameter name="snrBatchmasterdataId"/>
+</SqlMethod>
+<SqlMethod name="getUomIdOfProduct" type="preparedStatement" return="string">
+      <Sql>
+        SELECT C_UOM_id from m_product 
+        WHERE m_product_id = ?
+      </Sql>
+      <Parameter name="productId"/>
+</SqlMethod>
+<SqlMethod name="getIdentifierOfBatch" type="preparedStatement" return="string">
+      <Sql>
+        SELECT sm.batchnumber||'-'||l.value as name from snr_batchlocator sl, snr_batchmasterdata sm,m_locator l
+        WHERE sl.snr_batchmasterdata_id=sm.snr_batchmasterdata_id and sl.m_locator_id=l.m_locator_id and sl.snr_batchlocator_id = ?
+      </Sql>
+      <Parameter name="batchId"/>
+</SqlMethod>
+<SqlMethod name="getBatchID" type="preparedStatement" return="string">
+      <Sql>
+        SELECT snr_batchmasterdata_id from snr_batchlocator 
+        WHERE snr_batchlocator_id = ?
+         
+      </Sql>
+      <Parameter name="batchId"/>
+</SqlMethod>
+<SqlMethod name="getBatchQty" type="preparedStatement" return="string">
+      <Sql>
+        SELECT zssi_getbatchqty4callout(?,?)
+        
+         
+      </Sql>
+      <Parameter name="batchId"/>
+      <Parameter name="masterbatchId"/>
+</SqlMethod>
+<SqlMethod name="getBatchLocatorID" type="preparedStatement" return="string">
+      <Sql>
+        SELECT m_locator_id as name from snr_batchlocator 
+        WHERE snr_batchlocator_id = ?
+      </Sql>
+      <Parameter name="batchId"/>
+</SqlMethod>
+<SqlMethod name="getBatchLocatorValue" type="preparedStatement" return="string">
+      <Sql>
+        SELECT value as name from m_locator 
+        WHERE m_locator_id = ?
+      </Sql>
+      <Parameter name="LocatorId"/>
+</SqlMethod>
+<SqlMethod name="getIdentifierOfProduct" type="preparedStatement" return="string">
+      <Sql>
+        SELECT zssi_getIdentifierFromKey('m_Product_ID', m_product_id,?) as name from m_product 
+        WHERE m_product_id = ?
+      </Sql>
+      <Parameter name="productId"/>
+      <Parameter name="productId"/>
+</SqlMethod>
+<SqlMethod name="hasSecondaryUOM" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT (CASE COUNT(*) WHEN 0 THEN 0 ELSE 1 END) AS TOTAL 
+      FROM M_PRODUCT_UOM 
+      WHERE M_PRODUCT_ID = ?
+    </Sql>
+    <Parameter name="mProductId"/>
+</SqlMethod>
+<SqlMethod name="getCurrencyOfPricelis" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT c_currency_id from m_pricelist where m_pricelist_id = ?
+    </Sql>
+    <Parameter name="mPricelistId"/>
+</SqlMethod>
+<SqlMethod name="getPriceOfProduct" type="preparedStatement" return="String" default="0">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      SELECT m_get_offers_price(trunc(now()),null,?,null,1,(select m_pricelist_id from m_pricelist where issopricelist='Y' and isactive='Y' and isdefault='Y' LIMIT 1)) from dual
+    </Sql>
+    <Parameter name="mProductId"/>
+</SqlMethod>
+<SqlMethod name="getCombos2ReloadFromTab" type="preparedStatement" return="multiple">
+      <Sql>
+        <![CDATA[
+        select c.columnname  ,case when c.ad_reference_id='18' then (select name from ad_reference where ad_reference_id=c.ad_reference_value_id)
+                                                       else c.columnname end as referencename,v.AD_VAL_RULE_ID,
+                              case when c.ismandatory = 'Y' then 'Y' else 'N' end as includesemptyitem
+         FROM AD_FIELD f, 
+             AD_COLUMN c
+             left join  AD_VAL_RULE v on c.AD_VAL_RULE_ID = v.AD_VAL_RULE_ID
+             left join AD_REF_TABLE t on (CASE c.ad_reference_id WHEN '18' THEN c.AD_REFERENCE_VALUE_ID ELSE '0' END) = t.AD_REFERENCE_ID  
+        WHERE f.AD_COLUMN_ID = c.ad_column_id
+        and c.ad_reference_id in ('19','18')
+        and (
+             instr(upper(replace(t.whereclause,'_','')),'@'||upper(?)||'@')>0
+          OR instr(upper(replace(v.code,'_','')),'@'||upper(?)||'@')>0
+        )
+        AND f.ad_tab_id = ?
+        ]]>
+      </Sql>
+      <Parameter name="adFieldName"/>
+      <Parameter name="adFieldName"/>
+      <Parameter name="adTabId"/>
+</SqlMethod>
+<SqlMethod name="getCombos2ReloadFromProcess" type="preparedStatement" return="multiple">
+      <Sql>
+        <![CDATA[
+        select c.columnname  , case when c.ad_reference_value_id is not null then (select name from ad_reference where ad_reference_id=c.ad_reference_value_id)  
+                                                     else c.columnname end as referencename,v.AD_VAL_RULE_ID,   
+               case when c.ismandatory = 'Y' then 'Y' else 'N' end as includesemptyitem
+         FROM AD_PROCESS_PARA c
+             left join  AD_VAL_RULE v on c.AD_VAL_RULE_ID = v.AD_VAL_RULE_ID
+            left join AD_REF_TABLE t on (CASE WHEN  c.ad_reference_value_id  is not null THEN c.AD_REFERENCE_VALUE_ID ELSE '0' END) = t.AD_REFERENCE_ID 
+        WHERE (c.ad_reference_value_id is not null or c.ad_val_rule_id is not null)
+        and (
+             instr(upper(replace(t.whereclause,'_','')),'@'||upper(?)||'@')>0
+          OR instr(upper(replace(v.code,'_','')),'@'||upper(?)||'@')>0
+        )
+        AND c.AD_PROCESS_id = ?
+        ]]>
+      </Sql>
+      <Parameter name="adFieldName"/>
+      <Parameter name="adFieldName"/>
+      <Parameter name="adTabId"/>
+</SqlMethod>
+<SqlMethod name="getCombos2ReloadFromFieldGroup" type="preparedStatement" return="multiple">
+      <Sql>
+        <![CDATA[
+        select c.name as columnname  , case when c.ad_reference_id='18' then (select name from ad_reference where ad_reference_id=c.fieldreference)
+                                                       else c.name end as referencename  ,v.AD_VAL_RULE_ID,
+               c.includesemptyitem
+         FROM ad_ref_fieldcolumn c
+             left join  AD_VAL_RULE v on c.AD_VAL_RULE_ID = v.AD_VAL_RULE_ID
+             left join AD_REF_TABLE t on (CASE c.fieldreference WHEN '18' THEN c.fieldreference ELSE '0' END) = t.AD_REFERENCE_ID  
+        WHERE  c.fieldreference in ('19','18')
+        and (
+             instr(upper(replace(t.whereclause,'_','')),'@'||upper(?)||'@')>0
+          OR instr(upper(replace(v.code,'_','')),'@'||upper(?)||'@')>0
+        )
+        AND c.AD_reference_id = ?         
+        ]]>
+      </Sql>
+      <Parameter name="adFieldName"/>
+      <Parameter name="adFieldName"/>
+      <Parameter name="adTabId"/>
+</SqlMethod>
+<SqlMethod name="getTextOfTextmodule" type="preparedStatement" return="string">
+      <Sql>
+        SELECT coalesce(trl.text,t.text) as textt from  zssi_textmodule t
+               left join zssi_textmodule_trl trl on trl.zssi_textmodule_id=t.zssi_textmodule_id and trl.ad_language=?
+        WHERE t.zssi_textmodule_id = ?
+        AND t.isactive='Y'
+      </Sql>
+      <Parameter name="lang"/>
+       <Parameter name="textmoduleId"/>
+</SqlMethod>
+<SqlMethod name="getisLowerOfTextmodule" type="preparedStatement" return="string">
+      <Sql>
+        SELECT t.islower from  zssi_textmodule t
+        WHERE t.zssi_textmodule_id = ?
+        AND t.isactive='Y'
+      </Sql>
+       <Parameter name="textmoduleId"/>
+</SqlMethod>
+  </SqlClass>

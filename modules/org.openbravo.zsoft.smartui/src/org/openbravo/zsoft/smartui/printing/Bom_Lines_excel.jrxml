@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.3.1.final using JasperReports Library version 6.3.1  -->
+<!-- 2017-02-27T14:57:57 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Bom_Lines_excel" pageWidth="1000" pageHeight="100" orientation="Landscape" columnWidth="1000" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="ba08d9ec-8a3c-4bd9-9193-2db4fd714979">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.export.xls.ignore.graphics" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.ignore.cell.background" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.ignore.cell.border" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.max.rows.per.sheet" value="0"/>
+	<property name="net.sf.jasperreports.export.xls.collapse.row.span" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.collapse.columns.span" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.one.page.per.sheet" value="false"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.size.fix.enabled" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
+	<property name="net.sf.jasperreports.export.ignore.page.margins" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.wrap.text" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="false"/>
+	<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="false"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="modules/org.openbravo.zsoft.smartui/src/org/openbravo/zsoft/smartui/printing/OpenZSteuermann.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="0"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="1000"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="Detail_Line" fontName="OpenZ Sans" fontSize="8">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#5D5D5D" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="10" isBold="true">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="M_PRODUCT_ID" class="java.lang.String"/>
+	<parameter name="ISINTERNAL" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="ISSPAREPART" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="ISCONSUMABLE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="ONLYONELEVEL" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="AD_ORG_ID" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="ONLYPURCHASE" class="java.lang.String"/>
+	<parameter name="ONLYPRODUCTION" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[WITH RECURSIVE temp1 (m_productbom_id, m_product_id, bomqty, product_value, description, PATH ) AS (
+SELECT m_product_bom.m_productbom_id, m_product_bom.m_product_id, m_product_bom.bomqty, m_product_bom.product_value, m_product_bom.description, CAST(elr_getchildcount(m_productbom_id) || case when m_product_bom.line<100 then ('00' || m_product_bom.line) else ('0' || m_product_bom.line) end || left(m_product_bom.m_productbom_id,5) AS VARCHAR (390)) as PATH
+        FROM m_product_bom WHERE m_product_bom.m_product_id=$P{M_PRODUCT_ID}
+    union
+    select T2.m_productbom_id, T2.m_product_id, T2.bomqty, T2.product_value, T2.description, CAST( temp1.PATH ||'-'|| elr_getchildcount(T2.m_productbom_id) || case when T2.line<100 then ('00' || T2.line) else ('0' || T2.line) end || left(T2.m_productbom_id,5) AS VARCHAR(390)) 
+         FROM m_product_bom T2 INNER JOIN temp1 ON(temp1.m_productbom_id=T2.m_product_id))
+select temp1.m_productbom_id as ID, temp1.m_product_id as PID,
+m_product.value as p_value,
+m_product.name as product,
+temp1.PATH, (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1 as level, temp1.description as p_description,
+    m_product_po.vendorproductno as pnumber, c_bpartner.name as vendor,
+    sum(zssi_onhanqty_overview.qtyonhand) as lagmenge,
+    sum(zssi_onhanqty_overview.qtyinflow) as sumzu,
+    sum(zssi_onhanqty_overview.qtyoutflow) as sumab,
+    m_product_po.deliverytime_promised as deliverytime,
+    ROUND(temp1.bomqty,2) as bomqty,
+    m_product_po.pricepo * elr_getproductuomdiv(m_product.m_product_id) as p_pricepo,
+    case when m_product_po.c_currency_id is not null then  c_currency_convert(m_product_po.pricepo,m_product_po.c_currency_id,zsfi_getorgCurrency('0'),trunc(now())) else 1 end  * temp1.bomqty * elr_getproductuomdiv(m_product_po.m_product_po_id)  as nettotal,
+    (select c.cursymbol from c_currency c,ad_client a  where a.c_currency_id=c.c_currency_id and  a.ad_client_id='C726FEC915A54A0995C568555DA5BB3C')  as a_eurosymbol,
+    zssi_getuom(m_product.c_uom_id,$P{LANGUAGE}) as p_uom,
+    zssi_getelementtextbycolumname('M_Product_ID',$P{LANGUAGE}) as t_product,
+    zssi_getelementtextbycolumname('Nettotal',$P{LANGUAGE}) as t_net_total,
+    zssi_getelementtextbycolumname('Price',$P{LANGUAGE}) as t_price,
+    zssi_getelementtextbycolumname('Vendor',$P{LANGUAGE}) as t_vendor,
+    zssi_getelementtextbycolumname('QtyOnHand',$P{LANGUAGE}) as t_lagmenge,
+    case when $P{LANGUAGE}='de_DE' then 'Summe Zugang' else 'Qty in Flow' end as t_sumzu,
+    case when $P{LANGUAGE}='de_DE' then 'Summe Abgang' else 'Qty out Flow' end as t_sumab,
+    zssi_getelementtextbycolumname('vendor_no',$P{LANGUAGE}) as t_vendor_no,
+    zssi_getelementtextbycolumname('elr_position',$P{LANGUAGE}) as t_position,
+    zssi_getelementtextbycolumname('Quantity',$P{LANGUAGE}) as t_quantity,
+    zssi_getelementtextbycolumname('Description',$P{LANGUAGE}) as t_description,
+    zssi_getelementtextbycolumname('DeliveryTime_Promised',$P{LANGUAGE})  as t_deliverytime
+    from temp1
+		left join m_product on (m_product.m_product_id=temp1.m_productbom_id)
+		left join m_product_po on (m_product_po.m_product_id=temp1.m_productbom_id) and m_product_po.m_product_po_id=(select m_product_po_id from m_product_po where m_product.m_product_id=m_product_po.m_product_id
+		and m_product_po.ad_org_id in  ('0',$P{AD_ORG_ID}) and iscurrentvendor='Y' order by  coalesce(qualityrating,0) desc,updated desc limit 1)
+		left join c_bpartner on (c_bpartner.c_bpartner_id=m_product_po.c_bpartner_id)
+		left join zssi_onhanqty_overview on (zssi_onhanqty_overview.m_product_id=m_product.m_product_id)
+   where 
+   case when $P{ONLYONELEVEL}='Y' then (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1 =1 else 1=1 end and
+   case when $P{ONLYPURCHASE}='Y' then m_product.ispurchased='Y' and m_product.production='N' else 1=1 end and
+    case when $P{ONLYPRODUCTION}='Y' then m_product.ispurchased='N' and m_product.production='Y' else 1=1 end 
+GROUP BY PATH,  ID, PID, p_value, product, p_description, pnumber, vendor, deliverytime, bomqty, p_pricepo,nettotal, a_eurosymbol, p_uom, t_product, t_net_total, t_price, t_lagmenge, t_sumzu, 
+t_sumab, t_vendor_no, t_position, t_quantity, t_description, t_deliverytime
+order by path]]>
+	</queryString>
+	<field name="id" class="java.lang.String"/>
+	<field name="pid" class="java.lang.String"/>
+	<field name="p_value" class="java.lang.String"/>
+	<field name="product" class="java.lang.String"/>
+	<field name="path" class="java.lang.String"/>
+	<field name="level" class="java.math.BigDecimal"/>
+	<field name="p_description" class="java.lang.String"/>
+	<field name="pnumber" class="java.lang.String"/>
+	<field name="vendor" class="java.lang.String"/>
+	<field name="lagmenge" class="java.math.BigDecimal"/>
+	<field name="sumzu" class="java.math.BigDecimal"/>
+	<field name="sumab" class="java.math.BigDecimal"/>
+	<field name="deliverytime" class="java.math.BigDecimal"/>
+	<field name="bomqty" class="java.math.BigDecimal"/>
+	<field name="p_pricepo" class="java.math.BigDecimal"/>
+	<field name="nettotal" class="java.math.BigDecimal"/>
+	<field name="a_eurosymbol" class="java.lang.String"/>
+	<field name="p_uom" class="java.lang.String"/>
+	<field name="t_product" class="java.lang.String"/>
+	<field name="t_net_total" class="java.lang.String"/>
+	<field name="t_price" class="java.lang.String"/>
+	<field name="t_vendor" class="java.lang.String"/>
+	<field name="t_lagmenge" class="java.lang.String"/>
+	<field name="t_sumzu" class="java.lang.String"/>
+	<field name="t_sumab" class="java.lang.String"/>
+	<field name="t_vendor_no" class="java.lang.String"/>
+	<field name="t_position" class="java.lang.String"/>
+	<field name="t_quantity" class="java.lang.String"/>
+	<field name="t_description" class="java.lang.String"/>
+	<field name="t_deliverytime" class="java.lang.String"/>
+	<variable name="grandtotal" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{nettotal}]]></variableExpression>
+	</variable>
+	<group name="Sum Footer">
+		<groupFooter>
+			<band height="19" splitType="Stretch"/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="19" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Header" mode="Opaque" x="940" y="0" width="60" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="d99e6b35-494d-49dd-82dc-05b0d5c90360"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{t_net_total}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Header" mode="Opaque" x="0" y="0" width="55" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="377079b4-c892-4337-8f45-5729c50ccd95"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{t_quantity}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Header" mode="Opaque" x="55" y="0" width="167" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="71b22a85-5ada-48f9-8aab-4fdc73771809"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{t_product}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Header" mode="Opaque" x="222" y="0" width="268" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="5cb9efc3-1d37-4140-96db-56a0d0d8cb78"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{t_description}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Header" mode="Opaque" x="490" y="0" width="152" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="b22ee508-1983-4b22-863b-93641a6c883a">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{t_vendor} + " / " + $F{t_vendor_no}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Header" mode="Opaque" x="642" y="0" width="60" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="2048f247-c02e-4bcc-8e7b-30ecd56b2eb9">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="OpenZ Sans" size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{t_lagmenge}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Header" mode="Opaque" x="702" y="0" width="60" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="10fb9302-43be-47ce-8198-edb327bbe347"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="OpenZ Sans" size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{t_sumzu}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Header" mode="Opaque" x="822" y="0" width="63" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="f56e35e4-a162-45f6-9f74-6419f13a23a9"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{t_deliverytime}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Header" mode="Opaque" x="885" y="0" width="55" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="31d0dcc0-029e-4776-af5e-72b54dd1e325">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{t_price}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Header" mode="Opaque" x="762" y="0" width="60" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="1bb9428b-2ef3-4371-8352-16e0095a4207">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{t_sumab}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="24" splitType="Stretch">
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="0" y="0" width="55" height="24" uuid="9cfe8bd7-7f5d-4040-a798-fe1e2069cd34"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph leftIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bomqty}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="222" y="0" width="268" height="24" uuid="9493ace9-379f-486d-b60e-0ef444e275df">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{product} + "\n" + (($F{p_description}!=null) ? $F{p_description} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="490" y="0" width="152" height="24" uuid="7463acd8-4a27-4db9-9c2f-7ff22045b28c">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{vendor}!=null) ? $F{vendor} : "" ) + "\n" + (($F{pnumber}!=null) ? $F{pnumber} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.0000;-###0.0000" isBlankWhenNull="true">
+				<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="885" y="0" width="55" height="24" uuid="07f5dad9-86b9-4e12-a5ef-03639e6bfe6b">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_pricepo}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.0000;-###0.0000" isBlankWhenNull="true">
+				<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="940" y="0" width="60" height="24" uuid="1bfbb5ca-5750-4a88-a553-2e391b2feac9"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nettotal}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="55" y="0" width="167" height="24" isPrintWhenDetailOverflows="true" uuid="45bde793-0084-4289-8afc-3f225be5ba67"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.0;-###0.0" isBlankWhenNull="true">
+				<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="642" y="0" width="60" height="24" uuid="94960c4f-297d-47f8-b2b3-4f40780789f7">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{lagmenge}!=null) ? $F{lagmenge} : new BigDecimal("0"))]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.0;-###0.0" isBlankWhenNull="true">
+				<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="702" y="0" width="60" height="24" uuid="3f3c58ed-afa5-44fa-9f6b-65d7b29035b9">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{sumzu}!=null) ? $F{sumzu} : new BigDecimal("0"))]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.0;-###0.0" isBlankWhenNull="true">
+				<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="762" y="0" width="60" height="24" uuid="b2f89bb6-845d-4625-9944-3a9f3c5d3dc6"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{sumab}!=null) ? $F{sumab} : new BigDecimal("0"))]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="###0.0;-###0.0" isBlankWhenNull="true">
+				<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="822" y="0" width="63" height="24" uuid="53aa9e84-413e-4217-a998-b3a126f05f7e">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{deliverytime}!=null ? $F{deliverytime} : new BigDecimal("0")]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2012 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+
+
+<SqlClass name="GridData" package="org.openz.view" accessModifier="public">
+
+   <SqlMethod name="select" type="preparedStatement" return="multiple">
+      <Sql>
+        SELECT a.AD_REF_GROUP_ID, a.AD_CLIENT_ID, a.AD_ORG_ID, a.colsvisibleoninit, a.CREATEDBY, a.UPDATEDBY, a.AD_REFERENCE_ID, a.IDCOLUMN, a.LEVEL, a.LEADINGEMPTYCOLS, a.HEADERFORMATBOLD, a.HASSELECTALLBELOW, a.HASEVENODD, a.HASEXPANDER, a.HASSELECTLINE,
+        b.AD_REF_GRIDCOLUMN_ID,b.NAME,b.HEADERTEXT,b.TEMPLATE,b.REFERENCEURL,b.colreference,b.AD_TABLE_ID,b.onchangeevent, b.COLSPAN,b.MAXLENGTH,b.REQUIRED,b.READONLY,b.ISINHEADER,b.ISSECONDHEADER,b.ISSPLITGROUP,b.ad_val_rule_id,b.includesemptyitem,
+        b.dynamiccolssql,b.style as colstyle,a.style as groupstyle,
+        '' as isrowkey,'' as issortable,'' as rowkeysuffix,b.isdisplayed, '' as ad_element_id,'' as line,'' as isautoheader,'' as readonlylogic,
+        '' as dynsqlvalue,'' as dynsqlfilter
+        from AD_REF_GROUP a,AD_REF_GRIDCOLUMN b where a.AD_REF_GROUP_ID=b.AD_REF_GROUP_ID;
+      </Sql>
+   </SqlMethod>   
+   <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+   <SqlMethod name="selectSimpleGridColumns" type="preparedStatement" return="multiple">
+      <Sql>
+        SELECT coalesce(i.ad_element_id,b.ad_element_id) as ad_element_id ,b.AD_CLIENT_ID, b.AD_ORG_ID, b.CREATEDBY, b.UPDATEDBY ,
+        case when coalesce(i.visiblesetting,'NON')='NON' then b.isdisplayed else 
+        case when i.visiblesetting='HIDDEN' then 'N' else 'Y' end end as isdisplayed,
+        b.isrowkey as isrowkey,b.name,coalesce(i.issortable,b.issortable) as issortable,b.rowkeysuffix ,
+        coalesce(i.template,b.template) as template,coalesce(i.colspan,b.colspan) as colspan,
+        coalesce(i.defaultvalue,b.defaultvalue) as dynsqlvalue,coalesce(i.dynamiccolssql,b.dynamiccolssql) as dynsqlfilter
+        from ad_ref_gridcolumn b left join ad_ref_gridcolumninstance i on i.ad_ref_gridcolumn_id=b.ad_ref_gridcolumn_id and i.isactive='Y'
+        where b.ad_reference_id= ? and b.isactive='Y' order by coalesce(i.line,b.line)
+      </Sql>
+      <Parameter name="AdReferenceID"/>
+   </SqlMethod>   
+   <SqlMethod name="selectGroup" type="preparedStatement" return="multiple">
+      <Sql>
+        SELECT a.AD_REF_GROUP_ID, a.AD_CLIENT_ID, a.AD_ORG_ID, a.CREATEDBY, a.UPDATEDBY, a.AD_REFERENCE_ID, a.IDCOLUMN, 
+        coalesce(i.level,a.LEVEL) as level, 
+        case when  coalesce(i.colsvisibleoninit,a.colsvisibleoninit)='NON' then a.colsvisibleoninit else coalesce(i.colsvisibleoninit,a.colsvisibleoninit) end as colsvisibleoninit,
+        coalesce(i.LEADINGEMPTYCOLS,a.LEADINGEMPTYCOLS) as LEADINGEMPTYCOLS, 
+        case when coalesce(i.HEADERFORMATBOLD,a.HEADERFORMATBOLD)='NON' then a.HEADERFORMATBOLD else coalesce(i.HEADERFORMATBOLD,a.HEADERFORMATBOLD) end as HEADERFORMATBOLD,
+        case when coalesce(i.HASSELECTALLBELOW,a.HASSELECTALLBELOW)='NON' then a.HASSELECTALLBELOW else coalesce(i.HASSELECTALLBELOW,a.HASSELECTALLBELOW) end as HASSELECTALLBELOW, 
+        case when coalesce(i.HASEVENODD,a.HASEVENODD)='NON'  then a.HASEVENODD else  coalesce(i.HASEVENODD,a.HASEVENODD) end as HASEVENODD,
+        case when coalesce(i.HASEXPANDER,a.HASEXPANDER)='NON' then  a.HASEXPANDER else coalesce(i.HASEXPANDER,a.HASEXPANDER) end as HASEXPANDER, 
+        case when coalesce(i.HASSELECTLINE,a.HASSELECTLINE)='NON' then a.HASSELECTLINE else coalesce(i.HASSELECTLINE,a.HASSELECTLINE) end as HASSELECTLINE,
+        coalesce(i.isautoheader,a.isautoheader) as isautoheader,
+        coalesce(i.line,a.line) as line,
+        coalesce(i.style,a.style) as groupstyle,
+        coalesce(i.readonlylogic,a.readonlylogic) as readonlylogic
+        from AD_REF_GROUP a left join ad_ref_groupinstance i on i.AD_REF_GROUP_ID=a.AD_REF_GROUP_ID and i.isactive='Y'
+        where a.AD_REFerence_id= ? and a.isactive='Y' order by line
+      </Sql>
+      <Parameter name="gridrefid"/>
+   </SqlMethod>
+   
+   <SqlMethod name="selectColumnFromGroup" type="preparedStatement" return="multiple">
+      <Sql>
+        select pad_element_id as ad_element_id,pad_reference_id as ad_reference_id, pAD_REF_GROUP_ID as AD_REF_GROUP_ID, pAD_REF_GRIDCOLUMN_ID as AD_REF_GRIDCOLUMN_ID,
+	       pname as name,pTEMPLATE as TEMPLATE,pREFERENCEURL as REFERENCEURL,ponchangeevent as onchangeevent,pcolreference as colreference,
+	       pAD_TABLE_ID as AD_TABLE_ID, pCOLSPAN as COLSPAN,pMAXLENGTH as MAXLENGTH,pREQUIRED as REQUIRED, pREADONLY as READONLY,pISSECONDHEADER as ISSECONDHEADER,
+	       pISINHEADER as ISINHEADER,pISSPLITGROUP as ISSPLITGROUP, pincludesemptyitem as includesemptyitem, pLine as Line,pdynamiccolssql as dynamiccolssql, pstyle as colstyle,preadonlylogic as readonlylogic
+        from ad_gridSelectFromGroup(?,?)
+        order by line
+      </Sql>
+      <Parameter name="groupid"/>
+      <Parameter name="isAutoHeader"/>
+   </SqlMethod>
+   <SqlMethod name="getReferenceName" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  NAME from ad_reference where ad_reference_id= ?
+      </Sql>
+      <Parameter name="referenceid"/>
+   </SqlMethod>
+   <SqlMethod name="getReferenceID" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  ad_reference_id from ad_reference where name= ?
+      </Sql>
+      <Parameter name="referencename"/>
+   </SqlMethod>
+   <SqlMethod name="getKeyColumnbyTable" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  columnname from ad_column where ad_table_id= ? and iskey = 'Y' limit 1
+      </Sql>
+      <Parameter name="tableid"/>
+   </SqlMethod>
+    
+   <SqlMethod name="getDetailsIDField" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  detailsidfield  from ad_reference where ad_reference_id= ?
+      </Sql>
+      <Parameter name="referenceid"/>
+   </SqlMethod>
+   <SqlMethod name="getGroupCount" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  max(coalesce(i.level,g.level)) from ad_ref_group g 
+        left join ad_ref_groupinstance i on i.ad_ref_group_id=g.ad_ref_group_id and i.isactive='Y'
+        where g.ad_reference_id= ?
+      </Sql>
+      <Parameter name="referenceid"/>
+   </SqlMethod>
+   <SqlMethod name="getRowKeyCount" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  count(*) from ad_ref_gridcolumn  where ad_reference_id= ? and isactive='Y' and isrowkey='Y'
+      </Sql>
+      <Parameter name="referenceid"/>
+   </SqlMethod>
+   <SqlMethod name="getVisibleCount" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  count(*) from ad_ref_gridcolumn c
+              left join ad_ref_gridcolumninstance i on i.ad_ref_gridcolumn_id=c.ad_ref_gridcolumn_id  and i.isactive='Y'
+         where c.ad_reference_id= ? and c.isactive='Y' and (coalesce(i.visiblesetting,'NON')='VISIBLE' or (coalesce(i.visiblesetting,'NON')!='HIDDEN' and c.isdisplayed='Y'));
+      </Sql>
+      <Parameter name="referenceid"/>
+   </SqlMethod>
+   <SqlMethod name="getTableIDFromKeyColumnName" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  ad_table_id from ad_table  where upper(tablename) = upper(substr(?,1,length(?)-3))
+      </Sql>
+      <Parameter name="keycolumname"/>
+      <Parameter name="keycolumname"/>
+   </SqlMethod>
+   <SqlMethod name="getDynSQLGromGridColumnID" type="preparedStatement" return="string">
+      <Sql>
+        select dynamiccolssql from ad_ref_gridcolumn where ad_ref_gridcolumn_id= ?
+      </Sql>
+      <Parameter name="adRefGridcolumnId"/>
+   </SqlMethod>
+</SqlClass>

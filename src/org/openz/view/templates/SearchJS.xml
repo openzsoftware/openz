@@ -1,0 +1,20 @@
+<script type="text/javascript">    
+  function validateSelector(action) {
+    var pos; var keys;  var key; var text; var parameter;
+    if(action == "SAVE") {
+      pos = getSelectedPos();
+      keys = getSelectedValues().split("#")
+      key = keys[0];
+      text = keys[1];
+      parameter = new Array(
+        @ROWKEYS@
+      );
+    }   
+    rt=parent.opener.document.getElementById("MenuTop");
+    if(rt!=null) {
+        parent.opener.openSelectorReference(action, key, text, parameter,"@STDTARGET@");
+    } else {
+        parent.opener.closeSearch(action, key, text, parameter);
+    }
+  }
+</script> 

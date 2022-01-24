@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+*************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License
+* Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this
+* file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html 
+* Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+* License for the specific  language  governing  rights  and  limitations
+* under the License. 
+* The Original Code is Openbravo ERP. 
+* The Initial Developer of the Original Code is Openbravo SL 
+* All portions are Copyright (C) 2001-2006 Openbravo SL 
+* All Rights Reserved. 
+* Contributor(s):  ______________________________________.
+************************************************************************
+-->
+<REPORT>
+  <template file="ReportInvoiceCustomerDimensional.fo"/>
+  <PARAMETER id="fieldEliminar2" name="eliminar2" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldEliminar3" name="eliminar3" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldEliminar4" name="eliminar4" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldEliminar5" name="eliminar5" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldEliminar6" name="eliminar6" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldEliminar7" name="eliminar7" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldEliminar8" name="eliminar8" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldEliminar9" name="eliminar9" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldEliminar10" name="eliminar10" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldNoncomparativeEliminar2" name="eliminar2" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldNoncomparativeEliminar3" name="eliminar3" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldNoncomparativeEliminar4" name="eliminar4" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldNoncomparativeEliminar5" name="eliminar5" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldNoncomparativeEliminar6" name="eliminar6" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldNoncomparativeEliminar7" name="eliminar7" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldNoncomparativeEliminar8" name="eliminar8" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldNoncomparativeEliminar9" name="eliminar9" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldNoncomparativeEliminar10" name="eliminar9" attribute="font-size" replace="xx"/>
+  <PARAMETER id="fieldEliminar" name="eliminateQty" default=""/>
+  <PARAMETER id="fieldNonComparativeEliminar" name="eliminateQty" default=""/>
+  <PARAMETER id="fieldNonComparativeEliminarRef" name="eliminateQtyRef" default=""/>
+  <PARAMETER id="fieldNonComparativeEliminarAvg" name="eliminateQtyAvg" default=""/>
+  <PARAMETER id="param100" name="constante" default="100"/>
+  <PARAMETER id="fieldTitle" name="title" default=""/>
+  <PARAMETER id="fieldEntity" name="entity" default=""/>
+  <PARAMETER id="paramTotal" name="total" default="0"/>
+  <PARAMETER id="paramPage" name="page" attribute="master-reference" replace="yy" default=""/>
+  <structure name="structure1">
+    <FIELD id="fieldNivel1" replaceCharacters="fo">nivel1</FIELD>
+    <FIELD id="fieldNivel2" replaceCharacters="fo">nivel2</FIELD>
+    <FIELD id="fieldNivel3" replaceCharacters="fo">nivel3</FIELD>
+    <FIELD id="fieldNivel4" replaceCharacters="fo">nivel4</FIELD>
+    <FIELD id="fieldNivel5" replaceCharacters="fo">nivel5</FIELD>
+    <FIELD id="fieldNivel6" replaceCharacters="fo">nivel6</FIELD>
+    <FIELD id="fieldNivel7" replaceCharacters="fo">nivel7</FIELD>
+    <FIELD id="fieldNivel8" replaceCharacters="fo">nivel8</FIELD>
+    <FIELD id="fieldNivel9" replaceCharacters="fo">nivel9</FIELD>
+    <FIELD id="fieldNivel10" replaceCharacters="fo">nivel10</FIELD>
+    <FIELD id="fieldLinenetamt" format="euroInform">linenetamt</FIELD>
+    <FIELD id="fieldQtyinvoiced" format="euroInform">qtyinvoiced</FIELD>
+    <FIELD id="fieldCost" format="euroInform">cost</FIELD>
+    <FIELD id="fieldLinenetref" format="euroInform">linenetref</FIELD>
+    <FIELD id="fieldQtyinvoicedref" format="euroInform">qtyinvoicedref</FIELD>
+    <FIELD id="fieldCostRef" format="euroInform">costref</FIELD>
+    <FIELD id="fieldWeight" format="euroInform">weight</FIELD>
+    <FIELD id="fieldWeightRef" format="euroInform">weightRef</FIELD>
+    <!--FIELD id="fieldUomsymbol1" replaceCharacters="fo">uomsymbol</FIELD>
+  <FIELD id="fieldUomsymbol2" replaceCharacters="fo">uomsymbol</FIELD>
+  <FIELD id="fieldUomsymbol3" replaceCharacters="fo">uomsymbol</FIELD>
+  <FIELD id="fieldUomsymbol4" replaceCharacters="fo">uomsymbol</FIELD>
+  <FIELD id="fieldUomsymbol5" replaceCharacters="fo">uomsymbol</FIELD>
+  <FIELD id="fieldUomsymbol6" replaceCharacters="fo">uomsymbol</FIELD-->
+  <FUNCTION id="fieldTotalNivel1" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldTotalNivel2" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldTotalNivel3" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldTotalNivel4" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldTotalNivel5" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldTotalNivel6" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldTotalNivel7" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldTotalNivel8" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldTotalNivel9" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldTotalNivel10" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldTotalRefNivel1" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldTotalRefNivel2" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldTotalRefNivel3" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldTotalRefNivel4" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldTotalRefNivel5" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldTotalRefNivel6" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldTotalRefNivel7" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldTotalRefNivel8" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldTotalRefNivel9" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldTotalRefNivel10" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldTotalQtyNivel1" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldTotalQtyNivel2" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldTotalQtyNivel3" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldTotalQtyNivel4" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldTotalQtyNivel5" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldTotalQtyNivel6" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldTotalQtyNivel7" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldTotalQtyNivel8" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldTotalQtyNivel9" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldTotalQtyNivel10" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldTotalRefQtyNivel1" name="SUM" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldTotalRefQtyNivel2" name="SUM" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldTotalRefQtyNivel3" name="SUM" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldTotalRefQtyNivel4" name="SUM" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldTotalRefQtyNivel5" name="SUM" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldTotalRefQtyNivel6" name="SUM" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldTotalRefQtyNivel7" name="SUM" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldTotalRefQtyNivel8" name="SUM" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldTotalRefQtyNivel9" name="SUM" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldTotalRefQtyNivel10" name="SUM" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldTotalWeightNivel1" name="SUM" format="euroInform">weight</FUNCTION>
+  <FUNCTION id="fieldTotalWeightNivel2" name="SUM" format="euroInform">weight</FUNCTION>
+  <FUNCTION id="fieldTotalWeightNivel3" name="SUM" format="euroInform">weight</FUNCTION>
+  <FUNCTION id="fieldTotalWeightNivel4" name="SUM" format="euroInform">weight</FUNCTION>
+  <FUNCTION id="fieldTotalWeightNivel5" name="SUM" format="euroInform">weight</FUNCTION>
+  <FUNCTION id="fieldTotalWeightNivel6" name="SUM" format="euroInform">weight</FUNCTION>
+  <FUNCTION id="fieldTotalWeightNivel7" name="SUM" format="euroInform">weight</FUNCTION>
+  <FUNCTION id="fieldTotalWeightNivel8" name="SUM" format="euroInform">weight</FUNCTION>
+  <FUNCTION id="fieldTotalWeightNivel9" name="SUM" format="euroInform">weight</FUNCTION>
+  <FUNCTION id="fieldTotalWeightNivel10" name="SUM" format="euroInform">weight</FUNCTION>
+  <FUNCTION id="fieldTotalRefWeightNivel1" name="SUM" format="euroInform">weightRef</FUNCTION>
+  <FUNCTION id="fieldTotalRefWeightNivel2" name="SUM" format="euroInform">weightRef</FUNCTION>
+  <FUNCTION id="fieldTotalRefWeightNivel3" name="SUM" format="euroInform">weightRef</FUNCTION>
+  <FUNCTION id="fieldTotalRefWeightNivel4" name="SUM" format="euroInform">weightRef</FUNCTION>
+  <FUNCTION id="fieldTotalRefWeightNivel5" name="SUM" format="euroInform">weightRef</FUNCTION>
+  <FUNCTION id="fieldTotalRefWeightNivel6" name="SUM" format="euroInform">weightRef</FUNCTION>
+  <FUNCTION id="fieldTotalRefWeightNivel7" name="SUM" format="euroInform">weightRef</FUNCTION>
+  <FUNCTION id="fieldTotalRefWeightNivel8" name="SUM" format="euroInform">weightRef</FUNCTION>
+  <FUNCTION id="fieldTotalRefWeightNivel9" name="SUM" format="euroInform">weightRef</FUNCTION>
+  <FUNCTION id="fieldTotalRefWeightNivel10" name="SUM" format="euroInform">weightRef</FUNCTION>
+  <FUNCTION id="fieldCost1" name="SUM" format="euroInform">cost</FUNCTION>
+  <FUNCTION id="fieldCost2" name="SUM" format="euroInform">cost</FUNCTION>
+  <FUNCTION id="fieldCost3" name="SUM" format="euroInform">cost</FUNCTION>
+  <FUNCTION id="fieldCost4" name="SUM" format="euroInform">cost</FUNCTION>
+  <FUNCTION id="fieldCost5" name="SUM" format="euroInform">cost</FUNCTION>
+  <FUNCTION id="fieldCost6" name="SUM" format="euroInform">cost</FUNCTION>
+  <FUNCTION id="fieldCost7" name="SUM" format="euroInform">cost</FUNCTION>
+  <FUNCTION id="fieldCost8" name="SUM" format="euroInform">cost</FUNCTION>
+  <FUNCTION id="fieldCost9" name="SUM" format="euroInform">cost</FUNCTION>
+  <FUNCTION id="fieldCost10" name="SUM" format="euroInform">cost</FUNCTION>
+  <FUNCTION id="fieldCostRef1" name="SUM" format="euroInform">costref</FUNCTION>
+  <FUNCTION id="fieldCostRef2" name="SUM" format="euroInform">costref</FUNCTION>
+  <FUNCTION id="fieldCostRef3" name="SUM" format="euroInform">costref</FUNCTION>
+  <FUNCTION id="fieldCostRef4" name="SUM" format="euroInform">costref</FUNCTION>
+  <FUNCTION id="fieldCostRef5" name="SUM" format="euroInform">costref</FUNCTION>
+  <FUNCTION id="fieldCostRef6" name="SUM" format="euroInform">costref</FUNCTION>
+  <FUNCTION id="fieldCostRef7" name="SUM" format="euroInform">costref</FUNCTION>
+  <FUNCTION id="fieldCostRef8" name="SUM" format="euroInform">costref</FUNCTION>
+  <FUNCTION id="fieldCostRef9" name="SUM" format="euroInform">costref</FUNCTION>
+  <FUNCTION id="fieldCostRef10" name="SUM" format="euroInform">costref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalQtyNivel1" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldAuxTotalQtyNivel2" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldAuxTotalQtyNivel3" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldAuxTotalQtyNivel4" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldAuxTotalQtyNivel5" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldAuxTotalQtyNivel6" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldAuxTotalQtyNivel7" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldAuxTotalQtyNivel8" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldAuxTotalQtyNivel9" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldAuxTotalQtyNivel10" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefQtyNivel1" name="SUM" attribute="value" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefQtyNivel2" name="SUM" attribute="value" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefQtyNivel3" name="SUM" attribute="value" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefQtyNivel4" name="SUM" attribute="value" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefQtyNivel5" name="SUM" attribute="value" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefQtyNivel6" name="SUM" attribute="value" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefQtyNivel7" name="SUM" attribute="value" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefQtyNivel8" name="SUM" attribute="value" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefQtyNivel9" name="SUM" attribute="value" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefQtyNivel0" name="SUM" attribute="value" format="euroInform">qtyinvoicedref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalNivel1" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldAuxTotalNivel2" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldAuxTotalNivel3" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldAuxTotalNivel4" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldAuxTotalNivel5" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldAuxTotalNivel6" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldAuxTotalNivel7" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldAuxTotalNivel8" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldAuxTotalNivel9" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldAuxTotalNivel10" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefNivel1" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefNivel2" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefNivel3" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefNivel4" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefNivel5" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefNivel6" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefNivel7" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefNivel8" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefNivel9" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldAuxTotalRefNivel10" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldSubTotalNivel1" name="SUBTRACT" arg1="fieldAuxTotalNivel1" arg2="fieldAuxTotalRefNivel1"/>
+  <FUNCTION id="fieldSubTotalNivel2" name="SUBTRACT" arg1="fieldAuxTotalNivel2" arg2="fieldAuxTotalRefNivel2"/>
+  <FUNCTION id="fieldSubTotalNivel3" name="SUBTRACT" arg1="fieldAuxTotalNivel3" arg2="fieldAuxTotalRefNivel3"/>
+  <FUNCTION id="fieldSubTotalNivel4" name="SUBTRACT" arg1="fieldAuxTotalNivel4" arg2="fieldAuxTotalRefNivel4"/>
+  <FUNCTION id="fieldSubTotalNivel5" name="SUBTRACT" arg1="fieldAuxTotalNivel5" arg2="fieldAuxTotalRefNivel5"/>
+  <FUNCTION id="fieldSubTotalNivel6" name="SUBTRACT" arg1="fieldAuxTotalNivel6" arg2="fieldAuxTotalRefNivel6"/>
+  <FUNCTION id="fieldSubTotalNivel7" name="SUBTRACT" arg1="fieldAuxTotalNivel7" arg2="fieldAuxTotalRefNivel7"/>
+  <FUNCTION id="fieldSubTotalNivel8" name="SUBTRACT" arg1="fieldAuxTotalNivel8" arg2="fieldAuxTotalRefNivel8"/>
+  <FUNCTION id="fieldSubTotalNivel9" name="SUBTRACT" arg1="fieldAuxTotalNivel9" arg2="fieldAuxTotalRefNivel9"/>
+  <FUNCTION id="fieldSubTotalNivel10" name="SUBTRACT" arg1="fieldAuxTotalNivel10" arg2="fieldAuxTotalRefNivel10"/>
+  <FUNCTION id="fieldTotalAvgNivel1" name="DIVIDE" arg1="fieldSubTotalNivel1" arg2="fieldAuxTotalRefNivel1"/>
+  <FUNCTION id="fieldTotalAvgNivel2" name="DIVIDE" arg1="fieldSubTotalNivel2" arg2="fieldAuxTotalRefNivel2"/>
+  <FUNCTION id="fieldTotalAvgNivel3" name="DIVIDE" arg1="fieldSubTotalNivel3" arg2="fieldAuxTotalRefNivel3"/>
+  <FUNCTION id="fieldTotalAvgNivel4" name="DIVIDE" arg1="fieldSubTotalNivel4" arg2="fieldAuxTotalRefNivel4"/>
+  <FUNCTION id="fieldTotalAvgNivel5" name="DIVIDE" arg1="fieldSubTotalNivel5" arg2="fieldAuxTotalRefNivel5"/>
+  <FUNCTION id="fieldTotalAvgNivel6" name="DIVIDE" arg1="fieldSubTotalNivel6" arg2="fieldAuxTotalRefNivel6"/>
+  <FUNCTION id="fieldTotalAvgNivel7" name="DIVIDE" arg1="fieldSubTotalNivel7" arg2="fieldAuxTotalRefNivel7"/>
+  <FUNCTION id="fieldTotalAvgNivel8" name="DIVIDE" arg1="fieldSubTotalNivel8" arg2="fieldAuxTotalRefNivel8"/>
+  <FUNCTION id="fieldTotalAvgNivel9" name="DIVIDE" arg1="fieldSubTotalNivel9" arg2="fieldAuxTotalRefNivel9"/>
+  <FUNCTION id="fieldTotalAvgNivel10" name="DIVIDE" arg1="fieldSubTotalNivel10" arg2="fieldAuxTotalRefNivel10"/>
+  <FUNCTION id="fieldTotal1" name="MULTIPLY" arg1="fieldTotalAvgNivel1" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotal2" name="MULTIPLY" arg1="fieldTotalAvgNivel2" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotal3" name="MULTIPLY" arg1="fieldTotalAvgNivel3" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotal4" name="MULTIPLY" arg1="fieldTotalAvgNivel4" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotal5" name="MULTIPLY" arg1="fieldTotalAvgNivel5" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotal6" name="MULTIPLY" arg1="fieldTotalAvgNivel6" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotal7" name="MULTIPLY" arg1="fieldTotalAvgNivel7" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotal8" name="MULTIPLY" arg1="fieldTotalAvgNivel8" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotal9" name="MULTIPLY" arg1="fieldTotalAvgNivel9" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotal10" name="MULTIPLY" arg1="fieldTotalAvgNivel10" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldSubTotalQtyNivel1" name="SUBTRACT" arg1="fieldAuxTotalQtyNivel1" arg2="fieldAuxTotalRefQtyNivel1"/>
+  <FUNCTION id="fieldSubTotalQtyNivel2" name="SUBTRACT" arg1="fieldAuxTotalQtyNivel2" arg2="fieldAuxTotalRefQtyNivel2"/>
+  <FUNCTION id="fieldSubTotalQtyNivel3" name="SUBTRACT" arg1="fieldAuxTotalQtyNivel3" arg2="fieldAuxTotalRefQtyNivel3"/>
+  <FUNCTION id="fieldSubTotalQtyNivel4" name="SUBTRACT" arg1="fieldAuxTotalQtyNivel4" arg2="fieldAuxTotalRefQtyNivel4"/>
+  <FUNCTION id="fieldSubTotalQtyNivel5" name="SUBTRACT" arg1="fieldAuxTotalQtyNivel5" arg2="fieldAuxTotalRefQtyNivel5"/>
+  <FUNCTION id="fieldSubTotalQtyNivel6" name="SUBTRACT" arg1="fieldAuxTotalQtyNivel6" arg2="fieldAuxTotalRefQtyNivel6"/>
+  <FUNCTION id="fieldSubTotalQtyNivel7" name="SUBTRACT" arg1="fieldAuxTotalQtyNivel7" arg2="fieldAuxTotalRefQtyNivel7"/>
+  <FUNCTION id="fieldSubTotalQtyNivel8" name="SUBTRACT" arg1="fieldAuxTotalQtyNivel8" arg2="fieldAuxTotalRefQtyNivel8"/>
+  <FUNCTION id="fieldSubTotalQtyNivel9" name="SUBTRACT" arg1="fieldAuxTotalQtyNivel9" arg2="fieldAuxTotalRefQtyNivel9"/>
+  <FUNCTION id="fieldSubTotalQtyNivel10" name="SUBTRACT" arg1="fieldAuxTotalQtyNivel10" arg2="fieldAuxTotalRefQtyNivel10"/>
+  <FUNCTION id="fieldTotalQtyAvgNivel1" name="DIVIDE" arg1="fieldSubTotalQtyNivel1" arg2="fieldAuxTotalRefQtyNivel1"/>
+  <FUNCTION id="fieldTotalQtyAvgNivel2" name="DIVIDE" arg1="fieldSubTotalQtyNivel2" arg2="fieldAuxTotalRefQtyNivel2"/>
+  <FUNCTION id="fieldTotalQtyAvgNivel3" name="DIVIDE" arg1="fieldSubTotalQtyNivel3" arg2="fieldAuxTotalRefQtyNivel3"/>
+  <FUNCTION id="fieldTotalQtyAvgNivel4" name="DIVIDE" arg1="fieldSubTotalQtyNivel4" arg2="fieldAuxTotalRefQtyNivel4"/>
+  <FUNCTION id="fieldTotalQtyAvgNivel5" name="DIVIDE" arg1="fieldSubTotalQtyNivel5" arg2="fieldAuxTotalRefQtyNivel5"/>
+  <FUNCTION id="fieldTotalQtyAvgNivel6" name="DIVIDE" arg1="fieldSubTotalQtyNivel6" arg2="fieldAuxTotalRefQtyNivel6"/>
+  <FUNCTION id="fieldTotalQtyAvgNivel7" name="DIVIDE" arg1="fieldSubTotalQtyNivel7" arg2="fieldAuxTotalRefQtyNivel7"/>
+  <FUNCTION id="fieldTotalQtyAvgNivel8" name="DIVIDE" arg1="fieldSubTotalQtyNivel8" arg2="fieldAuxTotalRefQtyNivel8"/>
+  <FUNCTION id="fieldTotalQtyAvgNivel9" name="DIVIDE" arg1="fieldSubTotalQtyNivel9" arg2="fieldAuxTotalRefQtyNivel9"/>
+  <FUNCTION id="fieldTotalQtyAvgNivel10" name="DIVIDE" arg1="fieldSubTotalQtyNivel10" arg2="fieldAuxTotalRefQtyNivel10"/>
+  <FUNCTION id="fieldTotalQty1" name="MULTIPLY" arg1="fieldTotalQtyAvgNivel1" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotalQty2" name="MULTIPLY" arg1="fieldTotalQtyAvgNivel2" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotalQty3" name="MULTIPLY" arg1="fieldTotalQtyAvgNivel3" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotalQty4" name="MULTIPLY" arg1="fieldTotalQtyAvgNivel4" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotalQty5" name="MULTIPLY" arg1="fieldTotalQtyAvgNivel5" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotalQty6" name="MULTIPLY" arg1="fieldTotalQtyAvgNivel6" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotalQty7" name="MULTIPLY" arg1="fieldTotalQtyAvgNivel7" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotalQty8" name="MULTIPLY" arg1="fieldTotalQtyAvgNivel8" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotalQty9" name="MULTIPLY" arg1="fieldTotalQtyAvgNivel9" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotalQty10" name="MULTIPLY" arg1="fieldTotalQtyAvgNivel10" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldProfit1" name="SUBTRACT" arg1="fieldTotalNivel1" arg2="fieldCost1" format="euroInform"/>
+  <FUNCTION id="fieldProfit2" name="SUBTRACT" arg1="fieldTotalNivel2" arg2="fieldCost2" format="euroInform"/>
+  <FUNCTION id="fieldProfit3" name="SUBTRACT" arg1="fieldTotalNivel3" arg2="fieldCost3" format="euroInform"/>
+  <FUNCTION id="fieldProfit4" name="SUBTRACT" arg1="fieldTotalNivel4" arg2="fieldCost4" format="euroInform"/>
+  <FUNCTION id="fieldProfit5" name="SUBTRACT" arg1="fieldTotalNivel5" arg2="fieldCost5" format="euroInform"/>
+  <FUNCTION id="fieldProfit6" name="SUBTRACT" arg1="fieldTotalNivel6" arg2="fieldCost6" format="euroInform"/>
+  <FUNCTION id="fieldProfit7" name="SUBTRACT" arg1="fieldTotalNivel7" arg2="fieldCost7" format="euroInform"/>
+  <FUNCTION id="fieldProfit8" name="SUBTRACT" arg1="fieldTotalNivel8" arg2="fieldCost8" format="euroInform"/>
+  <FUNCTION id="fieldProfit9" name="SUBTRACT" arg1="fieldTotalNivel9" arg2="fieldCost9" format="euroInform"/>
+  <FUNCTION id="fieldProfit10" name="SUBTRACT" arg1="fieldTotalNivel10" arg2="fieldCost10" format="euroInform"/>
+  <FUNCTION id="fieldProfitRef1" name="SUBTRACT" arg1="fieldTotalRefNivel1" arg2="fieldCostRef1" format="euroInform"/>
+  <FUNCTION id="fieldProfitRef2" name="SUBTRACT" arg1="fieldTotalRefNivel2" arg2="fieldCostRef2" format="euroInform"/>
+  <FUNCTION id="fieldProfitRef3" name="SUBTRACT" arg1="fieldTotalRefNivel3" arg2="fieldCostRef3" format="euroInform"/>
+  <FUNCTION id="fieldProfitRef4" name="SUBTRACT" arg1="fieldTotalRefNivel4" arg2="fieldCostRef4" format="euroInform"/>
+  <FUNCTION id="fieldProfitRef5" name="SUBTRACT" arg1="fieldTotalRefNivel5" arg2="fieldCostRef5" format="euroInform"/>
+  <FUNCTION id="fieldProfitRef6" name="SUBTRACT" arg1="fieldTotalRefNivel6" arg2="fieldCostRef6" format="euroInform"/>
+  <FUNCTION id="fieldProfitRef7" name="SUBTRACT" arg1="fieldTotalRefNivel7" arg2="fieldCostRef7" format="euroInform"/>
+  <FUNCTION id="fieldProfitRef8" name="SUBTRACT" arg1="fieldTotalRefNivel8" arg2="fieldCostRef8" format="euroInform"/>
+  <FUNCTION id="fieldProfitRef9" name="SUBTRACT" arg1="fieldTotalRefNivel9" arg2="fieldCostRef9" format="euroInform"/>
+  <FUNCTION id="fieldProfitRef10" name="SUBTRACT" arg1="fieldTotalRefNivel10" arg2="fieldCostRef10" format="euroInform"/>
+  <FUNCTION id="fieldAuxMargin1" name="DIVIDE" arg1="fieldProfit1" arg2="fieldTotalNivel1"/>
+  <FUNCTION id="fieldAuxMargin2" name="DIVIDE" arg1="fieldProfit2" arg2="fieldTotalNivel2"/>
+  <FUNCTION id="fieldAuxMargin3" name="DIVIDE" arg1="fieldProfit3" arg2="fieldTotalNivel3"/>
+  <FUNCTION id="fieldAuxMargin4" name="DIVIDE" arg1="fieldProfit4" arg2="fieldTotalNivel4"/>
+  <FUNCTION id="fieldAuxMargin5" name="DIVIDE" arg1="fieldProfit5" arg2="fieldTotalNivel5"/>
+  <FUNCTION id="fieldAuxMargin6" name="DIVIDE" arg1="fieldProfit6" arg2="fieldTotalNivel6"/>
+  <FUNCTION id="fieldAuxMargin7" name="DIVIDE" arg1="fieldProfit7" arg2="fieldTotalNivel7"/>
+  <FUNCTION id="fieldAuxMargin8" name="DIVIDE" arg1="fieldProfit8" arg2="fieldTotalNivel8"/>
+  <FUNCTION id="fieldAuxMargin9" name="DIVIDE" arg1="fieldProfit9" arg2="fieldTotalNivel9"/>
+  <FUNCTION id="fieldAuxMargin10" name="DIVIDE" arg1="fieldProfit10" arg2="fieldTotalNivel10"/>
+  <FUNCTION id="fieldAuxMarginRef1" name="DIVIDE" arg1="fieldProfitRef1" arg2="fieldTotalRefNivel1"/>
+  <FUNCTION id="fieldAuxMarginRef2" name="DIVIDE" arg1="fieldProfitRef2" arg2="fieldTotalRefNivel2"/>
+  <FUNCTION id="fieldAuxMarginRef3" name="DIVIDE" arg1="fieldProfitRef3" arg2="fieldTotalRefNivel3"/>
+  <FUNCTION id="fieldAuxMarginRef4" name="DIVIDE" arg1="fieldProfitRef4" arg2="fieldTotalRefNivel4"/>
+  <FUNCTION id="fieldAuxMarginRef5" name="DIVIDE" arg1="fieldProfitRef5" arg2="fieldTotalRefNivel5"/>
+  <FUNCTION id="fieldAuxMarginRef6" name="DIVIDE" arg1="fieldProfitRef6" arg2="fieldTotalRefNivel6"/>
+  <FUNCTION id="fieldAuxMarginRef7" name="DIVIDE" arg1="fieldProfitRef7" arg2="fieldTotalRefNivel7"/>
+  <FUNCTION id="fieldAuxMarginRef8" name="DIVIDE" arg1="fieldProfitRef8" arg2="fieldTotalRefNivel8"/>
+  <FUNCTION id="fieldAuxMarginRef9" name="DIVIDE" arg1="fieldProfitRef9" arg2="fieldTotalRefNivel9"/>
+  <FUNCTION id="fieldAuxMarginRef10" name="DIVIDE" arg1="fieldProfitRef10" arg2="fieldTotalRefNivel10"/>
+  <FUNCTION id="fieldDifMargin1" name="SUBTRACT" arg1="fieldAuxMargin1" arg2="fieldAuxMarginRef1"/>
+  <FUNCTION id="fieldDifMargin2" name="SUBTRACT" arg1="fieldAuxMargin2" arg2="fieldAuxMarginRef2"/>
+  <FUNCTION id="fieldDifMargin3" name="SUBTRACT" arg1="fieldAuxMargin3" arg2="fieldAuxMarginRef3"/>
+  <FUNCTION id="fieldDifMargin4" name="SUBTRACT" arg1="fieldAuxMargin4" arg2="fieldAuxMarginRef4"/>
+  <FUNCTION id="fieldDifMargin5" name="SUBTRACT" arg1="fieldAuxMargin5" arg2="fieldAuxMarginRef5"/>
+  <FUNCTION id="fieldDifMargin6" name="SUBTRACT" arg1="fieldAuxMargin6" arg2="fieldAuxMarginRef6"/>
+  <FUNCTION id="fieldDifMargin7" name="SUBTRACT" arg1="fieldAuxMargin7" arg2="fieldAuxMarginRef7"/>
+  <FUNCTION id="fieldDifMargin8" name="SUBTRACT" arg1="fieldAuxMargin8" arg2="fieldAuxMarginRef8"/>
+  <FUNCTION id="fieldDifMargin9" name="SUBTRACT" arg1="fieldAuxMargin9" arg2="fieldAuxMarginRef9"/>
+  <FUNCTION id="fieldDifMargin10" name="SUBTRACT" arg1="fieldAuxMargin10" arg2="fieldAuxMarginRef10"/>
+  <FUNCTION id="fieldDifTotalMargin1" name="MULTIPLY" arg1="fieldDifMargin1" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldDifTotalMargin2" name="MULTIPLY" arg1="fieldDifMargin2" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldDifTotalMargin3" name="MULTIPLY" arg1="fieldDifMargin3" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldDifTotalMargin4" name="MULTIPLY" arg1="fieldDifMargin4" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldDifTotalMargin5" name="MULTIPLY" arg1="fieldDifMargin5" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldDifTotalMargin6" name="MULTIPLY" arg1="fieldDifMargin6" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldDifTotalMargin7" name="MULTIPLY" arg1="fieldDifMargin7" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldDifTotalMargin8" name="MULTIPLY" arg1="fieldDifMargin8" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldDifTotalMargin9" name="MULTIPLY" arg1="fieldDifMargin9" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldDifTotalMargin10" name="MULTIPLY" arg1="fieldDifMargin10" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMargin1" name="MULTIPLY" arg1="fieldAuxMargin1" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMargin2" name="MULTIPLY" arg1="fieldAuxMargin2" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMargin3" name="MULTIPLY" arg1="fieldAuxMargin3" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMargin4" name="MULTIPLY" arg1="fieldAuxMargin4" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMargin5" name="MULTIPLY" arg1="fieldAuxMargin5" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMargin6" name="MULTIPLY" arg1="fieldAuxMargin6" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMargin7" name="MULTIPLY" arg1="fieldAuxMargin7" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMargin8" name="MULTIPLY" arg1="fieldAuxMargin8" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMargin9" name="MULTIPLY" arg1="fieldAuxMargin9" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMargin10" name="MULTIPLY" arg1="fieldAuxMargin10" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMarginRef1" name="MULTIPLY" arg1="fieldAuxMarginRef1" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMarginRef2" name="MULTIPLY" arg1="fieldAuxMarginRef2" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMarginRef3" name="MULTIPLY" arg1="fieldAuxMarginRef3" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMarginRef4" name="MULTIPLY" arg1="fieldAuxMarginRef4" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMarginRef5" name="MULTIPLY" arg1="fieldAuxMarginRef5" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMarginRef6" name="MULTIPLY" arg1="fieldAuxMarginRef6" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMarginRef7" name="MULTIPLY" arg1="fieldAuxMarginRef7" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMarginRef8" name="MULTIPLY" arg1="fieldAuxMarginRef8" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMarginRef9" name="MULTIPLY" arg1="fieldAuxMarginRef9" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldMarginRef10" name="MULTIPLY" arg1="fieldAuxMarginRef10" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotal" name="SUM" format="euroInform">linenetamt</FUNCTION>
+  <FUNCTION id="fieldTotalRef" name="SUM" format="euroInform">linenetref</FUNCTION>
+  <FUNCTION id="fieldSubTotal" name="SUBTRACT" arg1="fieldTotal" arg2="fieldTotalRef"/>
+  <FUNCTION id="fieldTotalDivide" name="DIVIDE" arg1="fieldSubTotal" arg2="fieldTotalRef"/>
+  <FUNCTION id="fieldTotalAvg" name="MULTIPLY" arg1="fieldTotalDivide" arg2="param100" format="euroInform"/>
+  <FUNCTION id="fieldTotalWeight" name="SUM" format="euroInform">weight</FUNCTION>
+  <FUNCTION id="fieldTotalWeightRef" name="SUM" format="euroInform">weightref</FUNCTION>
+  <FUNCTION id="fieldTotalDivideNivel1" name="DIVIDE" arg1="fieldTotalNivel1" arg2="paramTotal"/>
+  <FUNCTION id="fieldTotalAverageNivel1" name="MULTIPLY" arg1="fieldTotalDivideNivel1" arg2="param100" format="euroInform"/>
+  <SECTION id="sectionNivel1" field="nivel1"/>
+  <SECTION id="sectionNivel2" field="nivel2"/>
+  <SECTION id="sectionNivel3" field="nivel3"/>
+  <SECTION id="sectionNivel4" field="nivel4"/>
+  <SECTION id="sectionNivel5" field="nivel5"/>
+  <SECTION id="sectionNivel6" field="nivel6"/>
+  <SECTION id="sectionNivel7" field="nivel7"/>
+  <SECTION id="sectionNivel8" field="nivel8"/>
+  <SECTION id="sectionNivel9" field="nivel9"/>
+  <SECTION id="sectionNivel10" field="nivel10"/>
+  <SECTION id="sectionDetail"/>
+</structure>
+<structure name="structure2">
+  <FIELD id="fieldNoncomparativeNivel1" replaceCharacters="fo">nivel1</FIELD>
+  <FIELD id="fieldNoncomparativeNivel2" replaceCharacters="fo">nivel2</FIELD>
+  <FIELD id="fieldNoncomparativeNivel3" replaceCharacters="fo">nivel3</FIELD>
+  <FIELD id="fieldNoncomparativeNivel4" replaceCharacters="fo">nivel4</FIELD>
+  <FIELD id="fieldNoncomparativeNivel5" replaceCharacters="fo">nivel5</FIELD>
+  <FIELD id="fieldNoncomparativeNivel6" replaceCharacters="fo">nivel6</FIELD>
+  <FIELD id="fieldNoncomparativeNivel7" replaceCharacters="fo">nivel7</FIELD>
+  <FIELD id="fieldNoncomparativeNivel8" replaceCharacters="fo">nivel8</FIELD>
+  <FIELD id="fieldNoncomparativeNivel9" replaceCharacters="fo">nivel9</FIELD>
+  <FIELD id="fieldNoncomparativeNivel10" replaceCharacters="fo">nivel10</FIELD>
+  <FIELD id="fieldNoncomparativeLinenetamt" format="euroInform">linenetamt</FIELD>
+  <FIELD id="fieldNoncomparativeQtyinvoiced" format="euroInform">qtyinvoiced</FIELD>
+  <FIELD id="fieldNoncomparativeCost" format="euroInform">cost</FIELD>
+  <FIELD id="fieldNoncomparativeLinenetref" format="euroInform">linenetref</FIELD>
+  <FIELD id="fieldNoncomparativeQtyinvoicedref" format="euroInform">qtyinvoicedref</FIELD>
+  <FIELD id="fieldNoncomparativeWeightref" format="euroInform">weightRef</FIELD>
+  <FIELD id="fieldNoncomparativeWeight" format="euroInform">weight</FIELD>
+  <!--FIELD id="fieldNoncomparativeUomsymbol1" replaceCharacters="fo">uomsymbol</FIELD>
+<FIELD id="fieldNoncomparativeUomsymbol2" replaceCharacters="fo">uomsymbol</FIELD>
+<FIELD id="fieldNoncomparativeUomsymbol3" replaceCharacters="fo">uomsymbol</FIELD>
+<FIELD id="fieldNoncomparativeUomsymbol4" replaceCharacters="fo">uomsymbol</FIELD>
+<FIELD id="fieldNoncomparativeUomsymbol5" replaceCharacters="fo">uomsymbol</FIELD>
+<FIELD id="fieldNoncomparativeUomsymbol6" replaceCharacters="fo">uomsymbol</FIELD-->
+<FUNCTION id="fieldNoncomparativeTotalNivel1" name="SUM" format="euroInform">linenetamt</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalNivel2" name="SUM" format="euroInform">linenetamt</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalNivel3" name="SUM" format="euroInform">linenetamt</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalNivel4" name="SUM" format="euroInform">linenetamt</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalNivel5" name="SUM" format="euroInform">linenetamt</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalNivel6" name="SUM" format="euroInform">linenetamt</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalNivel7" name="SUM" format="euroInform">linenetamt</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalNivel8" name="SUM" format="euroInform">linenetamt</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalNivel9" name="SUM" format="euroInform">linenetamt</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalNivel10" name="SUM" format="euroInform">linenetamt</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalQtyNivel1" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalQtyNivel2" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalQtyNivel3" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalQtyNivel4" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalQtyNivel5" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalQtyNivel6" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalQtyNivel7" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalQtyNivel8" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalQtyNivel9" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalQtyNivel10" name="SUM" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalWeightNivel1" name="SUM" format="euroInform">weight</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalWeightNivel2" name="SUM" format="euroInform">weight</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalWeightNivel3" name="SUM" format="euroInform">weight</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalWeightNivel4" name="SUM" format="euroInform">weight</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalWeightNivel5" name="SUM" format="euroInform">weight</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalWeightNivel6" name="SUM" format="euroInform">weight</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalWeightNivel7" name="SUM" format="euroInform">weight</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalWeightNivel8" name="SUM" format="euroInform">weight</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalWeightNivel9" name="SUM" format="euroInform">weight</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalWeightNivel10" name="SUM" format="euroInform">weight</FUNCTION>
+<FUNCTION id="fieldNoncomparativeCost1" name="SUM" format="euroInform">cost</FUNCTION>
+<FUNCTION id="fieldNoncomparativeCost2" name="SUM" format="euroInform">cost</FUNCTION>
+<FUNCTION id="fieldNoncomparativeCost3" name="SUM" format="euroInform">cost</FUNCTION>
+<FUNCTION id="fieldNoncomparativeCost4" name="SUM" format="euroInform">cost</FUNCTION>
+<FUNCTION id="fieldNoncomparativeCost5" name="SUM" format="euroInform">cost</FUNCTION>
+<FUNCTION id="fieldNoncomparativeCost6" name="SUM" format="euroInform">cost</FUNCTION>
+<FUNCTION id="fieldNoncomparativeCost7" name="SUM" format="euroInform">cost</FUNCTION>
+<FUNCTION id="fieldNoncomparativeCost8" name="SUM" format="euroInform">cost</FUNCTION>
+<FUNCTION id="fieldNoncomparativeCost9" name="SUM" format="euroInform">cost</FUNCTION>
+<FUNCTION id="fieldNoncomparativeCost10" name="SUM" format="euroInform">cost</FUNCTION>
+<FUNCTION id="fieldNoncomparativeAuxTotalQtyNivel1" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeAuxTotalQtyNivel2" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeAuxTotalQtyNivel3" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeAuxTotalQtyNivel4" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeAuxTotalQtyNivel5" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeAuxTotalQtyNivel6" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeAuxTotalQtyNivel7" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeAuxTotalQtyNivel8" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeAuxTotalQtyNivel9" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeAuxTotalQtyNivel10" name="SUM" attribute="value" format="euroInform">qtyinvoiced</FUNCTION>
+<FUNCTION id="fieldNoncomparativeProfit1" name="SUBTRACT" arg1="fieldNoncomparativeTotalNivel1" arg2="fieldNoncomparativeCost1" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeProfit2" name="SUBTRACT" arg1="fieldNoncomparativeTotalNivel2" arg2="fieldNoncomparativeCost2" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeProfit3" name="SUBTRACT" arg1="fieldNoncomparativeTotalNivel3" arg2="fieldNoncomparativeCost3" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeProfit4" name="SUBTRACT" arg1="fieldNoncomparativeTotalNivel4" arg2="fieldNoncomparativeCost4" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeProfit5" name="SUBTRACT" arg1="fieldNoncomparativeTotalNivel5" arg2="fieldNoncomparativeCost5" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeProfit6" name="SUBTRACT" arg1="fieldNoncomparativeTotalNivel6" arg2="fieldNoncomparativeCost6" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeProfit7" name="SUBTRACT" arg1="fieldNoncomparativeTotalNivel7" arg2="fieldNoncomparativeCost7" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeProfit8" name="SUBTRACT" arg1="fieldNoncomparativeTotalNivel8" arg2="fieldNoncomparativeCost8" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeProfit9" name="SUBTRACT" arg1="fieldNoncomparativeTotalNivel9" arg2="fieldNoncomparativeCost9" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeProfit10" name="SUBTRACT" arg1="fieldNoncomparativeTotalNivel10" arg2="fieldNoncomparativeCost10" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeAuxMargin1" name="DIVIDE" arg1="fieldNoncomparativeProfit1" arg2="fieldNoncomparativeTotalNivel1"/>
+<FUNCTION id="fieldNoncomparativeAuxMargin2" name="DIVIDE" arg1="fieldNoncomparativeProfit2" arg2="fieldNoncomparativeTotalNivel2"/>
+<FUNCTION id="fieldNoncomparativeAuxMargin3" name="DIVIDE" arg1="fieldNoncomparativeProfit3" arg2="fieldNoncomparativeTotalNivel3"/>
+<FUNCTION id="fieldNoncomparativeAuxMargin4" name="DIVIDE" arg1="fieldNoncomparativeProfit4" arg2="fieldNoncomparativeTotalNivel4"/>
+<FUNCTION id="fieldNoncomparativeAuxMargin5" name="DIVIDE" arg1="fieldNoncomparativeProfit5" arg2="fieldNoncomparativeTotalNivel5"/>
+<FUNCTION id="fieldNoncomparativeAuxMargin6" name="DIVIDE" arg1="fieldNoncomparativeProfit6" arg2="fieldNoncomparativeTotalNivel6"/>
+<FUNCTION id="fieldNoncomparativeAuxMargin7" name="DIVIDE" arg1="fieldNoncomparativeProfit7" arg2="fieldNoncomparativeTotalNivel7"/>
+<FUNCTION id="fieldNoncomparativeAuxMargin8" name="DIVIDE" arg1="fieldNoncomparativeProfit8" arg2="fieldNoncomparativeTotalNivel8"/>
+<FUNCTION id="fieldNoncomparativeAuxMargin9" name="DIVIDE" arg1="fieldNoncomparativeProfit9" arg2="fieldNoncomparativeTotalNivel9"/>
+<FUNCTION id="fieldNoncomparativeAuxMargin10" name="DIVIDE" arg1="fieldNoncomparativeProfit10" arg2="fieldNoncomparativeTotalNivel10"/>
+<FUNCTION id="fieldNoncomparativeMargin1" name="MULTIPLY" arg1="fieldNoncomparativeAuxMargin1" arg2="param100" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeMargin2" name="MULTIPLY" arg1="fieldNoncomparativeAuxMargin2" arg2="param100" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeMargin3" name="MULTIPLY" arg1="fieldNoncomparativeAuxMargin3" arg2="param100" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeMargin4" name="MULTIPLY" arg1="fieldNoncomparativeAuxMargin4" arg2="param100" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeMargin5" name="MULTIPLY" arg1="fieldNoncomparativeAuxMargin5" arg2="param100" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeMargin6" name="MULTIPLY" arg1="fieldNoncomparativeAuxMargin6" arg2="param100" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeMargin7" name="MULTIPLY" arg1="fieldNoncomparativeAuxMargin7" arg2="param100" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeMargin8" name="MULTIPLY" arg1="fieldNoncomparativeAuxMargin8" arg2="param100" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeMargin9" name="MULTIPLY" arg1="fieldNoncomparativeAuxMargin9" arg2="param100" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeMargin10" name="MULTIPLY" arg1="fieldNoncomparativeAuxMargin10" arg2="param100" format="euroInform"/>
+<FUNCTION id="fieldNoncomparativeTotal" name="SUM" format="euroInform">linenetamt</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalWeight" name="SUM" format="euroInform">weight</FUNCTION>
+<FUNCTION id="fieldNoncomparativeTotalDivideNivel1" name="DIVIDE" arg1="fieldNoncomparativeTotalNivel1" arg2="paramTotal"/>
+<FUNCTION id="fieldNoncomparativeTotalAvgNivel1" name="MULTIPLY" arg1="fieldNoncomparativeTotalDivideNivel1" arg2="param100" format="euroInform"/>
+<SECTION id="sectionNoncomparativeNivel1" field="nivel1"/>
+<SECTION id="sectionNoncomparativeNivel2" field="nivel2"/>
+<SECTION id="sectionNoncomparativeNivel3" field="nivel3"/>
+<SECTION id="sectionNoncomparativeNivel4" field="nivel4"/>
+<SECTION id="sectionNoncomparativeNivel5" field="nivel5"/>
+<SECTION id="sectionNoncomparativeNivel6" field="nivel6"/>
+<SECTION id="sectionNoncomparativeNivel7" field="nivel7"/>
+<SECTION id="sectionNoncomparativeNivel8" field="nivel8"/>
+<SECTION id="sectionNoncomparativeNivel9" field="nivel9"/>
+<SECTION id="sectionNoncomparativeNivel10" field="nivel10"/>
+<SECTION id="sectionNoncomparativeDetail"/>
+  </structure>
+  <DISCARD id="discard"/>
+</REPORT>

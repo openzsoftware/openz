@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2009 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+<fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
+	<fo:layout-master-set>
+		<fo:simple-page-master master-name="first" margin-left="1cm" page-height="29.7cm" page-width="21cm" margin-top="0.8cm" margin-right="1cm" margin-bottom="0.25cm">
+			<fo:region-before extent="3cm"/>
+			<fo:region-body margin-left="0cm" margin-right="0cm" margin-bottom="1cm" margin-top="3cm"/>
+		</fo:simple-page-master>
+	</fo:layout-master-set>
+	<fo:page-sequence master-reference="first">
+		<fo:static-content flow-name="xsl-region-before">
+			<fo:table>
+				<fo:table-column column-width="15.5cm"/>
+				<fo:table-column column-width="3.5cm"/>
+				<fo:table-body>
+					<fo:table-row>
+						<fo:table-cell border-bottom-width="0.5pt" border-bottom-style="solid" number-columns-spanned="2">
+							<fo:block font-size="14pt" text-align="center" padding-bottom="4pt" font-weight="bold">TRIAL BALANCE REPORT</fo:block>
+						</fo:table-cell>
+					</fo:table-row>
+					<fo:table-row>
+						<fo:table-cell>
+							<fo:block font-size="10pt" text-align="left" padding-top="2pt">
+								
+                                <fo:inline font-weight="bold">Organization:&#160;&#160;</fo:inline>
+                                <fo:inline id="fieldOrgName">xx</fo:inline>
+							</fo:block>
+						</fo:table-cell>
+						<fo:table-cell>
+							<fo:block font-size="10pt" text-align="left" padding-top="2pt">
+								<fo:inline font-weight="bold">Date:&#160;&#160;</fo:inline>
+								<fo:inline id="fieldDate">xx</fo:inline>
+							</fo:block>
+						</fo:table-cell>
+					</fo:table-row>
+					<fo:table-row>
+						<fo:table-cell number-columns-spanned="2">
+							<fo:block font-size="10pt" text-align="left" padding-top="2pt">
+								<fo:inline font-weight="bold">Conditions:&#160;&#160;</fo:inline>
+								<fo:inline>Period:&#160;&#160;</fo:inline>
+								<fo:inline id="fieldPeriod">xx</fo:inline>
+                                <fo:inline>&#160;&#160;Accounting schema:&#160;&#160;</fo:inline>
+                                <fo:inline id="fieldAccountingSchema">xx</fo:inline>
+							</fo:block>
+						</fo:table-cell>
+					</fo:table-row>
+					<fo:table-row>
+						<fo:table-cell number-columns-spanned="2">
+							<fo:block font-size="10pt" text-align="left" padding-top="2pt" font-weight="bold" id="fieldAccounting">xx</fo:block>
+						</fo:table-cell>
+					</fo:table-row>
+				</fo:table-body>
+			</fo:table>
+		</fo:static-content>
+    
+    <fo:flow font-size="8pt" flow-name="xsl-region-body" font-family="Helvetica">
+    <DIVFO id="sectionNoBP">      
+        <fo:table space-before.optimum="20pt" table-layout="fixed" id="selEliminar">
+          <fo:table-column column-width="2.5cm"/>
+          <fo:table-column column-width="6.5cm"/>
+          <fo:table-column column-width="2.5cm"/>
+          <fo:table-column column-width="2.5cm"/>
+          <fo:table-column column-width="2.5cm"/>
+          <fo:table-column column-width="2.5cm"/>
+          <fo:table-header>
+            <fo:table-row>
+              <fo:table-cell border-style="solid" border-width="0.5pt">
+                <fo:block font-weight="bold" padding-top="2pt" start-indent="2pt">Account code</fo:block>
+              </fo:table-cell>
+              <fo:table-cell border-style="solid" border-width="0.5pt">
+                <fo:block font-weight="bold" padding-top="2pt" start-indent="2pt">Description</fo:block>
+              </fo:table-cell>
+              <fo:table-cell border-style="solid" border-width="0.5pt">
+                <fo:block font-weight="bold" padding-top="2pt" start-indent="2pt">Initial balance</fo:block>
+              </fo:table-cell>
+              <fo:table-cell border-style="solid" border-width="0.5pt">
+                <fo:block font-weight="bold" padding-top="2pt" start-indent="2pt">Debt period</fo:block>
+              </fo:table-cell>
+              <fo:table-cell border-style="solid" border-width="0.5pt">
+                <fo:block font-weight="bold" padding-top="2pt" start-indent="2pt">Credit period</fo:block>
+              </fo:table-cell>
+              <fo:table-cell border-style="solid" border-width="0.5pt">
+                <fo:block font-weight="bold" padding-top="2pt" start-indent="2pt">Final balance</fo:block>
+              </fo:table-cell>
+            </fo:table-row>
+          </fo:table-header>
+          <fo:table-body>
+            <DIVFO id="sectionDetail">
+              <fo:table-row>
+                <fo:table-cell border-style="solid" border-width="0.5pt">
+                  <fo:block padding-top="2pt" text-align="center" id="fieldAccount"/>
+                </fo:table-cell>
+                <fo:table-cell border-style="solid" border-width="0.5pt">
+                  <fo:block font-size="8pt" padding-top="2pt" start-indent="2pt" text-align="left" id="fieldDescription"/>
+                </fo:table-cell>
+                <fo:table-cell border-style="solid" border-width="0.5pt">
+                  <fo:block padding-top="2pt" end-indent="2pt" text-align="end" id="fieldSaldoInicial"/>
+                </fo:table-cell>
+                <fo:table-cell border-style="solid" border-width="0.5pt">
+                  <fo:block padding-top="2pt" end-indent="2pt" text-align="end" id="fieldAmtacctdr"/>
+                </fo:table-cell>
+                <fo:table-cell border-style="solid" border-width="0.5pt">
+                  <fo:block padding-top="2pt" end-indent="2pt" text-align="end" id="fieldAmtacctcr"/>
+                </fo:table-cell>
+                <fo:table-cell border-style="solid" border-width="0.5pt">
+                  <fo:block padding-top="2pt" end-indent="2pt" text-align="end" id="fieldSaldoFinal"/>
+                </fo:table-cell>
+              </fo:table-row>
+            </DIVFO>
+            <fo:table-row>
+              <fo:table-cell number-columns-spanned="6">
+                <fo:block>&#160;</fo:block>
+              </fo:table-cell>
+            </fo:table-row>
+            <fo:table-row>
+              <fo:table-cell number-columns-spanned="6">
+                <fo:block>&#160;</fo:block>
+              </fo:table-cell>
+            </fo:table-row>
+            <fo:table-row>
+              <fo:table-cell number-columns-spanned="2">
+                <fo:block font-weight="bold" text-align="end" end-indent="2pt" padding-top="2pt">SUM:</fo:block>
+              </fo:table-cell>
+              <fo:table-cell>
+                <fo:block font-weight="bold" text-align="end" end-indent="2pt" padding-top="2pt" id="fieldTotalSaldoInicial"/>
+              </fo:table-cell>
+              <fo:table-cell>
+                <fo:block font-weight="bold" text-align="end" end-indent="2pt" padding-top="2pt" id="fieldTotalAmtacctdr"/>
+              </fo:table-cell>
+              <fo:table-cell>
+                <fo:block font-weight="bold" text-align="end" end-indent="2pt" padding-top="2pt" id="fieldTotalAmtacctcr"/>
+              </fo:table-cell>
+              <fo:table-cell>
+                <fo:block font-weight="bold" text-align="end" end-indent="2pt" padding-top="2pt" id="fieldTotalSaldoFinal"/>
+              </fo:table-cell>
+            </fo:table-row>
+          </fo:table-body>
+        </fo:table>
+      <!--/fo:flow-->
+    </DIVFO>
+    
+    <DIVFO id="sectionBP">
+      <!--fo:flow font-size="8pt" flow-name="xsl-region-body" font-family="Helvetica"-->
+        <fo:table space-before.optimum="20pt" table-layout="fixed">
+           <fo:table-column column-width="19cm"/>
+           <fo:table-body>
+            <fo:table-row>
+              <fo:table-cell border-style="solid" border-width="0.5pt">
+              
+               <fo:block text-align="left" padding-top="2pt">
+								<fo:inline font-weight="bold">Business Partner:&#160;&#160;</fo:inline>
+								<fo:inline id="fieldPartner">xx</fo:inline>
+							</fo:block>
+               
+              </fo:table-cell>
+            </fo:table-row>
+          </fo:table-body>
+        </fo:table>
+      
+        <fo:table space-before.optimum="0pt" table-layout="fixed"><!-- id="selEliminar2"-->
+          <fo:table-column column-width="2.5cm"/>
+          <fo:table-column column-width="6.5cm"/>
+          <fo:table-column column-width="2.5cm"/>
+          <fo:table-column column-width="2.5cm"/>
+          <fo:table-column column-width="2.5cm"/>
+          <fo:table-column column-width="2.5cm"/>
+          <fo:table-header>
+            <fo:table-row>
+              <fo:table-cell border-style="solid" border-width="0.5pt">
+                <fo:block font-weight="bold" padding-top="2pt" start-indent="2pt">Account code</fo:block>
+              </fo:table-cell>
+              <fo:table-cell border-style="solid" border-width="0.5pt">
+                <fo:block font-weight="bold" padding-top="2pt" start-indent="2pt">Description</fo:block>
+              </fo:table-cell>
+              <fo:table-cell border-style="solid" border-width="0.5pt">
+                <fo:block font-weight="bold" padding-top="2pt" start-indent="2pt">Initial balance</fo:block>
+              </fo:table-cell>
+              <fo:table-cell border-style="solid" border-width="0.5pt">
+                <fo:block font-weight="bold" padding-top="2pt" start-indent="2pt">Debt period</fo:block>
+              </fo:table-cell>
+              <fo:table-cell border-style="solid" border-width="0.5pt">
+                <fo:block font-weight="bold" padding-top="2pt" start-indent="2pt">Credit period</fo:block>
+              </fo:table-cell>
+              <fo:table-cell border-style="solid" border-width="0.5pt">
+                <fo:block font-weight="bold" padding-top="2pt" start-indent="2pt">Final balance</fo:block>
+              </fo:table-cell>
+            </fo:table-row>
+          </fo:table-header>
+          <fo:table-body>
+            <DIVFO id="sectionDetail2">
+              <fo:table-row>
+                <fo:table-cell border-style="solid" border-width="0.5pt">
+                  <fo:block padding-top="2pt" text-align="center" id="fieldAccount2"/>
+                </fo:table-cell>
+                <fo:table-cell border-style="solid" border-width="0.5pt">
+                  <fo:block font-size="8pt" padding-top="2pt" start-indent="2pt" text-align="left" id="fieldDescription2"/>
+                </fo:table-cell>
+                <fo:table-cell border-style="solid" border-width="0.5pt">
+                  <fo:block padding-top="2pt" end-indent="2pt" text-align="end" id="fieldSaldoInicial2"/>
+                </fo:table-cell>
+                <fo:table-cell border-style="solid" border-width="0.5pt">
+                  <fo:block padding-top="2pt" end-indent="2pt" text-align="end" id="fieldAmtacctdr2"/>
+                </fo:table-cell>
+                <fo:table-cell border-style="solid" border-width="0.5pt">
+                  <fo:block padding-top="2pt" end-indent="2pt" text-align="end" id="fieldAmtacctcr2"/>
+                </fo:table-cell>
+                <fo:table-cell border-style="solid" border-width="0.5pt">
+                  <fo:block padding-top="2pt" end-indent="2pt" text-align="end" id="fieldSaldoFinal2"/>
+                </fo:table-cell>
+              </fo:table-row>
+            </DIVFO>
+            <fo:table-row>
+              <fo:table-cell number-columns-spanned="6">
+                <fo:block>&#160;</fo:block>
+              </fo:table-cell>
+            </fo:table-row>
+            <fo:table-row>
+              <fo:table-cell number-columns-spanned="6">
+                <fo:block>&#160;</fo:block>
+              </fo:table-cell>
+            </fo:table-row>
+            <fo:table-row>
+              <fo:table-cell number-columns-spanned="2">
+                <fo:block font-weight="bold" text-align="end" end-indent="2pt" padding-top="2pt">SUM:</fo:block>
+              </fo:table-cell>
+              <fo:table-cell>
+                <fo:block font-weight="bold" text-align="end" end-indent="2pt" padding-top="2pt" id="fieldTotalSaldoInicial2"/>
+              </fo:table-cell>
+              <fo:table-cell>
+                <fo:block font-weight="bold" text-align="end" end-indent="2pt" padding-top="2pt" id="fieldTotalAmtacctdr2"/>
+              </fo:table-cell>
+              <fo:table-cell>
+                <fo:block font-weight="bold" text-align="end" end-indent="2pt" padding-top="2pt" id="fieldTotalAmtacctcr2"/>
+              </fo:table-cell>
+              <fo:table-cell>
+                <fo:block font-weight="bold" text-align="end" end-indent="2pt" padding-top="2pt" id="fieldTotalSaldoFinal2"/>
+              </fo:table-cell>
+            </fo:table-row>
+          </fo:table-body>
+        </fo:table>
+      
+    </DIVFO>
+    </fo:flow>
+	</fo:page-sequence>
+</fo:root>

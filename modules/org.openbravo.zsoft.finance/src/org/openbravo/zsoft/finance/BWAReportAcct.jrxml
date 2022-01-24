@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.1.1  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="BWAReportAcct" pageWidth="532" pageHeight="842" whenNoDataType="NoPages" columnWidth="532" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="52f57583-e4e7-41e9-bab4-909e47d2664e">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="7.986000000000002"/>
+	<property name="ireport.x" value="1400"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DEMODB"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<parameter name="CLIENT_ID" class="java.lang.String"/>
+	<parameter name="DATE_FROM" class="java.util.Date"/>
+	<parameter name="DATE_TO" class="java.util.Date"/>
+	<parameter name="BWAPREFS_ID" class="java.lang.String"/>
+	<parameter name="AD_ORG_ID" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="budget" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select ACCTVALUE, ACCTDESCRIPTION, Summe,SummeVJ,bsumme,bsummevj from
+ (  select v.ACCTVALUE,max(coalesce(trl.name,el.name)) as ACCTDESCRIPTION,
+       zsfi_getacctsum(bwaprefs.zspr_bwaprefs_id,v.account_id,$P{DATE_FROM},$P{DATE_TO},$P{AD_ORG_ID},'N') as summe,
+       zsfi_getacctsum(bwaprefs.zspr_bwaprefs_id,v.account_id,$P{DATE_FROM},$P{DATE_TO},$P{AD_ORG_ID},'Y') as summeVJ,
+       case when $P{budget}='Y' then zsfi_getbbudgetsum(bwaprefs.zspr_bwaprefs_id,v.account_id,$P{DATE_FROM},$P{DATE_TO},$P{AD_ORG_ID},'N') else 0 end as bsumme,
+       case when $P{budget}='Y' then zsfi_getbbudgetsum(bwaprefs.zspr_bwaprefs_id,v.account_id,$P{DATE_FROM},$P{DATE_TO},$P{AD_ORG_ID},'Y') else 0 end as bsummevj
+     from bwacalculation v,zspr_bwaprefacct bwaprefacct , zspr_bwaprefs bwaprefs,
+          c_elementvalue el left join c_elementvalue_trl trl on el.c_elementvalue_id=trl.c_elementvalue_id and trl.ad_language=$P{LANGUAGE}
+     where el.c_elementvalue_id=v.account_id and bwaprefs.zspr_bwaprefs_id = $P{BWAPREFS_ID}
+           and bwaprefs.zspr_bwaprefs_id=bwaprefacct.zspr_bwaprefs_id
+           and v.ACCTVALUE like replace(bwaprefacct.acctmatch,'*','%')
+           and case when instr(bwaprefacct.acctmatch,'*')>0 then v.accountsign in ('F','E') else  v.accountsign not in ('F','E') end
+           and bwaprefacct.c_acctschema_id=v.c_acctschema_id
+           and CASE when $P{AD_ORG_ID}!='0' then v.ad_org_id=$P{AD_ORG_ID} else 1=1 END
+           and bwaprefs.isactive='Y'
+           and bwaprefs.dontprintdetails='N'
+     GROUP BY ACCTVALUE,bwaprefs.zspr_bwaprefs_id,account_id
+    UNION
+   select  ACCTVALUE,ACCTDESCRIPTION,Summe,SummeVJ,0.0 as bsumme,0.0 as bsummevj from zsfi_reversechargerevenue($P{AD_ORG_ID},$P{BWAPREFS_ID},$P{DATE_FROM},$P{DATE_TO})
+ ) a
+where summe != 0 or summeVJ != 0 or bsumme !=0 or bsummevj!=0
+ORDER by ACCTVALUE, ACCTDESCRIPTIOn]]>
+	</queryString>
+	<field name="acctvalue" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="acctvalue"/>
+	</field>
+	<field name="acctdescription" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="acctdescription"/>
+	</field>
+	<field name="summe" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="summe"/>
+	</field>
+	<field name="summevj" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="summevj"/>
+	</field>
+	<field name="bsumme" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="bsumme"/>
+	</field>
+	<field name="bsummevj" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="bsummevj"/>
+	</field>
+	<variable name="SUBSUM" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{summe}]]></variableExpression>
+		<initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+	</variable>
+	<variable name="BSUBSUM" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{bsumme}]]></variableExpression>
+		<initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+	</variable>
+	<variable name="SUBSumVJ" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{summevj}]]></variableExpression>
+		<initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+	</variable>
+	<variable name="BSUBSumVJ" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{bsummevj}]]></variableExpression>
+		<initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="8" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement key="textField" x="12" y="0" width="38" height="8" uuid="a850adc1-2e85-4fff-a4a1-74ca6c3c7549"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{acctvalue}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" x="50" y="0" width="171" height="8" uuid="de05d7f5-abcc-4103-866f-bbe6abae8c37"/>
+				<textElement verticalAlignment="Middle">
+					<font size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{acctdescription}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement key="textField" x="221" y="0" width="78" height="8" uuid="6f795000-e773-486b-86d1-30449358694d"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="6" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{summe}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement key="textField-1" x="455" y="0" width="78" height="8" uuid="1b8259c4-2cb5-41e2-97fd-6ff79e39f84e">
+					<printWhenExpression><![CDATA[($P{budget}.equals("Y")?true:false)]]></printWhenExpression>
+				</reportElement>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="6" isBold="false"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bsummevj}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement key="textField" x="299" y="0" width="78" height="8" uuid="295856ba-d021-4fa7-a7ae-37f8b1feaaa8">
+					<printWhenExpression><![CDATA[($P{budget}.equals("Y")?true:false)]]></printWhenExpression>
+				</reportElement>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="6" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bsumme}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement key="textField" x="377" y="0" width="78" height="8" uuid="d4b97c4a-d9cf-4a93-91ec-b105010312ad"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="6" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{summevj}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

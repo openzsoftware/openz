@@ -1,0 +1,20 @@
+         <TD colspan="@NUMCOLS@" class="Form_ContentCell" id="@FIELDNAME@tdx">
+            <TABLE cellpadding="0" cellspacing="0"  class="Celltable" style="padding-bottom:5px" id="@FIELDNAME@td">
+            <TR>
+                  <TD class="List_ContentCell" colspan="@NUMCOLS@">               
+                          <SELECT class="Listselector @REQUIRED@" name="inp@FIELDNAME@" multiple="" id="@FIELDNAME@" title="@TITLE@"  onchange="logChanges(this);@CALLOUT@;return true;"  @READONLY@ @REQUIREDTAG@>@CURRENTVALUE@</SELECT>
+                          <SPAN onmouseover="this.style.display='none'; return false;" class="TextBox_MsgContainer_span" style="display: none;" id="@FIELDNAME@missingSpan">
+                                 <TABLE class="TextBox_MsgContainer_table">
+                                   <TR class="TextBox_MsgContainer_tr">
+                                       <TD class="TextBox_MsgContainer_td"><DIV class="TextBox_MsgContainer_div"></DIV></TD><TD></TD>
+                                    </TR>
+                                    <TR>
+                                        <TD colspan="2" class="missing"><DIV class="TextBox_MsgContainer_div2" id="@FIELDNAME@missingSpanText" name="missingText">@REQUIREDMESSAGE@</DIV></TD>
+                                    </TR>
+                                  </TABLE>
+                          </SPAN>
+                   </TD>                  
+                        @BUTTONS@      
+           </TR>
+           </TABLE>
+          </TD>

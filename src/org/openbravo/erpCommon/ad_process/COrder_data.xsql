@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+<SqlClass name="COrderData" package="org.openbravo.erpCommon.ad_process">
+
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT C_Order_ID, C_Doctypetarget_ID, IsSOTrx, DocumentNo, C_BPartner_ID, BillTo_ID,
+				C_BPartner_Location_ID, AD_User_ID, Description, C_PaymentTerm_ID, M_PriceList_ID,
+				M_Warehouse_ID, M_Shipper_ID, SalesRep_ID, AD_Orgtrx_ID, C_Activity_ID, DocStatus,
+				C_Campaign_ID, C_Project_ID, AD_Client_ID, AD_Org_ID, DocAction, C_DocType_ID, DateOrdered, DatePromised,
+				C_Currency_ID, PaymentRule, InvoiceRule, DeliveryRule, FreightcostRule, DeliveryviaRule,
+				PriorityRule, IsDiscountPrinted, Processing
+			  FROM C_Order
+			  WHERE AD_Client_ID = ?
+      ]]>
+    </Sql>
+    <Parameter name="adClientId"/>
+  </SqlMethod>
+
+  <SqlMethod name="insert" type="preparedStatement" connection="true" return="rowcount" static="false">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+			  INSERT INTO C_Order (C_Order_ID, AD_Client_ID, AD_Org_ID, isActive, Created, CreatedBy, Updated, UpdatedBy,
+				C_Doctypetarget_ID, IsSOTrx, DocumentNo, C_BPartner_ID, BillTo_ID, C_BPartner_Location_ID, AD_User_ID,
+				Description, C_PaymentTerm_ID, M_PriceList_ID, M_Warehouse_ID, M_Shipper_ID, SalesRep_ID, AD_Orgtrx_ID,
+				C_Activity_ID, DocStatus, DocAction, C_Doctype_ID, DateOrdered, DatePromised, DateAcct, C_Currency_ID,
+				PaymentRule, InvoiceRule, DeliveryRule, FreightcostRule, DeliveryviaRule, PriorityRule, IsDiscountPrinted,
+				Processing)
+				VALUES (?, ?, ?, 'Y', TO_DATE(now()), ?, TO_DATE(now()), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+				TO_DATE(?), TO_DATE(?), TO_DATE(?), ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ]]>
+    </Sql>
+    <Parameter name="cOrderId"/>
+    <Parameter name="adClientId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="cDoctypetargetId"/>
+		<Parameter name="issotrx"/>
+		<Parameter name="documentno"/>
+		<Parameter name="cBpartnerId"/>
+		<Parameter name="billtoId"/>
+		<Parameter name="cBpartnerLocationId"/>
+		<Parameter name="adUserId"/>
+		<Parameter name="description"/>
+		<Parameter name="cPaymenttermId"/>
+		<Parameter name="mPricelistId"/>
+		<Parameter name="mWarehouseId"/>
+		<Parameter name="mShipperId"/>
+		<Parameter name="salesrepId"/>
+		<Parameter name="adOrgtrxId"/>
+		<Parameter name="cActivityId"/>
+		<Parameter name="docstatus"/>
+		<Parameter name="docaction"/>
+		<Parameter name="cDoctypeId"/>
+		<Parameter name="dateordered"/>
+		<Parameter name="datepromised"/>
+		<Parameter name="dateordered"/>
+		<Parameter name="cCurrencyId"/>
+		<Parameter name="paymentrule"/>
+		<Parameter name="invoicerule"/>
+		<Parameter name="deliveryrule"/>
+		<Parameter name="freightcostrule"/>
+		<Parameter name="deliveryviarule"/>
+		<Parameter name="priorityrule"/>
+		<Parameter name="isdiscountprinted"/>
+		<Parameter name="processing"/>
+		</SqlMethod>
+
+  <SqlMethod name="selectCurrency" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+				SELECT MIN(pl.c_currency_id) AS C_CURRENCY_ID
+				FROM C_BPartner bp, M_Pricelist pl
+				WHERE bp.M_Pricelist_ID = pl.M_Pricelist_ID
+				AND pl.AD_Client_ID = ?
+				AND bp.C_BPartner_ID = ?
+      ]]>
+    </Sql>
+    <Parameter name="adClientId"/>
+    <Parameter name="cBpartnerId"/>
+  </SqlMethod>
+
+</SqlClass>

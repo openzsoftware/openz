@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2007-2009 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="AlertManagementData" package="org.openbravo.erpCommon.ad_forms">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       SELECT DISTINCT R.AD_ALERTRULE_ID,
+              '' as RuleName,
+              A.Description as AlertDescription,
+              A.AD_ALERT_ID,
+              A.NOTE,
+              substr(A.RECORD_ID,1,100) as RECORD_ID,
+              A.ISACTIVE,
+              A.ISFIXED,
+              A.REFERENCEKEY_ID,
+              '' AS FILTERCLAUSE,
+              '' AS DISPLAY,
+              W.NAME as WINDOWNAME,
+              T.NAME AS TABNAME,
+              T.AD_TAB_ID,
+              C.COLUMNNAME,
+              '' AS URL,
+              '' AS ID,
+              '' AS NAME
+         FROM AD_ALERT     A,
+              AD_ALERTRECIPIENT RE,
+              AD_ALERTRULE R LEFT JOIN AD_TAB T ON T.AD_TAB_ID = R.AD_TAB_ID
+                             LEFT JOIN AD_WINDOW W ON W.AD_WINDOW_ID = T.AD_WINDOW_ID
+                             LEFT JOIN AD_COLUMN C ON C.AD_TABLE_ID = T.AD_TABLE_ID
+                                                  AND C.ISKEY='Y'
+        WHERE R.ISACTIVE = 'Y'
+          AND A.ISACTIVE = ?
+          AND A.ISFIXED  = ?
+          AND A.AD_CLIENT_ID IN ('1') 
+          AND A.AD_ORG_ID IN ('1')
+          AND R.AD_ALERTRULE_ID = A.AD_ALERTRULE_ID
+          AND RE.AD_ALERTRULE_ID = A.AD_ALERTRULE_ID
+          AND ((RE.AD_USER_ID IS NOT NULL AND RE.AD_USER_ID = ?) 
+               OR 
+              (RE.AD_USER_ID IS NULL AND RE.AD_ROLE_ID = ?)) 
+          AND A.AD_ALERTRULE_ID = ?
+          AND 1=1 AND 2=2
+          ORDER BY R.AD_ALERTRULE_ID, A.AD_ALERT_ID
+          
+     ]]>
+     </Sql>
+     <Field name="position" value="count"/>
+     <Parameter name="active"/>
+     <Parameter name="fixed"/>
+     <Parameter name="userclient" optional="true" type="replace" after="AND A.AD_CLIENT_ID IN (" text="'1'"/>
+     <Parameter name="userorg" optional="true" type="replace" after="AND A.AD_ORG_ID IN (" text="'1'"/>
+     <Parameter name="user"/>
+     <Parameter name="role"/>
+     <Parameter name="alertRule"/>
+     <Parameter name="whereClause" type="replace" optional="true" after="AND 1=1 " text="AND 2=2"/>
+   </SqlMethod>
+   
+    <SqlMethod name="selectAlertRules" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       SELECT DISTINCT a.AD_ALERTRULE_ID,
+              a.FILTERCLAUSE,
+              AD_COLUMN_IDENTIFIER('AD_AlertRule',to_char(a.AD_ALERTRULE_ID),to_char(?)) as rulename      
+         FROM AD_ALERTRULE A,
+              AD_ALERTRECIPIENT R 
+        WHERE A.ISACTIVE='Y'
+          AND R.AD_ALERTRULE_ID = A.AD_ALERTRULE_ID
+          AND ((R.AD_USER_ID IS NOT NULL AND R.AD_USER_ID = ?) 
+               OR 
+              (R.AD_USER_ID IS NULL AND R.AD_ROLE_ID = ?)) 
+          AND 1=1
+      ]]>
+    </Sql>
+    <Parameter name="lang"/>
+    <Parameter name="user"/>
+    <Parameter name="role"/>
+    <Parameter name="alertRule" optional="true" after="AND 1=1"><![CDATA[ AND A.AD_ALERTRULE_ID = ?]]></Parameter>
+  </SqlMethod>
+   
+  <SqlMethod name="selectComboAlertRules" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       SELECT a.AD_ALERTRULE_ID as ID,
+              AD_COLUMN_IDENTIFIER('AD_AlertRule',to_char(a.AD_ALERTRULE_ID),to_char(?)) as name
+         FROM AD_ALERTRULE A,
+              AD_ALERTRECIPIENT R 
+        WHERE A.ISACTIVE='Y'
+          AND R.AD_ALERTRULE_ID = A.AD_ALERTRULE_ID
+          AND ((R.AD_USER_ID IS NOT NULL AND R.AD_USER_ID = ?) 
+               OR 
+              (R.AD_USER_ID IS NULL AND R.AD_ROLE_ID = ?)) 
+      ]]>
+    </Sql>
+    <Parameter name="lang"/>
+    <Parameter name="user"/>
+    <Parameter name="role"/>
+  </SqlMethod>
+  
+   <SqlMethod name="update" type="preparedStatement" return="rowcount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       UPDATE AD_ALERT
+          SET NOTE = ?,
+              ISFIXED = ?,
+              ISACTIVE = ?
+        WHERE AD_ALERT_ID = ?              
+     ]]>
+     </Sql>
+     <Parameter name="note"/>     
+     <Parameter name="fixed"/>
+     <Parameter name="active"/>
+     
+     <Parameter name="alert"/>
+   </SqlMethod>
+  
+</SqlClass>

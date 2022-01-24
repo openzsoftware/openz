@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2008 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+<SqlClass name="PocConfigurationData" package="org.openbravo.erpCommon.utility.poc">
+   <SqlClassComment></SqlClassComment>
+  
+   
+   <SqlMethod name="getSmtpDetails" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+      <![CDATA[
+		select
+			C_poc_configuration.smtpServer,
+			C_poc_configuration.smtpServerAccount,
+			C_poc_configuration.smtpServerPassword,
+            C_poc_configuration.isSmtpAuthorization,
+            C_poc_configuration.smtpServerSenderAddress,
+            C_poc_configuration.smtpport,
+            C_poc_configuration.usetls,
+            C_poc_configuration.usessl
+		from
+			C_poc_configuration
+		where
+			C_poc_configuration.ad_client_id = ? AND 
+			(C_poc_configuration.ad_org_id = ? OR C_poc_configuration.ad_org_id = '0') AND
+			C_poc_configuration.isActive = 'Y'
+        ]]>
+        </Sql>
+        <Parameter name="adClientId" />
+        <Parameter name="adOrgId" />
+   </SqlMethod>
+
+</SqlClass>
+

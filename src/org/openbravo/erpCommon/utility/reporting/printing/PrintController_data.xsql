@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+****************************************************************************************************************************************************
+ 
+-->
+
+<SqlClass name="PrintControllerData" package="org.openbravo.erpCommon.utility.reporting.printing">
+    <SqlClassComment></SqlClassComment>
+    
+    <SqlMethod name="selectInvoices" type="preparedStatement" return="multiple">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            SELECT C_Invoice_ID as ID
+            FROM C_Invoice
+            WHERE C_Invoice_ID IN ('1')
+            ORDER BY DocumentNo ASC
+            ]]>
+        </Sql>
+        <Parameter name="Id" optional="true" type="replace" after="WHERE C_Invoice_ID IN (" text="'1'"/>
+    </SqlMethod>
+    
+    <SqlMethod name="selectOrders" type="preparedStatement" return="multiple">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            SELECT C_Order_ID as ID
+            FROM C_Order
+            WHERE C_Order_ID IN ('1')
+            ORDER BY DocumentNo ASC
+            ]]>
+        </Sql>
+        <Parameter name="Id" optional="true" type="replace" after="WHERE C_Order_ID IN (" text="'1'"/>
+    </SqlMethod>
+    <SqlMethod name="GetDefaultDoctypeTempate" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            SELECT ad_get_defaultDocTypeTemplate(?, ?)  from dual
+            ]]>
+        </Sql>
+        <Parameter name="cDocTypeID"/>
+        <Parameter name="adOrgID"/>
+    </SqlMethod>
+    <SqlMethod name="IsMultilanguage" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            SELECT ismultilingualdocument from ad_client
+            WHERE AD_Client_ID = ?
+            ]]>
+        </Sql>
+        <Parameter name="ClientId"/>
+    </SqlMethod>
+    <SqlMethod name="getDocTypeId" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            SELECT c_doctype_id from c_order
+            WHERE c_order_id = ?
+            ]]>
+        </Sql>
+        <Parameter name="dummytable" optional="true" type="replace" after="SELECT c_doctype_id from " text="c_order"/>
+        <Parameter name="dummyfield" optional="true" type="replace" after="WHERE " text="c_order_id"/>
+        <Parameter name="DocumentId"/>
+    </SqlMethod>
+     <SqlMethod name="getDocTypeByName" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            SELECT c_doctype_id from c_doctype where name = ?
+            ]]>
+        </Sql>
+        <Parameter name="name"/>
+    </SqlMethod>
+</SqlClass>

@@ -1,0 +1,100 @@
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2017 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+<SqlClass name="EmailOptionsData" package="org.openbravo.erpCommon.utility.reporting.printing" accessModifier="public">
+    <SqlClassComment></SqlClassComment>
+    
+    <SqlMethod name="select" type="preparedStatement" return="multiple">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            SELECT '' as from,  '' as to,  '' as cc,'' as document,'' as attachments,'' as identifier,'' as mimetype,
+            zssi_getText('EMailOptionsReplace',?) as DecriptionText,
+            zssi_getText('multipleCustomers',?) as toMultiple,
+            zssi_getText('multipleSalesRep',?) as FromMultiple,
+            e.subject,e.body as emailbody,t.c_poc_doctype_template_id 
+            from c_doctype d,c_poc_doctype_template t,c_poc_emaildefinition e
+            where d.c_doctype_id=t.c_doctype_id and e.c_poc_doctype_template_id=t.c_poc_doctype_template_id and t.isdefault='Y' and 
+            (e.ad_language=? or e.ad_language is null) 
+            and d.c_doctype_id = ? order by e.ad_language limit 1
+            ]]>
+        </Sql>
+        <Parameter name="language"/> 
+        <Parameter name="language"/>
+        <Parameter name="language"/>
+        <Parameter name="language"/>
+        <Parameter name="cDoctpeId"/>
+    </SqlMethod>
+    
+    <SqlMethod name="selectByTemplate" type="preparedStatement" return="multiple">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            SELECT '' as from,  '' as to,  '' as cc,'' as document,'' as attachments,
+            zssi_getText('EMailOptionsReplace',?) as DecriptionText,
+            zssi_getText('multipleCustomers',?) as toMultiple,
+            zssi_getText('multipleSalesRep',?) as FromMultiple,
+            e.subject,e.body as emailbody,t.c_poc_doctype_template_id 
+            from c_doctype d,c_poc_doctype_template t,c_poc_emaildefinition e
+            where d.c_doctype_id=t.c_doctype_id and e.c_poc_doctype_template_id=t.c_poc_doctype_template_id  and 
+            (e.ad_language=? or e.ad_language is null) 
+            and t.c_poc_doctype_template_id = ? order by e.ad_language limit 1
+            ]]>
+        </Sql>
+        <Parameter name="language"/> 
+        <Parameter name="language"/>
+        <Parameter name="language"/>
+        <Parameter name="language"/>
+        <Parameter name="cDoctpeTemplateId"/>
+    </SqlMethod>
+    <SqlMethod name="getAttachmentsByTemplate" type="preparedStatement" return="String">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            SELECT string_agg(f.name,'-') as filename
+            from c_file f,c_poc_emaildefinition e where e.c_poc_emaildefinition_id = 
+               (select c_poc_emaildefinition_id from c_poc_emaildefinition where c_poc_doctype_template_id=? and (ad_language is null or ad_language=?) order by ad_language limit 1) 
+            and f.ad_table_id='1000500004' and f.ad_record_id = e.c_poc_emaildefinition_id
+            ]]>
+        </Sql>
+        <Parameter name="cDocTemplate"/>
+        <Parameter name="lang"/>
+    </SqlMethod>
+    <SqlMethod name="selectAttachmentsByTemplate" type="preparedStatement" return="multiple">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            SELECT '1000500004-'||f.ad_record_id||'/'||f.name as attachments, f.name as document,coalesce(d.format,'application/octet-stream') as mimetype
+            from c_file f
+                 left join ad_datatype d on d.ad_datatype_id=f.c_datatype_id,c_poc_emaildefinition e where e.c_poc_emaildefinition_id = 
+               (select c_poc_emaildefinition_id from c_poc_emaildefinition where c_poc_doctype_template_id=? and (ad_language is null or ad_language=?) order by ad_language limit 1) 
+            and f.ad_table_id='1000500004' and f.ad_record_id = e.c_poc_emaildefinition_id
+            ]]>
+        </Sql>
+        <Parameter name="cDocTemplate"/>
+        <Parameter name="lang"/>
+    </SqlMethod>
+    <SqlMethod name="selectUserAddedAttachments" type="preparedStatement" return="multiple">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            SELECT f.ad_table_id||'-'||f.ad_record_id||'/'||f.name as attachments, 
+            	   f.name as document,coalesce(d.format,'application/octet-stream') as mimetype,
+            	   f.c_file_id as identifier
+            from c_file f left join ad_datatype d on d.ad_datatype_id=f.c_datatype_id 
+            where f.ad_table_id=? and f.ad_record_id = ? and f.isautogenerated='N'
+            ]]>
+        </Sql>
+        <Parameter name="adTableID"/>
+        <Parameter name="adRecordID"/>
+    </SqlMethod>
+   
+</SqlClass>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+*************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License
+* Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this
+* file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html 
+* Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+* License for the specific  language  governing  rights  and  limitations
+* under the License. 
+* The Original Code is Openbravo ERP. 
+* The Initial Developer of the Original Code is Openbravo SL 
+* All portions are Copyright (C) 2001-2006 Openbravo SL 
+* All Rights Reserved. 
+* Contributor(s):  ______________________________________.
+************************************************************************
+-->
+<REPORT>
+  <template file="ReportTaxInvoice_Excel.html"/>
+	<PARAMETER id="paramDirectory" name="directory" default=""/>
+	<PARAMETER id="paramLanguage" name="language" default=""/>
+	<PARAMETER id="paramCSS" name="theme" attribute="href" replace="Default"/>
+  <structure name="structure1Sale">
+    <FIELD id="fieldSalesSale">sales</FIELD>
+    <FIELD id="fieldNationalSale">national</FIELD>
+    <FIELD id="fieldDocumentnoSale">documentno</FIELD>
+    <FIELD id="fieldTaxnameSale">taxname</FIELD>
+    <FIELD id="fieldTaxbaseamtSale" format="amountInform">taxbaseamt</FIELD>
+    <FIELD id="fieldTaxamtSale" format="amountInform">taxamt</FIELD>
+    <FIELD id="fieldDateinvoicedSale">dateinvoiced</FIELD>
+    <FIELD id="fieldBpartnerSale">bpartner</FIELD>
+    <SECTION id="sectionDetailSale"/>
+  </structure>
+  <structure name="structure2Sale">
+    <FIELD id="fieldSales1Sale">sales</FIELD>
+    <FIELD id="fieldNational1Sale">national</FIELD>
+    <FIELD id="fieldDocumentno1Sale">documentno</FIELD>
+    <FIELD id="fieldTaxname1Sale">taxname</FIELD>
+    <FIELD id="fieldTaxbaseamt1Sale" format="amountInform">taxbaseamt</FIELD>
+    <FIELD id="fieldTaxamt1Sale" format="amountInform">taxamt</FIELD>
+    <FIELD id="fieldDateinvoiced1Sale">dateinvoiced</FIELD>
+    <FIELD id="fieldBpartner1Sale">bpartner</FIELD>
+    <SECTION id="sectionDetail1Sale"/>
+  </structure>
+  <structure name="structure1Purchase">
+    <FIELD id="fieldSalesPurchase">sales</FIELD>
+    <FIELD id="fieldNationalPurchase">national</FIELD>
+    <FIELD id="fieldDocumentnoPurchase">documentno</FIELD>
+    <FIELD id="fieldTaxnamePurchase">taxname</FIELD>
+    <FIELD id="fieldTaxbaseamtPurchase" format="amountInform">taxbaseamt</FIELD>
+    <FIELD id="fieldTaxamtPurchase" format="amountInform">taxamt</FIELD>
+    <FIELD id="fieldDateinvoicedPurchase">dateinvoiced</FIELD>
+    <FIELD id="fieldBpartnerPurchase">bpartner</FIELD>
+    <SECTION id="sectionDetailPurchase"/>
+  </structure>
+  <structure name="structure2Purchase">
+    <FIELD id="fieldSales1Purchase">sales</FIELD>
+    <FIELD id="fieldNational1Purchase">national</FIELD>
+    <FIELD id="fieldDocumentno1Purchase">documentno</FIELD>
+    <FIELD id="fieldTaxname1Purchase">taxname</FIELD>
+    <FIELD id="fieldTaxbaseamt1Purchase" format="amountInform">taxbaseamt</FIELD>
+    <FIELD id="fieldTaxamt1Purchase" format="amountInform">taxamt</FIELD>
+    <FIELD id="fieldDateinvoiced1Purchase">dateinvoiced</FIELD>
+    <FIELD id="fieldBpartner1Purchase">bpartner</FIELD>
+    <SECTION id="sectionDetail1Purchase"/>
+  </structure>
+</REPORT>

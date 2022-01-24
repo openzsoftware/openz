@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="ProposalActionsData" package="org.openbravo.erpCommon.ad_actionButton">
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT * FROM DUAL
+      ]]>
+    </Sql>
+  </SqlMethod>
+  <SqlMethod name="isSubscriptionOrder" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>     
+      <![CDATA[
+    SELECT case c_doctype_id when 'ABE2033C7A74499A9750346A83DE3307' then 'Y' else 'N' end FROM c_order where c_order_id= ?
+      ]]>
+    </Sql>
+    <Parameter name="c_order_id"/>
+  </SqlMethod>
+  <SqlMethod name="c_subscriptionofferchangeexisting" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>     
+      <![CDATA[
+    SELECT c_subscriptionofferchangeexisting(?,'N') FROM dual
+      ]]>
+    </Sql>
+    <Parameter name="c_order_id"/>
+  </SqlMethod>
+  <SqlMethod name="isSubscriptionOffer" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>     
+      <![CDATA[
+    SELECT case c_doctype_id when '7DE8D4B1B8824D36974E8064BBED5095' then 'Y' else 'N' end FROM c_order where c_order_id= ?
+      ]]>
+    </Sql>
+    <Parameter name="c_order_id"/>
+  </SqlMethod>
+  <SqlMethod name="createOrderFromOffer" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>     
+      <![CDATA[
+    SELECT c_generateorderfromoffer(?,?,?) FROM DUAL
+      ]]>
+    </Sql>
+    <Parameter name="c_order_id"/>
+    <Parameter name="targetDoctype_id"/>
+    <Parameter name="userId"/>
+  </SqlMethod>
+  <SqlMethod name="changeSubscriptionOrderContract" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>     
+      <![CDATA[
+    SELECT c_changesubsriptionorder(?,?) FROM DUAL
+      ]]>
+    </Sql>
+    <Parameter name="c_order_id"/>
+    <Parameter name="userId"/>
+  </SqlMethod>
+  <SqlMethod name="createOfferVariant" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>     
+      <![CDATA[
+    SELECT c_generateoffervariant(?,?) FROM DUAL
+      ]]>
+    </Sql>
+    <Parameter name="c_order_id"/>
+    <Parameter name="userId"/>
+  </SqlMethod>
+  <SqlMethod name="markOfferAsLost" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>     
+      <![CDATA[
+    SELECT c_markofferaslost(?,?,?,?) FROM DUAL
+      ]]>
+    </Sql>
+    <Parameter name="c_order_id"/>
+    <Parameter name="lostreason"/>
+    <Parameter name="lostreasontext"/>
+    <Parameter name="userId"/>
+  </SqlMethod>
+</SqlClass>

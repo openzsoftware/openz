@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+<SqlClass name="GeneralLedgerJournalEditableData" package="org.openz.controller.form">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+        select f.fact_acct_id,
+               '<a class=\"LabelLink\" onclick=\"sendDirectLink(document.frmMain, '||chr(39)||'mProductId'||chr(39)||', '||chr(39)||chr(39)||', '||chr(39)||'../utility/ReferencedLink.html'||chr(39)||','|| chr(39)||f.record_id||chr(39)||', '||chr(39)||f.ad_table_id||chr(39)||', '||chr(39)||'_self'||chr(39)||', true);return false;\" href=\"#\">Dokument</a>' 
+        	   as recordid,
+        	   'Schema Name '||ac.name as scname,f.dateacct,
+               '<a class=\"LabelLink\" onclick=\"sendDirectLink(document.frmMain, '||chr(39)||'mProductId'||chr(39)||', '||chr(39)||chr(39)||', '||chr(39)||'../utility/ReferencedLink.html'||chr(39)||','|| chr(39)||f.m_product_id||chr(39)||', '||chr(39)||'208'||chr(39)||', '||chr(39)||'_self'||chr(39)||', true);return false;\" href=\"#\">'||zssi_getproductname(f.m_product_id,?)||'</a>'
+                as product,f.fact_acct_group_id,f.docbasetype,
+               c.c_validcombination_id, f.acctdescription as description,f.description as text, f.amtacctcr as credit,f.amtacctdr as debit,f.ad_org_id
+        from fact_acct f left join c_doctype d on f.c_doctype_id=d.c_doctype_id,c_acctschema ac,c_validcombination c
+        where ac.c_acctschema_id=f.c_acctschema_id and c.c_acctschema_id=f.c_acctschema_id 
+        and  c.account_id=f.account_id      	  
+        AND 1=1
+        AND (?='N' OR (F.RECORD_ID2 IS NULL))
+        AND f.ad_org_id in ('1')
+        order by scname, DATEACCT, fact_acct_group_id, SEQNO
+      ]]></Sql>
+    <Parameter name="language"/>
+    <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[ AND f.Dateacct >= TO_DATE(?)]]></Parameter>
+    <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[ AND f.Dateacct <= TO_DATE(?)]]></Parameter>
+    <Parameter name="parDoctype" optional="true" after="AND 1=1">AND d.docbasetype= ?</Parameter>
+    <Parameter name="parSchema" optional="true" after="AND 1=1">AND f.c_acctschema_id= ?</Parameter>
+    <Parameter name="parText" optional="true" after="AND 1=1">AND f.description like ?</Parameter>
+    <Parameter name="parDescription" optional="true" after="AND 1=1">AND f.acctdescription like ?</Parameter>
+    <Parameter name="parAcct" optional="true" after="AND 1=1">AND f.acctvalue like ?</Parameter>
+    <Parameter name="parOrg" optional="true" after="AND 1=1">AND f.ad_org_id= ?</Parameter>
+    <Parameter name="hideMatched"/>
+    <Parameter name="adUserOrg" type="replace" optional="true" after="AND f.ad_org_id in (" text="'1'"/>
+  </SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+ 
+  
+ 
+  <SqlMethod name="isPeriodOpen" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql> 
+    <![CDATA[
+    select case when count(*)=1 then 'Y' else 'N' end as retval from c_periodcontrol_v v,fact_acct f
+           where f.ad_org_id=v.ad_org_id and v.isactive='Y' and v.periodstatus='O' and f.docbasetype=v.docbasetype 
+            and v.startdate <= f.dateacct and v.enddate>=f.dateacct
+            and f.fact_acct_id= ?
+    ]]></Sql>
+    <Parameter name="afctacctId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="getAccountFromValidcombination" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql> 
+    <![CDATA[
+    select v.account_id from c_validcombination v where v.c_validcombination_id=?
+    ]]></Sql>
+    <Parameter name="validCombinationId"/>
+  </SqlMethod>
+
+
+
+    <SqlMethod name="update" connection="true" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        update fact_acct set account_id = ?,
+        					 acctvalue=(select value from c_elementvalue where c_elementvalue_id=?),
+        					 acctdescription=(select coalesce(trl.name,v.name) from 
+        					                       c_elementvalue v left join  c_elementvalue_trl trl 
+        					                       on trl.c_elementvalue_id=v.c_elementvalue_id and trl.ad_language= ? 
+        					                       where v.c_elementvalue_id=?) 
+        					 where fact_acct_id= ?
+    </Sql>
+      <Parameter name="newaccountId"/>
+      <Parameter name="newaccountId"/>
+      <Parameter name="lang"/>
+      <Parameter name="newaccountId"/>
+      <Parameter name="factAcctId"/>
+  </SqlMethod>
+  </SqlClass>

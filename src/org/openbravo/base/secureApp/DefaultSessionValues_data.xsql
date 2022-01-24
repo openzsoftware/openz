@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ ************************************************************************************
+ * Copyright (C) 2001-2006 Openbravo S.L.
+ * Licensed under the Apache Software License version 2.0
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to  in writing,  software  distributed
+ * under the License is distributed  on  an  "AS IS"  BASIS,  WITHOUT  WARRANTIES  OR
+ * CONDITIONS OF ANY KIND, either  express  or  implied.  See  the  License  for  the
+ * specific language governing permissions and limitations under the License.
+ ************************************************************************************
+-->
+
+
+
+<SqlClass name="DefaultSessionValuesData" package="org.openbravo.base.secureApp" accessModifier="public">
+   <SqlClassComment></SqlClassComment>
+   <SqlMethod name="select" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT t.TableName, c.ColumnName 
+        FROM AD_Column c 
+        INNER JOIN AD_Table t ON (c.AD_Table_ID=t.AD_Table_ID) 
+        WHERE c.IsKey='Y' AND t.IsActive='Y'
+        AND EXISTS (SELECT * FROM AD_Column cc 
+        WHERE ColumnName = 'IsDefault' AND t.AD_Table_ID=cc.AD_Table_ID AND cc.IsActive='Y')
+      ]]></Sql>
+   </SqlMethod>
+   <SqlMethod name="selectdefaullocator" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT m_locator_id from m_locator where isdefault = 'Y' and m_warehouse_id = ?
+      ]]></Sql>
+       <Parameter name="warehouse"/>
+   </SqlMethod>
+   
+   <SqlMethod name="selectdecimalseparator" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT decimalseparator from ad_language where ad_language = ?
+      ]]></Sql>
+       <Parameter name="lang"/>
+   </SqlMethod>
+   <SqlMethod name="selectthousandseparator" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT thousandseparator from ad_language where ad_language = ?
+      ]]></Sql>
+       <Parameter name="lang"/>
+   </SqlMethod>
+   <SqlMethod name="selectddateformat" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT dateformat from ad_language where ad_language = ?
+      ]]></Sql>
+       <Parameter name="lang"/>
+   </SqlMethod>
+   <SqlMethod name="getPriceDec" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT lpad('',coalesce(pricedecimal,4)::integer,'0') as retval from ad_client where ad_client_id='C726FEC915A54A0995C568555DA5BB3C'
+      ]]></Sql>
+   </SqlMethod>
+   <SqlMethod name="getQtyDec" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT lpad('',coalesce(qtydecimal,3)::integer,'#') as retval from ad_client where ad_client_id='C726FEC915A54A0995C568555DA5BB3C'
+      ]]></Sql>
+   </SqlMethod>
+   <SqlMethod name="getCurrencyDec" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT lpad('',coalesce(currencydecimal,2)::integer,'0') as retval from ad_client where ad_client_id='C726FEC915A54A0995C568555DA5BB3C'
+      ]]></Sql>
+   </SqlMethod>
+   <SqlMethod name="selectreportdateformat" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT reportdateformat from ad_language where ad_language = ?
+      ]]></Sql>
+       <Parameter name="lang"/>
+   </SqlMethod>
+   <SqlMethod name="selectdtranslationlanguage" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT t.ad_language from ad_language t,ad_language l where l.translationlanguage=t.ad_language and l.isonly4format='Y' and l.ad_language = ?
+      ]]></Sql>
+       <Parameter name="lang"/>
+   </SqlMethod>
+   <SqlMethod name="sisonlyformat" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT isonly4format from ad_language where ad_language = ?
+      ]]></Sql>
+       <Parameter name="lang"/>
+   </SqlMethod>
+   <SqlMethod name="selectddatevalue" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT to_char(to_date(?,?),?) as result from dual
+      ]]></Sql>
+       <Parameter name="strvalue"/>
+       <Parameter name="strformat"/>
+       <Parameter name="strdbformat"/>
+   </SqlMethod>
+</SqlClass>

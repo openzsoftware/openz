@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, 2012, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2012 Stefan Zimmermann
+**************************************************************************************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="CopyFromInvoiceData" package="org.openbravo.erpCommon.ad_actionButton">
+  <SqlMethod name="select" type="preparedStatement" connection="true" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT C_InvoiceLine_ID FROM C_InvoiceLine 
+        WHERE C_Invoice_ID = ? 
+        AND AD_CLIENT_ID IN ('1') 
+        AND AD_ORG_ID IN ('1') 
+        AND ISACTIVE = 'Y'
+      ]]>
+    </Sql>
+    <Parameter name="cInvoiceId"/>
+    <Parameter name="userclient" optional="true" type="replace" after="AND AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="userorg" optional="true" type="replace" after="AND AD_ORG_ID IN (" text="'1'"/>
+  </SqlMethod>
+  <SqlMethod name="insert" type="preparedStatement" connection="true" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        INSERT INTO C_INVOICELINE (C_InvoiceLine_ID, C_Invoice_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE, 
+        CREATED, CREATEDBY, UPDATED, UPDATEDBY, LINE, DESCRIPTION, M_PRODUCT_ID, 
+        QTYINVOICED, PRICELIST, PRICEACTUAL, PRICELIMIT, LINENETAMT, C_CHARGE_ID, CHARGEAMT, C_UOM_ID, C_TAX_ID, 
+        S_RESOURCEASSIGNMENT_ID, TAXAMT, M_ATTRIBUTESETINSTANCE_ID, ISDESCRIPTION, QUANTITYORDER, M_PRODUCT_UOM_ID, 
+        PRICESTD,c_project_id ,c_projecttask_id,a_asset_id,textposition,ispagebreak,iscombined,ispricesuppressed)
+        SELECT ?, ?, ?, (select ad_org_id from c_invoice where c_invoice_id = ? ), 'Y', now(), ?, now(), ?,
+        (SELECT COALESCE(MAX(LINE),0)+10 FROM C_InvoiceLine WHERE C_InvoiceLine_ID = ?), DESCRIPTION, M_PRODUCT_ID, 
+        QTYINVOICED, PRICELIST, PRICEACTUAL, PRICELIMIT, LINENETAMT, C_CHARGE_ID, CHARGEAMT, C_UOM_ID, C_TAX_ID, 
+        S_RESOURCEASSIGNMENT_ID, TAXAMT, M_ATTRIBUTESETINSTANCE_ID, ISDESCRIPTION, QUANTITYORDER, M_PRODUCT_UOM_ID, 
+        PRICESTD,c_project_id ,c_projecttask_id,a_asset_id,textposition,ispagebreak,iscombined,ispricesuppressed
+        FROM C_INVOICELINE 
+        WHERE C_INVOICELINE_ID = ? 
+      ]]>
+    </Sql>
+    <Parameter name="cNewInvoiceId"/>
+    <Parameter name="cInvoiceId"/>
+    <Parameter name="adClientId"/>
+    <Parameter name="cInvoiceId"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="cInvoicelineId"/>
+    <Parameter name="cInvoicelineId"/>
+  </SqlMethod>
+</SqlClass>

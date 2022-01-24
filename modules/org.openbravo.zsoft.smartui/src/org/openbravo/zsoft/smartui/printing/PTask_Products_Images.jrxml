@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PTask_Products" language="groovy" pageWidth="585" pageHeight="842" columnWidth="585" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="33986802-4d49-4f55-918b-55477245f7e7">
+	<property name="ireport.zoom" value="2.5937424601000036"/>
+	<property name="ireport.x" value="54"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="HUP"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<parameter name="C_PROJECT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="BASE_ATTACH" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT h1,h2,h3,h4,zssi_getElementTextByColumname('Requisition',$P{LANGUAGE}) as h5,uom,quantity,case when qtyreceived=0 then '' else to_char(qtyreceived,'9999D00') end as qtyreceived,productname,categoryname ,loaded,requisition,logo
+from
+(SELECT
+zssi_getElementTextByColumname('needed',$P{LANGUAGE}) as h1,
+zssi_getElementTextByColumname('received',$P{LANGUAGE}) as h2,
+zssi_getElementTextByColumname('loaded',$P{LANGUAGE}) as h3,
+zssi_getElementTextByColumname('back',$P{LANGUAGE}) as h4,
+substr(zssi_getuom(p.c_uom_id,$P{LANGUAGE}),1,2)  as uom,
+bom.quantity,
+bom.qtyreceived,
+(select $P{BASE_ATTACH}||'/'||ad_table_id||'-'||ad_record_id||'/'||c_file.name
+ from c_file where  lower(right(c_file.name,4)) in ('.jpg','.bmp','.gif','.png','.jpeg') and c_file.isactive='Y' and p.m_product_id=c_file.ad_record_id order by c_file.seqno limit 1)   as logo,
+p.value||'-'||zssi_getproductname(bom.m_product_id,$P{LANGUAGE}) as productname,
+bom.m_product_id,
+pc.name as categoryname,
+'' as loaded,
+case when bom.planrequisition='Y' then 'X' else '' end as requisition
+from
+zspm_projecttaskbom bom,
+m_product p
+,m_product_category pc
+where
+bom.m_product_id=p.m_product_id and p.m_product_category_id=pc.m_product_category_id
+and not exists (select 0 from snr_masterdata snr,ma_machine ma where ma.snr_masterdata_id=snr.snr_masterdata_id and snr.m_product_id=p.m_product_id)
+and bom.c_projecttask_id=$P{C_PROJECT_ID}
+UNION ALL
+SELECT
+zssi_getElementTextByColumname('needed',$P{LANGUAGE}) as h1,
+zssi_getElementTextByColumname('received',$P{LANGUAGE}) as h2,
+zssi_getElementTextByColumname('loaded',$P{LANGUAGE}) as h3,
+zssi_getElementTextByColumname('back',$P{LANGUAGE}) as h4,
+substr(zssi_getuom(p.c_uom_id,$P{LANGUAGE}),1,2)  as uom,
+pbom.bomqty as quantity,
+case when snr.c_projecttask_id =mp.c_projecttask_id then pbom.bomqty else 0 end as qtyreceived,
+(select $P{BASE_ATTACH}||'/'||ad_table_id||'-'||ad_record_id||'/'||c_file.name
+ from c_file where  lower(right(c_file.name,4)) in ('.jpg','.bmp','.gif','.png','.jpeg') and c_file.isactive='Y' and p.m_product_id=c_file.ad_record_id order by c_file.seqno limit 1)   as logo,
+p.value||'-'||zssi_getproductname(pbom.m_productbom_id,$P{LANGUAGE}) as productname,
+pbom.m_productbom_id as m_product_id,
+m.name||'-'||pc.name as categoryname,
+zssi_getElementTextByColumname('loadedwithmachine',$P{LANGUAGE}) as loaded,
+'' as requisition
+from
+zspm_ptaskmachineplan mp,snr_masterdata snr,ma_machine m,
+m_product_bom pbom,
+m_product p ,
+m_product_category pc
+where
+m.snr_masterdata_id=snr.snr_masterdata_id and mp.ma_machine_id=m.ma_machine_id  and
+pbom.m_productbom_id=p.m_product_id and p.m_product_category_id=pc.m_product_category_id
+and pbom.m_product_id=snr.m_product_id and
+mp.c_projecttask_id in ($P{C_PROJECT_ID})
+) A
+order by loaded desc,categoryname,zssi_getproductname(m_product_id,$P{LANGUAGE})]]>
+	</queryString>
+	<field name="h1" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="h1"/>
+	</field>
+	<field name="h2" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="h2"/>
+	</field>
+	<field name="h3" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="h3"/>
+	</field>
+	<field name="h4" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="h4"/>
+	</field>
+	<field name="h5" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="h5"/>
+	</field>
+	<field name="uom" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="uom"/>
+	</field>
+	<field name="quantity" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="quantity"/>
+	</field>
+	<field name="qtyreceived" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="qtyreceived"/>
+	</field>
+	<field name="productname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="productname"/>
+	</field>
+	<field name="categoryname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="categoryname"/>
+	</field>
+	<field name="loaded" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="loaded"/>
+	</field>
+	<field name="requisition" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="requisition"/>
+	</field>
+	<field name="logo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="logo"/>
+	</field>
+	<variable name="SUMQTYPLAN" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{quantity}]]></variableExpression>
+	</variable>
+	<variable name="SUMQTY" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNTPLAN" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNT" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<detail>
+		<band height="52" splitType="Stretch">
+			<elementGroup>
+				<textField evaluationTime="Auto" pattern="###0.00;-###0.00" isBlankWhenNull="true">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="0" y="0" width="366" height="13" isRemoveLineWhenBlank="true" uuid="7b4e1da0-5047-4e61-a746-1016db56816d"/>
+					<box>
+						<pen lineWidth="0.75"/>
+						<topPen lineWidth="0.75"/>
+						<leftPen lineWidth="0.75"/>
+						<bottomPen lineWidth="0.75"/>
+						<rightPen lineWidth="0.75"/>
+					</box>
+					<textElement textAlignment="Left">
+						<font size="11" isBold="true"/>
+						<paragraph leftIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{categoryname}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Auto" pattern="###0.00;-###0.00">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="435" y="0" width="75" height="13" isRemoveLineWhenBlank="true" uuid="fedc00db-2eb3-4c5c-976f-49bc3ff0984c"/>
+					<box>
+						<pen lineWidth="0.75"/>
+						<topPen lineWidth="0.75"/>
+						<leftPen lineWidth="0.75"/>
+						<bottomPen lineWidth="0.75"/>
+						<rightPen lineWidth="0.75"/>
+					</box>
+					<textElement textAlignment="Left">
+						<font size="11" isBold="true"/>
+						<paragraph leftIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{h3}+"                        "+$F{categoryname}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Auto" pattern="###0.00;-###0.00">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="382" y="0" width="53" height="13" isRemoveLineWhenBlank="true" uuid="b6265704-4d2d-4475-97f6-7ba67c1e11a0"/>
+					<box>
+						<pen lineWidth="0.75"/>
+						<topPen lineWidth="0.75"/>
+						<leftPen lineWidth="0.75"/>
+						<bottomPen lineWidth="0.75"/>
+						<rightPen lineWidth="0.75"/>
+					</box>
+					<textElement textAlignment="Left" markup="html">
+						<font size="11" isBold="true"/>
+						<paragraph leftIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{h1}+"                        "+$F{categoryname}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Auto" pattern="###0.00;-###0.00">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="510" y="0" width="75" height="13" isRemoveLineWhenBlank="true" uuid="21f26f2e-1c31-4be1-83d5-a6ec0ec3cbe0"/>
+					<box>
+						<pen lineWidth="0.75"/>
+						<topPen lineWidth="0.75"/>
+						<leftPen lineWidth="0.75"/>
+						<bottomPen lineWidth="0.75"/>
+						<rightPen lineWidth="0.75"/>
+					</box>
+					<textElement textAlignment="Left">
+						<font size="11" isBold="true"/>
+						<paragraph leftIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{h4}+"                        "+$F{categoryname}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Auto" pattern="###0.00;-###0.00">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" isPrintRepeatedValues="false" x="366" y="0" width="16" height="13" isRemoveLineWhenBlank="true" uuid="0b12707b-7edc-4783-ad48-f06a35caec56"/>
+					<box>
+						<pen lineWidth="0.75"/>
+						<topPen lineWidth="0.75"/>
+						<leftPen lineWidth="0.75"/>
+						<bottomPen lineWidth="0.75"/>
+						<rightPen lineWidth="0.75"/>
+					</box>
+					<textElement textAlignment="Left" markup="html">
+						<font size="11" isBold="true"/>
+						<paragraph leftIndent="1"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{h5}]]></textFieldExpression>
+				</textField>
+			</elementGroup>
+			<image scaleImage="RetainShape" hAlign="Center" vAlign="Top" isUsingCache="true" isLazy="true" onErrorType="Blank">
+				<reportElement key="image-1" x="244" y="15" width="116" height="37" uuid="72f56e1d-2c02-4623-aa1f-997693960ec0"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<imageExpression><![CDATA[$F{logo}]]></imageExpression>
+			</image>
+			<elementGroup>
+				<textField pattern="###0.00;-###0.00">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="13" y="13" width="353" height="39" isPrintWhenDetailOverflows="true" uuid="5148ab64-2cbe-4a03-893b-e27bd6f67f64"/>
+					<box>
+						<bottomPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+						<paragraph leftIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{productname}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="382" y="13" width="53" height="39" isPrintWhenDetailOverflows="true" uuid="042b04db-4631-4271-94c0-34c7d5a5acf2"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="451" y="13" width="59" height="39" isPrintWhenDetailOverflows="true" uuid="8f466371-dfb3-413b-8ede-1b8c08bce284"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{qtyreceived}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="435" y="13" width="16" height="39" isPrintWhenDetailOverflows="true" uuid="08a4e5be-d883-4e5a-b573-dcf20b8509d3"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{uom}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="0" y="13" width="12" height="39" isPrintWhenDetailOverflows="true" uuid="a295dd15-2544-4406-a069-e16370ca20af"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="510" y="13" width="75" height="39" isPrintWhenDetailOverflows="true" uuid="5443b366-b87b-4926-8259-5ff374ee243b"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[""]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" pattern="###0.00;-###0.00">
+					<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="366" y="13" width="16" height="39" isPrintWhenDetailOverflows="true" uuid="bafa719e-859d-40cf-966e-eaa60b3d8efa"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{requisition}]]></textFieldExpression>
+				</textField>
+			</elementGroup>
+		</band>
+	</detail>
+</jasperReport>

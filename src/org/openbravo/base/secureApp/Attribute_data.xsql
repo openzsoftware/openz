@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ ************************************************************************************
+ * Copyright (C) 2001-2006 Openbravo S.L.
+ * Licensed under the Apache Software License version 2.0
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to  in writing,  software  distributed
+ * under the License is distributed  on  an  "AS IS"  BASIS,  WITHOUT  WARRANTIES  OR
+ * CONDITIONS OF ANY KIND, either  express  or  implied.  See  the  License  for  the
+ * specific language governing permissions and limitations under the License.
+ ************************************************************************************
+-->
+
+
+
+<SqlClass name="AttributeData" package="org.openbravo.base.secureApp">
+   <SqlClassComment></SqlClassComment>
+   <SqlMethod name="select" type="preparedStatement" return="multiple">
+      <SqlMethodComment>First is when ORG * is Loggin in, Second for specific ORG</SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT distinct a.C_ACCTSCHEMA_ID as VALUE, a.C_CURRENCY_ID as Attribute, a.HASALIAS, 
+        ae.ELEMENTTYPE, '' as AD_Window_ID
+        FROM C_AcctSchema a, C_AcctSchema_Element ae 
+        WHERE a.C_AcctSchema_ID=ae.C_ACCTSCHEMA_ID 
+        AND ae.ISACTIVE = 'Y'
+        AND a.ISACTIVE = 'Y'
+        AND a.AD_CLIENT_ID IN ('1') 
+        AND a.AD_ORG_ID IN ('1')
+        UNION
+        SELECT distinct a.C_ACCTSCHEMA_ID as VALUE, a.C_CURRENCY_ID as Attribute, a.HASALIAS, 
+        ae.ELEMENTTYPE, '' as AD_Window_ID
+        FROM C_AcctSchema a, C_AcctSchema_Element ae ,ad_org_acctschema oa
+        WHERE a.C_AcctSchema_ID=ae.C_ACCTSCHEMA_ID 
+        AND a.C_AcctSchema_ID=oa.C_ACCTSCHEMA_ID
+        AND ae.ISACTIVE = 'Y'
+        AND a.ISACTIVE = 'Y'
+        AND oa.AD_CLIENT_ID IN ('1') 
+        AND oa.AD_ORG_ID IN ('1')
+      ]]></Sql>
+      <Parameter name="clientlist" optional="true" type="replace" after="AND a.AD_CLIENT_ID IN (" text="'1'"/>
+      <Parameter name="orglist" optional="true" type="replace" after="AND a.AD_ORG_ID IN (" text="'1'"/>
+      <Parameter name="clientlist" optional="true" type="replace" after="AND oa.AD_CLIENT_ID IN (" text="'1'"/>
+      <Parameter name="orglist" optional="true" type="replace" after="AND oa.AD_ORG_ID IN (" text="'1'"/>
+   </SqlMethod>
+   
+   <SqlMethod name="selectIsSOTrx" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        <![CDATA[
+        SELECT ad_window_id, isSOTrx as value FROM AD_WINDOW 
+        ]]>
+      </Sql>
+   </SqlMethod>
+   <SqlMethod name="selectStdPrecision" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        <![CDATA[
+          SELECT STDPRECISION 
+          FROM C_CURRENCY 
+          WHERE C_CURRENCY_ID = ? 
+          AND AD_CLIENT_ID IN ('1')
+          AND AD_ORG_ID IN ('1') 
+        ]]>
+      </Sql>
+      <Parameter name="cCurrencyId"/>
+      <Parameter name="clientlist" optional="true" type="replace" after="AND AD_CLIENT_ID IN (" text="'1'"/>
+      <Parameter name="orglist" optional="true" type="replace" after="AND AD_ORG_ID IN (" text="'1'"/>
+   </SqlMethod>
+</SqlClass>

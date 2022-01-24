@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+
+<SqlClass name="BatchnumbersData" package="org.openz.controller.popup">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+    SELECT snr_batchmasterdata_id, snr_batchlocator_id, ad_org_id,m_product_id,name, value, batchnumber,  locator,  qty , uom from
+    (
+      SELECT bl.snr_batchmasterdata_id, bl.snr_batchlocator_id, bl.ad_org_id,p.m_product_id,zssi_getIdentifierFromKey('m_product_id',p.m_product_id,?) as name, p.value, bm.batchnumber, zssi_getIdentifierFromKey('m_locator_id',bl.m_locator_id,?) as locator, bl.qtyonhand as qty ,zssi_getuom(p.c_uom_id,?) as uom
+      from m_product p, snr_batchmasterdata bm, snr_batchlocator bl , m_locator l
+      where bm.m_product_id=p.m_product_id
+      and p.isbatchtracking='Y'
+      and bm.snr_batchmasterdata_id=bl.snr_batchmasterdata_id
+      and bl.m_locator_id=l.m_locator_id
+      and 1=1
+      AND 4=4
+    ) a ORDER BY Value
+      ]]></Sql>
+      <Parameter name="language"/>
+      <Parameter name="language"/>
+      <Parameter name="language"/>
+      <Parameter name="parName" optional="true" after="and 1=1"><![CDATA[ AND upper(p.name) like upper(?)]]></Parameter>
+      <Parameter name="parValue" optional="true" after="and 1=1"><![CDATA[ AND p.value like ?]]></Parameter>
+      <Parameter name="parBatchnumber" optional="true" after="and 1=1"><![CDATA[ AND bm.batchnumber like ?]]></Parameter>
+      <Parameter name="parLocator" optional="true" after="and 1=1"><![CDATA[ AND l.value like ?]]></Parameter>
+      <Parameter name="parOrg" optional="true" after="and 1=1"><![CDATA[ AND bm.ad_org_id in ('0',?)]]></Parameter>
+      <Parameter name="pgLimit" type="argument" optional="true" after="AND 4=4"><![CDATA[ LIMIT ]]></Parameter>
+      <Parameter name="orderBy" type="replace" optional="true" after="ORDER BY " text="Value" />
+  </SqlMethod>
+  <SqlMethod name="countRows" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+    <![CDATA[
+      SELECT count(*) AS value
+ from (select bm.snr_batchmasterdata_id from m_product p, snr_batchmasterdata bm, snr_batchlocator bl , m_locator l
+      where bm.m_product_id=p.m_product_id
+      and p.isbatchtracking='Y'
+    and bm.snr_batchmasterdata_id=bl.snr_batchmasterdata_id
+    and bl.m_locator_id=l.m_locator_id
+      and 1=1
+      AND 4=4) a
+      ]]></Sql>
+      <Parameter name="parName" optional="true" after="and 1=1"><![CDATA[ AND p.name like ?]]></Parameter>
+      <Parameter name="parValue" optional="true" after="and 1=1"><![CDATA[ AND p.value like ?]]></Parameter>
+      <Parameter name="parBatchnumber" optional="true" after="and 1=1"><![CDATA[ AND bm.batchnumber like ?]]></Parameter>
+      <Parameter name="parLocator" optional="true" after="and 1=1"><![CDATA[ AND l.value like ?]]></Parameter>
+      <Parameter name="parOrg" optional="true" after="and 1=1"><![CDATA[ AND bm.ad_org_id in ('0',?)]]></Parameter>
+      <Parameter name="pgLimit" type="argument" optional="true" after="AND 4=4"><![CDATA[ LIMIT ]]></Parameter>
+  </SqlMethod>
+  <SqlMethod name="getValueProduct" type="preparedStatement" return="string">
+      <Sql>
+        SELECT value from m_product 
+        WHERE m_product_id = ?
+      </Sql>
+      <Parameter name="productId"/>
+</SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod> 
+  </SqlClass>

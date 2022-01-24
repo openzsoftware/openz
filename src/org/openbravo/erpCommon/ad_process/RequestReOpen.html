@@ -1,0 +1,93 @@
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2009 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Request process</title>
+<link rel="shortcut icon" href="../../../../../web/images/favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" type="text/css" href="../../../../../web/skins/Default/Openbravo_ERP_250.css" id="paramCSS"></link>
+<script language="JavaScript" src="../../../../../web/js/messages.js" type="text/javascript"></script>
+<script language="JavaScript" type="text/javascript" id="paramLanguage">defaultLang = "en_US";</script>
+<script language="JavaScript" src="../../../../../web/js/utils.js" type="text/javascript"></script>
+<script language="JavaScript" src="../../../../../web/js/searchs.js" type="text/javascript"></script>
+<script language="JavaScript" type="text/javascript" id="paramDirectory">var baseDirectory = "http://yourSite/web/";</script>
+<script language="JavaScript" type="text/javascript">
+function enableLocalShortcuts() {
+keyArray[0] = new keyArrayItem("ENTER", "openSearch(null, null, '../info/Request_FS.html', null, false, 'frmMain', 'inprRequestId', 'inprRequestId_D', document.frmMain.inprRequestId_D.value, 'Command', 'KEY');", "inprRequestId_D", "null");
+}
+</script>
+</head>
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" onload="enableLocalShortcuts();xx"  id="body">
+<span id="paramToolBar">toolbar</span> <br></br>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr> 
+    <td width="119" > <table border="0" cellspacing="0" cellpadding="0">
+        <tr> 
+          <td width="119" height="46" > <a href="#" onclick="return false;" onmouseover="window.status='Reopen the request';return true;" onmouseout="window.status='';return true;">Reopen 
+            the request</a></td>
+        </tr>
+      </table></td>
+  </tr>
+  <tr> 
+    <td> <table width="100%" border="1" cellspacing="0" cellpadding="2" >
+        <tr> 
+          <td>Reopen the request</td>
+        </tr>
+      </table></td>
+  </tr>
+</table>
+<form id="form" method="post" action="RequestReOpen.html" name="frmMain">
+  <input type="hidden" name="Command"></input>
+  <input type="hidden" name="inprRequestId"></input>
+  <table width="45%" cellspacing="0" cellpadding="0" border="1" >
+    <tr> 
+      <td id="processDescription">&nbsp;</td>
+    </tr>
+    <tr></tr>
+    <tr> 
+      <td id="helpDiscard" > <div  id="processHelp">&nbsp;</div></td>
+    </tr>
+  </table>
+  <br></br>
+  <br></br>
+  <table cellspacing="0" cellpadding="0" border="0" width="100%">
+    <tr> 
+      <td colspan="2">&nbsp;</td>
+      <td width="44%" > <span >Request</span>&nbsp;</td>
+      <td width="41%"> <input type="text" name="inprRequestId_DES" size="20" maxlength="20"></input> 
+        <a href="#" onclick="openSearch(null, null, '../info/Requests_FS.html', 'SELECTOR_REQ', false, 'frmMain', 'inprRequestId', 'inprRequestId_DES', document.frmMain.inprRequestId_DES.value);return false;" onmouseout="window.status='';return true;" onmouseover="window.status='Search';return true;" > 
+        <img  alt="Request" title="Request" width="16" height="16" border="0" src="../../../../../web/images/Request.jpg" id="buttonRequest"></img></a></td>
+      <td width="15%" colspan="2">&nbsp;</td>
+    </tr>
+  </table>
+  <br></br>
+  <table cellspacing="0" cellpadding="0" border="0">
+    <tr> 
+      <td id="question">&nbsp;</td>
+    </tr>
+  </table>
+  <table summary="" cellpadding="0" cellspacing="0" border="0">
+    <tr> 
+      <td > <a href="#" onclick="submitCommandForm('SAVE');return false;" onmouseover="window.status='Accept';return true;" onmouseout="window.status='';return true;" > 
+        <img width="16" height="16" src="../../../../../web/images/Ok.jpg"  alt="Accept" title="Accept" border="0" id="buttonOk"></img></a></td>
+    </tr>
+  </table>
+</form>
+</body>
+</html>

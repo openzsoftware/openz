@@ -1,0 +1,182 @@
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta id="viewport" name=viewport content="width=device-width, initial-scale=1">
+<title>@TITLE@</title>
+
+@SCRIPTSET@
+<SCRIPT language="JavaScript" type="text/javascript" id="selectedColumn">@JSVARS@</SCRIPT>
+@ADDITIONALSCRIPTS@
+
+<SCRIPT language="JavaScript" type="text/javascript">
+    
+   // events fired on the drop targets
+  document.addEventListener("dragover", function( event ) {
+      // prevent default to allow drop
+      event.preventDefault();
+  }, false);   
+    document.addEventListener("dragenter", function( event ) {
+      // prevent default to allow drop
+      event.preventDefault();
+  }, false);   
+  
+ document.addEventListener("drop", function( event ) {
+      // prevent default action (open as link for some elements)
+      event.preventDefault();
+      // move dragged elem to the selected drop target
+      if ( event.target.className == "Main_ContentPane_ToolBar" ) {
+        alert("Welcome to the Dropzone");
+      }
+    
+  }, false);    
+        
+</SCRIPT> 
+<SCRIPT language="JavaScript" type="text/javascript">function onLoadDo(){
+                this.windowTables = new Array(
+                  new windowTableId('client', 'buttonHTML')
+                );
+                setWindowTableParentElement();
+                this.tabsTables = new Array(
+                  new tabTableId('tdtopTabs')
+                );
+                setTabTableParentElement();
+                enableShortcuts('edition');
+                setBrowserAutoComplete(false);                
+                resizeArea();
+                updateMenuIcon('buttonMenu');
+                setWindowEditing(false);
+                setValidationMessages();
+                onloadFunctions();
+                setWindowElementFocus('@FOCUSFIELD@', 'id');
+                @HIDDENMODE@
+        }
+
+        function onResizeDo(){
+                resizeArea();
+        }
+        
+        
+</SCRIPT>
+</HEAD>
+<BODY leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" onload="onLoadDo();" onresize="onResizeDo();">
+<div id="Processing_Container" class="Main_Status_Processing_Container" style="display: none">
+    <div id="Processing_Container_Logo" class="Main_Status_Processing_Elements_Container">
+        <div class="Main_Status_Processing_logo">
+            <div class="Main_Status_Processing_logo_dimension"></div>
+        </div>
+        <div class="Main_Status_Processing_text">Processing...</div>
+    </div>
+</div>
+<SCRIPT language="JavaScript" type="text/javascript" id="confirmOnChanges">var confirmOnChanges = false;</SCRIPT>
+<FORM id="form" method="post" action="@FORMNAME@.html" name="frmMain">
+  <INPUT type="hidden" name="Command">
+  <INPUT type="hidden" name="inpLastFieldChanged" id="paramChanged" value="">
+  <INPUT type="hidden" name="inpkeyColumnIdInp" value="" id="inpkeyColumnId">
+  <INPUT type="hidden" name="inpParentKeyColumn" id="parent" value="">
+  <input type="hidden" name="inpDirectKey" id="inpDirectKey" value="">
+  <INPUT type="hidden" name="inpKeyReferenceColumnName">
+  <INPUT type="hidden" name="inpTableReferenceId">
+  <INPUT type="hidden" name="inpKeyReferenceId">
+  <INPUT type="hidden" name="autosave" id="autosave" value="N">
+  @INITHIDDENFIELDS@
+  @HIDDENFIELDS@
+ <TABLE height="100%" border="0" cellpadding="0" cellspacing="0" id="main">
+    <TR>
+      <TD valign="top" id="tdleftTabs">
+            <TABLE cellpadding="0" cellspacing="0" class="Main_ContentPane_LeftTabsBar" id="tdLeftTabsBars"></TABLE>
+      </TD>
+    </TR>
+    <TR>
+    <TD valign="top" id="tdleftTabs">
+                <TABLE cellpadding="0" cellspacing="0" class="Main_ContentPane_LeftTabsBar" id="tdLeftTabsBars">
+                          <TR>
+                            <TD class="Main_LeftTabsBar_bg_body">
+                              @LEFTTABSBAR@
+                            </TD>
+                          </TR>
+                          <TR class="Main_LeftTabsBar_bg_empty_cell">
+                            <TD class="Main_LeftTabsBar_bg_empty_cell">
+                            </TD>
+                          </TR><TR class="Main_LeftTabsBar_bg_empty_cell">
+                            <TD class="Main_LeftTabsBar_bg_empty_cell">
+                                          <a class="Main_NavBar_RightButton" href="#" onclick="about();return false;" border="0" onmouseover="window.status='about';return true;" onmouseout="window.status='';return true;" id="buttonAbout"><img border="0" src="../web/images/blank.gif" class="Main_NavBar_RightButton_Icon Main_NavBar_RightButton_Icon_about" alt="@ABOUTTEXT@" title="@ABOUTTEXT@"></a>
+
+    <a id="buttonHelp" onmouseout="window.status='';return true;" onmouseover="window.status='Hilfe (Strg + H)';return true;" border="0" onclick="openNewBrowser('http://openz.de/index.php/oonlinehilfem/sonlinehandbm.html', 'OpenZ');return false;" href="#" class="Main_NavBar_RightButton"><img border="0" title="Hilfe (Strg + H)" alt="Hilfe (Strg + H)" class="Main_NavBar_RightButton_Icon Main_NavBar_RightButton_Icon_help" src="../web/images/blank.gif"></a>
+                  </TD>  </TR>      
+            </TABLE>
+      </TD>
+      
+      <TD valign="top">
+        <TABLE width="100%" border="0" cellspacing="0" cellpadding="0" class="Main_ContentPane_Left">
+          <TR><TD class="Main_NavBar_bg_left" id="tdleftSeparator"></TD></TR>
+          <TR><TD class="Main_ToolBar_bg_left" valign="top"></TD></TR>
+          <TR><TD class="Main_Client_bg_left"></TD></TR>
+          <TR><TD class="Main_Bottom_bg_left"></TD></TR>
+        </TABLE>
+      </TD>
+      <TD valign="top">
+        <DIV class="Main_ContentPane_NavBar" id="tdtopButtons">
+        <TABLE class="Main_ContentPane_NavBar" id="tdtopNavButtons">
+              <TR class="Main_NavBar_bg"><TD></TD>
+              <TD class="Main_NavBar_LeftButton_cell">
+                <a class="Main_NavBar_LeftButton" href="#" onclick="goToPreviousPage(); return false;" border="0" onmouseover="window.status='goback';return true;" onmouseout="window.status='';return true;" id="buttonBack"><IMG src="../web/images/blank.gif" class="Main_NavBar_LeftButton_Icon Main_NavBar_LeftButton_Icon_back" border="0" alt="@GOBACKTEXT@" title="@GOBACKTEXT@"/></a>
+              </TD>
+              <TD class="Main_NavBar_separator_cell"></TD>
+              <TD class="Main_NavBar_LeftButton_cell">
+                <a class="Main_NavBar_LeftButton" href="#" onClick="setWindowEditing(false);submitCommandForm('DEFAULT', false, null, '@FORMNAME@.html', '_self', null, true);return false;" border="0" onmouseover="window.status='refresh';return true;" onmouseout="window.status='';return true;" id="buttonRefresh"><IMG src="../web/images/blank.gif" class="Main_NavBar_LeftButton_Icon Main_NavBar_LeftButton_Icon_refresh" border="0" alt="@REFRESHTEXT@" title="@REFRESHTEXT@"></a>
+              </TD>
+              <TD class="Main_NavBar_Breadcrumb_cell"><SPAN class="Main_NavBar_Breadcrumb" id="paramBreadcrumb">@BREADCRUMB@</SPAN></TD>
+              <TD></TD>
+              <TD class="Main_NavBar_separator_cell"></TD>
+                <td class="Main_NavBar_bg_logo_left_partner"></td>
+  <td width="1" class="Main_NavBar_bg_logo"><img border="0" class="Main_NavBar_logo_partner" src="../web/images/blank.gif"></td>
+  <td class="Main_NavBar_bg_logo_right_partner"></td>
+  <td class="Main_NavBar_bg_logo_left"></td>
+  <td width="1" onclick="openNewBrowser('http://openz.de', 'OpenZ');return false;" class="Main_NavBar_bg_logo"><img border="0" class="Main_NavBar_logo_openz" id="openzLogo" title="OpenZ" alt="OpenZ" src="../web/images/blank.gif"></td>
+  <td class="Main_NavBar_bg_logo_right"></td>
+  <td class="Main_NavBar_bg_logo_left"></td>
+              <TD class="Main_NavBar_bg_logo" width="1" onclick="openNewBrowser('http://www.openbravo.com', 'Openbravo');return false;"><IMG src="../web/images/blank.gif" alt="Openbravo" title="Openbravo" border="0" id="openbravoLogo" class="Main_NavBar_logo"></TD>
+              <TD class="Main_NavBar_bg_logo_right"></TD>
+              <TD></TD>
+              </TR>
+         </TABLE>
+         </DIV>
+         <DIV class="Main_ContentPane_ToolBar" id="paramToolBar">
+         @TOOLBAR@
+        </DIV>
+        <TABLE width="100%" border="0" cellspacing="0" cellpadding="0" class="Main_ContentPane_TabPane" id="tdtopTabs">
+                 @TABPANE@    
+        </TABLE>
+        <DIV class="Main_ContentPane_Client" style="overflow: auto; display: none;" id="client">
+          <TABLE class="dojoTabContainer" border="0" cellpadding="0" cellspacing="0" width="100%" summary="">
+             <TR>
+             <TD>
+                 <TABLE class="dojoTabPaneWrapper" border="0" cellpadding="0" cellspacing="0" width="100%" summary="">
+                   <TR>
+                   <TD>
+                      @MESSAGEBOX@              
+                   </TD>
+                   </TR>
+                 </TABLE>
+             @CONTENT@
+             </TD>
+             </TR>
+          </TABLE>
+        </DIV>
+        <TABLE width="100%" border="0" cellspacing="0" cellpadding="0" class="Menu_ContentPane_Bottom" id="tdbottomSeparator">
+          <TR>
+            <TD class="Main_Bottom_bg"><IMG src="../web/images/blank.gif" border="0"></TD>
+          </TR>
+        </TABLE>
+      <TD valign="top">
+        <TABLE width="100%" border="0" cellspacing="0" cellpadding="0" class="Main_ContentPane_Right" id="tdrightSeparator">
+          <TR><TD class="Main_NavBar_bg_right"></TD></TR>
+          <TR><TD class="Main_ToolBar_bg_right" valign="top"></TD></TR>
+          <TR><TD class="Main_Client_bg_right"></TD></TR>
+          <TR><TD class="Main_Bottom_bg_right"></TD></TR>
+        </TABLE>
+      </TD>
+    </TR>
+  </TABLE>
+</FORM>
+</BODY></HTML>

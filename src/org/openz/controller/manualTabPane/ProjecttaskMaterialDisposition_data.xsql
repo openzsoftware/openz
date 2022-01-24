@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+
+<SqlClass name="ProjecttaskMaterialDispositionData" package="org.openz.controller.manualTabPane">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      select v.Zspm_Projecttaskbom_View_ID,v.C_Projecttask_ID,v.Actualcosamount,v.Line,v.M_Locator_ID,v.M_Product_ID,v.plannedamt,v.Planrequisition,v.date_plan,v.QTY_Available,
+             v.QTY_Inconsumption,v.Qtyinrequisition,v.QTY_Instock,v.QTY_Nextreceipt,v.isreturnafteruse,
+             v.QTY_Ordered,v.Qtyreceived,v.date_nextreceipt,v.Quantity, 'N' as preselected,c.name as productcategory,zssi_getuom(p.c_uom_id,?) as uom,
+             row_number() OVER (ORDER BY c.name,zssi_getproductname(p.m_product_id,?),Zspm_Projecttaskbom_View_ID) as seqno,
+             v.directship,v.c_orderline_id
+             from Zspm_Projecttaskbom_View v,m_product p , m_product_category c
+             where v.C_PROJECTTASK_ID = ? 
+             and p.m_product_id=v.m_product_id and c.m_product_category_id=p.m_product_category_id 
+             and p.value like ?
+             and upper(zssi_getproductname(p.m_product_id,?)) like upper(?)
+        order by c.name,zssi_getproductname(p.m_product_id,?)
+      ]]></Sql>
+      <Parameter name="lang"/>
+      <Parameter name="lang"/>
+      <Parameter name="projecttaskid"/>
+      <Parameter name="productvalue"/>
+      <Parameter name="lang"/>
+      <Parameter name="productname"/>
+      <Parameter name="lang"/>
+  </SqlMethod>
+  <SqlMethod name="selectnew" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+    <![CDATA[
+      select Zspm_Projecttaskbom_View_ID,C_Projecttask_ID,Actualcosamount,Line,M_Locator_ID,M_Product_ID,plannedamt,Planrequisition,date_plan,QTY_Available,
+             QTY_Inconsumption,Qtyinrequisition,QTY_Instock,QTY_Nextreceipt,isreturnafteruse,
+             QTY_Ordered,Qtyreceived,date_nextreceipt,Quantity, preselected,productcategory,uom,
+             row_number() OVER (ORDER BY preselected desc, productcategory,zssi_getproductname(m_product_id,?),Zspm_Projecttaskbom_View_ID) as seqno,
+             directship,c_orderline_id
+      FROM (
+      select get_uuid() as Zspm_Projecttaskbom_View_ID,'' as C_Projecttask_ID, 
+             0 as Actualcosamount,
+             0 as Line,
+             '' as M_Locator_ID,'' as M_Product_ID,0 as plannedamt,'N' as Planrequisition,
+             (select coalesce(startdate,trunc(now())) from c_projecttask where C_PROJECTTASK_ID = ?) as date_plan,0 as QTY_Available,
+             0 as QTY_Inconsumption,0 as Qtyinrequisition,0 as QTY_Instock,0 as QTY_Nextreceipt,'N' as isreturnafteruse,
+             0 as QTY_Ordered,0 as Qtyreceived,null as date_nextreceipt,1 as Quantity, 'Y' as preselected,'' as productcategory,'' as uom ,
+             'N' as directship,null as c_orderline_id
+      from dual
+      UNION
+      select v.Zspm_Projecttaskbom_View_ID,v.C_Projecttask_ID,v.Actualcosamount,v.Line,v.M_Locator_ID,v.M_Product_ID,v.plannedamt,v.Planrequisition,v.date_plan,v.QTY_Available,
+             v.QTY_Inconsumption,v.Qtyinrequisition,v.QTY_Instock,v.QTY_Nextreceipt,v.isreturnafteruse,
+             v.QTY_Ordered,v.Qtyreceived,v.date_nextreceipt,v.Quantity, 'N' as preselected,c.name as productcategory, zssi_getuom(p.c_uom_id,?) as uom,
+             v.directship,v.c_orderline_id
+             from Zspm_Projecttaskbom_View v,m_product p , m_product_category c
+             where v.C_PROJECTTASK_ID = ? 
+             and p.m_product_id=v.m_product_id and c.m_product_category_id=p.m_product_category_id 
+             and p.value like ?
+             and  upper(zssi_getproductname(p.m_product_id,?)) like upper(?)
+        ) a order by preselected desc, productcategory,zssi_getproductname(m_product_id,?)
+      ]]></Sql>
+      <Parameter name="lang"/>
+      <Parameter name="lang"/>
+      <Parameter name="projecttaskid"/>
+      <Parameter name="projecttaskid"/>
+      <Parameter name="productvalue"/>
+      <Parameter name="lang"/>
+      <Parameter name="productname"/>
+      <Parameter name="lang"/>
+  </SqlMethod>
+  
+  
+  <SqlMethod name="insert" connection="true" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      INSERT INTO Zspm_Projecttaskbom_View(Zspm_Projecttaskbom_View_id, AD_CLIENT_ID,AD_ORG_ID, C_PROJECTTASK_ID, CREATEDBY, UPDATEDBY, isactive,updated,created,
+                  Line,M_Locator_ID,M_Product_ID,Quantity,Planrequisition,isreturnafteruse,date_plan,directship)
+      VALUES(?, 'C726FEC915A54A0995C568555DA5BB3C', ?, ?, ?, ?, 'Y',now(),now(),
+             to_number(coalesce(?,'0')), ?, ? ,to_number(?),?,?,to_date(?,'dd.mm.yyyy'),'N')
+      </Sql>
+      <Parameter name="idValue"/>
+      <Parameter name="adOrgId"/>
+      <Parameter name="projecttaskId"/>
+      <Parameter name="createdby"/>
+      <Parameter name="createdby"/>
+      <Parameter name="line"/>
+      <Parameter name="locatorId"/>
+      <Parameter name="productId"/>
+      <Parameter name="quantity"/>
+      <Parameter name="planreq"/>
+      <Parameter name="returnafter"/>
+      <Parameter name="dateplan"/>
+  </SqlMethod>
+   <SqlMethod name="update" connection="true" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      UPDATE Zspm_Projecttaskbom_View  set UPDATEDBY=?,M_Locator_ID=?,M_Product_ID=?,
+             Quantity=to_number(?),Planrequisition=?,isreturnafteruse=?,updated=now(),date_plan=to_date(?,'dd.mm.yyyy')
+      WHERE Zspm_Projecttaskbom_View_id = ?
+      </Sql>
+      <Parameter name="updatedby"/>
+      <Parameter name="locatorId"/>
+      <Parameter name="productId"/>
+      <Parameter name="quantity"/>
+      <Parameter name="planreq"/>
+      <Parameter name="returnafter"/>
+      <Parameter name="dateplan"/>
+      <Parameter name="bomviewId"/>
+  </SqlMethod>
+  <SqlMethod name="isExisting" type="preparedStatement" return="string">
+    <Sql>  
+        SELECT count(*) from Zspm_Projecttaskbom_View where Zspm_Projecttaskbom_View_id = ?
+    </Sql>
+    <Parameter name="pBomId"/>
+  </SqlMethod>
+  <SqlMethod name="delete" connection="true" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       delete from Zspm_Projecttaskbom_View where Zspm_Projecttaskbom_View_id = ?
+    </Sql>
+    <Parameter name="bomviewId"/>
+  </SqlMethod>
+  <SqlMethod name="gfetNextLine" type="preparedStatement" return="string">
+    <Sql>  
+        SELECT COALESCE(MAX(Line),0)+10 AS DefaultValue FROM Zspm_Projecttaskbom_View WHERE  C_PROJECTTASK_ID = ?
+    </Sql>
+    <Parameter name="pTaskId"/>
+  </SqlMethod>
+  <SqlMethod name="getPalanDate" type="preparedStatement" return="string">
+    <Sql>  
+        select to_char(coalesce(startdate,trunc(now())),'dd.mm.yyyy') from c_projecttask where C_PROJECTTASK_ID = ?
+    </Sql>
+    <Parameter name="pTaskId"/>
+  </SqlMethod>
+  <SqlMethod name="getPreferedLocator" type="preparedStatement" return="string">
+    <Sql>  
+        select zsmf_getlocatorWithStock(?,?)
+    </Sql>
+    <Parameter name="pTaskId"/>
+    <Parameter name="pProductId"/>
+  </SqlMethod>
+ </SqlClass>

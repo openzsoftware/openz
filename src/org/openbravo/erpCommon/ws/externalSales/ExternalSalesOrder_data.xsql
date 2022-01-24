@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+<SqlClass name="ExternalSalesOrderData" package="org.openbravo.erpCommon.ws.externalSales">
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT C_ORDER.C_ORDER_ID AS ID, C_ORDER.DOCUMENTNO, C_ORDER.DATEORDERED AS DATE_NEW, 
+        C_ORDER_STATUS(C_ORDER.C_ORDER_ID) AS STATUS, 
+        C_BPARTNER.C_BPARTNER_ID, C_BPARTNER.NAME AS C_BPARTNER_NAME, C_BPARTNER.VALUE AS BPARTNERVALUE, 
+        C_ORDER.GRANDTOTAL AS AMOUNT, C_PAYMENTTERM.C_PAYMENTTERM_ID AS PAYMENT_TYPE,
+        '' AS ORDER_LINE_ID, '' AS PRODUCT_ID, '' AS UNITS, '' AS PRICE, '' AS TAX_ID,
+        '' AS DEBT_PAYMENT_ID_ID, '' AS PAYMENTRULE, '' AS ACC
+        FROM C_ORDER, C_BPARTNER, C_PAYMENTTERM
+        WHERE C_ORDER.AD_CLIENT_ID = ?
+        AND TO_CHAR(C_ORDER.DATEORDERED, 'DD-MM-YYYY') = TO_CHAR(to_date(?,'DD-MM-YYYY HH24:MI:SS'), 'DD-MM-YYYY')
+        AND C_ORDER.DOCUMENTNO = ?
+        AND C_ORDER.C_BPARTNER_ID = C_BPARTNER.C_BPARTNER_ID
+        AND C_ORDER.C_PAYMENTTERM_ID = C_PAYMENTTERM.C_PAYMENTTERM_ID 
+      ]]>
+    </Sql>
+    <Parameter name="client"/>
+    <Parameter name="date"/>
+    <Parameter name="doc"/>
+  </SqlMethod>
+  <SqlMethod name="selectLines" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT C_ORDERLINE_ID AS ORDER_LINE_ID, M_PRODUCT_ID AS PRODUCT_ID, QTYORDERED AS UNITS, PRICEACTUAL AS PRICE, C_TAX_ID AS TAX_ID
+        FROM C_ORDERLINE
+        WHERE AD_CLIENT_ID = ?
+        AND C_ORDER_ID = ?
+      ]]>
+    </Sql>
+    <Parameter name="client"/>
+    <Parameter name="order"/>
+  </SqlMethod>
+  <SqlMethod name="selectPayment" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT C_DEBT_PAYMENT_ID AS DEBT_PAYMENT_ID_ID, AMOUNT, PAYMENTRULE
+        FROM C_DEBT_PAYMENT
+        WHERE AD_CLIENT_ID = ?
+        AND C_ORDER_ID = ?
+      ]]>
+    </Sql>
+    <Parameter name="client"/>
+    <Parameter name="order"/>
+  </SqlMethod>
+
+
+
+
+  <SqlMethod name="selectIOrder" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT DISTINCT '' AS ID, I_ORDER.DOCUMENTNO, I_ORDER.DATEORDERED AS DATE_NEW, 
+        1 AS STATUS, I_ORDER.C_BPARTNER_ID, I_ORDER.NAME AS C_BPARTNER_NAME, I_ORDER.BPARTNERVALUE AS BPARTNERVALUE 
+        FROM I_ORDER
+        WHERE I_ORDER.AD_CLIENT_ID = ?
+        AND TO_CHAR(I_ORDER.DATEORDERED, 'DD-MM-YYYY') =  TO_CHAR(to_date(?,'DD-MM-YYYY HH24:MI:SS'), 'DD-MM-YYYY')
+        AND I_ORDER.DOCUMENTNO = ?
+      ]]>
+    </Sql>
+    <Parameter name="client"/>
+    <Parameter name="date"/>
+    <Parameter name="doc"/>
+  </SqlMethod>
+
+  <SqlMethod name="selectLinesIOrder" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT DISTINCT C_ORDERLINE_ID AS ORDER_LINE_ID, M_PRODUCT_ID AS PRODUCT_ID, QTYORDERED AS UNITS, PRICEACTUAL AS PRICE, C_TAX_ID AS TAX_ID
+        FROM I_ORDER
+        WHERE AD_CLIENT_ID = ?
+        AND TO_CHAR(I_ORDER.DATEORDERED, 'DD-MM-YYYY') =  TO_CHAR(to_date(?,'DD-MM-YYYY HH24:MI:SS'), 'DD-MM-YYYY')
+        AND DOCUMENTNO = ?
+      ]]>
+    </Sql>
+    <Parameter name="client"/>
+    <Parameter name="date"/>
+    <Parameter name="doc"/>
+  </SqlMethod>
+
+  <SqlMethod name="selectPaymentIOrder" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT DOCUMENTNO, DATEORDERED AS DATE_NEW, PAYMENTRULE1 AS PAYMENTRULE ,PAYMENTAMOUNT1 AS AMOUNT
+           FROM I_ORDER
+        WHERE AD_CLIENT_ID = ?
+        AND TO_CHAR(DATEORDERED, 'DD-MM-YYYY') =  TO_CHAR(to_date(?,'DD-MM-YYYY HH24:MI:SS'), 'DD-MM-YYYY')
+        AND DOCUMENTNO = ?
+           AND PAYMENTRULE1 IS NOT NULL
+        UNION 
+        SELECT I_ORDER.DOCUMENTNO, I_ORDER.DATEORDERED AS DATE_NEW,PAYMENTRULE2, PAYMENTAMOUNT2 AS AMOUNT
+           FROM I_ORDER
+        WHERE AD_CLIENT_ID = ?
+        AND TO_CHAR(DATEORDERED, 'DD-MM-YYYY') =  TO_CHAR(to_date(?,'DD-MM-YYYY HH24:MI:SS'), 'DD-MM-YYYY')
+        AND DOCUMENTNO = ?
+           AND PAYMENTRULE2 IS NOT NULL
+      ]]>
+    </Sql>
+    <Parameter name="client"/>
+    <Parameter name="date"/>
+    <Parameter name="doc"/>
+    <Parameter name="client"/>
+    <Parameter name="date"/>
+    <Parameter name="doc"/>
+  </SqlMethod>
+
+  <SqlMethod name="access" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+         SELECT COUNT(*) AS ACC
+				   FROM AD_USER       U, 
+					      AD_USER_ROLES R,
+								AD_TASK_ACCESS A,
+								AD_TASK T
+					 WHERE USERNAME = ? 
+             AND PASSWORD = ?
+					   AND  U.AD_USER_ID = R.AD_USER_ID
+						 AND A.AD_ROLE_ID = R.AD_ROLE_ID
+						 AND T.AD_TASK_ID = A.AD_TASK_ID
+             AND T.CLASSNAME = 'org.openbravo.erpCommon.ws.externalSales.ExternalSales'
+      ]]>
+    </Sql>
+    <Parameter name="username"/>
+    <Parameter name="password"/>
+  </SqlMethod>
+
+</SqlClass>

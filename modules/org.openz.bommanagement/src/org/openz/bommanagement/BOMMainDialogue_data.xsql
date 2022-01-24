@@ -1,0 +1,63 @@
+<SqlClass name="BOMMainDialogueData" package="org.openz.bommanagement"  accessModifier="public">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="selectupper" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    Select ? as language , '' as zssm_workstepbom_v_id, '' as product, '' as qty_plan, '' as quantity, '' as qtyreceived, '' as qty_available, '' as issuing_locator, '' as barcode, '' as type, '' as id, '' as mess, '' as ad_message_value from dual
+    </Sql>
+    <Parameter name="language"/>
+  </SqlMethod>  
+   <SqlMethod name="selectbarcode" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select type,id from  pdc_getDataIdFromScan(?)
+    </Sql>
+    <Parameter name="barcode"/>
+    </SqlMethod>
+    <SqlMethod name="getusername" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select name from ad_user where ad_user_id = ?
+    </Sql>
+    <Parameter name="userid"/>
+    </SqlMethod>
+    <SqlMethod name="getproductname" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select name from m_product where m_product_id = ?
+    </Sql>
+    <Parameter name="productid"/>
+    </SqlMethod>
+    <SqlMethod name="getproductnamefromserial" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select p.name from m_product p, snr_masterdata s where s.snr_masterdata_id = ? and s.m_product_id = p.m_product_id
+    </Sql>
+    <Parameter name="snrmasterdataid"/>
+    </SqlMethod>
+    <SqlMethod name="getproductidfromserial" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select p.m_product_id from m_product p, snr_masterdata s where s.snr_masterdata_id = ? and s.m_product_id = p.m_product_id
+    </Sql>
+    <Parameter name="snrmasterdataid"/>
+    </SqlMethod>
+    <SqlMethod name="getlocatorname" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select value from m_locator where m_locator_id = ?
+    </Sql>
+    <Parameter name="locatorid"/>
+    </SqlMethod>
+    <SqlMethod name="getserialorbatch" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select serialnumber as number from snr_masterdata where snr_masterdata_id = ?
+        union
+        select batchnumber as number from snr_batchmasterdata where snr_batchmasterdata_id = ?
+        limit 1
+    </Sql>
+    <Parameter name="snrmasterid"/>
+    <Parameter name="batchmasterid"/>
+    </SqlMethod>
+  </SqlClass>

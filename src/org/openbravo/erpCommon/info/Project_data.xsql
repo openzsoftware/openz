@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2010 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+****************************************************************************************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="ProjectData" package="org.openbravo.erpCommon.info">
+   <SqlClassComment></SqlClassComment>
+   <SqlMethod name="select" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT * FROM  (  
+        SELECT P.C_PROJECT_ID, P.VALUE, REPLACE(P.VALUE, '''', CHR(92) || '''') AS VALUE_HIDDEN, P.NAME, P.C_BPARTNER_ID, 
+        REPLACE(P.NAME, '''', CHR(92) || CHR(92) || '''') AS NAME_HIDDEN, 
+        B.NAME AS BPARTNER, L.NAME AS PROJECTSTATUS,
+        p.c_Project_Id || '#' || p.value || ' - ' || p.name as rowkey
+        FROM C_PROJECT P LEFT JOIN C_BPARTNER B ON P.C_BPARTNER_ID = B.C_BPARTNER_ID , AD_REF_LIST_V L 
+        WHERE P.PROJECTSTATUS = L.VALUE 
+        AND L.AD_REFERENCE_ID = '800002' 
+        AND L.AD_LANGUAGE = ?
+        AND (P.projectstatus = 'OR' or P.projectstatus = ?)
+        AND P.AD_CLIENT_ID IN ('1') 
+        AND P.AD_ORG_ID IN ('1') 
+        AND P.ISACTIVE = 'Y' 
+        AND P.projectcategory!='PRP'
+        ORDER BY P.VALUE
+		)  B
+		WHERE 1=1
+      ]]></Sql>
+        
+        <Parameter name="language"/>
+        <Parameter name="pstatus"/>
+        <Parameter name="adUserClient" type="replace" optional="true" after="P.AD_CLIENT_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="P.AD_ORG_ID IN (" text="'1'"/>
+        <Parameter name="key" ignoreValue="%" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(P.Value) LIKE UPPER(?) ]]></Parameter>
+        <Parameter name="name" ignoreValue="%" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(P.Name) LIKE UPPER(?) ]]></Parameter>
+        <Parameter name="bpartner" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND P.C_BPARTNER_ID = ? ]]></Parameter>
+        <Parameter name="orderBy" type="replace" optional="true" after="ORDER BY " text="P.VALUE" />
+        <Parameter name="pgLimit" type="argument" optional="true" after="WHERE 1=1"><![CDATA[LIMIT ]]></Parameter>
+   </SqlMethod>
+   <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+   </SqlMethod>
+   <SqlMethod name="countRows" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+      SELECT COUNT(*) AS VALUE FROM ( 
+        SELECT 1
+        FROM C_PROJECT P LEFT JOIN C_BPARTNER B ON P.C_BPARTNER_ID = B.C_BPARTNER_ID , AD_REF_LIST_V L 
+        WHERE P.PROJECTSTATUS = L.VALUE 
+        AND L.AD_REFERENCE_ID = '800002' 
+        AND L.AD_LANGUAGE = ? 
+        AND (P.projectstatus = 'OR' or P.projectstatus = ?)
+        AND P.AD_CLIENT_ID IN ('1') 
+        AND P.AD_ORG_ID IN ('1') 
+        AND P.ISACTIVE = 'Y' 
+        AND P.projectcategory!='PRP'
+        AND 1=1
+		) B
+      ]]></Sql>     
+        <Parameter name="language"/>
+        <Parameter name="pstatus"/>
+        <Parameter name="adUserClient" type="replace" optional="true" after="P.AD_CLIENT_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="P.AD_ORG_ID IN (" text="'1'"/>
+        <Parameter name="key" ignoreValue="%" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(P.Value) LIKE UPPER(?) ]]></Parameter>
+        <Parameter name="name" ignoreValue="%" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(P.Name) LIKE UPPER(?) ]]></Parameter>
+        <Parameter name="bpartner" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND P.C_BPARTNER_ID = ? ]]></Parameter>
+         <Parameter name="pgLimit" type="argument" optional="true" after="AND 1=1"><![CDATA[LIMIT ]]></Parameter>
+        
+   </SqlMethod>
+   <SqlMethod name="getNameCount" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT count(*) as count
+        FROM c_project
+        WHERE upper(name) like upper(?) 
+      ]]></Sql>
+        <Parameter name="PName"/>
+   </SqlMethod>
+   <SqlMethod name="getValueCount" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT count(*) as count
+        FROM c_project 
+        WHERE upper(value) like upper(?) 
+      ]]></Sql>
+        <Parameter name="PValue"/>
+   </SqlMethod>
+   <SqlMethod name="selectKey" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT P.C_PROJECT_ID, P.VALUE, P.NAME, P.C_BPARTNER_ID, 
+		CASE WHEN (COALESCE(P.C_BPARTNER_ID, '') = '') 
+			THEN '' 
+			ELSE (SELECT NAME FROM C_BPARTNER WHERE C_BPARTNER.C_BPARTNER_ID = P.C_BPARTNER_ID) END AS BPARTNER
+        FROM C_PROJECT P 
+        WHERE P.AD_CLIENT_ID IN ('1') 
+        AND P.AD_ORG_ID IN ('1') 
+        AND P.ISACTIVE = 'Y' 
+        AND P.projectstatus = 'OR'
+        AND P.projectcategory!='PRP'
+        AND UPPER(P.VALUE) LIKE UPPER(?)
+        ORDER BY P.NAME
+      ]]></Sql>
+        <Parameter name="adUserClient" type="replace" optional="true" after="P.AD_CLIENT_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="P.AD_ORG_ID IN (" text="'1'"/>
+        <Parameter name="key"/>
+   </SqlMethod>
+   <SqlMethod name="selectName" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT P.C_PROJECT_ID, P.VALUE, P.NAME, P.C_BPARTNER_ID, 
+		CASE WHEN (COALESCE(P.C_BPARTNER_ID, '') = '') 
+			THEN '' 
+			ELSE (SELECT NAME FROM C_BPARTNER WHERE C_BPARTNER.C_BPARTNER_ID = P.C_BPARTNER_ID) END AS BPARTNER
+        FROM C_PROJECT P 
+        WHERE P.AD_CLIENT_ID IN ('1') 
+        AND P.AD_ORG_ID IN ('1') 
+        AND P.ISACTIVE = 'Y' 
+        AND P.projectstatus = 'OR'
+        AND P.projectcategory!='PRP'
+        AND UPPER(P.NAME) LIKE UPPER(?)
+        ORDER BY P.NAME
+      ]]></Sql>
+        <Parameter name="adUserClient" type="replace" optional="true" after="P.AD_CLIENT_ID IN (" text="'1'"/>
+        <Parameter name="adUserOrg" type="replace" optional="true" after="P.AD_ORG_ID IN (" text="'1'"/>
+        <Parameter name="name"/>
+   </SqlMethod>
+   <SqlMethod name="selectTercero" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT NAME FROM C_BPARTNER WHERE C_BPARTNER_ID = ?
+      ]]></Sql>
+        <Parameter name="cBparnterId"/>
+   </SqlMethod>
+</SqlClass>

@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T08:31:05 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ProductionActivities" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="5" isIgnorePagination="true" uuid="50280a05-2a47-4be7-8367-f03f4e821b0e">
+	<property name="ireport.zoom" value="1.3310000000000004"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="weight" class="java.math.BigDecimal" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select
+--Main Report
+($P{DOCUMENT_ID}) as id,
+--Headers
+zssi_getElementTextByColumname('Productionorder',$P{LANGUAGE}) as pah,
+zssi_getElementTextByColumname('Workstep',$P{LANGUAGE}) as agh,
+zssi_getElementTextByColumname('Employee',$P{LANGUAGE}) as emph,
+zssi_getElementTextByColumname('Shift',$P{LANGUAGE}) as sh,
+zssi_getElementTextByColumname('Workplace',$P{LANGUAGE}) as wph,
+zssi_getElementTextByColumname('Productionday',$P{LANGUAGE}) as pdh,
+zssi_getElementTextByColumname('Product',$P{LANGUAGE}) as ph,
+zssi_getElementTextByColumname('Amountkg',$P{LANGUAGE}) as amkg,
+zssi_getElementTextByColumname('Specification',$P{LANGUAGE}) as spech,
+zssi_getElementTextByColumname('SOP', $P{LANGUAGE}) as soph,
+zssi_getElementTextByColumname('Component', $P{LANGUAGE}) as comph,
+zssi_getElementTextByColumname('Proportionkg',$P{LANGUAGE}) as Machkost,
+zssi_getElementTextByColumname('Removed',$P{LANGUAGE}) as remh,
+zssi_getElementTextByColumname('plannedbatch',$P{LANGUAGE}) as planbh,
+zssi_getElementTextByColumname('Proportiontext',$P{LANGUAGE}) as proptext,
+zssi_getElementTextByColumname('Proportionkg',$P{LANGUAGE}) as propkg,
+zssi_getElementTextByColumname('BatchNo',$P{LANGUAGE}) as batchis,
+zssi_getElementTextByColumname('Receipth',$P{LANGUAGE}) as rech,
+--BOM
+zssi_getproductname(bom.m_product_id,$P{LANGUAGE}) bompd,
+zssi_getuom((select c_uom_id from m_product where m_product.m_product_id=bom.m_product_id),$P{LANGUAGE}) as uom,
+coalesce((select value from m_product  where bom.m_product_id=m_product.m_product_id),'') as bomval,
+coalesce((select batchnumber from snr_batchmasterdata where bom.snr_batchmasterdata_id = snr_batchmasterdata.snr_batchmasterdata_id),'') as plannedbatchno,
+(select weight from m_product where bom.m_product_id=m_product.m_product_id) as weightprd,
+(select c.value from m_product_category c,m_product where bom.m_product_id=m_product.m_product_id  and c.m_product_category_id=m_product.m_product_category_id limit 1) as cat,
+((bom.quantity/ws.qty)*ws.weightproportion) as weightcalc,
+--Machine
+mach.name as machine,
+--Activities
+zssi_getusername(a.employee_id) as emp,
+a.datefrom as pd,
+a.shift as shift,
+a.specification as spec,
+--Production
+p.name as pa,
+p.value as pv,
+--Production Workstep
+ws.name as ag,
+ws.value as av,
+ws.qty as qty,
+ws.weightproportion as weightp,
+zssi_getproductname(ws.m_product_id,$P{LANGUAGE}) as prd,
+zssi_2html(ws.description) as ad
+from zssm_workstep_v ws,zssm_productionorder_v p, zssm_workstepactivities_v a, zssm_workstepmachines_v m, ma_machine mach, zssm_workstepbom_v bom
+where a.zssm_workstep_v_id=ws.zssm_workstep_v_id AND m.zssm_workstep_v_id=ws.zssm_workstep_v_id AND bom.zssm_workstep_v_id=ws.zssm_workstep_v_id AND ws.zssm_productionorder_v_id=p.zssm_productionorder_v_id AND m.ma_machine_id=mach.ma_machine_id AND a.zssm_workstepactivities_v_id in ($P{DOCUMENT_ID})
+order by bom.line]]>
+	</queryString>
+	<field name="id" class="java.lang.String"/>
+	<field name="pah" class="java.lang.String"/>
+	<field name="agh" class="java.lang.String"/>
+	<field name="emph" class="java.lang.String"/>
+	<field name="sh" class="java.lang.String"/>
+	<field name="wph" class="java.lang.String"/>
+	<field name="pdh" class="java.lang.String"/>
+	<field name="ph" class="java.lang.String"/>
+	<field name="amkg" class="java.lang.String"/>
+	<field name="spech" class="java.lang.String"/>
+	<field name="soph" class="java.lang.String"/>
+	<field name="comph" class="java.lang.String"/>
+	<field name="machkost" class="java.lang.String"/>
+	<field name="remh" class="java.lang.String"/>
+	<field name="planbh" class="java.lang.String"/>
+	<field name="proptext" class="java.lang.String"/>
+	<field name="propkg" class="java.lang.String"/>
+	<field name="batchis" class="java.lang.String"/>
+	<field name="rech" class="java.lang.String"/>
+	<field name="bompd" class="java.lang.String"/>
+	<field name="uom" class="java.lang.String"/>
+	<field name="bomval" class="java.lang.String"/>
+	<field name="plannedbatchno" class="java.lang.String"/>
+	<field name="weightprd" class="java.math.BigDecimal"/>
+	<field name="cat" class="java.lang.String"/>
+	<field name="weightcalc" class="java.math.BigDecimal"/>
+	<field name="machine" class="java.lang.String"/>
+	<field name="emp" class="java.lang.String"/>
+	<field name="pd" class="java.sql.Timestamp"/>
+	<field name="shift" class="java.lang.String"/>
+	<field name="spec" class="java.lang.String"/>
+	<field name="pa" class="java.lang.String"/>
+	<field name="pv" class="java.lang.String"/>
+	<field name="ag" class="java.lang.String"/>
+	<field name="av" class="java.lang.String"/>
+	<field name="qty" class="java.math.BigDecimal"/>
+	<field name="weightp" class="java.math.BigDecimal"/>
+	<field name="prd" class="java.lang.String"/>
+	<field name="ad" class="java.lang.String"/>
+	<title>
+		<band height="40" splitType="Stretch">
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="0" y="0" width="162" height="19" uuid="c3a5972c-3801-452c-93a6-0c3c0f17066f"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="true" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{rech}== null ?"":$F{rech}+":")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="1" y="20" width="145" height="20" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" uuid="c3f3f6a7-7f34-4723-8339-6d0865026891"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{comph}== null ?"":$F{comph})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="147" y="20" width="75" height="20" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" uuid="0b0cdf40-c431-4d64-b495-6267feffd915"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{propkg}== null ?"":$F{propkg})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="222" y="20" width="75" height="20" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" uuid="056999c9-5adc-43f3-8c1d-90c33ee3dfa7"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{remh}== null ?"":$F{remh})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="297" y="20" width="147" height="20" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" uuid="02089d8b-cdec-40c7-9e10-f48907593562"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{planbh}== null ?"":$F{planbh})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="443" y="20" width="111" height="20" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" uuid="d209218e-7621-4f0a-9c39-ec7d4db732e9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{batchis}== null ?"":$F{batchis})]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="65" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="1" width="147" height="25" uuid="674a2bcb-24b3-46e6-8179-b8f9ccb97064"/>
+				<box>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
+					<font size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{bompd}== null ?"":$F{bompd})+"<br>"+($F{bomval}== null ?"":$F{bomval})]]></textFieldExpression>
+			</textField>
+			<frame>
+				<reportElement x="147" y="0" width="75" height="64" uuid="dcd9bcbc-821c-4dfd-9b34-58b5931915bf"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textField pattern="#,##0.#">
+					<reportElement x="0" y="1" width="57" height="63" isPrintWhenDetailOverflows="true" uuid="72f82e02-9d7a-404a-bb3b-57ed8dbc9928"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($F{weightcalc})]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="57" y="1" width="18" height="63" uuid="9a6efe61-2066-4d68-b30e-20215e48a603"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{uom}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement x="297" y="0" width="147" height="64" isPrintWhenDetailOverflows="true" uuid="e66b286d-5c22-4ae3-be73-190473a2850b"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<componentElement>
+					<reportElement x="4" y="26" width="140" height="38" uuid="249d8893-61e0-421e-9044-c4ef979b0913">
+						<printWhenExpression><![CDATA[new Boolean (!$F{plannedbatchno}.isEmpty())]]></printWhenExpression>
+					</reportElement>
+					<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code39 (Extended)" drawText="false" checksumRequired="false" barWidth="0" barHeight="0">
+						<jr:codeExpression><![CDATA[$F{plannedbatchno}]]></jr:codeExpression>
+					</jr:barbecue>
+				</componentElement>
+			</frame>
+			<textField>
+				<reportElement x="297" y="1" width="147" height="25" uuid="a4d45b49-667e-4fd1-b443-c9cad5c4c647"/>
+				<box>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{plannedbatchno}== null ?"":$F{plannedbatchno})]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="1" y="-1" width="1" height="65" uuid="35465a37-fae2-4c29-85c9-0de784f4aa95"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="0" y="64" width="555" height="1" uuid="74d0300f-d455-4115-8db8-d50106f7c8f6"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<componentElement>
+				<reportElement x="5" y="26" width="140" height="38" uuid="dd2e9097-1c35-4e70-a4db-45a3fc7983a9"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code39 (Extended)" drawText="false" checksumRequired="false" barWidth="0" barHeight="0">
+					<jr:codeExpression><![CDATA[$F{bomval}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<line>
+				<reportElement x="554" y="0" width="1" height="64" uuid="0e0ee6ad-e3f7-4823-b569-3689444bb860"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="1" y="-1" width="555" height="1" uuid="9c357c22-88bd-46d9-bfe5-688a5ef8a5ec"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<frame>
+				<reportElement x="222" y="1" width="75" height="63" isPrintWhenDetailOverflows="true" uuid="13083ee9-74f7-4b71-b9e2-e4be8a6c6b3b"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+			</frame>
+		</band>
+	</detail>
+</jasperReport>

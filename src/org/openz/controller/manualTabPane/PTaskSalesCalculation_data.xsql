@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+
+<SqlClass name="PTaskSalesCalculationData" package="org.openz.controller.manualTabPane" accessModifier="public">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      select p.c_project_id, p.c_projecttask_id, row_number() OVER (ORDER BY p.created) as seqno,p.created,
+      p.name, case when p.istaskcancelled='Y' then 0 else p.plannedcost end as plannedcost, p.margin_percent,p.margin,p.sales_price,p.shift_qty,p.price_shift,p.employee_qty,
+      p.price_shift_person,p.istaskcancelled,
+      0 as SUMPlannedcost,
+             0 as SUMMargin,
+             0 as SUMSales_Price,
+             0 as SUMShift_Qty,
+             0 as SUMPrice_Shift,
+             0 as SUMEmployee_Qty,
+             0 as SUMPrice_Shift_Person
+	        from c_projecttask p
+        where   p.C_PROJECT_ID = (select c_project_id from c_projecttask where c_projecttask_id=?)
+        order by  seqno asc
+      ]]></Sql>
+      <Parameter name="projecttaskid"/>
+  </SqlMethod>
+  <SqlMethod name="selectnew" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+    <![CDATA[
+      select c_project_id, c_projecttask_id, created, name, plannedcost,
+           margin_percent, margin, sales_price, shift_qty ,price_shift, employee_qty,price_shift_person,
+           row_number() OVER (ORDER BY created) as seqno
+      FROM (
+      select (select c_project_id from c_projecttask where c_projecttask_id=?) as c_project_id, get_uuid() as c_projecttask_id, now() as created, 
+       '' as name, 0 as plannedcost, 0 as margin_percent, 0 as margin, 0 as sales_price, 0 as shift_qty,0 as price_shift,  0 as employee_qty,
+       0 as price_shift_person
+      from dual
+      UNION
+      select p.c_project_id, p.c_projecttask_id,p.created, p.name, p.plannedcost, p.margin_percent,
+           p.margin, p.sales_price, p.shift_qty, p.price_shift,p.employee_qty , 
+           p.price_shift_person
+        from c_projecttask p
+        where p.c_project_id=(select c_project_id from c_projecttask where c_projecttask_id=?)
+        ) a order by seqno asc
+      ]]></Sql>
+      <Parameter name="projecttaskid"/>
+      <Parameter name="projecttaskid"/>
+  </SqlMethod> 
+
+   <SqlMethod name="insert"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      INSERT INTO c_projecttask(isactive,ad_client_id,ad_org_id,createdby,updatedby,created,updated,c_project_id, c_projecttask_id,
+      name, margin_percent,shift_qty,employee_qty)
+      VALUES('Y', 'C726FEC915A54A0995C568555DA5BB3C', ?, ?,?, now(), now(), ?, ? ,?,to_number(?),to_number(?),to_number(?)
+      )
+      </Sql>
+      <Parameter name="orgId"/>
+      <Parameter name="createdby"/>
+      <Parameter name="createdby"/>
+      <Parameter name="projectid"/>
+      <Parameter name="projecttaskId"/>
+      <Parameter name="name"/>
+      <Parameter name="marginpercent"/>
+      <Parameter name="shift_qty"/>
+      <Parameter name="employee_qty"/>
+  </SqlMethod>    <SqlMethod name="update"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      UPDATE c_projecttask SET UPDATEDBY=?, margin_percent=to_number(?), shift_qty=to_number(?),
+             employee_qty=to_number(?), istaskcancelled=?
+      WHERE c_projecttask_id = ?
+      </Sql>
+      <Parameter name="updatedby"/>
+      <Parameter name="marginpercent"/>
+      <Parameter name="shift_qty"/>
+      <Parameter name="employee_qty"/>
+      <Parameter name="taskCancelled"/>
+      <Parameter name="projecttaskId"/>
+      </SqlMethod>
+  
+  <SqlMethod name="delete"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       delete from c_projecttask where c_projecttask_id = ?
+    </Sql>
+    <Parameter name="projecttaskId"/>
+  </SqlMethod>
+  <SqlMethod name="isExistingID" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select count(*) from c_projecttask where c_projecttask_id = ?
+    </Sql>
+    <Parameter name="projecttaskId"/>
+  </SqlMethod>
+    <SqlMethod name="getProjectID" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select c_project_id from c_projecttask where c_projecttask_id = ? Limit 1
+    </Sql>
+    <Parameter name="projecttaskId"/>
+  </SqlMethod>
+   <SqlMethod name="getSums" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+    <![CDATA[
+      select sum(coalesce(case when istaskcancelled='Y' then 0 else plannedcost end,0)) as SUMPlannedcost,
+             sum(coalesce(case when istaskcancelled='Y' then 0 else margin end,0)) as SUMMargin,
+             sum(coalesce(case when istaskcancelled='Y' then 0 else sales_price end,0)) as SUMSales_Price,
+             sum(coalesce(case when istaskcancelled='Y' then 0 else shift_qty end ,0)) as SUMShift_Qty,          
+             zspm_price_shift(?) as SUMPrice_Shift,
+             sum(coalesce(case when istaskcancelled='Y' then 0 else employee_qty end,0)) as SUMEmployee_Qty,
+             zspm_price_shift_employee(?) as SUMPrice_Shift_Person
+             from      c_projecttask
+        where c_project_id=(select c_project_id from c_projecttask where C_PROJECTTASK_ID = ?)
+      ]]></Sql>
+      <Parameter name="projecttaskid"/>
+      <Parameter name="projecttaskid"/>
+      <Parameter name="projecttaskid"/>
+  </SqlMethod>
+  </SqlClass>

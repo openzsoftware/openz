@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+<SqlClass name="CDebtpaymentData" package="org.openbravo.erpCommon.ad_process">
+
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT C_DEBT_PAYMENT_ID, AD_CLIENT_ID, AD_ORG_ID, 
+           ISACTIVE, CREATED, CREATEDBY, 
+           UPDATED, UPDATEDBY, ISRECEIPT, 
+           C_SETTLEMENT_CANCEL_ID, C_SETTLEMENT_GENERATE_ID, DESCRIPTION, 
+           C_INVOICE_ID, C_BPARTNER_ID, C_CURRENCY_ID, 
+           C_CASHLINE_ID, C_BANKACCOUNT_ID, C_CASHBOOK_ID, 
+           PAYMENTRULE, ISPAID, AMOUNT, 
+           WRITEOFFAMT, DATEPLANNED, ISMANUAL, 
+           ISVALID, C_BANKSTATEMENTLINE_ID, CHANGESETTLEMENTCANCEL, 
+           CANCEL_PROCESSED, GENERATE_PROCESSED, GLITEMAMT, 
+           ISDIRECTPOSTING, C_GLITEM_ID, STATUS, 
+           STATUS_INITIAL, C_PROJECT_ID, C_ORDER_ID, 
+           ISAUTOMATICGENERATED
+        FROM C_DEBT_PAYMENT
+			  WHERE AD_Client_ID = ?
+      ]]>
+    </Sql>
+    <Parameter name="adClientId"/>
+  </SqlMethod>
+
+  <SqlMethod name="insert" type="preparedStatement" connection="true" return="rowcount" static="false">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        INSERT INTO C_DEBT_PAYMENT (C_DEBT_PAYMENT_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE, CREATED, CREATEDBY, UPDATED, UPDATEDBY, C_BPARTNER_ID, C_CURRENCY_ID, PAYMENTRULE, ISPAID, AMOUNT, DATEPLANNED, ISMANUAL, ISVALID, CHANGESETTLEMENTCANCEL, CANCEL_PROCESSED, GENERATE_PROCESSED, GLITEMAMT, ISDIRECTPOSTING, STATUS, STATUS_INITIAL, C_ORDER_ID) 
+        VALUES ( ?, ?, ?, 'Y', TO_DATE(now()), ?, TO_DATE(now()), ?, ?, ?, ?, ?, TO_NUMBER(?), TO_DATE(?), ?, ?, ?, ?, ?, TO_NUMBER(?), ?, ?, ?, ?)
+      ]]>
+    </Sql>
+    <Parameter name="cDebtPaymentId"/>
+    <Parameter name="adClientId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="createdby"/>
+    <Parameter name="updatedby"/>
+    <Parameter name="cBpartnerId"/>
+    <Parameter name="cCurrencyId"/>
+    <Parameter name="paymentrule"/>
+    <Parameter name="ispaid"/>
+    <Parameter name="amount"/>
+    <Parameter name="dateplanned"/>
+    <Parameter name="ismanual"/>
+    <Parameter name="isvalid"/>
+    <Parameter name="changesettlementcancel"/>
+    <Parameter name="cancelProcessed"/>
+    <Parameter name="generateProcessed"/>
+    <Parameter name="glitemamt"/>
+    <Parameter name="isdirectposting"/>
+    <Parameter name="status"/>
+    <Parameter name="statusInitial"/>
+    <Parameter name="cOrderId"/>
+		</SqlMethod>
+
+</SqlClass>

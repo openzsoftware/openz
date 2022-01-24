@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+<SqlClass name="FilePollingServiceData" package="org.zsoft.ecommerce" accessModifier="public">
+    <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+
+      SELECT s.isoderactive , b.c_bpartner_id, s.zse_shop_id , s.ad_org_id , s.value, s.api,s.apikey , 
+             s.secret, '' as EXTERNALID,'' as parentid,s.ad_language,coalesce(l.languageiso,'de') as lang, 
+             '' as zse_shopdeletelog_id
+        from zse_shop s left join ad_language l on s.ad_language=l.ad_language
+                        left join zse_ecommercegrant b on b.zse_shop_id=s.zse_shop_id
+        where s.isactive='Y' and s.api in ('SANGRO','ATTENDS','EMPORIUM')      
+    </Sql>
+  </SqlMethod>
+  <SqlMethod name="textwithHtmlEscapes" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+     select zssi_2HTMLescapes(?) from dual
+      ]]></Sql>
+    <Parameter name="text"/>  
+  </SqlMethod>
+</SqlClass>

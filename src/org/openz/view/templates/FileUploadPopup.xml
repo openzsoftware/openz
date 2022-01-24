@@ -1,0 +1,174 @@
+<html>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=utf-8">
+<TITLE>@TITLE@</TITLE>
+@SCRIPTSET@
+<SCRIPT language="JavaScript" type="text/javascript" id="selectedColumn">@JSVARS@</SCRIPT>
+
+@ADDITIONALSCRIPTS@
+
+
+<SCRIPT language="JavaScript" type="text/javascript">
+   function closeThisPage() {
+      pageunload();
+      top.close();
+      return true;
+    }
+</SCRIPT>
+
+<SCRIPT language="JavaScript" type="text/javascript">function pageunload() {
+      try {
+        parent.window.opener.setProcessingMode('window', false);
+        parent.window.opener.document.body.style.cursor =  "default";
+      } catch (ignored) {}
+      return true;
+    }
+</SCRIPT>
+<SCRIPT language="JavaScript" type="text/javascript">function onLoadDo(){
+        action = document.forms[0].action;
+        setProcessingMode('popup', false);
+        this.windowTables = new Array(
+           new windowTableId('client', 'buttonok')
+        );
+        setWindowTableParentElement();
+        enableShortcuts('popup');
+        setBrowserAutoComplete(false);
+        onloadFunctions();
+
+}</SCRIPT>
+</HEAD>
+<BODY leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" onload="onLoadDo();" onunload="pageunload();">
+<FORM id="form" method="post" action="ActionButton_Responser.html" name="frmMain"  enctype="multipart/form-data">
+<INPUT type="hidden" name="Command">
+<INPUT type="hidden" name="inpLastFieldChanged">
+<INPUT type="hidden" name="inpwindowId" value="" id="window">
+<INPUT type="hidden" name="IsPopUpCall" value="1">
+<INPUT type="hidden" name="inpkey" value="@KEY@">
+@HIDDENFIELDS@
+<DIV class="Popup_ContentPane_CircleLogo">
+  <DIV class="Popup_WindowLogo">
+    <IMG class="Popup_WindowLogo_Icon Popup_WindowLogo_Icon_process" src="../web/images/blank.gif" border="0/">
+  </DIV>
+</DIV>
+<TABLE cellspacing="0" cellpadding="0" width="100%">
+  <TR>
+    <TD>
+      <TABLE cellspacing="0" cellpadding="0" class="Popup_ContentPane_NavBar">
+        <TR class="Popup_NavBar_bg"><TD></TD>
+          <TD class="Popup_NavBar_separator_cell"></TD>
+          <TD class="Popup_NavBar_bg_logo_left"></TD>
+          <td class="Popup_NavBar_bg_logo" width="1" onclick="openNewBrowser('http://www.openz.de', 'OpenZ');return false;"><img src="../web/images/blank.gif" alt="OpenZ" title="OpenZ" border="0" id="openbravoLogo" class="Main_NavBar_logo_openz"></td>
+          <TD class="Popup_NavBar_bg_logo_right"></TD>
+          <TD class="Popup_NavBar_Popup_title_cell">@TITLE@</TD>
+          <TD class="Popup_NavBar_bg_logo_left"></TD>
+          <TD class="Popup_NavBar_bg_logo" width="1" onclick="openNewBrowser('http://www.openbravo.com', 'Openbravo');return false;"><IMG src="../web/images/blank.gif" alt="Openbravo" title="Openbravo" border="0" id="openbravoLogo" class="Popup_NavBar_logo"></TD>
+          <TD class="Popup_NavBar_bg_logo_right"></TD>          
+          <TD class="Popup_NavBar_separator_cell"></TD>
+        </TR>
+      </TABLE>
+    </TD>
+  </TR>
+  
+  <TR>
+    <TD>
+      <TABLE cellspacing="0" cellpadding="0" class="Popup_ContentPane_SeparatorBar">
+        <TR>
+          <TD class="Popup_SeparatorBar_bg"></TD>
+        </TR>
+      </TABLE>
+    </TD>
+  </TR>
+</TABLE>
+@MESSAGEBOX@
+
+<div class="Popup_ContentPane_Client" style="overflow: auto;" id="client">
+        <table cellspacing="0" cellpadding="0" class="Popup_Client_TablePopup">
+
+          <tr>
+            <td class="TableEdition_OneCell_width"></td>
+            <td class="TableEdition_OneCell_width"></td>
+            <td class="TableEdition_OneCell_width"></td>
+            <td class="TableEdition_OneCell_width"></td>
+          </tr>
+
+          <tr>
+            <td class="TitleCell"><span class="LabelText">@RECLABEL@</span></td>
+            <td class="ContentCell" colspan="2"> <span class="Label_ReadOnly_Text" id="paramRecordIdentifier">@RECID@</span></td>
+            <td></td>
+          </tr>
+          
+          <tr> 
+            <td class="TextBox_ContentCell" colspan="4">
+              <input type="text" style="font-size: 0pt; margin: 0; padding: 0; border:0; width:0px; height:0px;" onfocus="isInputFile=true;" onblur="isInputFile=false;"></input> 
+              <input type="file" @MULTIPLE@ size="250" name="inpname" value="" style="margin-left:-4px; background-color:white; font-size:smaller; height:400px; width:650px; border:1px dashed; margin-bottom:5px;" title="Dropzone" id="editDiscard"></input>
+              <input type="text" style="font-size: 0pt; margin: 0; padding: 0; border:0; width:0px; height:0px;" onfocus="isInputFile=true;" onblur="isInputFile=false;"></input> 
+              
+            </td>
+	    
+	    <td></td>	
+          </tr>
+          
+        
+
+          <tr><td height="20px"></td></tr>
+
+          <tr>
+            <td></td>
+            <td class="Button_RightAlign_ContentCell">
+              <div>
+                <button type="button" 
+                  id="linkButtonSaveRelation" 
+                  class="ButtonLink" 
+                  onclick="submitCommandForm('@COMMAND@', false, null, '@SERVLET@', '_self');return false;" 
+                  onfocus="buttonEvent('onfocus', this); window.status='Save'; return true;" 
+                  onblur="buttonEvent('onblur', this);" 
+                  onkeyup="buttonEvent('onkeyup', this);" 
+                  onkeydown="buttonEvent('onkeydown', this);" 
+                  onkeypress="buttonEvent('onkeypress', this);" 
+                  onmouseup="buttonEvent('onmouseup', this);" 
+                  onmousedown="buttonEvent('onmousedown', this);" 
+                  onmouseover="buttonEvent('onmouseover', this); window.status='Save'; return true;" 
+                  onmouseout="buttonEvent('onmouseout', this);">
+                  <table class="Button">
+                    <tr>
+                      <td class="Button_left"><img class="Button_Icon Button_Icon_save" alt="Save" title="Save" src="../web/images/blank.gif" border="0" /></td>
+                      <td class="Button_text Button_width">Save</td>
+                      <td class="Button_right"></td>
+                    </tr>
+                  </table>
+                </button>
+              </div>
+            </td>
+            <td class="Button_LeftAlign_ContentCell">
+              <div>
+                <button type="button" 
+                  id="buttonCancel" 
+                  class="ButtonLink" 
+                  onclick="top.close();" 
+                  onfocus="buttonEvent('onfocus', this); window.status='Cancel'; return true;" 
+                  onblur="buttonEvent('onblur', this);" 
+                  onkeyup="buttonEvent('onkeyup', this);" 
+                  onkeydown="buttonEvent('onkeydown', this);" 
+                  onkeypress="buttonEvent('onkeypress', this);" 
+                  onmouseup="buttonEvent('onmouseup', this);" 
+                  onmousedown="buttonEvent('onmousedown', this);" 
+                  onmouseover="buttonEvent('onmouseover', this); window.status='Cancel'; return true;" 
+                  onmouseout="buttonEvent('onmouseout', this);">
+                  <table class="Button">
+                    <tr>
+                      <td class="Button_left"><img class="Button_Icon Button_Icon_cancel" alt="Cancel" title="Cancel" src="../web/images/blank.gif" border="0" /></td>
+                      <td class="Button_text Button_width">Cancel</td>
+                      <td class="Button_right"></td>
+                    </tr>
+                  </table>
+                </button>
+              </div>
+            </td>
+            <td></td>
+          </tr>
+
+        </table>
+    </div>
+
+</FORM>
+</BODY></html>

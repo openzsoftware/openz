@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/*
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2013 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+*/-->
+
+
+
+
+
+<SqlClass name="DoProductionData" package="org.openz.pdc.controller" accessModifier="public">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="selectupper" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    Select '' as serialnumber,'' as lotnumber, '' as retval,'' as barcode,'' as type,'' as id, '' as mess,'' as ad_message_value,'' as m_product_id ,'' as trxqty,'' as m_internal_consumptionline_id,f.wsbomid, zssi_getproductnamewithvalue(f.m_product_id_out,?) as product,l.value as locator,f.issuing_locator_out as m_locator_id ,f.outtype,f.m_product_id_out,f.returnquantity
+           from pdc_PFeedbackUpperGrid(?,?,?) f left join m_locator l on f.issuing_locator_out=l.m_locator_id
+    </Sql>
+    <Parameter name="language"/>
+    <Parameter name="workstepid"/>
+    <Parameter name="pconsumptionid"/>
+    <Parameter name="dconsumptionid"/>
+  </SqlMethod>
+    <SqlMethod name="selectlower" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    Select f.m_internal_consumptionline_id,zssi_getproductnamewithvalue(f.m_product_id,?) as product,l.value as locator,f.m_locator_id,'PROD' as outtype,f.movementqty as trxqty,
+           snr.serialnumber,snr.lotnumber
+           from m_internal_consumptionline f left join  m_locator l on  f.m_locator_id=l.m_locator_id
+                left join snr_internal_consumptionline snr on f.m_internal_consumptionline_id=snr.m_internal_consumptionline_id
+           where f.m_internal_consumption_id=?
+    union all
+    Select f.m_internal_consumptionline_id,zssi_getproductnamewithvalue(f.m_product_id,?) as product,l.value as locator,f.m_locator_id,'MAT' as outtype,f.movementqty as trxqty,
+           snr.serialnumber,snr.lotnumber
+           from m_internal_consumptionline f left join m_locator l on  f.m_locator_id=l.m_locator_id
+                left join snr_internal_consumptionline snr on f.m_internal_consumptionline_id=snr.m_internal_consumptionline_id
+           where f.m_internal_consumption_id=?
+    </Sql>
+    <Parameter name="language"/>
+    <Parameter name="pconsumptionid"/>
+    <Parameter name="language"/>
+    <Parameter name="dconsumptionid"/>
+  </SqlMethod>
+  <SqlMethod name="getAssemblyProductFromWorkstep" type="preparedStatement" return="string">
+      <Sql>
+        SELECT case assembly when 'Y' then coalesce(m_product_id,'')  else '' end  as m_product_id from c_projecttask where c_projecttask_id = ?
+      </Sql>
+      <Parameter name="cProjecttaskId"/>
+   </SqlMethod>
+   <SqlMethod name="isProductionPlannedSerialPossible" type="preparedStatement" return="string">
+      <Sql>
+        SELECT pdc_isProductionPlannedSerialPossible(?,?) as retval from dual
+      </Sql>
+      <Parameter name="cProjecttaskId"/>
+      <Parameter name="plannedserial"/>
+   </SqlMethod>
+   <SqlMethod name="getQty" type="preparedStatement" return="string">
+      <Sql>
+        SELECT returnquantity from pdc_PFeedbackUpperGrid(?,?,?) where m_product_id_out=? and coalesce(issuing_locator_out,?) = ?
+      </Sql>
+      <Parameter name="workstepid"/>
+      <Parameter name="pconsumptionid"/>
+      <Parameter name="dconsumptionid"/>
+      <Parameter name="mProductId"/>
+      <Parameter name="mLocatorId"/>
+      <Parameter name="mLocatorId"/>
+   </SqlMethod>
+   <SqlMethod name="getLocator" type="preparedStatement" return="string">
+      <Sql>
+        SELECT issuing_locator from c_projecttask where c_projecttask_id=?
+      </Sql>
+      <Parameter name="workstepid"/>
+   </SqlMethod>
+   <SqlMethod name="getTrxQty" type="preparedStatement" return="string">
+      <Sql>
+        SELECT coalesce(sum(movementqty),0)  as trxqty from m_internal_consumptionline
+        where m_internal_consumption_id in (?,?) and m_product_id=? and m_locator_id = ?
+      </Sql>
+      <Parameter name="pconsumptionid"/>
+      <Parameter name="dconsumptionid"/>
+      <Parameter name="mProductId"/>
+      <Parameter name="mLocatorId"/>
+   </SqlMethod>
+   <SqlMethod name="isWorkstepProduced" type="preparedStatement" return="string">
+      <Sql>
+        SELECT case when count(*)>0 then 'Y' else 'N' end as retval from m_internal_consumptionline cl
+        where cl.c_projecttask_id = ? and exists
+        (select 0 from m_internal_consumption c 
+        where cl.m_internal_consumption_id=c.m_internal_consumption_id
+              and processed='Y' and movementtype='P+')
+      </Sql>
+      <Parameter name="workstepid"/>
+   </SqlMethod>
+   
+   <SqlMethod name="isMovingWorkstep" type="preparedStatement" return="string">
+      <Sql>
+        SELECT case when count(*)=1 then 'Y' else 'N' end as retval from c_projecttask t,zspm_projecttaskbom b
+        where t.c_projecttask_id = ? and t.assembly='N' and t.c_projecttask_id=b.c_projecttask_id
+      </Sql>
+      <Parameter name="workstepid"/>
+   </SqlMethod>
+   <SqlMethod name="getQtyProduced" type="preparedStatement" return="string" >
+      <Sql>
+        SELECT zssi_strQuantityNumber(sum(movementqty),?) as retval from m_internal_consumptionline 
+        where m_internal_consumption_id = ? 
+      </Sql>
+      <Parameter name="lang"/>
+      <Parameter name="prodpid"/>
+   </SqlMethod>
+   <SqlMethod name="adjustPassingworkstepQtys" type="preparedStatement" return="string" >
+      <Sql>
+        SELECT pdc_adjustpassingworkstepqtys(?,to_number(?),?) from dual
+      </Sql>
+      <Parameter name="workstepid"/>
+      <Parameter name="qty"/>
+      <Parameter name="internalconsumptionid"/>
+   </SqlMethod>
+   <SqlMethod name="getLocatorProduced" type="preparedStatement" return="string" >
+      <Sql>
+        select max(l.value) as ret from m_locator l,m_internal_consumptionline m where  l.m_locator_id=m.m_locator_id and m_internal_consumption_id = ? 
+      </Sql>
+      <Parameter name="prodpid"/>
+   </SqlMethod>
+   <SqlMethod name="IsWSFinishedProd" type="preparedStatement" return="string" >
+      <Sql>
+        SELECT case when qty-qtyproduced=0 then 'Y' else 'N' end  as retval from c_projecttask
+        where c_projecttask_id = ? 
+      </Sql>
+      <Parameter name="workstepId"/>
+   </SqlMethod>
+   <SqlMethod name="getMovingWorkstepProduct" type="preparedStatement" return="multiple">
+      <Sql>
+        SELECT b.issuing_locator as m_locator_id,b.m_product_id  from c_projecttask t,zspm_projecttaskbom b
+        where t.c_projecttask_id = ? and t.assembly='N' and t.c_projecttask_id=b.c_projecttask_id and b.consumption='N'
+      </Sql>
+      <Parameter name="workstepid"/>
+   </SqlMethod>
+   <SqlMethod name="getMovingWorkstepIssuingLoc" type="preparedStatement" return="string">
+      <Sql>
+        SELECT b.issuing_locator as retval from c_projecttask t,zspm_projecttaskbom b
+        where t.c_projecttask_id = ? and t.assembly='N' and t.c_projecttask_id=b.c_projecttask_id
+      </Sql>
+      <Parameter name="workstepid"/>
+   </SqlMethod>
+   <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+   </SqlMethod>
+   
+  </SqlClass>

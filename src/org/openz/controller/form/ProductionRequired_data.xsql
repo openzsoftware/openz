@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, 2011, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+*                 
+* 
+****************************************************************************************************************************************************/
+-->
+
+<SqlClass name="ProductionRequiredData" package="org.openz.controller.form">
+<SqlMethod name="select" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+  <Sql>
+  SELECT '' AS AD_CLIENT_ID,
+               '' AS AD_ORG_ID,
+               '' AS CREATED,
+               '' AS CREATEDBY,
+               '' AS UPDATED,
+               '' AS UPDATEDBY,
+               '' AS ISACTIVE,
+               '' AS ZSSM_PRODUCTIONREQUIRED_V_ID,
+               '' AS M_PRODUCT_ID,
+               '' AS m_attributesetinstance_id,
+               '' AS PRODUCT,
+               '' AS NEEDBYDATE,
+               '' AS LATESTSTARTDATE,
+               '' AS REQUIREDQTY,
+               '' AS CAUSE,
+               '' AS QTY,
+               '' AS STARTDATE      ,
+               '' as  dependentstartdate,
+               '' as movementqty,
+               '' as currOnhandQty,
+               '' as causetext,
+               '' as lottext
+</Sql>
+  </SqlMethod> 
+  <SqlMethod name="selectgrid" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+  <Sql>
+  SELECT       AD_CLIENT_ID,
+               AD_ORG_ID,
+               CREATED,
+               CREATEDBY,
+               UPDATED,
+               UPDATEDBY,
+               ISACTIVE,
+               ZSSM_PRODUCTIONREQUIRED_V_ID,
+               zssi_getproductname(M_PRODUCT_ID,?) as PRODUCT,
+               m_attributesetinstance_id,
+               NEEDBYDATE,
+               LATESTSTARTDATE,
+			   REQUIREDQTY,
+			   movementqty as QTY,
+			   LATESTSTARTDATE as STARTDATE,
+			   dependentstartdate,
+			   currOnhandQty,
+			   m_product_id,
+               zssi_getElementTextByColumname(CAUSE,?) as CAUSE ,
+               zssi_getElementTextByColumname(CAUSETEXT,?) as CAUSETEXT     ,
+               lottext
+      FROM ZSSM_PRODUCTIONREQUIRED_V
+       where 1=1
+       AND 2=2 
+       AND 3=3 
+       AND 4=4 
+       AND ad_org_id = ?
+       order by value,NEEDBYDATE
+    </Sql>
+       <Parameter name="language"/>
+       <Parameter name="language"/>
+       <Parameter name="language"/>
+      <Parameter name="parProduct" optional="true" after="where 1=1"><![CDATA[ AND ZSSM_PRODUCTIONREQUIRED_V.M_PRODUCT_ID = TO_CHAR(?)]]></Parameter>
+      <Parameter name="parDateFrom" optional="true" after="AND 3=3"><![CDATA[ AND coalesce(ZSSM_PRODUCTIONREQUIRED_V.dependentstartdate,ZSSM_PRODUCTIONREQUIRED_V.lateststartdate) >= TO_DATE(?)]]></Parameter>
+      <Parameter name="parDateTo" optional="true" after="AND 4=4"><![CDATA[ AND coalesce(ZSSM_PRODUCTIONREQUIRED_V.dependentstartdate,ZSSM_PRODUCTIONREQUIRED_V.lateststartdate) < TO_DATE(?)]]></Parameter>
+     <Parameter name="adOrgId"/>
+      </SqlMethod> 
+  <SqlMethod name="treeOrg" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT AD_TREE_ORG_ID FROM AD_CLIENTINFO
+        WHERE AD_CLIENT_ID = ?
+    </Sql>
+    <Parameter name="client"/>
+  </SqlMethod>
+  <SqlMethod name="insert" connection="true" type="preparedStatement" return="rowCount">
+      <SqlMethodComment></SqlMethodComment>
+  <Sql>
+  INSERT INTO ZSSM_PRODUCTIONRUN   (ZSSM_PRODUCTIONRUN_ID,AD_CLIENT_ID,AD_ORG_ID,ISACTIVE,CREATED,CREATEDBY,UPDATED,UPDATEDBY,REQUIREDQTY,NEEDBYDATE,M_PRODUCT_ID,ISAUTOTRIGGERED,PINSTANCE,cause,enddate,m_attributesetinstance_id,productionplan_id)
+  VALUES                           (?           , ?          , ?       , 'Y'    , NOW() , ?       ,NOW()  , ?      ,TO_NUMBER(?),TO_DATE(?), ?          , 'N',?    ,?  ,to_date(?),? ,
+                                   (select  zssm_productionplan_v_id from   zssm_getproductionplanofproduct(?,?) limit 1)  )
+    </Sql>
+       <Parameter name="PrunID"/>
+       <Parameter name="adClientId"/>
+       <Parameter name="adOrgId"/>
+       <Parameter name="createdby"/>
+       <Parameter name="updatedby"/>
+       <Parameter name="qty"/>
+       <Parameter name="startdate"/>
+       <Parameter name="product"/>
+       <Parameter name="pinstance"/>
+       <Parameter name="cause"/>
+       <Parameter name="enddate"/>
+       <Parameter name="attribute"/>
+       <Parameter name="product"/>
+       <Parameter name="adOrgId"/>
+      </SqlMethod> 
+      <SqlMethod name="productionrun" type="preparedStatement" connection="true" return="string">
+      <Sql>
+        SELECT zssm_productionrun(?)
+      </Sql>
+      <Parameter name="pInstanceId"/>
+   </SqlMethod>
+   <SqlMethod name="deleteerror" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      DELETE FROM ZSSM_PRODUCTIONRUN where c_project_id is null and pinstance = ?
+    </Sql>
+    <Parameter name="pInstanceID"/>
+  </SqlMethod>
+  <SqlMethod name="deleteonload" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      DELETE FROM zssm_manualproduction
+    </Sql>
+  </SqlMethod>
+  <SqlMethod name="selectdependent" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      select count(*) from ZSSM_PRODUCTIONRUN where c_project_id is null and pinstance = ?
+    </Sql>
+    <Parameter name="pInstanceID"/>
+  </SqlMethod>
+  <SqlMethod name="insertmanual" connection="true" type="preparedStatement" return="rowCount">
+	<Sql>
+	  INSERT INTO zssm_manualproduction   (zssm_manualproduction_ID,AD_CLIENT_ID,AD_ORG_ID,CREATED,CREATEDBY,UPDATED,UPDATEDBY,QTY,M_PRODUCT_ID,M_WAREHOUSE_ID,m_attributesetinstance_id)
+	  VALUES                           (get_uuid()           , ?          , ?           , NOW() , ?       ,NOW()  , ?      ,TO_NUMBER(?),?,?,? )
+    </Sql>
+       <Parameter name="adClientId"/>
+       <Parameter name="adOrgId"/>
+       <Parameter name="createdby"/>
+       <Parameter name="updatedby"/>
+       <Parameter name="qty"/>
+       <Parameter name="product"/>
+       <Parameter name="warehouse"/>
+       <Parameter name="attribute"/>
+  </SqlMethod> 
+ </SqlClass>

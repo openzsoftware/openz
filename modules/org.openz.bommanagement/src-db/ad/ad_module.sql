@@ -1,0 +1,1 @@
+19AD0E731F3440E1855E8216A8F6A6AB	0	0	Y	2015-03-25 10:29:36.393816	100	2015-04-13 09:29:03.135716	100	BOM Management	1.0.0	Management and Manipulation of BOM	\N	\N	M	\N	N	N	0	org.openz.bommanagement	MPL1.1	OpenZ 2015\r\n	A	\N	Y	en_US	N	N	N	\N	\N	\N	1.0.0.1	\N	N	N	0

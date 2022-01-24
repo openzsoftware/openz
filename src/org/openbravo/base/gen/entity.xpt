@@ -1,0 +1,175 @@
+«IMPORT org::openbravo::base::model»
+ 
+«EXTENSION org::openbravo::base::gen::gen_util» 
+ 
+«DEFINE EntityTemplate FOR Entity»
+	«FILE classFileName(this)-»
+/*
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2008-2009 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+*/
+
+package «packageName»;
+
+/** 
+ * Entity class for entity «name» (stored in table «tableName»).
+ *
+ * NOTE: This class should not be instantiated directly. To instantiate this
+ * class the {@link org.openbravo.base.provider.OBProvider} should be used. 
+ */
+public class «simpleClassName» extends org.openbravo.base.structure.BaseOBObject «implementsStatement» {
+
+    private static final long serialVersionUID = 1L;
+
+	public final static String TABLE_NAME = "«tableName»";
+	public final static String ENTITY_NAME = "«name»";
+	«FOREACH properties AS p-»
+	public final static String PROPERTY_«((Property)p).name.toUpperCase()» = "«((Property)p).name»";
+	«ENDFOREACH-»
+	
+	public «simpleClassName»() {
+	«FOREACH properties AS p-»
+		«IF ((Property)p).hasDefaultValue()-»
+			setDefaultValue(PROPERTY_«((Property)p).name.toUpperCase()»,  «((Property)p).formattedDefaultValue»);
+		«ENDIF-»
+	«ENDFOREACH-»
+	}
+	
+    @Override
+	public String getEntityName() {
+		return ENTITY_NAME;
+	}
+	
+	«FOREACH properties AS p-»
+	«IF !((Property)p).oneToMany»
+	«IF ((Property)p).name.matches("Id") -»
+    @Override
+    «ENDIF-»
+	public «((Property)p).typeName» «getter((Property)p)»() {
+	«IF ((Property)p).partOfCompositeId-»
+		return ((Id)getId()).«getter((Property)p)»();
+	«ELSE-»
+		return («((Property)p).typeName»)get(PROPERTY_«((Property)p).name.toUpperCase()»);
+	«ENDIF-»
+	}
+	
+	«IF ((Property)p).name.matches("Id") -»
+    @Override
+    «ENDIF-»
+	public void set«((Property)p).getterSetterName.toFirstUpper()»(«((Property)p).typeName» «((Property)p).javaName») {
+	«IF ((Property)p).partOfCompositeId-»
+		((Id)getId()).set«((Property)p).getterSetterName.toFirstUpper()»(«((Property)p).javaName»);
+	«ELSE-»
+		set(PROPERTY_«((Property)p).name.toUpperCase()», «((Property)p).javaName»);
+	«ENDIF-»
+	}
+	«ENDIF»
+	«ENDFOREACH-»
+	
+	«FOREACH properties AS p-»
+	«IF ((Property)p).oneToMany-»
+	@SuppressWarnings("unchecked")
+	public java.util.List<«((Property)p).targetEntity.className»> get«((Property)p).name.toFirstUpper()»() {
+		return (java.util.List<«((Property)p).targetEntity.className»>) get(PROPERTY_«((Property)p).name.toUpperCase()»);
+	}
+	
+	public void set«((Property)p).getterSetterName.toFirstUpper()»(java.util.List<«((Property)p).targetEntity.className»> «((Property)p).name») {
+		set(PROPERTY_«((Property)p).name.toUpperCase()», «((Property)p).name»);
+	}
+	«ENDIF»
+	«ENDFOREACH»
+
+	«IF hasCompositeId()»
+	public static class Id implements java.io.Serializable {
+	    private static final long serialVersionUID = 1L;
+
+		«FOREACH properties AS p-»
+		«IF ((Property)p).partOfCompositeId-»
+		«IF ((Property)p).hasDefaultValue()»
+		private «((Property)p).typeName» «((Property)p).javaName» = «((Property)p).formattedDefaultValue»;
+		«ELSE-»
+		private «((Property)p).typeName» «((Property)p).javaName»;
+		«ENDIF-»
+		«ENDIF-»
+		«ENDFOREACH-»
+
+		«FOREACH properties AS p-»
+		«IF ((Property)p).partOfCompositeId-»
+		public «((Property)p).typeName» «getter((Property)p)»() {
+			return «((Property)p).javaName»;
+		}
+		
+		public void set«((Property)p).getterSetterName.toFirstUpper()»(«((Property)p).typeName» «((Property)p).javaName») {
+			this.«((Property)p).javaName» = «((Property)p).javaName»;
+		}
+		«ENDIF»
+		«ENDFOREACH-»
+		
+	    public boolean equals(Object obj) {
+			if (this == obj) {
+    			return true;
+			}
+			if (!(obj instanceof Id)) {
+				return false;
+			}
+			final Id otherId = (Id)obj;
+		«FOREACH properties AS p-»
+		«IF ((Property)p).partOfCompositeId-»
+			if (!areEqual(«getter((Property)p)»(), otherId.«getter((Property)p)»())) {
+				return false;
+			} 
+		«ENDIF»
+		«ENDFOREACH-»
+			return true;
+		}
+
+		// hashCode assumes that keys can not change!
+    	public int hashCode() {
+    		int result = 0;
+    		«FOREACH properties AS p-»
+			«IF ((Property)p).partOfCompositeId-»
+			if («getter((Property)p)»() != null) {
+				result +=«getter((Property)p)»().hashCode(); 
+			}
+			«ENDIF-»
+			«ENDFOREACH-»
+    		
+    		if (result == 0) {
+    			return super.hashCode();
+    		}
+    		return result;
+    	}
+
+		private boolean areEqual(Object v1, Object v2) {
+			if (v1 == null || v2 == null) {
+				return v1 == v2;
+			}
+			return v1.equals(v2);
+		}		
+	}
+	«ENDIF»
+}
+	«ENDFILE»
+«ENDDEFINE»
+
+# this define is there to get rid of the error
+# displayed by the editor because for the 
+# statement EXPAND Entity FOREACH model
+# it can determine the type for model
+«DEFINE EntityTemplate FOR Object»
+«ENDDEFINE»
+ 

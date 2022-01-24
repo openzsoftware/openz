@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2012 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+
+
+<SqlClass name="FormhelperData" package="org.openz.view" accessModifier="public">
+
+   <SqlMethod name="select" type="preparedStatement" return="multiple">
+      <Sql>
+        select '' as fieldgroupid, pad_element_id as ad_element_id,'' as AD_REF_RADIOGROUP_ID, 
+                '' as AD_CLIENT_ID,'' as  AD_ORG_ID, '' as CREATEDBY, '' as UPDATEDBY,'' as value,'' as selectorcolumnsuffix,'' as selectorcolumnname,
+                '' as  translation,pfieldreference as fieldreference,pislinebreak as islinebreak,pAD_REF_FIELDCOLUMN_ID as AD_REF_FIELDCOLUMN_ID,
+                pname as name,pname2 as name2,pTEMPLATE as TEMPLATE,pREFERENCEURL as REFERENCEURL,ponchangeevent as onchangeevent,pAD_TABLE_ID as AD_TABLE_ID,
+                pCOLSTOTAL as COLSTOTAL, pMAXLENGTH as MAXLENGTH, pleadingemptycols as leadingemptycols, pBUTTONCLASS as BUTTONCLASS,
+                pincludesemptyitem as includesemptyitem,pAD_ValRule_ID as AD_Val_Rule_ID, pstyle as style,pline as line,pdefaultvalue as defaultvalue
+            from ad_selectfieldgroupfields(?)
+            order by line 
+      </Sql>
+      <Parameter name="referenceid"/>
+   </SqlMethod>   
+   <SqlMethod name="selectProcessParameter" type="preparedStatement" return="multiple">
+      <Sql>
+          <![CDATA[
+            select  '' as fieldgroupid,'' as ad_element_id,ptranslation as  translation,pfieldreference as fieldreference,pislinebreak as islinebreak,pAD_REF_FIELDCOLUMN_ID as AD_REF_FIELDCOLUMN_ID,
+                pname as name,pname2 as name2,pTEMPLATE as TEMPLATE,pREFERENCEURL as REFERENCEURL,ponchangeevent as onchangeevent,pAD_TABLE_ID as AD_TABLE_ID,
+                pCOLSTOTAL as COLSTOTAL, pMAXLENGTH as MAXLENGTH, pleadingemptycols as leadingemptycols, pBUTTONCLASS as BUTTONCLASS,
+                pincludesemptyitem as includesemptyitem,pAD_ValRule_ID as AD_Val_Rule_ID, pstyle as style,pline as line,'' as defaultvalue
+            from ad_selectprocessfields(?,?)
+            order by line
+          ]]>
+      </Sql>
+      <Parameter name="language"/>
+      <Parameter name="processId"/>
+   </SqlMethod>   
+   <SqlMethod name="selectTabFields" type="preparedStatement" return="multiple">
+      <Sql>
+          <![CDATA[
+               select pfieldgroupid as fieldgroupid,'' as ad_element_id,ptranslation as  translation,pfieldreference as fieldreference,pislinebreak as islinebreak,pAD_REF_FIELDCOLUMN_ID as AD_REF_FIELDCOLUMN_ID,
+                pname as name,pname2 as name2,pTEMPLATE as TEMPLATE,pREFERENCEURL as REFERENCEURL,ponchangeevent as onchangeevent,pAD_TABLE_ID as AD_TABLE_ID,
+                pCOLSTOTAL as COLSTOTAL, pMAXLENGTH as MAXLENGTH, pleadingemptycols as leadingemptycols, pBUTTONCLASS as BUTTONCLASS,
+                pincludesemptyitem as includesemptyitem,pAD_ValRule_ID as AD_Val_Rule_ID, pstyle as style,pline as line,'' as defaultvalue
+            from ad_selecttabfields(?,?)
+            order by line 
+          ]]>
+      </Sql>
+      <Parameter name="language"/>
+      <Parameter name="tabid"/>
+   </SqlMethod>  
+   <SqlMethod name="ad_selecttabBuscadorFields" type="preparedStatement" return="multiple">
+      <Sql>
+          <![CDATA[
+               select '' as fieldgroupid,'' as ad_element_id,ptranslation as  translation,pfieldreference as fieldreference,pislinebreak as islinebreak,pAD_REF_FIELDCOLUMN_ID as AD_REF_FIELDCOLUMN_ID,
+                pname as name,pname2 as name2,pTEMPLATE as TEMPLATE,'' as REFERENCEURL,'' as onchangeevent,pAD_TABLE_ID as AD_TABLE_ID,
+                pCOLSTOTAL as COLSTOTAL, pMAXLENGTH as MAXLENGTH, '0' as leadingemptycols, '' as BUTTONCLASS,
+                'Y' as includesemptyitem,pAD_ValRule_ID as AD_Val_Rule_ID, pstyle as style,pline as line,'' as defaultvalue
+            from ad_selecttabBuscadorFields(?,?,?,?)
+            order by line 
+          ]]>
+      </Sql>
+      <Parameter name="language"/>
+      <Parameter name="tabid"/>
+      <Parameter name="isAudit"/>
+       <Parameter name="isDirectFilter"/>
+   </SqlMethod>  
+   
+   <SqlMethod name="selectRadiogroup" type="preparedStatement" return="multiple">
+      <Sql>
+        select a.AD_REF_RADIOGROUP_ID, a.AD_CLIENT_ID, a.AD_ORG_ID, a.CREATEDBY, a.UPDATEDBY, 
+        coalesce(i.NAME,a.name) as name, coalesce(i.LINE,a.line) as line,coalesce(i.value,a.value) as value
+        from ad_ref_radiogroup a
+        left join ad_ref_radiogroup_instance i on i.AD_REF_RADIOGROUP_ID=a.AD_REF_RADIOGROUP_ID and i.isactive='Y'
+        where a.AD_REF_FIELDCOLUMN_ID = ? and a.isactive='Y'
+        order by line
+      </Sql>
+      <Parameter name="reffieldid"/>
+   </SqlMethod>
+   <SqlMethod name="getReferenceColumns" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  coalesce(r.columns,i.columns) as columns  
+        from ad_reference r left join ad_referenceinstance i on i.ad_reference_id=r.ad_reference_id AND i.isactive='Y'
+        where r.ad_reference_id= ?
+      </Sql>
+      <Parameter name="referenceid"/>
+   </SqlMethod>
+   <SqlMethod name="getStdEditionToolbar" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  ad_toolbar_id  from ad_toolbar where value='STDEDITION'
+      </Sql>
+   </SqlMethod>
+   <SqlMethod name="getStdRelationToolbar" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  ad_toolbar_id  from ad_toolbar where value='STDRELATION'
+      </Sql>
+   </SqlMethod>
+   <SqlMethod name="getFormToolbar" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  ad_toolbar_id  from ad_form,ad_model_object where ad_model_object.ad_form_id=ad_form.ad_form_id and ad_model_object.classname= ? and ad_form.isactive='Y'
+      </Sql>
+       <Parameter name="formClassname"/>
+   </SqlMethod>
+   <SqlMethod name="getTabEditionToolbar" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  ad_editiontoolbar  from ad_tab,ad_model_object where ad_model_object.ad_tab_id=ad_tab.ad_tab_id and ad_model_object.classname= ? and ad_tab.isactive='Y'
+      </Sql>
+       <Parameter name="tabClassname"/>
+   </SqlMethod>
+   <SqlMethod name="getTabRelationToolbar" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  ad_relationtoolbar  from ad_tab,ad_model_object where ad_model_object.ad_tab_id=ad_tab.ad_tab_id and ad_model_object.classname= ? and ad_tab.isactive='Y'
+      </Sql>
+       <Parameter name="tabClassname"/>
+   </SqlMethod>
+   <SqlMethod name="getLeftTabsMode4Tab" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  lefttabsmode  from ad_tab,ad_model_object where ad_model_object.ad_tab_id=ad_tab.ad_tab_id and ad_model_object.classname= ? and ad_tab.isactive='Y'
+      </Sql>
+       <Parameter name="tabClassname"/>
+   </SqlMethod>
+   <SqlMethod name="getWindowId" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_tab.ad_window_id  from ad_window,ad_tab,ad_model_object where ad_model_object.ad_tab_id=ad_tab.ad_tab_id and ad_tab.ad_window_id=ad_window.ad_window_id and ad_model_object.classname= ?
+      </Sql>
+       <Parameter name="tabClassname"/>
+   </SqlMethod>
+   <SqlMethod name="getTabId" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_tab_id  from ad_model_object where  ad_model_object.classname= ?
+      </Sql>
+       <Parameter name="tabClassname"/>
+   </SqlMethod>
+   <SqlMethod name="getFieldgroupname" type="preparedStatement" return="string">
+      <Sql>
+        SELECT name  from ad_fieldgroup where  ad_fieldgroup_id= ?
+      </Sql>
+       <Parameter name="fieldgroupid"/>
+   </SqlMethod>
+   <SqlMethod name="isFieldgrouphidden" type="preparedStatement" return="string">
+      <Sql>
+        SELECT onloadhidden from ad_fieldgroup where  ad_fieldgroup_id= ?
+      </Sql>
+       <Parameter name="fieldgroupid"/>
+   </SqlMethod>
+   
+   <SqlMethod name="getKeyColumnName" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_column.columnname  from ad_column,ad_tab,ad_model_object 
+        where ad_model_object.ad_tab_id=ad_tab.ad_tab_id
+        and ad_tab.ad_table_id=ad_column.ad_table_id 
+        and iskey='Y' and ad_model_object.classname= ?
+      </Sql>
+       <Parameter name="tabClassname"/>
+   </SqlMethod>
+   <SqlMethod name="getFocusField" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_TabGetFirstFocusField(?)
+      </Sql>
+       <Parameter name="adTabId"/>
+   </SqlMethod>
+   <SqlMethod name="getTableId" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_table_id  from ad_tab,ad_model_object 
+        where ad_model_object.ad_tab_id=ad_tab.ad_tab_id
+        and ad_model_object.classname= ?
+      </Sql>
+       <Parameter name="tabClassname"/>
+   </SqlMethod>
+   <SqlMethod name="getMappingRelation" type="preparedStatement" return="string">
+      <Sql>
+        SELECT mappingname  from ad_model_object_mapping ,ad_model_object 
+        where ad_model_object.ad_model_object_id=ad_model_object_mapping.ad_model_object_id
+        and ad_model_object.classname= ?
+        and ad_model_object_mapping.mappingname like '%Relation.html'
+      </Sql>
+       <Parameter name="tabClassname"/>
+   </SqlMethod>
+   <SqlMethod name="getMapping" type="preparedStatement" return="string">
+      <Sql>
+        SELECT mappingname  from ad_model_object_mapping ,ad_model_object 
+        where ad_model_object.ad_model_object_id=ad_model_object_mapping.ad_model_object_id
+        and ad_model_object.classname= ?
+        LIMIT 1
+      </Sql>
+       <Parameter name="tabClassname"/>
+   </SqlMethod>
+   <SqlMethod name="getHiddenSelectorColumns" type="preparedStatement" return="multiple">
+      <Sql>
+        SELECT c.columnname as selectorcolumnname ,sc.column_suffix as  selectorcolumnsuffix 
+        from  ad_column c,ad_ref_search_column sc,ad_ref_search rs,ad_reference r
+        where r.ad_reference_id=rs.ad_reference_id and rs.ad_ref_search_id=sc.ad_ref_search_id
+        and c.ad_column_id=rs.ad_column_id and sc.columntype='O' and sc.column_suffix is not null
+        and r.ad_reference_id= ? 
+      </Sql>
+       <Parameter name="selectorRefId"/>
+   </SqlMethod>
+</SqlClass>

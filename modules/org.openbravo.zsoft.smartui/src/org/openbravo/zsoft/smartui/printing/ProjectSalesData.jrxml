@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2016-10-24T12:19:47 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ProjectSalesCalculationEmployees" language="groovy" pageWidth="842" pageHeight="585" whenNoDataType="AllSectionsNoDetail" columnWidth="842" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" whenResourceMissingType="Key" uuid="f26e7d2b-5c22-468f-a10d-1ef838e1bbb7">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="steuermann.xml"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="C_PROJECT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DOCUMENT_ID" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select 
+zssi_getElementTextByColumname('Pos.',$P{LANGUAGE}) as posh,
+zssi_getElementTextByColumname('Name',$P{LANGUAGE}) as nameh,
+zssi_getElementTextByColumname('Total Cost',$P{LANGUAGE}) as tch,
+zssi_getElementTextByColumname('Margin_Percent',$P{LANGUAGE}) as margper,
+zssi_getElementTextByColumname('MarginAmt',$P{LANGUAGE}) as margamt,
+zssi_getElementTextByColumname('Sales_Price',$P{LANGUAGE}) as salesprice,
+zssi_getElementTextByColumname('Shift_Qty',$P{LANGUAGE}) as shqty,
+zssi_getElementTextByColumname('Price_Shift',$P{LANGUAGE}) as prishft,
+zssi_getElementTextByColumname('Reactor Entry Technician',$P{LANGUAGE}) as ret,
+zssi_getElementTextByColumname('Price/Shift/RET',$P{LANGUAGE}) as priceret,
+p.c_project_id, p.c_projecttask_id, row_number() OVER (ORDER BY p.created) as seqno,p.created,
+      p.name,
+p.plannedcost , p.margin_percent, p.margin,p.sales_price, p.shift_qty, p.price_shift,  p.employee_qty, p.price_shift_person,
+ to_char(zssi_strnumber(      p.plannedcost,$P{LANGUAGE})) as plannedcostt,
+ to_char( zssi_strnumber(        p.margin_percent,$P{LANGUAGE})) as margin_percentt,
+ to_char( zssi_strnumber(        p.margin,$P{LANGUAGE})) as margint,
+ to_char( 	zssi_strnumber(p.sales_price,$P{LANGUAGE}) ) as sales_pricet,
+ to_char( zssi_strnumber(        p.shift_qty,$P{LANGUAGE})) as shift_qtyt,
+ to_char( zssi_strnumber(        p.price_shift,$P{LANGUAGE})) as price_shiftt,
+ to_char( zssi_strnumber(        p.employee_qty,$P{LANGUAGE})) as employee_qtyt,
+ to_char( zssi_strnumber(        p.price_shift_person,$P{LANGUAGE})) as price_shift_persont,
+      zssi_getElementTextByColumname('TOTALh',$P{LANGUAGE}) as TOTALh
+             from      c_projecttask p
+              where p.plannedcost>0 and p.c_project_id in ($P{C_PROJECT_ID})]]>
+	</queryString>
+	<field name="posh" class="java.lang.String"/>
+	<field name="nameh" class="java.lang.String"/>
+	<field name="tch" class="java.lang.String"/>
+	<field name="margper" class="java.lang.String"/>
+	<field name="margamt" class="java.lang.String"/>
+	<field name="salesprice" class="java.lang.String"/>
+	<field name="shqty" class="java.lang.String"/>
+	<field name="prishft" class="java.lang.String"/>
+	<field name="ret" class="java.lang.String"/>
+	<field name="priceret" class="java.lang.String"/>
+	<field name="c_project_id" class="java.lang.String"/>
+	<field name="c_projecttask_id" class="java.lang.String"/>
+	<field name="seqno" class="java.lang.Long"/>
+	<field name="created" class="java.sql.Timestamp"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="plannedcost" class="java.math.BigDecimal"/>
+	<field name="margin_percent" class="java.math.BigDecimal"/>
+	<field name="margin" class="java.math.BigDecimal"/>
+	<field name="sales_price" class="java.math.BigDecimal"/>
+	<field name="shift_qty" class="java.math.BigDecimal"/>
+	<field name="price_shift" class="java.math.BigDecimal"/>
+	<field name="employee_qty" class="java.math.BigDecimal"/>
+	<field name="price_shift_person" class="java.math.BigDecimal"/>
+	<field name="plannedcostt" class="java.lang.String"/>
+	<field name="margin_percentt" class="java.lang.String"/>
+	<field name="margint" class="java.lang.String"/>
+	<field name="sales_pricet" class="java.lang.String"/>
+	<field name="shift_qtyt" class="java.lang.String"/>
+	<field name="price_shiftt" class="java.lang.String"/>
+	<field name="employee_qtyt" class="java.lang.String"/>
+	<field name="price_shift_persont" class="java.lang.String"/>
+	<field name="totalh" class="java.lang.String"/>
+	<variable name="totalcost" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{plannedcost}]]></variableExpression>
+	</variable>
+	<variable name="margin" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{margin}]]></variableExpression>
+	</variable>
+	<variable name="sales_price" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{sales_price}]]></variableExpression>
+	</variable>
+	<variable name="shift_qty" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{shift_qty}]]></variableExpression>
+	</variable>
+	<variable name="shift_price" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{price_shift}]]></variableExpression>
+	</variable>
+	<variable name="employee_qty" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{employee_qty}]]></variableExpression>
+	</variable>
+	<variable name="price_shift_person" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{price_shift_person}]]></variableExpression>
+	</variable>
+	<title>
+		<band height="27">
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="20" y="17" width="30" height="10" uuid="df09567b-e804-4385-96a3-58aba7362c14">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{posh}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="50" y="17" width="201" height="10" uuid="9976c203-36fa-4402-a5c1-a0fd15aba24f"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nameh}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00">
+				<reportElement stretchType="RelativeToTallestObject" x="251" y="17" width="119" height="10" uuid="5b29f14b-c808-44f0-a2a2-460b3f39f168">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{tch}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00">
+				<reportElement stretchType="RelativeToTallestObject" x="370" y="17" width="40" height="10" uuid="8ac5b04c-f156-4eef-aca2-e4c3c4c79d88"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{margper}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00">
+				<reportElement stretchType="RelativeToTallestObject" x="410" y="17" width="90" height="10" uuid="c43a4bca-a870-4631-ad94-ae50210bd6fe">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{margamt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00">
+				<reportElement stretchType="RelativeToTallestObject" x="500" y="17" width="90" height="10" uuid="8db216fc-c483-494d-85d0-e4feba22f0e9">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{salesprice}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)">
+				<reportElement stretchType="RelativeToTallestObject" x="590" y="17" width="50" height="10" uuid="ac0dd5ea-c14d-402b-8641-cefb29141c16">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{shqty}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00">
+				<reportElement stretchType="RelativeToTallestObject" x="640" y="17" width="68" height="10" uuid="f52ee532-9dc9-4ecf-929c-00b0d9887c64">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{prishft}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.###;(#,##0.###-)">
+				<reportElement stretchType="RelativeToTallestObject" x="708" y="17" width="40" height="10" uuid="26636688-a472-4f2b-9962-30c97794bc2d"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ret}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00">
+				<reportElement stretchType="RelativeToTallestObject" x="748" y="17" width="74" height="10" uuid="87b5cfdd-1fab-4468-bdce-bb033a45a78e">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{priceret}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="10" splitType="Stretch">
+			<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="20" y="0" width="30" height="10" uuid="73dbc2ab-8b7c-4850-a45d-8c1f6e8e1468">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{seqno}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement stretchType="RelativeToTallestObject" x="50" y="0" width="201" height="10" uuid="100162e1-b9a6-42da-8835-689056c12789"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="370" y="0" width="40" height="10" uuid="12ffb52d-a112-4a66-9015-af651b6cac5c"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{margin_percentt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="410" y="0" width="90" height="10" uuid="93fdd5d4-eecc-4873-8408-75d94184c160">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{margint}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="500" y="0" width="90" height="10" uuid="a9885546-ce34-456b-98f9-6898657f759d">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sales_pricet}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="590" y="0" width="50" height="10" uuid="846f4150-5f36-4035-aeb0-0b9ebaccf656">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{shift_qtyt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="640" y="0" width="68" height="10" uuid="283dc8cc-8e9d-4f1f-835c-e9503801b90f">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{price_shiftt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="708" y="0" width="40" height="10" uuid="100dd405-34e6-4b76-9aec-d13a15bf758f"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{employee_qtyt}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="748" y="0" width="74" height="10" uuid="818cc079-6e21-49c4-a01d-469f894326bc">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{price_shift_persont}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="251" y="0" width="119" height="10" uuid="42cf97d5-dff7-41b9-b146-0973a5fb521f">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{plannedcostt}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="40">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<textField>
+				<reportElement x="20" y="0" width="231" height="10" uuid="e291c882-511f-4ba8-8c16-030aaa232c67">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{totalh}+":"]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement x="251" y="0" width="119" height="10" uuid="2d33e0ab-9ecf-449e-b37b-4092513b6b34"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{totalcost}!=null)?$P{NUMBERFORMAT}.format($V{totalcost}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="370" y="0" width="130" height="10" uuid="5e333a1b-0ea4-4041-b3f0-4bd50407f780">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{margin}!=null)?$P{NUMBERFORMAT}.format($V{margin}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="500" y="0" width="90" height="10" uuid="f6ae379f-41ac-40b3-b07d-0992e25f58a1"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{sales_price}!=null)?$P{NUMBERFORMAT}.format($V{sales_price}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;#,-##0" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="590" y="0" width="50" height="10" uuid="5a595f87-f3fe-4921-b2e2-60c970cfd957"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{shift_qty}!=null)?$P{NUMBERFORMAT}.format($V{shift_qty}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="640" y="0" width="68" height="10" uuid="bc71b754-8c48-4939-911e-7ced55e32e35"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{shift_price}!=null)?$P{NUMBERFORMAT}.format($V{shift_price}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0;#,-##0" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="708" y="0" width="40" height="10" uuid="03c49658-bd22-4e75-abfa-a6a7954dc3b6"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{employee_qty}!=null)?$P{NUMBERFORMAT}.format($V{employee_qty}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="true">
+				<reportElement stretchType="RelativeToBandHeight" x="748" y="0" width="74" height="10" uuid="98f3b2bb-e9f3-4341-9e9c-f97cd499543d"/>
+				<box>
+					<topPen lineWidth="0.2"/>
+					<leftPen lineWidth="0.2"/>
+					<bottomPen lineWidth="0.2"/>
+					<rightPen lineWidth="0.2"/>
+				</box>
+				<textElement textAlignment="Right">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{price_shift_person}!=null)?$P{NUMBERFORMAT}.format($V{price_shift_person}):new String(" ")]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

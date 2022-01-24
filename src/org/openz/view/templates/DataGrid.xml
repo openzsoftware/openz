@@ -1,0 +1,50 @@
+   <div class="Popup_ContentPane_Client" style="overflow: hidden; height: 0px;" id="@CLIENT@">
+          <table summary="" id="sectionDetail">
+            <tr>
+              <td>
+
+                <table width="100%" cellspacing="0" cellpadding="0" border="0" id="grid_bookmark">
+                  <tr>
+                    <td class="DataGrid_Popup_text_container">
+                      <div id="bookmark">
+                        <nobr class='DataGrid_Popup_text_bookmark'> </nobr>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              
+                <table cellspacing="0" cellpadding="0" width="10px" class="DataGrid_Header_Table DataGrid_Body_Table" style="table-layout: auto;" id="grid_sample">
+                  <tr class="DataGrid_Body_Row" id="grid_sample_header">
+                    <th width="10px" class="DataGrid_Header_Cell">DataGrid</th>
+                  </tr>
+                  <tr class="DataGrid_Body_Row DataGrid_Body_Row_1" id="grid_sample_row">
+                    <td class="DataGrid_Body_Cell">Loading...</td>
+                  </tr>
+                </table>
+                <table cellspacing="0" cellpadding="0" width="0px" height="0px">
+                  <tr>
+                    <td><input type="text" class="DataGrid_Table_Dummy_Input" id="grid_table_dummy_input"></td>
+                  </tr>
+                </table>
+                <table width="100%" cellspacing="0" cellpadding="0" border="0" class="Main_Client_TableRelation" id="grid_table">
+                  <tr>
+                    <td>
+                      <div id="@GRIDID@" dojotype="openbravo.widget.DataGrid"
+                        structureurl="@URL@?Command=STRUCTURE"
+                        dataurl="@URL@?Command=DATA"
+                        updatesurl="@URL@?Command=DATA"
+                        calculatenumrows="true" editable="false" sortable="true"
+                        deleteable="true" oninvalidvalue="alert" onscroll="updateHeader"
+                        ongridload="onGridLoadDo" buffersize="3.0" showlinenumbers="true"
+                        offset="0" sortcols="1" sortdirs="ASC" defaultrow="0"
+                        percentagewidthrelativetoid="@CLIENT@"
+                        @MULTISELECTION@
+                        preventcache="true" usecache="true" cachecontent="false">
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </div>

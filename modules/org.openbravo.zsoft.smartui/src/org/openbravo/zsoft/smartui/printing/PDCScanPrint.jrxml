@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.16.0.final using JasperReports Library version 6.1.1  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Label_Shipment_15x10" language="groovy" pageWidth="68" pageHeight="68" columnWidth="64" leftMargin="2" rightMargin="2" topMargin="2" bottomMargin="0" uuid="11a60bf1-7e06-4885-8732-1db35aebe16a">
+	<property name="ireport.zoom" value="6.72749994932561"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<style name="Title" forecolor="#FFFFFF" fontName="Times New Roman" fontSize="50" isBold="false" pdfFontName="Times-Bold"/>
+	<style name="SubTitle" forecolor="#CCCCCC" fontName="Times New Roman" fontSize="18" isBold="false" pdfFontName="Times-Roman"/>
+	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true" pdfFontName="Times-Roman"/>
+	<style name="Detail" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman"/>
+	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="DOCUMENT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+        coalesce(snr_internal_consumptionline.snr_internal_consumptionline_id,'')||m_internal_consumptionline.m_internal_consumptionline_id as id,
+        case when c_getconfigoption('useproductvalue2scanproducts',m_product.ad_org_id)='Y' then  m_product.value else m_product.upc end as value,
+        (CASE when snr_internal_consumptionline.serialnumber is null then snr_internal_consumptionline.lotnumber else snr_internal_consumptionline.serialnumber end) as snrbc,
+       (CASE when snr_internal_consumptionline.serialnumber is null then  snr_internal_consumptionline.lotnumber else snr_internal_consumptionline.serialnumber end) as snr,
+        case when c_getconfigoption('useproductvalue2scanproducts',m_product.ad_org_id)='Y' then  m_product.value else m_product.upc end as barcode,
+        TO_CHAR(m_internal_consumption.movementdate,'DD.MM.YYYY') as date,
+        coalesce((select vendorproductno from m_product_po where m_product_id=m_product.m_product_id and ad_org_id in (m_internal_consumption.ad_org_id,'0') and iscurrentvendor='Y' order by coalesce(qualityrating,0) desc,updated desc limit 1),'') as vendorno,
+        coalesce((select b.name from c_bpartner b,m_product_po po where po.c_bpartner_id=b.c_bpartner_id and  po.m_product_id=m_product.m_product_id and po.ad_org_id in (m_internal_consumption.ad_org_id,'0') and po.iscurrentvendor='Y' order by coalesce(po.qualityrating,0) desc,po.updated desc limit 1) ,'') as vendorname,
+        substr(m_product.name,1,40) as name
+from m_internal_consumption,m_internal_consumptionline
+     left join snr_internal_consumptionline
+                     on snr_internal_consumptionline.m_internal_consumptionline_id=m_internal_consumptionline.m_internal_consumptionline_id,
+     m_product
+     where m_internal_consumption.m_internal_consumption_id=m_internal_consumptionline.m_internal_consumption_id
+        and m_internal_consumptionline.m_product_id=m_product.m_product_id
+      and m_internal_consumption.m_internal_consumption_id IN ($P{DOCUMENT_ID})
+      order by m_internal_consumptionline.line,coalesce(snr_internal_consumptionline.serialnumber,snr_internal_consumptionline.lotnumber)]]>
+	</queryString>
+	<field name="id" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="id"/>
+	</field>
+	<field name="value" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="value"/>
+	</field>
+	<field name="snrbc" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="snrbc"/>
+	</field>
+	<field name="snr" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="snr"/>
+	</field>
+	<field name="barcode" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="barcode"/>
+	</field>
+	<field name="date" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="date"/>
+	</field>
+	<field name="vendorno" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="vendorno"/>
+	</field>
+	<field name="vendorname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="vendorname"/>
+	</field>
+	<field name="name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="name"/>
+	</field>
+	<group name="Group1">
+		<groupExpression><![CDATA[(int)($V{REPORT_COUNT}/15)]]></groupExpression>
+	</group>
+	<group name="Group2">
+		<groupExpression><![CDATA[(int)($V{REPORT_COUNT}/5)]]></groupExpression>
+	</group>
+	<detail>
+		<band height="66" splitType="Prevent">
+			<image scaleImage="FillFrame" hAlign="Center" vAlign="Top">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="-2" y="7" width="34" height="34" isRemoveLineWhenBlank="true" uuid="b3c03d57-d515-49c5-93ea-acf6842863d8"/>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{barcode},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+			</image>
+			<image scaleImage="FillFrame" hAlign="Center" vAlign="Top">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="32" y="7" width="34" height="34" isRemoveLineWhenBlank="true" uuid="4d27ce91-cf38-4bcf-a0a3-4e6fc06077bd"/>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{snrbc},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+			</image>
+			<textField pattern="">
+				<reportElement positionType="Float" x="-2" y="-2" width="68" height="9" uuid="486e72b1-dfcd-4f78-9c51-aed0ec5a3f49"/>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="styled">
+					<font size="5" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{name}==null)?"":$F{name}]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement positionType="Float" x="-2" y="38" width="33" height="17" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" uuid="579af00f-dc0f-4e9c-893f-82a4c9c81c08"/>
+				<box>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="styled">
+					<font size="4" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{value}==null)?"":$F{value}]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement positionType="Float" x="32" y="38" width="34" height="17" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" uuid="88f8b799-745b-4384-9449-f798353bb3e9"/>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="styled">
+					<font size="4" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{snr} == null) ?"":$F{snr}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="">
+				<reportElement positionType="Float" x="-2" y="54" width="34" height="8" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" uuid="3c0531c4-0d5d-453c-8402-4d71a9d3642e"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font size="3" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{vendorname}==null)?"":$F{vendorname})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="">
+				<reportElement positionType="Float" x="31" y="54" width="33" height="8" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" uuid="4bb5fd6d-1268-4827-8027-307103c3cb06"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font size="3" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{vendorno}==null)?"":$F{vendorno})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="">
+				<reportElement positionType="Float" x="-2" y="61" width="34" height="5" isRemoveLineWhenBlank="true" isPrintInFirstWholeBand="true" uuid="fa6696ef-556c-4942-9bb6-f5a2e5ac5462"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Bottom" markup="none">
+					<font size="2.5" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{date}==null)?"":$F{date})]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

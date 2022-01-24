@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+<SqlClass name="OrderStatusData" package="org.zsoft.ecommerce" accessModifier="public">
+     <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT c_order_id from c_order where issotrx='N' and c_bpartner_id= ? and ecommerceorder='N' and docstatus='CO'
+      ]]></Sql>   
+     <Parameter name="bPartnerId"/> 
+  </SqlMethod>
+  
+    <SqlMethod name="insertOrderStatusNew" type="preparedStatement"   return="rowcount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+     insert into zse_shoporderstatus (ZSE_SHOPORDERSTATUS_ID, AD_CLIENT_ID, ad_org_id, CREATEDBY, UPDATEDBY, 
+                                      ZSE_SHOP_ID, SHOPODERNO, EXTERNALID, C_ORDER_ID, STATUS,message,issotrx)
+                               values (get_uuid(),'C726FEC915A54A0995C568555DA5BB3C',
+                                        ?,'0','0',?,?,?,?,?,?,?)
+      ]]></Sql>
+    <Parameter name="adOrgId"/> 
+    <Parameter name="shopId"/>   
+    <Parameter name="shopoderno"/> 
+    <Parameter name="externalId"/>
+    <Parameter name="c_order_id"/> 
+    <Parameter name="status"/> 
+    <Parameter name="message"/>
+    <Parameter name="issotrx"/> 
+  </SqlMethod>
+  <SqlMethod name="updateOrderStatus" type="preparedStatement"  return="rowcount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+     update zse_shoporderstatus set STATUS = ? , updated=now(), message=message||';'||?,trackingno=?,shipper=?,datedelivered=to_date(?) where zse_shoporderstatus_id = ?
+      ]]></Sql>
+    <Parameter name="status"/>
+    <Parameter name="message"/>
+    <Parameter name="trackingno"/>
+    <Parameter name="shipper"/>
+    <Parameter name="datedelivered"/>
+    <Parameter name="shopOrderstatusId"/>   
+  </SqlMethod>
+  <SqlMethod name="updateOrderStatusExternalID" type="preparedStatement"  return="rowcount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+     update zse_shoporderstatus set externalid = ? , updated=now() where zse_shoporderstatus_id = ?
+      ]]></Sql>
+    <Parameter name="externalId"/>
+    <Parameter name="shopOrderstatusId"/>   
+  </SqlMethod>
+  <SqlMethod name="getStatusIDByExternalID" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+     select z.zse_shoporderstatus_id from zse_shoporderstatus z,c_order o where z.c_order_id=o.c_order_id  
+            and externalid=? and o. c_bpartner_id= ?
+      ]]></Sql>
+    <Parameter name="cbPartner"/>  
+    <Parameter name="externalId"/>
+  </SqlMethod>
+  <SqlMethod name="getStatusIDByOrder" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+     select zse_shoporderstatus_id from zse_shoporderstatus where c_order_id=?
+      ]]></Sql>
+    <Parameter name="cOrderId"/>   
+  </SqlMethod>
+  <SqlMethod name="getPurchaseOrderIDByDocumentno" type="preparedStatement" return="string">
+    <SqlMethodComment>Drop Ship Order (PO),Order (PO) </SqlMethodComment>
+    <Sql>
+    <![CDATA[
+     select c_order_id from c_order where documentno = ? and  c_doctype_id in ('EE19ABBDB5A94C519DAB11003320FC8E','B342FD5CA1C64E8BA25A0A6F6C98C7DA')
+      ]]></Sql>
+    <Parameter name="documentno"/>   
+  </SqlMethod>
+</SqlClass>

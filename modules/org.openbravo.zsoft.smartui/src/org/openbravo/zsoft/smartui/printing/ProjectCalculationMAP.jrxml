@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2016-10-24T10:39:23 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SUBREP_ProjectCalculationMAP" language="groovy" pageWidth="585" pageHeight="842" columnWidth="585" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="eab5875a-5a38-400d-a858-16209ebe533a">
+	<property name="ireport.zoom" value="1.2396694214876038"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="OpenZ.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<parameter name="C_PROJECT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ACTMACCOSP" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="MACCOSP" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT
+(select name from ma_machine where ma_machine.ma_machine_id=a.machine) as machine,
+zssi_strnumber(sum(a.plannedamtempnr), $P{LANGUAGE})  as plannedamtempt,
+zssi_strnumber(sum(a.quantitynr), $P{LANGUAGE}) as quantityt,
+zssi_strnumber(sum(a.hoursnr), $P{LANGUAGE}) as hourst,
+zssi_strnumber(sum(a.actualcostamountsnr), $P{LANGUAGE}) as actualcostamountst,
+sum(a.plannedamtempnr)  as plannedamtemp,
+sum(a.quantitynr) as quantity,
+sum(a.hoursnr) as hours,
+sum(a.actualcostamountsnr) as actualcostamounts,
+zssi_getElementTextByColumname('Project',$P{LANGUAGE}) as ph,
+zssi_getElementTextByColumname('Precalculation',$P{LANGUAGE}) as pc,
+zssi_getElementTextByColumname('Postcalculation',$P{LANGUAGE}) as poc,
+zssi_getElementTextByColumname('Sum',$P{LANGUAGE}) as sum,
+zssi_getElementTextByColumname('Machiness',$P{LANGUAGE}) as machines,
+CASE when $P{LANGUAGE}='de_DE' then 'Einheit' else 'Unit' end as omt,
+(select cursymbol from c_currency, ad_client where ad_client.c_currency_id=c_currency.c_currency_id) as curs,
+CASE when $P{LANGUAGE}='de_DE' then 'Stk' else 'Pc' end as omp,costuom
+from (
+select ptm.ma_machine_id as machine, zssi_getListTextByValue('Cost UOM Machine short',$P{LANGUAGE},ptm.costuom) as costuom,
+zssi_strnumber(case when pt.istaskcancelled='Y' then 0 else ptm.quantity end, $P{LANGUAGE}) as quantity,
+zssi_strnumber(case when pt.istaskcancelled='Y' then 0 else ptm.plannedamt end, $P{LANGUAGE})  as plannedamtemp,
+zssi_strnumber(0 , $P{LANGUAGE})as hours,
+zssi_strnumber(0 , $P{LANGUAGE})as actualcostamounts,
+case when pt.istaskcancelled='Y' then 0 else ptm.quantity end as quantitynr,
+case when pt.istaskcancelled='Y' then 0 else ptm.plannedamt end  as plannedamtempnr,
+0  as hoursnr,
+0 as actualcostamountsnr,
+ p.machinecostplan,
+  p.machinecost
+from c_project p, c_projecttask pt,zspm_ptaskmachineplan ptm
+where p.c_project_id=pt.c_project_id and  pt.c_projecttask_id=ptm.c_projecttask_id  and pt.istaskcancelled='N'
+      and pt.c_project_id in ($P{C_PROJECT_ID})
+union all
+select ptfl.ma_machine_id as machine, zssi_getListTextByValue('Cost UOM Machine short',$P{LANGUAGE},ptfl.costuom) as costuom,
+zssi_strnumber(0, $P{LANGUAGE}) as quantity,
+zssi_strnumber(0, $P{LANGUAGE}) as plannedamtemp,
+zssi_strnumber( ptfl.hours, $P{LANGUAGE}) ,
+zssi_strnumber( ptfl.actualcostamount , $P{LANGUAGE})as actualcostamounts,
+0 as quantitynr,
+0 as plannedamtempnr,
+ptfl.hours as hoursnr ,
+ ptfl.actualcostamount as actualcostamountsnr,
+ p.machinecostplan,
+  p.machinecost
+from c_project p, c_projecttask pt,zspm_ptaskfeedbackline ptfl
+where p.c_project_id=pt.c_project_id AND ptfl.ad_user_id is null and pt.c_projecttask_id=ptfl.c_projecttask_id
+      and pt.c_project_id in ($P{C_PROJECT_ID})) a
+GROUP BY machine,costuom
+ORDER BY hours DESC, quantity DESC]]>
+	</queryString>
+	<field name="machine" class="java.lang.String"/>
+	<field name="plannedamtempt" class="java.lang.String"/>
+	<field name="quantityt" class="java.lang.String"/>
+	<field name="hourst" class="java.lang.String"/>
+	<field name="actualcostamountst" class="java.lang.String"/>
+	<field name="plannedamtemp" class="java.math.BigDecimal"/>
+	<field name="quantity" class="java.math.BigDecimal"/>
+	<field name="hours" class="java.math.BigDecimal"/>
+	<field name="actualcostamounts" class="java.math.BigDecimal"/>
+	<field name="ph" class="java.lang.String"/>
+	<field name="pc" class="java.lang.String"/>
+	<field name="poc" class="java.lang.String"/>
+	<field name="sum" class="java.lang.String"/>
+	<field name="machines" class="java.lang.String"/>
+	<field name="omt" class="java.lang.String"/>
+	<field name="curs" class="java.lang.String"/>
+	<field name="omp" class="java.lang.String"/>
+	<field name="costuom" class="java.lang.String"/>
+	<variable name="SUMHOURSPLAN" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{quantity}]]></variableExpression>
+	</variable>
+	<variable name="SUMHOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{hours}]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNTPLAN" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{plannedamtemp}]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNT" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{actualcostamounts}]]></variableExpression>
+	</variable>
+	<title>
+		<band height="27">
+			<textField>
+				<reportElement mode="Opaque" x="116" y="1" width="208" height="13" backcolor="#FFFF00" uuid="498ac9ef-7a22-40ab-b9cb-b2822586a7d0"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pc}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="507" y="14" width="78" height="13" backcolor="#E7E7E7" uuid="902bf03d-ea88-4d85-b153-cda84441e34b"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="165" y="14" width="71" height="13" backcolor="#E7E7E7" uuid="4775bdf3-7fd7-4ebd-a211-a3ae60fc32d9"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{omt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="324" y="1" width="261" height="13" backcolor="#FFFF00" uuid="4ed8cec4-208b-4bbc-98b1-091296540b9a"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{poc}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="14" width="166" height="13" backcolor="#E7E7E7" uuid="b0da71d2-c3fd-480a-9320-d8406800cfa3"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="235" y="14" width="149" height="13" backcolor="#E7E7E7" uuid="db261e39-e093-4f89-a1cf-337b84c5d5d4"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="383" y="14" width="124" height="13" backcolor="#E7E7E7" uuid="4aa35178-c374-48f7-8867-7a894a207a3d"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA["  "+$F{omt}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="1" width="116" height="13" backcolor="#FFFF00" uuid="054295c5-19fb-483b-8548-7bd3b57c03cf"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{machines}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="11" splitType="Stretch">
+			<textField pattern="">
+				<reportElement stretchType="RelativeToBandHeight" x="475" y="0" width="49" height="11" isPrintWhenDetailOverflows="true" uuid="d9b82e5c-0a5f-4e24-8a69-b3ed24eb1d89"/>
+				<textElement textAlignment="Right">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{actualcostamountst}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement stretchType="RelativeToBandHeight" x="257" y="0" width="17" height="11" isPrintWhenDetailOverflows="true" uuid="a53dceab-c3c9-414f-a5f7-d9ddc10a6c31"/>
+				<textElement textAlignment="Right">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement stretchType="RelativeToBandHeight" x="145" y="0" width="49" height="11" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="c295b25f-d5cd-4f54-9121-103b64c7161a"/>
+				<textElement textAlignment="Right">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{quantityt}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="146" height="11" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="b1573adc-2709-4ed9-a1a9-61095321d155"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font size="7"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{machine}]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement stretchType="RelativeToBandHeight" x="523" y="0" width="62" height="11" isPrintWhenDetailOverflows="true" uuid="81da8da2-4fc8-4c7c-8723-b2530db5db71"/>
+				<box>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font size="7"/>
+					<paragraph leftIndent="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement stretchType="RelativeToBandHeight" x="328" y="0" width="131" height="11" isPrintWhenDetailOverflows="true" uuid="f193bc1e-497b-47eb-bda7-56add307be46"/>
+				<textElement textAlignment="Right">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{hourst}]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement stretchType="RelativeToBandHeight" x="211" y="0" width="47" height="11" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="89f21dd8-d05d-48ea-86ce-20c2613a5735"/>
+				<textElement textAlignment="Right">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{plannedamtempt}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement stretchType="RelativeToBandHeight" x="324" y="0" width="92" height="11" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="008c1b26-d487-4365-80d9-36c37db1a6a5"/>
+				<box>
+					<leftPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font size="7"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{machine}]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement stretchType="RelativeToBandHeight" x="194" y="0" width="17" height="11" isPrintWhenDetailOverflows="true" uuid="1afc95a0-6c02-451f-b826-1e857e49dda1"/>
+				<box leftPadding="10"/>
+				<textElement>
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{costuom}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement stretchType="RelativeToBandHeight" x="459" y="0" width="16" height="11" isPrintWhenDetailOverflows="true" uuid="3d4933a4-55f2-4e88-bf6f-04667a11a2ee"/>
+				<box leftPadding="10"/>
+				<textElement>
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{costuom}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="13">
+			<textField evaluationTime="Auto" pattern="#,##0.00;-#,##0.00">
+				<reportElement isPrintRepeatedValues="false" x="193" y="0" width="65" height="13" isRemoveLineWhenBlank="true" uuid="a17568cb-3f07-4759-bc3d-94adf721ce37"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{SUMAMOUNTPLAN}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="257" y="0" width="17" height="13" uuid="e7ebf17f-082e-46fd-8e3b-0e606d193a9c"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Auto" pattern="###0.00;-###0.00">
+				<reportElement isPrintRepeatedValues="false" x="145" y="0" width="49" height="13" isRemoveLineWhenBlank="true" uuid="3574a8a8-cdbf-4a2a-a4fb-793cdfa2a370"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{SUMHOURSPLAN}!=null)?$P{NUMBERFORMAT}.format($V{SUMHOURSPLAN}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Auto" pattern="###0.00;-###0.00">
+				<reportElement isPrintRepeatedValues="false" x="327" y="0" width="132" height="13" isRemoveLineWhenBlank="true" uuid="9432f541-d0bb-41a4-876c-a7b9b606a80c"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($V{SUMHOURS}!=null)?$P{NUMBERFORMAT}.format($V{SUMHOURS}):new String(" ")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %" isBlankWhenNull="true">
+				<reportElement x="539" y="0" width="46" height="13" uuid="bbe73cd0-7b82-48a2-a074-059011c6b06f"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="8" isBold="true"/>
+					<paragraph rightIndent="4"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{ACTMACCOSP}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="523" y="0" width="17" height="13" uuid="bcd8d8f7-7e9a-4d47-a110-2d161aac5d03"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="0" y="0" width="146" height="13" uuid="eb6c4d94-db8c-4a40-830b-f6ed78a827b4"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font size="8" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sum}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Auto" pattern="#,##0.00;-#,##0.00">
+				<reportElement isPrintRepeatedValues="false" x="458" y="0" width="66" height="13" isRemoveLineWhenBlank="true" uuid="24b888b8-d52a-4edf-8284-27626dde03b6"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{SUMAMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %" isBlankWhenNull="true">
+				<reportElement x="273" y="0" width="55" height="13" uuid="ba359250-d4df-4ce9-b557-bcd33698a574"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{MACCOSP}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

@@ -1,0 +1,79 @@
+/* [BACKGROUND] */
+#numpad-back {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.3s;
+}
+#numpad-back.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* [NUMPAD] */
+#numpad-wrap, #numpad-display {
+  /* FONT - REMOVE THIS TO FOLLOW YOUR CURRENT THEME */
+  font-family: 'Arial', sans-serif;
+}
+#numpad-wrap {
+  max-width: 320px;
+  margin: 0 auto;
+  padding: 10px;
+  background: #f2f2f2;
+  border: 1px solid #ccc;
+}
+
+/* [NUMBER DISPLAY] */
+#numpad-display {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 5px;
+  font-size: 2em;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* [NUMBER BUTTONS] */
+#numpad-btns {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.numpad-btn {
+  box-sizing: border-box;
+  width: 25%;
+  padding: 10px;
+  border: 1px solid #aaa;
+  background: #444;
+  color: #fff;
+  text-align: center;
+  font-size: 1.5em;
+}
+.numpad-btn.zero {
+  width: 50%;
+}
+.numpad-btn.zeroN {
+  width: 75%;
+}
+.numpad-btn.ninja {
+  display: none;
+}
+.numpad-btn.ng {
+  background: #333;
+}
+.numpad-btn.cx {
+  background: #B23025;
+  border: 1px solid #C73D32;
+}
+.numpad-btn.ok {
+  background: #1FA83A;
+  border: 1px solid #1FC72D;
+}
+.numpad-btn:hover {
+  cursor: pointer;
+}

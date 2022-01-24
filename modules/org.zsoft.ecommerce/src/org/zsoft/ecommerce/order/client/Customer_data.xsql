@@ -1,0 +1,42 @@
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+<SqlClass name="CustomerData" package="org.zsoft.ecommerce.order.client"  accessModifier="public">
+    <SqlMethod name="select" type="preparedStatement" return="multiple">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+         <![CDATA[select b.value,b.owncodeatpartnersite,l.address1,l.address2,l.postal,l.city,c.name as country,u.firstname,u.lastname,coalesce(bpl.deviant_bp_name,b.name) as bpname,
+                         u.phone, u.email, coalesce(b.shippingtype,(case when c.countrycode='DE' then 'V01PAK' else 'V53WPAK' end)) as shippingtype,c.countrycode
+                       from c_bpartner b,c_order o left join ad_user u on o.ad_user_id=u.ad_user_id and u.c_bpartner_id=o.c_bpartner_id ,
+                           c_bpartner_location bpl,c_location l left join c_country c on   l.c_country_id=c.c_country_id             
+                       where  b.c_bpartner_id=o.c_bpartner_id and o.c_bpartner_location_id=bpl.c_bpartner_location_id  and             
+                              bpl.c_bpartner_id=b.c_bpartner_id  and bpl.c_location_id=l.c_location_id     
+                          and o.c_order_id=? 
+               ]]>      
+         </Sql>
+        <Parameter name="OrderId"/>
+     </SqlMethod>
+
+          <SqlMethod name="selectinvoicedata" type="preparedStatement" return="multiple">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+         <![CDATA[select b.value,b.owncodeatpartnersite,l.address1,l.address2,l.postal,l.city,c.name as country,u.firstname,u.lastname,coalesce(bpl.deviant_bp_name,b.name) as bpname,
+                         u.phone, u.email,coalesce(b.shippingtype,(case when c.countrycode='DE' then 'V01PAK' else 'V53WPAK' end)) as shippingtype,c.countrycode
+                       from c_bpartner b,c_order o left join ad_user u on o.ad_user_id=u.ad_user_id and u.c_bpartner_id=o.c_bpartner_id ,
+                           c_bpartner_location bpl,c_location l left join c_country c on   l.c_country_id=c.c_country_id             
+                       where  b.c_bpartner_id=o.c_bpartner_id and o.billto_id=bpl.c_bpartner_location_id  and             
+                              bpl.c_bpartner_id=b.c_bpartner_id  and bpl.c_location_id=l.c_location_id     
+                          and o.c_order_id=? 
+               ]]>      
+         </Sql>
+        <Parameter name="OrderId"/>
+     </SqlMethod>
+</SqlClass>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+<SqlClass name="WebServicesData" package="org.zsoft.ecommerce"  accessModifier="public">
+    <SqlMethod name="selectShopCredentials" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+        <Sql>
+          <![CDATA[
+             SELECT url,apikey,secret,api,ad_user_id,ad_language,isoderactive,isstockactive,initorderdays,deletesecurity,deletecount
+             from zse_shop where zse_shop_id = ?       
+          ]]>
+        </Sql>
+        <Parameter name="shopId"/>
+    </SqlMethod>    
+    <SqlMethod name="hasAccess" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+	    <Sql>
+	      <![CDATA[
+	         SELECT COUNT(*) AS AUTH
+		       FROM AD_USER  U, ad_user_roles UR, AD_ROLE R, ad_role_orgaccess ARO						      
+			  WHERE U.USERNAME = ? 
+	            AND U.PASSWORD = ?	
+	            AND UR.AD_USER_ID=U.AD_USER_ID
+	            AND R.AD_ROLE_ID=UR.AD_ROLE_ID
+	            AND ARO.AD_ROLE_ID=	R.AD_ROLE_ID
+	            AND ARO.ad_org_id = ?		
+	      ]]>
+	    </Sql>
+    	<Parameter name="username"/>
+    	<Parameter name="password"/>
+    	<Parameter name="adOrgId"/>
+  	</SqlMethod>  	
+  	<SqlMethod name="getClient" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+        <Sql>
+          <![CDATA[
+             SELECT AD_CLIENT_ID from AD_ORG where ad_org_id = ?       
+          ]]>
+        </Sql>
+        <Parameter name="adOrgId"/>
+    </SqlMethod>    
+    <SqlMethod name="getUserId" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+        <Sql>
+          <![CDATA[
+             SELECT AD_USER_ID  FROM AD_USER  
+              WHERE USERNAME = ?    
+          ]]>
+        </Sql>
+        <Parameter name="username"/>
+    </SqlMethod>    
+</SqlClass>

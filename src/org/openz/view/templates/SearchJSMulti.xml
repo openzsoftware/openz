@@ -1,0 +1,15 @@
+<script type="text/javascript">     
+ function validateSelector(action) {
+        var pos; var keys;  var key; var text; var parameter; var data;
+        if(action == "SAVE") {
+                data = new Array();
+                rows = dijit.byId('grid').getSelectedRows();
+                for(var i=0; i < rows.length; i++) {
+                        var rowkey = rows[i].split("#");
+                        var rval = new Array(rowkey[0], rowkey[1]);
+                        data.push(rval);
+                }
+    }
+        parent.opener.closeMultiSearch(action, data);
+  }
+</script>

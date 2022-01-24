@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.1.1  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="BWAReportDetail" language="groovy" pageWidth="532" pageHeight="842" columnWidth="532" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="48248757-755d-4ed4-9da7-703ea707b410">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="5.0"/>
+	<property name="ireport.x" value="1400"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="NEW_DATAADAPTER.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<parameter name="CLIENT_ID" class="java.lang.String"/>
+	<parameter name="DATE_FROM" class="java.util.Date"/>
+	<parameter name="DATE_TO" class="java.util.Date"/>
+	<parameter name="PARENT_ID" class="java.lang.String"/>
+	<parameter name="AD_ORG_ID" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.finance/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="budget" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select orderno,name,isparent,bwaprefs_id,dontprintdetails,summe,summeVJ,bsumme,bsummeVJ
+from (
+select bwaprefs.orderno as orderno, coalesce(trl.name,bwaprefs.name) as name,
+       bwaprefs.isparent as isparent, bwaprefs.zspr_bwaprefs_id as bwaprefs_id,dontprintdetails,
+       coalesce(zsfi_getbwasum(bwaprefs.zspr_bwaprefs_id,$P{DATE_FROM},$P{DATE_TO},$P{AD_ORG_ID},'N'),0) as summe,
+       coalesce(zsfi_getbwasum(bwaprefs.zspr_bwaprefs_id,$P{DATE_FROM},$P{DATE_TO},$P{AD_ORG_ID},'Y'),0)  as summeVJ,
+       case when $P{budget}='Y' then coalesce(zsfi_getbbudgetsum(bwaprefs.zspr_bwaprefs_id,$P{DATE_FROM},$P{DATE_TO},$P{AD_ORG_ID},'N'),0) else 0 end  as bsumme,
+       case when $P{budget}='Y' then coalesce(zsfi_getbbudgetsum(bwaprefs.zspr_bwaprefs_id,$P{DATE_FROM},$P{DATE_TO},$P{AD_ORG_ID},'Y'),0) else 0 end as bsummeVJ
+       from zspr_bwaprefs bwaprefs left join zspr_bwaprefs_trl trl on bwaprefs.zspr_bwaprefs_id=trl.zspr_bwaprefs_id and ad_language= $P{LANGUAGE}
+       where
+         bwaprefs.ad_client_id =$P{CLIENT_ID}
+         and bwaprefs.isactive='Y'
+         and bwaprefs.zspr_bwaprefs_id in (select zspr_bwaprefs_id from  zspr_child_bwap($P{PARENT_ID}))
+) a
+where summe != 0 or summeVJ != 0 or bsumme !=0 or bsummeVJ!=0
+ORDER by orderno]]>
+	</queryString>
+	<field name="orderno" class="java.math.BigDecimal"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="isparent" class="java.lang.String"/>
+	<field name="bwaprefs_id" class="java.lang.String"/>
+	<field name="dontprintdetails" class="java.lang.String"/>
+	<field name="summe" class="java.math.BigDecimal"/>
+	<field name="summevj" class="java.math.BigDecimal"/>
+	<field name="bsumme" class="java.math.BigDecimal"/>
+	<field name="bsummevj" class="java.math.BigDecimal"/>
+	<variable name="SUBSUM" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[(($F{isparent}.equals("Y")) ? java.math.BigDecimal.ZERO : $F{summe})]]></variableExpression>
+		<initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+	</variable>
+	<variable name="SUBSumVJ" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[(($F{isparent}.equals("Y")) ? java.math.BigDecimal.ZERO : $F{summevj})]]></variableExpression>
+		<initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+	</variable>
+	<variable name="BSUBSUM" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[(($F{isparent}.equals("Y")) ? java.math.BigDecimal.ZERO : $F{bsumme})]]></variableExpression>
+		<initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+	</variable>
+	<variable name="BSUBSumVJ" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[(($F{isparent}.equals("Y")) ? java.math.BigDecimal.ZERO : $F{bsummevj})]]></variableExpression>
+		<initialValueExpression><![CDATA[java.math.BigDecimal.ZERO]]></initialValueExpression>
+	</variable>
+	<group name="prefsID">
+		<groupExpression><![CDATA[$F{bwaprefs_id}]]></groupExpression>
+		<groupHeader>
+			<band splitType="Stretch">
+				<printWhenExpression><![CDATA[(($F{isparent}.equals("Y")) ? Boolean.TRUE : Boolean.FALSE)]]></printWhenExpression>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Stretch"/>
+		</groupFooter>
+	</group>
+	<group name="Groupheader" isReprintHeaderOnEachPage="true">
+		<groupExpression><![CDATA[$F{bwaprefs_id}]]></groupExpression>
+		<groupHeader>
+			<band height="11" splitType="Stretch">
+				<textField isBlankWhenNull="false">
+					<reportElement key="textField" x="0" y="0" width="220" height="10" uuid="57d56910-8bec-4d4f-b296-fb8c3ff5c81e"/>
+					<textElement verticalAlignment="Top">
+						<font size="8" isBold="false"/>
+						<paragraph leftIndent="7"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00" isBlankWhenNull="false">
+					<reportElement key="textField" x="221" y="0" width="78" height="10" uuid="7f19e1c8-bdd3-471e-97d9-1939e3668461"/>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{summe}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00" isBlankWhenNull="false">
+					<reportElement key="textField-1" x="299" y="0" width="78" height="10" uuid="3179ca65-64d0-4df5-b0d4-cae84ae79867">
+						<printWhenExpression><![CDATA[($P{budget}.equals("Y")?true:false)]]></printWhenExpression>
+					</reportElement>
+					<textElement textAlignment="Right" verticalAlignment="Top">
+						<font size="8" isBold="false"/>
+						<paragraph rightIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{bsumme}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="0" y="10" width="535" height="1" uuid="6022909e-57b6-494f-9c9b-a04a1f46cbe3"/>
+				</line>
+				<textField pattern="#,##0.00">
+					<reportElement x="377" y="0" width="78" height="10" uuid="5a922cca-99b3-49b9-b1f0-de58b7735933"/>
+					<textElement textAlignment="Right">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{summevj}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement x="455" y="0" width="78" height="10" uuid="7dc4fb3d-5fad-4dd9-ba6b-2d7a2d72287a">
+						<printWhenExpression><![CDATA[($P{budget}.equals("Y")?true:false)]]></printWhenExpression>
+					</reportElement>
+					<textElement textAlignment="Right">
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{bsummevj}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Stretch"/>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="10" splitType="Stretch">
+			<subreport isUsingCache="true">
+				<reportElement key="subreport-1" x="0" y="1" width="532" height="8" uuid="aea34a71-6140-449b-bcfd-a2de11422389">
+					<printWhenExpression><![CDATA[(($F{isparent}.equals("Y") | $F{dontprintdetails}.equals("Y")) ? Boolean.FALSE : Boolean.TRUE)]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="budget">
+					<subreportParameterExpression><![CDATA[$P{budget}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BWAPREFS_ID">
+					<subreportParameterExpression><![CDATA[$F{bwaprefs_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="CLIENT_ID">
+					<subreportParameterExpression><![CDATA[$P{CLIENT_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DATE_TO">
+					<subreportParameterExpression><![CDATA[$P{DATE_TO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="AD_ORG_ID">
+					<subreportParameterExpression><![CDATA[$P{AD_ORG_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DATE_FROM">
+					<subreportParameterExpression><![CDATA[$P{DATE_FROM}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_DESIGN">
+					<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PARENT_ID">
+					<subreportParameterExpression><![CDATA[$P{PARENT_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{BASE_DESIGN} + "/org/openbravo/zsoft/finance/BWAReportAcct.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+<SqlClass name="WebServicesContactData" package="org.zsoft.ecommerce.businesspartner">
+    <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+	    <Sql>
+	      <![CDATA[
+	        SELECT US.AD_USER_ID, US.AD_CLIENT_ID, US.C_BPARTNER_ID,
+                   US.FIRSTNAME, US.LASTNAME, US.NAME, US.EMAIL, US.PHONE, US.PHONE2, US.FAX,
+                   GT.GREETING
+              FROM AD_USER US, C_GREETING GT
+             WHERE GT.C_GREETING_ID=US.C_GREETING_ID and C_BPARTNER_ID = ?
+			   AND AD_USER_ID = ?	
+	      ]]>
+	    </Sql>
+    	<Parameter name="customerId"/>
+    	<Parameter name="contactId"/>
+  	</SqlMethod>
+  	<SqlMethod name="selectContacts" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+        <Sql>
+          <![CDATA[
+            SELECT US.AD_USER_ID, US.AD_CLIENT_ID, US.C_BPARTNER_ID,
+                   US.FIRSTNAME, US.LASTNAME, US.NAME, US.EMAIL, US.PHONE, US.PHONE2, US.FAX,
+                   GT.GREETING
+              FROM AD_USER US left join C_GREETING GT on GT.C_GREETING_ID=US.C_GREETING_ID 
+              WHERE US.C_BPARTNER_ID = ?
+          ]]>
+        </Sql>
+        <Parameter name="customerId"/>
+    </SqlMethod>
+  	<SqlMethod name="updateContact" type="preparedStatement"  return="string">
+      <SqlMethodComment></SqlMethodComment>
+       <Sql>
+                SELECT zsse_updateContacts(?,?,?,?,?,?,?,?,?,?,?) FROM DUAL
+       </Sql>
+      <Parameter name="customerId"/>
+      <Parameter name="adUser"/>
+      <Parameter name="firstName"/>
+      <Parameter name="lastName"/>
+      <Parameter name="name"/>
+      <Parameter name="email"/>
+      <Parameter name="phone"/>
+      <Parameter name="phone2"/>
+      <Parameter name="fax"/>
+      <Parameter name="greeting"/>
+      <Parameter name="contactId"/>
+   </SqlMethod>
+</SqlClass>

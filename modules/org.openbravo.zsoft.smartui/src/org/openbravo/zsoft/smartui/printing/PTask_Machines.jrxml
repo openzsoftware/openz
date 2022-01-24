@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PTask_Machines" language="groovy" pageWidth="585" pageHeight="842" columnWidth="585" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="2.357947691000003"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="C_PROJECT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select snr.serialnumber,
+coalesce(snr.model, zssi_getproductname(snr.m_product_id,$P{LANGUAGE})) as productname,
+zssi_getproductname(snr.m_product_id,$P{LANGUAGE}) as categoryname,
+case when snr.c_projecttask_id =mp.c_projecttask_id then 'Y' else 'N' end as isreceived,
+CASE when (case when snr.c_projecttask_id is null then 'N' else 'Y' end)='N' then '' else 'Y' end as status,
+zssi_getElementTextByColumname('needed',$P{LANGUAGE}) as h1,
+zssi_getElementTextByColumname('received',$P{LANGUAGE}) as h2,
+zssi_getElementTextByColumname('checked',$P{LANGUAGE}) as h3,
+zssi_getElementTextByColumname('back',$P{LANGUAGE}) as h4,
+CASE WHEN ($P{LANGUAGE}='de_DE') then 'St.' else 'Pc' end as uom
+from
+zspm_ptaskmachineplan mp,snr_masterdata snr,ma_machine m
+where
+m.snr_masterdata_id=snr.snr_masterdata_id and mp.ma_machine_id=m.ma_machine_id  and
+mp.c_projecttask_id in ($P{C_PROJECT_ID})]]>
+	</queryString>
+	<field name="serialnumber" class="java.lang.String"/>
+	<field name="productname" class="java.lang.String"/>
+	<field name="categoryname" class="java.lang.String"/>
+	<field name="isreceived" class="java.lang.String"/>
+	<field name="status" class="java.lang.String"/>
+	<field name="h1" class="java.lang.String"/>
+	<field name="h2" class="java.lang.String"/>
+	<field name="h3" class="java.lang.String"/>
+	<field name="h4" class="java.lang.String"/>
+	<field name="uom" class="java.lang.String"/>
+	<variable name="SUMQTYPLAN" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMQTY" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNTPLAN" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNT" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<title>
+		<band height="13">
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="0" y="0" width="217" height="13" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left">
+					<font size="11" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{categoryname}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="408" y="0" width="89" height="13" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Left">
+					<font size="11" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{h3}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="13" splitType="Stretch">
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="13" y="0" width="219" height="13" isPrintWhenDetailOverflows="true"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{productname}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="232" y="0" width="176" height="13" isPrintWhenDetailOverflows="true"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{serialnumber}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="424" y="0" width="73" height="13" isPrintWhenDetailOverflows="true"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement stretchType="RelativeToBandHeight" x="408" y="0" width="16" height="13" isPrintWhenDetailOverflows="true"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{status}]]></textFieldExpression>
+			</textField>
+			<textField pattern="">
+				<reportElement x="1" y="0" width="12" height="13"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font isBold="false"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+
+<SqlClass name="SepaExportServiceData" package="org.zsoft.banking">
+    <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+	    <Sql>
+	      <![CDATA[
+	         SELECT '' as zsfi_sepa_export_data_id,'' as ad_client_id,'' as ad_org_id,'' as createdby,'' as updatedby,'' as grphdr_msgid,'' as c_bankaccount_id,'' as c_bp_bankaccount_id,
+                         '' as  amt_instdamt, '' as pmtinf_pmtinfid,'' as pmtinf_reqdexctndt,'' as rmtinf_ustrd from dual;
+	      ]]>
+	    </Sql>
+  	</SqlMethod>
+  	
+  <SqlMethod name="insertHeader" type="preparedStatement" return="rowcount">
+    <SqlMethodComment></SqlMethodComment>
+	    <Sql>
+	      <![CDATA[
+	        insert into zsfi_sepa_export_data(zsfi_sepa_export_data_id , ad_client_id , 
+	                   ad_org_id, createdby, updatedby,grphdr_msgid)
+                       values (?,?,?,?,?,?)
+	      ]]>
+	    </Sql>
+        <Parameter name="sepaDataExportId"/>
+        <Parameter name="adClientId"/>
+    	<Parameter name="adOrgId"/>
+        <Parameter name="adUserId"/>
+        <Parameter name="adUserId"/>
+        <Parameter name="MessageId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="insertLines" type="preparedStatement" return="rowcount">
+    <SqlMethodComment></SqlMethodComment>
+	    <Sql>
+	      <![CDATA[
+	        insert into zsfi_sepa_export_dataline(zsfi_sepa_export_data_id,ad_client_id,ad_org_id,createdby,updatedby,c_bankaccount_id,c_bp_bankaccount_id,amt_instdamt,pmtinf_pmtinfid,pmtinf_reqdexctndt,rmtinf_ustrd)
+                   select ?, b.ad_client_id,b.ad_org_id,?,?,
+                     zssi_getOwnBankaccountFromBankstatement(b.c_bankstatement_id),
+                     zssi_getPartnerBankaccountFromDebtPayment(b.c_debt_payment_id),
+                     zssi_getPartnerLineTrxAmt(b.c_bankstatementline_id),
+                     b.c_bankstatementline_id,
+                     to_date(?),
+                     zssi_getPartnerLineMemo(b.c_bankstatementline_id)
+                from c_bankstatementline b,c_debt_payment p where p.c_debt_payment_id=b.c_debt_payment_id
+                     and p.paymentrule!='CNA'  and b.isactive='Y' and b.sepaexportenabled='Y' and b.voidline='N' and b.c_bankstatement_id=?
+	      ]]>
+	    </Sql>
+    	<Parameter name="sepaDataExportId" />
+        <Parameter name="adUserId"/>
+        <Parameter name="adUserId"/>
+        <Parameter name="reqdColltnDt"/>
+        <Parameter name="cBankstatementId"/>
+  	</SqlMethod>  	
+  <SqlMethod name="doProcessing" type="preparedStatement" connection="true" return="string">
+    <SqlMethodComment></SqlMethodComment>
+        <Sql>
+                SELECT zsfi_sepa_export_remittance(?) as plresult from dual;
+         </Sql>
+      <Parameter name="sepaDataExportId"/>
+    </SqlMethod>
+  <SqlMethod name="attachFile" type="preparedStatement" connection="true" return="string">
+    <SqlMethodComment></SqlMethodComment>
+        <Sql>
+                SELECT zsse_addattachmentfile('392',?,?,?,?,?,?) as plresult from dual;
+         </Sql>
+      <Parameter name="BankstatementId"/>
+      <Parameter name="UserId"/>
+      <Parameter name="ClientId"/>
+      <Parameter name="OrgId"/>
+      <Parameter name="Filename"/>
+      <Parameter name="Text"/>
+    </SqlMethod>
+   
+ 
+</SqlClass>

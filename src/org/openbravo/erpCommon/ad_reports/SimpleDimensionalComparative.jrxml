@@ -1,0 +1,1717 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T13:02:50 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SimpleDimensionalComparative" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="730" leftMargin="56" rightMargin="56" topMargin="56" bottomMargin="56" uuid="1b4ec2dd-4023-4b1a-b0a7-89f76d1d10b7">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="2"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="default" isDefault="true" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="11"/>
+	<style name="Report_Title" fontName="Bitstream Vera Sans" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="Bitstream Vera Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Data_Label" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Data_Field" fontName="Bitstream Vera Sans" fontSize="11" isBold="false"/>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="10" isBold="true">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#5D5D5D" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="10" isBold="true">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="Detail_Line" fontName="Bitstream Vera Sans" fontSize="8" isBold="true">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Level1_Line" mode="Opaque" backcolor="#E5E5E5" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="true">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean(($P{DIMENSIONS}.intValue()==1)&&($V{NIVEL1_COUNT}.intValue()%2==1))]]></conditionExpression>
+			<style mode="Opaque" backcolor="#FFFFFF" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="false"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean(($P{DIMENSIONS}.intValue()==1)&&($V{NIVEL1_COUNT}.intValue()%2==0))]]></conditionExpression>
+			<style mode="Opaque" backcolor="#E5E5E5" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="false"/>
+		</conditionalStyle>
+	</style>
+	<style name="Level2_Line" mode="Opaque" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="true">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean(($P{DIMENSIONS}.intValue()==2)&&($V{NIVEL1_COUNT}.intValue()%2==0))]]></conditionExpression>
+			<style mode="Opaque" backcolor="#FFFFFF" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="false"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean(($P{DIMENSIONS}.intValue()==2)&&($V{NIVEL1_COUNT}.intValue()%2==1))]]></conditionExpression>
+			<style mode="Opaque" backcolor="#E5E5E5" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="false"/>
+		</conditionalStyle>
+	</style>
+	<style name="Level3_Line" mode="Opaque" backcolor="#E5E5E5" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="true">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean(($P{DIMENSIONS}.intValue()==3)&&($V{NIVEL2_COUNT}.intValue()%2==0))]]></conditionExpression>
+			<style mode="Opaque" backcolor="#FFFFFF" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="false"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean(($P{DIMENSIONS}.intValue()==3)&&($V{NIVEL2_COUNT}.intValue()%2==1))]]></conditionExpression>
+			<style mode="Opaque" backcolor="#E5E5E5" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="false"/>
+		</conditionalStyle>
+	</style>
+	<style name="Level4_Line" mode="Opaque" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="true">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean(($P{DIMENSIONS}.intValue()==4)&&($V{NIVEL3_COUNT}.intValue()%2==0))]]></conditionExpression>
+			<style backcolor="#FFFFFF" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="false"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean(($P{DIMENSIONS}.intValue()==4)&&($V{NIVEL3_COUNT}.intValue()%2==1))]]></conditionExpression>
+			<style mode="Opaque" backcolor="#E5E5E5" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="false"/>
+		</conditionalStyle>
+	</style>
+	<style name="Level5_Line" mode="Opaque" backcolor="#E5E5E5" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="true">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean(($P{DIMENSIONS}.intValue()==5)&&($V{NIVEL4_COUNT}.intValue()%2==0))]]></conditionExpression>
+			<style mode="Opaque" backcolor="#FFFFFF" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="false"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean(($P{DIMENSIONS}.intValue()==5)&&($V{NIVEL4_COUNT}.intValue()%2==1))]]></conditionExpression>
+			<style mode="Opaque" backcolor="#E5E5E5" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="false"/>
+		</conditionalStyle>
+	</style>
+	<style name="Level6_Line" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="true"/>
+	<style name="Level7_Line" backcolor="#E5E5E5" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="true"/>
+	<style name="Level8_Line" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="true"/>
+	<style name="Level9_Line" backcolor="#E5E5E5" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="8" isBold="true"/>
+	<style name="Report_Footer" vTextAlign="Middle" vImageAlign="Middle" fontName="Bitstream Vera Sans" fontSize="11"/>
+	<style name="Detail_Border" forecolor="#8A8A8A">
+		<pen lineWidth="0.25" lineStyle="Solid"/>
+		<box>
+			<pen lineWidth="0.0" lineStyle="Solid"/>
+			<topPen lineWidth="0.0" lineStyle="Solid"/>
+			<leftPen lineWidth="0.0" lineStyle="Solid"/>
+			<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+			<rightPen lineWidth="0.0" lineStyle="Solid"/>
+		</box>
+	</style>
+	<parameter name="USER_ORG" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["0,1000000"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_CLIENT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["0,1000000"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATEFROM" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[(new SimpleDateFormat("dd-MM-yyyy")).parse("01-01-1900")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATETO" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[(new SimpleDateFormat("dd-MM-yyyy")).parse("31-12-3000")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cBpGroupId" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cBpGroupId_Aux" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[$P{cBpGroupId}.equals("") ? " " : (" AND C_BP_Group.C_BP_Group_ID = " + $P{cBpGroupId})]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cBpartnerId" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="cBpartnerId_Aux" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[($P{cBpartnerId}.equals(""))?"  ":" AND C_BPartner.C_BPartner_ID IN " + $P{cBpartnerId}]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mProductCategoryId" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mProductCategoryId_Aux" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[($P{mProductCategoryId}.equals(""))?"  ":" AND M_Product_Category.M_Product_Category_Id = " + $P{mProductCategoryId}]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mProductId" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="mProductId_Aux" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[($P{mProductId}.equals(""))?" ":" AND M_Product.M_Product_ID IN " + $P{mProductId}]]></defaultValueExpression>
+	</parameter>
+	<parameter name="orderBy" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[" ORDER BY 1 "]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_TITLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Purchase Orders Report"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PRODUCT_LEVEL" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new Integer(3)]]></defaultValueExpression>
+	</parameter>
+	<parameter name="THEME" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Default"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="BASE_WEB" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/var/lib/tomcat-5.5/webapps/alerts/web"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_SUBTITLE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="LEVEL1_LABEL" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Partner Group"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LEVEL2_LABEL" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Product Category"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LEVEL3_LABEL" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Product"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LEVEL4_LABEL" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Partner"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LEVEL5_LABEL" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="LEVEL6_LABEL" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="LEVEL7_LABEL" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="LEVEL8_LABEL" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="LEVEL9_LABEL" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DIMENSIONS" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new Integer(2)]]></defaultValueExpression>
+	</parameter>
+	<parameter name="GROUP_LEVEL" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["1.- Group1, 2.- Group2, 3.- Group3"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LEVEL_LABEL" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["1.- "+$P{LEVEL1_LABEL}
++($P{LEVEL2_LABEL}==""?"":", 2.- "+$P{LEVEL2_LABEL})
++($P{LEVEL3_LABEL}==""?"":", 3.- "+$P{LEVEL3_LABEL})
++($P{LEVEL4_LABEL}==""?"":", 4.- "+$P{LEVEL4_LABEL})
++($P{LEVEL5_LABEL}==""?"":", 5.- "+$P{LEVEL5_LABEL})]]></defaultValueExpression>
+	</parameter>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5,
+      SUM(AMOUNT) AS AMOUNT, SUM(QTY) AS QTY,
+      SUM(AMOUNTREF) AS AMOUNTREF, SUM(QTYREF) AS QTYREF, UOMSYMBOL,
+      SUM(CONVAMOUNT) AS CONVAMOUNT,
+	  SUM(CONVAMOUNTREF) AS CONVAMOUNTREF,
+	  C_CURRENCY_SYMBOL('102', 0, 'Y') AS CONVSYM,
+	  C_CURRENCY_ISOSYM('102') AS CONVISOSYM,
+	  '' AS ID, '' AS NAME, '' AS TRANSCURRENCYID, '' AS TRANSDATE, '' AS TRANSCLIENTID, '' AS TRANSORGID
+      FROM (SELECT NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5,
+      SUM(LINENETAMT) AS AMOUNT, SUM(QTYORDERED) AS QTY,
+      SUM(LINENETREF) AS AMOUNTREF, SUM(QTYORDEREDREF) AS QTYREF, UOMSYMBOL,
+	  C_CURRENCY_CONVERT(SUM(LINENETAMT), TRCURRENCYID, '102', TO_DATE(TRDATE), NULL, TRCLIENTID, TRORGID) AS CONVAMOUNT,
+      C_CURRENCY_CONVERT(SUM(LINENETREF), TRCURRENCYID, '102', TO_DATE(TRDATE), NULL, TRCLIENTID, TRORGID) AS CONVAMOUNTREF,
+	  TRCURRENCYID, TRDATE, TRCLIENTID, TRORGID
+      FROM (SELECT to_char('1') AS NIVEL1, to_char('2') AS NIVEL2, to_char('3') AS NIVEL3, to_char('4') AS NIVEL4, to_char('5') AS NIVEL5,
+      C_ORDERLINE.LINENETAMT, C_ORDERLINE.QTYORDERED,
+      0 AS LINENETREF, 0 AS QTYORDEREDREF, C_UOM.UOMSYMBOL,
+      COALESCE(C_ORDERLINE.C_CURRENCY_ID, C_ORDER.C_CURRENCY_ID) AS TRCURRENCYID,
+      COALESCE(TO_DATE(C_ORDERLINE.DATEORDERED), TO_DATE(C_ORDER.DATEORDERED), TO_DATE(NOW())) AS TRDATE,
+	  C_ORDERLINE.AD_CLIENT_ID AS TRCLIENTID,
+	  C_ORDERLINE.AD_ORG_ID AS TRORGID
+      FROM M_PRODUCT left join M_PRODUCT_CATEGORY on M_PRODUCT.M_PRODUCT_CATEGORY_ID = M_PRODUCT_CATEGORY.M_PRODUCT_CATEGORY_ID
+                     right join C_ORDERLINE on C_ORDERLINE.M_PRODUCT_ID = M_PRODUCT.M_PRODUCT_ID
+                     right join C_ORDER on C_ORDER.C_ORDER_ID = C_ORDERLINE.C_ORDER_ID,
+       C_BPARTNER, C_BP_GROUP, C_UOM
+      WHERE C_ORDER.C_BPARTNER_ID = C_BPARTNER.C_BPARTNER_ID
+      AND C_BPARTNER.C_BP_GROUP_ID = C_BP_GROUP.C_BP_GROUP_ID
+      AND C_ORDERLINE.C_UOM_ID = C_UOM.C_UOM_ID
+      AND C_ORDER.ISSOTRX = 'N'
+      AND C_ORDER.PROCESSED = 'Y'
+      AND 0=0 AND C_ORDER.AD_ORG_ID IN ('1')
+      AND C_ORDER.AD_CLIENT_ID IN ('6')
+      AND 1=1
+      UNION ALL SELECT to_char('7') AS NIVEL1 , to_char('8') AS NIVEL2 , to_char('9') AS NIVEL3 , to_char('10') AS NIVEL4 , to_char('11') AS NIVEL5,
+      0 AS LINENETAMT, 0 AS QTYORDERED,
+      C_ORDERLINE.LINENETAMT AS LINENETREF, C_ORDERLINE.QTYORDERED AS QTYORDEREDREF, C_UOM.UOMSYMBOL,
+      COALESCE(C_ORDERLINE.C_CURRENCY_ID, C_ORDER.C_CURRENCY_ID) AS TRCURRENCYID,
+      COALESCE(TO_DATE(C_ORDERLINE.DATEORDERED), TO_DATE(C_ORDER.DATEORDERED), TO_DATE(NOW())) AS TRDATE,
+	  C_ORDERLINE.AD_CLIENT_ID AS TRCLIENTID,
+	  C_ORDERLINE.AD_ORG_ID AS TRORGID
+      FROM M_PRODUCT left join M_PRODUCT_CATEGORY on M_PRODUCT.M_PRODUCT_CATEGORY_ID = M_PRODUCT_CATEGORY.M_PRODUCT_CATEGORY_ID
+                     right join C_ORDERLINE on C_ORDERLINE.M_PRODUCT_ID = M_PRODUCT.M_PRODUCT_ID
+                     right join C_ORDER on C_ORDER.C_ORDER_ID = C_ORDERLINE.C_ORDER_ID,
+           C_BPARTNER, C_BP_GROUP, C_UOM
+      WHERE C_ORDER.C_BPARTNER_ID = C_BPARTNER.C_BPARTNER_ID
+      AND C_BPARTNER.C_BP_GROUP_ID = C_BP_GROUP.C_BP_GROUP_ID
+      AND C_ORDERLINE.C_UOM_ID = C_UOM.C_UOM_ID
+      AND C_ORDER.ISSOTRX = 'N'
+      AND C_ORDER.PROCESSED = 'Y'
+      AND 3=3 AND C_ORDER.AD_ORG_ID IN ('1')
+      AND C_ORDER.AD_CLIENT_ID IN('12')
+      AND 2=2) AA
+      GROUP BY NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, UOMSYMBOL, TRCURRENCYID, TRDATE, TRCLIENTID, TRORGID) ZZ
+      GROUP BY NIVEL1, NIVEL2, NIVEL3, NIVEL4, NIVEL5, UOMSYMBOL, CONVSYM, CONVISOSYM, 1]]>
+	</queryString>
+	<field name="NIVEL1" class="java.lang.String"/>
+	<field name="NIVEL2" class="java.lang.String"/>
+	<field name="NIVEL3" class="java.lang.String"/>
+	<field name="NIVEL4" class="java.lang.String"/>
+	<field name="NIVEL5" class="java.lang.String"/>
+	<field name="AMOUNT" class="java.math.BigDecimal"/>
+	<field name="CONVAMOUNT" class="java.math.BigDecimal"/>
+	<field name="QTY" class="java.math.BigDecimal"/>
+	<field name="AMOUNTREF" class="java.math.BigDecimal"/>
+	<field name="CONVAMOUNTREF" class="java.math.BigDecimal"/>
+	<field name="QTYREF" class="java.math.BigDecimal"/>
+	<field name="ID" class="java.lang.String"/>
+	<field name="NAME" class="java.lang.String"/>
+	<field name="UOMSYMBOL" class="java.lang.String"/>
+	<field name="AMOUNTSYM" class="java.lang.String"/>
+	<field name="CONVSYM" class="java.lang.String"/>
+	<field name="CONVISOSYM" class="java.lang.String"/>
+	<variable name="QTY_SUM5" class="java.math.BigDecimal" resetType="Group" resetGroup="LEVEL5" calculation="Sum">
+		<variableExpression><![CDATA[$F{QTY}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0)]]></initialValueExpression>
+	</variable>
+	<variable name="QTY_SUM4" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL4" calculation="Sum">
+		<variableExpression><![CDATA[$F{QTY}]]></variableExpression>
+	</variable>
+	<variable name="QTY_SUM3" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL3" calculation="Sum">
+		<variableExpression><![CDATA[$F{QTY}]]></variableExpression>
+	</variable>
+	<variable name="QTY_SUM2" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL2" calculation="Sum">
+		<variableExpression><![CDATA[$F{QTY}]]></variableExpression>
+	</variable>
+	<variable name="QTY_SUM1" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL1" calculation="Sum">
+		<variableExpression><![CDATA[$F{QTY}]]></variableExpression>
+	</variable>
+	<variable name="QTYREF_SUM5" class="java.math.BigDecimal" resetType="Group" resetGroup="LEVEL5" calculation="Sum">
+		<variableExpression><![CDATA[$F{QTYREF}]]></variableExpression>
+		<initialValueExpression><![CDATA[new BigDecimal(0)]]></initialValueExpression>
+	</variable>
+	<variable name="QTYREF_SUM4" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL4" calculation="Sum">
+		<variableExpression><![CDATA[$F{QTYREF}]]></variableExpression>
+	</variable>
+	<variable name="QTYREF_SUM3" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL3" calculation="Sum">
+		<variableExpression><![CDATA[$F{QTYREF}]]></variableExpression>
+	</variable>
+	<variable name="QTYREF_SUM2" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL2" calculation="Sum">
+		<variableExpression><![CDATA[$F{QTYREF}]]></variableExpression>
+	</variable>
+	<variable name="QTYREF_SUM1" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL1" calculation="Sum">
+		<variableExpression><![CDATA[$F{QTYREF}]]></variableExpression>
+	</variable>
+	<variable name="AMOUNT_TOTAL" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="AMOUNT_SUM1" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL1" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="AMOUNT_SUM2" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL2" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="AMOUNT_SUM3" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL3" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="AMOUNT_SUM4" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL4" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="AMOUNT_SUM5" class="java.math.BigDecimal" resetType="Group" resetGroup="LEVEL5" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="AMOUNTREF_TOTAL" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMOUNTREF}]]></variableExpression>
+	</variable>
+	<variable name="AMOUNTREF_SUM1" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL1" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMOUNTREF}]]></variableExpression>
+	</variable>
+	<variable name="AMOUNTREF_SUM2" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL2" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMOUNTREF}]]></variableExpression>
+	</variable>
+	<variable name="AMOUNTREF_SUM3" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL3" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMOUNTREF}]]></variableExpression>
+	</variable>
+	<variable name="AMOUNTREF_SUM4" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL4" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMOUNTREF}]]></variableExpression>
+	</variable>
+	<variable name="AMOUNTREF_SUM5" class="java.math.BigDecimal" resetType="Group" resetGroup="LEVEL5" calculation="Sum">
+		<variableExpression><![CDATA[$F{AMOUNTREF}]]></variableExpression>
+	</variable>
+	<variable name="CONVAMOUNT_TOTAL" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{CONVAMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="CONVAMOUNT_SUM1" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL1" calculation="Sum">
+		<variableExpression><![CDATA[$F{CONVAMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="CONVAMOUNT_SUM2" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL2" calculation="Sum">
+		<variableExpression><![CDATA[$F{CONVAMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="CONVAMOUNT_SUM3" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL3" calculation="Sum">
+		<variableExpression><![CDATA[$F{CONVAMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="CONVAMOUNT_SUM4" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL4" calculation="Sum">
+		<variableExpression><![CDATA[$F{CONVAMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="CONVAMOUNT_SUM5" class="java.math.BigDecimal" resetType="Group" resetGroup="LEVEL5" calculation="Sum">
+		<variableExpression><![CDATA[$F{CONVAMOUNT}]]></variableExpression>
+	</variable>
+	<variable name="CONVAMOUNTREF_TOTAL" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{CONVAMOUNTREF}]]></variableExpression>
+	</variable>
+	<variable name="CONVAMOUNTREF_SUM1" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL1" calculation="Sum">
+		<variableExpression><![CDATA[$F{CONVAMOUNTREF}]]></variableExpression>
+	</variable>
+	<variable name="CONVAMOUNTREF_SUM2" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL2" calculation="Sum">
+		<variableExpression><![CDATA[$F{CONVAMOUNTREF}]]></variableExpression>
+	</variable>
+	<variable name="CONVAMOUNTREF_SUM3" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL3" calculation="Sum">
+		<variableExpression><![CDATA[$F{CONVAMOUNTREF}]]></variableExpression>
+	</variable>
+	<variable name="CONVAMOUNTREF_SUM4" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL4" calculation="Sum">
+		<variableExpression><![CDATA[$F{CONVAMOUNTREF}]]></variableExpression>
+	</variable>
+	<variable name="CONVAMOUNTREF_SUM5" class="java.math.BigDecimal" resetType="Group" resetGroup="LEVEL5" calculation="Sum">
+		<variableExpression><![CDATA[$F{CONVAMOUNTREF}]]></variableExpression>
+	</variable>
+	<variable name="AMT_PCT_1" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL1">
+		<variableExpression><![CDATA[($V{AMOUNTREF_SUM1}.equals(new BigDecimal(0.0)))?null:$V{AMOUNT_SUM1}.subtract( $V{AMOUNTREF_SUM1} ).divide( $V{AMOUNTREF_SUM1}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="AMT_PCT_2" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL2">
+		<variableExpression><![CDATA[($V{AMOUNTREF_SUM2}.equals(new BigDecimal(0.0)))?null:$V{AMOUNT_SUM2}.subtract( $V{AMOUNTREF_SUM2} ).divide( $V{AMOUNTREF_SUM2}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="AMT_PCT_3" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL3">
+		<variableExpression><![CDATA[($V{AMOUNTREF_SUM3}.equals(new BigDecimal(0.0)))?null:$V{AMOUNT_SUM3}.subtract( $V{AMOUNTREF_SUM3} ).divide( $V{AMOUNTREF_SUM3}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="AMT_PCT_4" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL4">
+		<variableExpression><![CDATA[($V{AMOUNTREF_SUM4}.equals(new BigDecimal(0.0)))?null:$V{AMOUNT_SUM4}.subtract( $V{AMOUNTREF_SUM4} ).divide( $V{AMOUNTREF_SUM4}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="AMT_PCT_5" class="java.math.BigDecimal" resetType="Group" resetGroup="LEVEL5">
+		<variableExpression><![CDATA[($V{AMOUNTREF_SUM5}.equals(new BigDecimal(0.0)))?null:$V{AMOUNT_SUM5}.subtract( $V{AMOUNTREF_SUM5} ).divide( $V{AMOUNTREF_SUM5}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="AMT_PCT_T" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[($V{CONVAMOUNTREF_TOTAL}.equals(new BigDecimal(0.0)))?null:$V{CONVAMOUNT_TOTAL}.subtract( $V{CONVAMOUNTREF_TOTAL} ).divide( $V{CONVAMOUNTREF_TOTAL}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="CONVAMT_PCT_1" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL1">
+		<variableExpression><![CDATA[($V{CONVAMOUNTREF_SUM1}.equals(new BigDecimal(0.0)))?null:$V{CONVAMOUNT_SUM1}.subtract( $V{CONVAMOUNTREF_SUM1} ).divide( $V{CONVAMOUNTREF_SUM1}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="CONVAMT_PCT_2" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL2">
+		<variableExpression><![CDATA[($V{CONVAMOUNTREF_SUM2}.equals(new BigDecimal(0.0)))?null:$V{CONVAMOUNT_SUM2}.subtract( $V{CONVAMOUNTREF_SUM2} ).divide( $V{CONVAMOUNTREF_SUM2}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="CONVAMT_PCT_3" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL3">
+		<variableExpression><![CDATA[($V{CONVAMOUNTREF_SUM3}.equals(new BigDecimal(0.0)))?null:$V{CONVAMOUNT_SUM3}.subtract( $V{CONVAMOUNTREF_SUM3} ).divide( $V{CONVAMOUNTREF_SUM3}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="CONVAMT_PCT_4" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL4">
+		<variableExpression><![CDATA[($V{CONVAMOUNTREF_SUM4}.equals(new BigDecimal(0.0)))?null:$V{CONVAMOUNT_SUM4}.subtract( $V{CONVAMOUNTREF_SUM4} ).divide( $V{CONVAMOUNTREF_SUM4}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="CONVAMT_PCT_5" class="java.math.BigDecimal" resetType="Group" resetGroup="LEVEL5">
+		<variableExpression><![CDATA[($V{CONVAMOUNTREF_SUM5}.equals(new BigDecimal(0.0)))?null:$V{CONVAMOUNT_SUM5}.subtract( $V{CONVAMOUNTREF_SUM5} ).divide( $V{CONVAMOUNTREF_SUM5}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="CONVAMT_PCT_T" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[($V{CONVAMOUNTREF_TOTAL}.equals(new BigDecimal(0.0)))?null:$V{CONVAMOUNT_TOTAL}.subtract( $V{CONVAMOUNTREF_TOTAL} ).divide( $V{CONVAMOUNTREF_TOTAL}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="QTY_PCT_1" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL1">
+		<variableExpression><![CDATA[($V{QTYREF_SUM1}.equals(new BigDecimal(0.0)))?null:$V{QTY_SUM1}.subtract( $V{QTYREF_SUM1} ).divide( $V{QTYREF_SUM1}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="QTY_PCT_2" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL2">
+		<variableExpression><![CDATA[($V{QTYREF_SUM2}.equals(new BigDecimal(0.0)))?null:$V{QTY_SUM2}.subtract( $V{QTYREF_SUM2} ).divide( $V{QTYREF_SUM2}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="QTY_PCT_3" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL3">
+		<variableExpression><![CDATA[($V{QTYREF_SUM3}.equals(new BigDecimal(0.0)))?null:$V{QTY_SUM3}.subtract( $V{QTYREF_SUM3} ).divide( $V{QTYREF_SUM3}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="QTY_PCT_4" class="java.math.BigDecimal" resetType="Group" resetGroup="NIVEL4">
+		<variableExpression><![CDATA[($V{QTYREF_SUM4}.equals(new BigDecimal(0.0)))?null:$V{QTY_SUM4}.subtract( $V{QTYREF_SUM4} ).divide( $V{QTYREF_SUM4}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<variable name="QTY_PCT_5" class="java.math.BigDecimal" resetType="Group" resetGroup="LEVEL5">
+		<variableExpression><![CDATA[($V{QTYREF_SUM5}.equals(new BigDecimal(0.0)))?null:$V{QTY_SUM5}.subtract( $V{QTYREF_SUM5} ).divide( $V{QTYREF_SUM5}, 6).multiply(new BigDecimal(100.0))]]></variableExpression>
+	</variable>
+	<group name="TOTALIZE">
+		<groupExpression><![CDATA[]]></groupExpression>
+		<groupHeader>
+			<band splitType="Stretch"/>
+		</groupHeader>
+		<groupFooter>
+			<band height="20" splitType="Stretch">
+				<textField evaluationTime="Report" isBlankWhenNull="false">
+					<reportElement key="textField-36" style="Total_Field" x="307" y="2" width="64" height="17" forecolor="#000000" backcolor="#FFFFFF" uuid="98ea7c72-ed69-4b7c-99b5-a383b864ec90"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMOUNT_TOTAL}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMOUNT_TOTAL}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-18" style="Report_Data_Label" x="255" y="2" width="52" height="17" forecolor="#000000" backcolor="#FFFFFF" uuid="85d9ee6f-7f2c-4ef2-bd0b-22b98a14ba28"/>
+					<box leftPadding="5" rightPadding="2">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Totals]]></text>
+				</staticText>
+				<textField evaluationTime="Report" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-37" style="Total_Field" x="390" y="2" width="64" height="17" forecolor="#000000" backcolor="#FFFFFF" uuid="02353954-aecd-48b4-8f3e-d3c12aafc533"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMOUNTREF_TOTAL}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMOUNTREF_TOTAL}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Report" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-38" style="Total_Field" x="473" y="2" width="47" height="17" forecolor="#000000" backcolor="#FFFFFF" uuid="a32e5541-5ec9-4a28-941f-6f3f44e409ce"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMT_PCT_T}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMT_PCT_T}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement key="line-5" x="0" y="1" width="730" height="1" uuid="9af14d2a-7336-472c-9875-95242ad1b101"/>
+				</line>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-39" style="Detail_Header" mode="Opaque" x="15" y="2" width="15" height="17" forecolor="#000000" backcolor="#FFFFFF" uuid="f8de0f94-f626-464e-9cdc-ccce5f67f2d4">
+						<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()>=2)]]></printWhenExpression>
+					</reportElement>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($P{DIMENSIONS}.compareTo(new Integer(2))>=0)?"2":"")]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-40" style="Detail_Header" mode="Opaque" x="0" y="2" width="15" height="17" forecolor="#000000" backcolor="#FFFFFF" uuid="c0a2c1a1-ba2b-4e1a-9e43-d5461c230e15">
+						<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()>=1)]]></printWhenExpression>
+					</reportElement>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($P{DIMENSIONS}.compareTo(new Integer(1))>=0)?"1":"")]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-41" style="Detail_Header" mode="Opaque" x="30" y="2" width="15" height="17" forecolor="#000000" backcolor="#FFFFFF" uuid="2cf78859-acda-40c3-9bb0-80167d2d6df9">
+						<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()>=3)]]></printWhenExpression>
+					</reportElement>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($P{DIMENSIONS}.compareTo(new Integer(3))>=0)?"3":"")]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-42" style="Detail_Header" mode="Opaque" x="45" y="2" width="15" height="17" forecolor="#000000" backcolor="#FFFFFF" uuid="481ff03c-c572-4951-bc4a-e6352f9af3c3">
+						<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()>=4)]]></printWhenExpression>
+					</reportElement>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($P{DIMENSIONS}.compareTo(new Integer(4))>=0)?"4":"")]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-43" style="Detail_Header" mode="Opaque" x="60" y="2" width="15" height="17" forecolor="#000000" backcolor="#FFFFFF" uuid="36bbeec5-5f7b-47e2-a7ca-1b0d9d1694a7">
+						<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()>=5)]]></printWhenExpression>
+					</reportElement>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($P{DIMENSIONS}.compareTo(new Integer(5))>=0)?"5":" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Report" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-55" style="Total_Field" x="371" y="2" width="19" height="17" forecolor="#000000" backcolor="#FFFFFF" uuid="e3952052-142c-4cf7-b5d9-672a03a20fc6"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CONVSYM}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Report" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-56" style="Total_Field" x="454" y="2" width="19" height="17" forecolor="#000000" backcolor="#FFFFFF" uuid="308cf859-e1c3-4893-83ba-00ba1d50b57b"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CONVSYM}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="NIVEL1">
+		<groupExpression><![CDATA[$F{NIVEL1}]]></groupExpression>
+		<groupHeader>
+			<band height="18" splitType="Stretch">
+				<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()>=1)]]></printWhenExpression>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" style="Level1_Line" stretchType="RelativeToBandHeight" x="0" y="0" width="307" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="4e57e2d6-8e36-4402-94de-9f0b7d326e4f"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement>
+						<font fontName="SansSerif" isBold="false"/>
+						<paragraph leftIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{NIVEL1}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL1" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level1_Line" stretchType="RelativeToBandHeight" x="520" y="0" width="80" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="50a066b9-6d64-4e31-900a-d45cfd304c51"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTY_SUM1}!=null)?$P{NUMBERFORMAT}.format($V{QTY_SUM1}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL1" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level1_Line" stretchType="RelativeToBandHeight" x="307" y="0" width="64" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="e4b39852-1def-40c2-adaa-6570b8cb85a9"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMOUNT_SUM1}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMOUNT_SUM1}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL1" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level1_Line" stretchType="RelativeToBandHeight" x="390" y="0" width="64" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="33300880-a5da-4512-9ed8-114986647658"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMOUNTREF_SUM1}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMOUNTREF_SUM1}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL1" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level1_Line" stretchType="RelativeToBandHeight" x="600" y="0" width="80" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="ac100ad5-d1dc-45f9-bc7f-ad7041744ad0"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTYREF_SUM1}!=null)?$P{NUMBERFORMAT}.format($V{QTYREF_SUM1}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL1" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-9" style="Level1_Line" stretchType="RelativeToBandHeight" x="473" y="0" width="47" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="69edb535-17d5-48c9-9611-ec849fde0509"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMT_PCT_1}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMT_PCT_1}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL1" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level1_Line" stretchType="RelativeToBandHeight" x="680" y="0" width="50" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="7dd2310f-f848-4788-b657-3243f6f317e0"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTY_PCT_1}!=null)?$P{NUMBERFORMAT}.format($V{QTY_PCT_1}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL1" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-45" style="Level1_Line" stretchType="RelativeToBandHeight" x="371" y="0" width="19" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="2f633224-08ce-4cbc-b8d4-25cfe2208d70"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CONVSYM}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL1" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-46" style="Level1_Line" stretchType="RelativeToBandHeight" x="454" y="0" width="19" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="eb140f3d-19c2-44fe-a7f2-08c35d1dd263"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CONVSYM}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Stretch">
+				<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()==2)]]></printWhenExpression>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="NIVEL2">
+		<groupExpression><![CDATA[$F{NIVEL2}]]></groupExpression>
+		<groupHeader>
+			<band height="18" splitType="Stretch">
+				<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()>=2)]]></printWhenExpression>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" style="Level2_Line" stretchType="RelativeToBandHeight" x="15" y="0" width="292" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="544f2d04-6099-4084-850b-beebb729df8a"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement>
+						<font fontName="SansSerif" isBold="false"/>
+						<paragraph leftIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{NIVEL2}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL2" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level2_Line" stretchType="RelativeToBandHeight" x="520" y="0" width="80" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="1a3dfdb0-f844-4b8c-89ae-36c350ef91d1"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTY_SUM2}!=null)?$P{NUMBERFORMAT}.format($V{QTY_SUM2}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL2" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level2_Line" stretchType="RelativeToBandHeight" x="307" y="0" width="64" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="e7dd05f6-b423-4e29-b18b-67d18bcb8413"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMOUNT_SUM2}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMOUNT_SUM2}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL2" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level2_Line" stretchType="RelativeToBandHeight" x="390" y="0" width="64" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="050e0bd4-07a9-4d94-bf31-f722efe7eaea"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMOUNTREF_SUM2}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMOUNTREF_SUM2}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL2" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level2_Line" stretchType="RelativeToBandHeight" x="600" y="0" width="80" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="eb4b0002-9207-4506-bb78-7ae507712b14"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTYREF_SUM2}!=null)?$P{NUMBERFORMAT}.format($V{QTYREF_SUM2}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL2" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-8" style="Level2_Line" stretchType="RelativeToBandHeight" x="473" y="0" width="47" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="93fe467b-7a85-48d3-aa45-4d7058c55029"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMT_PCT_2}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMT_PCT_2}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL2" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level2_Line" stretchType="RelativeToBandHeight" x="680" y="0" width="50" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="26b5f96f-565d-4085-aecf-7c17dbcc66da"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTY_PCT_2}!=null)?$P{NUMBERFORMAT}.format($V{QTY_PCT_2}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-26" style="Level1_Line" stretchType="RelativeToBandHeight" x="0" y="0" width="15" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="0c1232b1-5314-4473-bf7a-26a22ec42f3f"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL2" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-51" style="Level2_Line" stretchType="RelativeToBandHeight" x="371" y="0" width="19" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="7ea37501-6e26-4fa2-8854-e81e518dcb6a"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CONVSYM}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL2" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-52" style="Level2_Line" stretchType="RelativeToBandHeight" x="454" y="0" width="19" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="7bb0202f-099a-4eed-b047-1c2650b83207"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CONVSYM}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Stretch">
+				<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()==3)]]></printWhenExpression>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="NIVEL3">
+		<groupExpression><![CDATA[$F{NIVEL3}]]></groupExpression>
+		<groupHeader>
+			<band height="18" splitType="Stretch">
+				<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()>=3)]]></printWhenExpression>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" style="Level3_Line" stretchType="RelativeToBandHeight" x="30" y="0" width="277" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="daad461d-e929-4a3f-b092-1580fdba1c2e"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement>
+						<font fontName="SansSerif" isBold="false"/>
+						<paragraph leftIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{NIVEL3}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL3" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level3_Line" stretchType="RelativeToBandHeight" x="520" y="0" width="80" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="b831ad06-f0c3-4070-b458-9fc870325ca2"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTY_SUM3}!=null)?$P{NUMBERFORMAT}.format($V{QTY_SUM3}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL3" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level3_Line" stretchType="RelativeToBandHeight" x="307" y="0" width="64" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="ad7205d4-cffd-4936-b6ba-8a5095d720da"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMOUNT_SUM3}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMOUNT_SUM3}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL3" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level3_Line" stretchType="RelativeToBandHeight" x="390" y="0" width="64" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="149a4876-02b7-4d57-9c5f-a2bf51a4c846"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMOUNTREF_SUM3}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMOUNTREF_SUM3}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL3" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level3_Line" stretchType="RelativeToBandHeight" x="600" y="0" width="80" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="0f48a683-6850-45af-9e18-e582e2185b05"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTYREF_SUM3}!=null)?$P{NUMBERFORMAT}.format($V{QTYREF_SUM3}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL3" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-7" style="Level3_Line" stretchType="RelativeToBandHeight" x="473" y="0" width="47" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="87ddabb0-d833-4166-887c-9c57951e7c18"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMT_PCT_3}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMT_PCT_3}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL3" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level3_Line" stretchType="RelativeToBandHeight" x="680" y="0" width="50" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="17630de3-8621-4465-aa00-48f485f2d360"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTY_PCT_3}!=null)?$P{NUMBERFORMAT}.format($V{QTY_PCT_3}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-27" style="Level1_Line" stretchType="RelativeToBandHeight" x="0" y="0" width="15" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="6a1b700c-e9ce-4a9e-a715-112ec6a676de"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-32" style="Level2_Line" stretchType="RelativeToBandHeight" x="15" y="0" width="15" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="8a3b2499-8bea-49a7-ac3b-c3aca881263e"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL3" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-47" style="Level3_Line" stretchType="RelativeToBandHeight" x="454" y="0" width="19" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="402d711a-67cd-48fb-a13c-1697989ed0dd"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CONVSYM}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL3" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-48" style="Level3_Line" stretchType="RelativeToBandHeight" x="371" y="0" width="19" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="e39bbc00-db5d-4d93-bb22-92c436825d8f"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CONVSYM}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Stretch">
+				<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()==4)]]></printWhenExpression>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="NIVEL4">
+		<groupExpression><![CDATA[$F{NIVEL4}]]></groupExpression>
+		<groupHeader>
+			<band height="18" splitType="Stretch">
+				<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()>=4)]]></printWhenExpression>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" style="Level4_Line" stretchType="RelativeToBandHeight" x="45" y="0" width="262" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="61adeac2-1e83-4f77-b833-c8e373fec862"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement>
+						<font fontName="SansSerif" isBold="false"/>
+						<paragraph leftIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{NIVEL4}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL4" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level4_Line" stretchType="RelativeToBandHeight" x="520" y="0" width="80" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="15cfb04a-0b60-46ff-8e75-9324ee518cd8"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTY_SUM4}!=null)?$P{NUMBERFORMAT}.format($V{QTY_SUM4}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL4" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level4_Line" stretchType="RelativeToBandHeight" x="307" y="0" width="64" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="6ba22fa9-06cd-49d7-a8f4-6ec3c215d582"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMOUNT_SUM4}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMOUNT_SUM4}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL4" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level4_Line" stretchType="RelativeToBandHeight" x="390" y="0" width="64" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="00671172-5679-44ac-9dbd-999e25a1f98d"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMOUNTREF_SUM4}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMOUNTREF_SUM4}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL4" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level4_Line" stretchType="RelativeToBandHeight" x="600" y="0" width="80" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="13163cb3-c130-447f-babc-bcea21c7c144"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTYREF_SUM4}!=null)?$P{NUMBERFORMAT}.format($V{QTYREF_SUM4}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL4" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-10" style="Level4_Line" stretchType="RelativeToBandHeight" x="473" y="0" width="47" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="53daf274-d86c-4841-9635-b3008450afa6"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMT_PCT_4}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMT_PCT_4}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL4" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level4_Line" stretchType="RelativeToBandHeight" x="680" y="0" width="50" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="d7f322da-709a-4a05-ba4d-642c4f63f028"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTY_PCT_4}!=null)?$P{NUMBERFORMAT}.format($V{QTY_PCT_4}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-28" style="Level1_Line" stretchType="RelativeToBandHeight" x="0" y="0" width="15" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="91b247b6-2fcc-40cf-8f51-3eb16aba45f5"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-30" style="Level3_Line" stretchType="RelativeToBandHeight" x="30" y="0" width="15" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="9e5e42d1-ee96-49f4-9f0b-11971d858293"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-33" style="Level2_Line" stretchType="RelativeToBandHeight" x="15" y="0" width="15" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="ad7f6358-5c80-41a7-839e-368fae5a753a"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL4" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-53" style="Level4_Line" stretchType="RelativeToBandHeight" x="371" y="0" width="19" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="fbdbe487-7370-449f-8dd0-0a0014fd9b88"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CONVSYM}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL4" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-54" style="Level4_Line" stretchType="RelativeToBandHeight" x="454" y="0" width="19" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="7506c9e1-a4c9-4969-b997-6ecc0838961d"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CONVSYM}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Stretch">
+				<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()==5)]]></printWhenExpression>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="LEVEL5">
+		<groupExpression><![CDATA[$F{NIVEL5}]]></groupExpression>
+		<groupHeader>
+			<band height="18" splitType="Stretch">
+				<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()>=5)]]></printWhenExpression>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField" style="Level5_Line" stretchType="RelativeToBandHeight" x="60" y="0" width="247" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="efda3595-817f-4b20-adf9-a151064e5edf"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement>
+						<font fontName="SansSerif" isBold="false"/>
+						<paragraph leftIndent="2"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{NIVEL5}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="LEVEL5" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level5_Line" stretchType="RelativeToBandHeight" x="520" y="0" width="80" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="b92f31e8-376b-4cb1-8ff3-3af940f925d3"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTY_SUM5}!=null)?$P{NUMBERFORMAT}.format($V{QTY_SUM5}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="LEVEL5" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level5_Line" stretchType="RelativeToBandHeight" x="307" y="0" width="64" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="88280691-218c-4e14-94e0-0c6ba6f5a7fb"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMOUNT_SUM5}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMOUNT_SUM5}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="LEVEL5" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level5_Line" stretchType="RelativeToBandHeight" x="390" y="0" width="64" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="1f6b8995-b891-4d00-a950-309e4c929e90"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMOUNTREF_SUM5}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMOUNTREF_SUM5}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="LEVEL5" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level5_Line" stretchType="RelativeToBandHeight" x="600" y="0" width="80" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="c8b4c49c-7581-4a44-981c-cbb09a045c66"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTYREF_SUM5}!=null)?$P{NUMBERFORMAT}.format($V{QTYREF_SUM5}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="LEVEL5" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level5_Line" stretchType="RelativeToBandHeight" x="473" y="0" width="47" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="0d8c417f-ec4a-4ea0-a6d4-6725e6cc28f0"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{CONVAMT_PCT_5}!=null)?$P{NUMBERFORMAT}.format($V{CONVAMT_PCT_5}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="LEVEL5" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField" style="Level5_Line" stretchType="RelativeToBandHeight" x="680" y="0" width="50" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="e214fcf5-4375-4dc9-acd9-88c8bf224729"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Right">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{QTY_PCT_5}!=null)?$P{NUMBERFORMAT}.format($V{QTY_PCT_5}):new String(" ")]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-29" style="Level1_Line" stretchType="RelativeToBandHeight" x="0" y="0" width="15" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="7a07a5e3-dae4-4d87-a270-9c6acae0d0d7"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-31" style="Level3_Line" stretchType="RelativeToBandHeight" x="30" y="0" width="15" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="fa33e360-8365-4de2-869a-525d53687e5b"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-34" style="Level2_Line" stretchType="RelativeToBandHeight" x="15" y="0" width="15" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="708229c3-4dac-4a36-8835-0583868247b0"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-35" style="Level4_Line" stretchType="RelativeToBandHeight" x="45" y="0" width="15" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="92d2ee65-9e1d-4715-a7d3-c1c0590876f2"/>
+					<box>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL3" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-49" style="Level5_Line" stretchType="RelativeToBandHeight" x="454" y="0" width="19" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="4fdf727f-fb59-4515-9905-3375a91ca388"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CONVSYM}]]></textFieldExpression>
+				</textField>
+				<textField evaluationTime="Group" evaluationGroup="NIVEL3" pattern="" isBlankWhenNull="false">
+					<reportElement key="textField-50" style="Level5_Line" stretchType="RelativeToBandHeight" x="371" y="0" width="19" height="18" forecolor="#000000" backcolor="#FFFFFF" uuid="d12432f2-3fca-44fb-b58f-881cd7a59f69"/>
+					<box>
+						<topPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CONVSYM}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band splitType="Stretch">
+				<printWhenExpression><![CDATA[new Boolean($P{DIMENSIONS}.intValue()==6)]]></printWhenExpression>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band height="11" splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="109" splitType="Stretch">
+			<frame>
+				<reportElement key="frame-1" mode="Opaque" x="0" y="90" width="730" height="19" backcolor="#FFFFFF" uuid="bd0fe530-c4ce-4337-889d-6bfefe9f6dee"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-18" style="Detail_Header" mode="Transparent" x="0" y="0" width="15" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="eeb642cf-378a-4ec6-a75e-71d8a5564be3"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($P{DIMENSIONS}.compareTo(new Integer(1))>=0)?"1":"")]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-19" style="Detail_Header" mode="Transparent" x="15" y="0" width="15" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="aec13a95-c179-4205-a230-71fb213f83a4"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($P{DIMENSIONS}.compareTo(new Integer(2))>=0)?"2":"")]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-20" style="Detail_Header" mode="Transparent" x="30" y="0" width="15" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="a953e018-f69c-4e3f-a089-8a7a618015b0"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($P{DIMENSIONS}.compareTo(new Integer(3))>=0)?"3":"")]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-21" style="Detail_Header" mode="Transparent" x="45" y="0" width="15" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="127925cb-dd0f-433b-8f51-8a8978fa4910"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($P{DIMENSIONS}.compareTo(new Integer(4))>=0)?"4":"")]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-22" style="Detail_Header" mode="Transparent" x="60" y="0" width="15" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="9d45c287-5430-4aeb-8536-9892ef4e2647"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement rotation="None">
+						<font fontName="SansSerif" size="8" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[(($P{DIMENSIONS}.compareTo(new Integer(5))>=0)?"5":"")]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement key="staticText-10" style="Detail_Header" mode="Opaque" x="307" y="0" width="83" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="c83a6878-6eef-4a46-8ad5-41eece26e494"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" size="8" isBold="false" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Amount]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-11" style="Detail_Header" mode="Opaque" x="390" y="0" width="80" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="a1b81d82-f98a-4c17-8f90-e98ee7d7ac55"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" size="8" isBold="false" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Amt. Ref.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-12" style="Detail_Header" mode="Opaque" x="472" y="0" width="48" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="8aee299d-3300-4fc5-8b12-a392da027217"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" size="8" isBold="false" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[A %]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-13" style="Detail_Header" mode="Opaque" x="520" y="0" width="80" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="ac58aaac-e0b0-47bb-b31e-91a498209f65"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" size="8" isBold="false" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Quantity]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-14" style="Detail_Header" mode="Opaque" x="600" y="0" width="80" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="3d708cea-5608-4779-8da8-abeac70fd0d2"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" size="8" isBold="false" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Qty. Ref.]]></text>
+				</staticText>
+				<staticText>
+					<reportElement key="staticText-15" style="Detail_Header" mode="Opaque" x="680" y="0" width="50" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="c99aa5aa-32e1-4936-8e2e-e8cc2aa3f06b"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font fontName="SansSerif" size="8" isBold="false" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<text><![CDATA[Q %]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement key="textField-44" style="Detail_Header" positionType="FixRelativeToBottom" x="258" y="0" width="49" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="51b8f33e-ea04-4f86-9d7d-971eabdeea95"/>
+					<box leftPadding="5">
+						<pen lineWidth="0.0"/>
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="SansSerif" size="8" isBold="false" pdfFontName="Helvetica-Bold"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{CONVISOSYM}]]></textFieldExpression>
+				</textField>
+			</frame>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" style="Report_Title" x="0" y="0" width="371" height="26" forecolor="#000000" backcolor="#FFFFFF" uuid="74ab42d8-47dc-4418-a20d-ddfa55e7e2a5"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{REPORT_TITLE}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" style="Report_Subtitle" x="371" y="0" width="359" height="26" forecolor="#000000" backcolor="#FFFFFF" uuid="76c3fa85-19a3-483e-9c59-e9c7371d3c14"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{REPORT_SUBTITLE}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement key="line-1" x="0" y="26" width="730" height="1" uuid="8d41d660-0506-4911-9480-25ce2341c698"/>
+			</line>
+			<staticText>
+				<reportElement key="staticText-9" style="Report_Data_Label" x="0" y="27" width="114" height="16" forecolor="#000000" backcolor="#FFFFFF" uuid="5df740fe-f2ae-411f-9db7-24c4250cbd29"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Grouping Levels:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement key="textField-12" style="Report_Data_Field" x="114" y="27" width="616" height="16" forecolor="#000000" backcolor="#FFFFFF" uuid="3860dfed-c48f-4a68-9406-df8da39da950"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{LEVEL_LABEL}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band splitType="Stretch"/>
+	</detail>
+	<columnFooter>
+		<band height="1" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="20" splitType="Stretch">
+			<line>
+				<reportElement key="line-4" x="0" y="1" width="730" height="1" uuid="f49fdf97-cedf-4b93-afff-07f6f562ba9d"/>
+			</line>
+			<staticText>
+				<reportElement key="staticText-8" style="Report_Footer" x="10" y="1" width="78" height="16" uuid="fe9008ae-79b2-4551-bf0f-3cb128d07aff"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<text><![CDATA[Druckdatum]]></text>
+			</staticText>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField-55" style="Report_Footer" x="563" y="1" width="42" height="16" uuid="b348af22-c513-479f-b998-124f8c5af62b"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}.toString()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-8" style="Report_Footer" x="485" y="1" width="78" height="16" uuid="53fb4d10-0f9e-4278-8347-15a45176a065"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<text><![CDATA[Page]]></text>
+			</staticText>
+			<textField evaluationTime="Report" pattern="" isBlankWhenNull="false">
+				<reportElement key="textField-56" style="Report_Footer" x="615" y="1" width="108" height="16" forecolor="#000000" backcolor="#FFFFFF" uuid="6b9ebb85-1edd-4fb6-83b3-46335b92fa9b"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle" rotation="None">
+					<font fontName="SansSerif" size="7"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}.toString()]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="false">
+				<reportElement key="textField-54" style="Report_Footer" x="94" y="1" width="90" height="16" uuid="3631bc9a-ca64-4659-a5e4-50bd26f9f3df"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new Date()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-8" style="Report_Footer" x="605" y="1" width="10" height="16" uuid="585893ca-2475-4b2d-94c9-57fa5474ffd3"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="7"/>
+				</textElement>
+				<text><![CDATA[/]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

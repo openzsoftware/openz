@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+
+<SqlClass name="ProjecttaskHRPlanData" package="org.openz.controller.manualTabPane" accessModifier="public">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      select p.ZSPM_PTASKHRPLAN_ID, p.C_SALARY_CATEGORY_ID, p.QUANTITY,p.description,
+	       p.EMPLOYEE_ID as ad_user_id, p.OVERTIMEHOURS, p.NIGHTHOURS, p.SATURDAY,
+	       p.SUNDAY, p.HOLIDAY, p.PLANNEDAMT, p.PLANNDEDPERCENT , 'N' as preselected,
+	       u.name as uname,c.name as cname, p.specialtime1, p.specialtime2, p.triggeramt ,p.datefrom,p.dateto,
+	       row_number() OVER (ORDER BY p.created) as seqno,p.created
+        from ZSPM_PTASKHRPLAN p left join ad_user u on u.ad_user_id=p.employee_id, C_SALARY_CATEGORY c
+        where c.C_SALARY_CATEGORY_ID= p.C_SALARY_CATEGORY_ID and
+             p.C_PROJECTTASK_ID = ?
+        order by  seqno asc
+      ]]></Sql>
+      <Parameter name="projecttaskid"/>
+  </SqlMethod>
+  <SqlMethod name="selectnew" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+    <![CDATA[
+      select ZSPM_PTASKHRPLAN_ID, C_SALARY_CATEGORY_ID, QUANTITY,description,
+           ad_user_id, OVERTIMEHOURS, NIGHTHOURS, SATURDAY,
+           SUNDAY, HOLIDAY, PLANNEDAMT, PLANNDEDPERCENT, specialtime1,specialtime2, triggeramt,preselected,
+           datefrom,dateto,
+           row_number() OVER (ORDER BY created) as seqno
+      FROM (
+      select get_uuid() as ZSPM_PTASKHRPLAN_ID, null as C_SALARY_CATEGORY_ID, 
+       0 as QUANTITY, null as description,null as ad_user_id, 0 as OVERTIMEHOURS,0 as  NIGHTHOURS, 0 as SATURDAY,
+       0 as SUNDAY,0 as  HOLIDAY, 0 as PLANNEDAMT, 0 as PLANNDEDPERCENT , 'N' as preselected,'' as uname,'' as cname, 
+       0 as specialtime1, 0 as specialtime2, 0 as triggeramt,null as datefrom,null as dateto, now() as created
+      from dual
+      UNION
+      select p.ZSPM_PTASKHRPLAN_ID, p.C_SALARY_CATEGORY_ID, p.QUANTITY,p.description,
+           p.EMPLOYEE_ID as ad_user_id, p.OVERTIMEHOURS, p.NIGHTHOURS, p.SATURDAY,
+           p.SUNDAY, p.HOLIDAY, p.PLANNEDAMT, p.PLANNDEDPERCENT , 'N' as preselected,
+           u.name as uname,c.name as cname, p.specialtime1, p.specialtime2, p.triggeramt ,p.datefrom,p.dateto,p.created
+        from ZSPM_PTASKHRPLAN p left join ad_user u on u.ad_user_id=p.employee_id, C_SALARY_CATEGORY c
+        where c.C_SALARY_CATEGORY_ID= p.C_SALARY_CATEGORY_ID and
+             p.C_PROJECTTASK_ID = ?
+        ) a order by seqno asc
+      ]]></Sql>
+      <Parameter name="projecttaskid"/>
+  </SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+  <SqlMethod name="getSalCategory" type="preparedStatement" return="string">
+    <Sql>  
+        SELECT min(b.C_Salary_Category_id) 
+       from c_bpartner b,C_Salary_Category s WHERE b.C_Salary_Category_id=s.C_Salary_Category_id 
+            and b.c_bpartner_id =  (select c_bpartner_id from ad_user where ad_user_id= ? ) 
+            AND s.isactive='Y'
+            AND exists (select 0 from C_Salary_Category_cost c where c.C_Salary_Category_id=s.C_Salary_Category_id 
+                         and c.COSTUOM='H')
+    </Sql>
+    <Parameter name="userId"/>
+  </SqlMethod>
+<SqlMethod name="insert"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      INSERT INTO ZSPM_PTASKHRPLAN(ZSPM_PTASKHRPLAN_id, AD_CLIENT_ID,AD_ORG_ID, C_PROJECTTASK_ID, CREATEDBY, UPDATEDBY, C_SALARY_CATEGORY_ID, QUANTITY, COSTUOM, EMPLOYEE_ID,
+                    overtimehours,nighthours,saturday,sunday,holiday,specialtime1,specialtime2, triggeramt,datefrom,dateto,description)
+      VALUES(?, 'C726FEC915A54A0995C568555DA5BB3C', ?, ?, ?, ?, ?, to_number(?), 'H' , ?,to_number(?),to_number(?),to_number(?),to_number(?),to_number(?),to_number(?),to_number(?),to_number(?),
+             to_timestamp(?,?),to_timestamp(?,?),?)
+      </Sql>
+      <Parameter name="idValue"/>
+      <Parameter name="adOrgId"/>
+      <Parameter name="projecttaskId"/>
+      <Parameter name="createdby"/>
+      <Parameter name="createdby"/>
+      <Parameter name="salcategoryId"/>
+      <Parameter name="quantity"/>
+      <Parameter name="userId"/>
+      <Parameter name="overtimehours"/>
+      <Parameter name="nighthours"/>
+      <Parameter name="saturday"/>
+      <Parameter name="sunday"/>
+      <Parameter name="holiday"/>
+      <Parameter name="specialtime1"/>
+      <Parameter name="specialtime2"/>
+      <Parameter name="triggeramt"/>
+      <Parameter name="datefrom"/>
+      <Parameter name="dateformat"/>
+      <Parameter name="dateto"/>
+      <Parameter name="dateformat"/>
+      <Parameter name="description"/>
+  </SqlMethod>
+
+   <SqlMethod name="update"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      UPDATE ZSPM_PTASKHRPLAN SET UPDATEDBY=?, C_SALARY_CATEGORY_ID=?, QUANTITY=to_number(?), EMPLOYEE_ID=?,
+             overtimehours=to_number(?),nighthours=to_number(?),saturday=to_number(?),sunday=to_number(?),holiday=to_number(?),specialtime1=to_number(?),specialtime2=to_number(?),triggeramt=to_number(?),
+             datefrom=to_timestamp(?,?), dateto=to_timestamp(?,?),description=?
+      WHERE ZSPM_PTASKHRPLAN_id = ?
+      </Sql>
+      <Parameter name="updatedby"/>
+      <Parameter name="salcategoryId"/>
+      <Parameter name="quantity"/>
+      <Parameter name="userId"/>
+      <Parameter name="overtimehours"/>
+      <Parameter name="nighthours"/>
+      <Parameter name="saturday"/>
+      <Parameter name="sunday"/>
+      <Parameter name="holiday"/>
+      <Parameter name="specialtime1"/>
+      <Parameter name="specialtime2"/>
+      <Parameter name="triggeramt"/>
+      <Parameter name="datefrom"/>
+      <Parameter name="dateformat"/>
+      <Parameter name="dateto"/>
+      <Parameter name="dateformat"/>
+      <Parameter name="description"/>
+      <Parameter name="planId"/>
+  </SqlMethod>  <SqlMethod name="delete"  type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       delete from ZSPM_PTASKHRPLAN where ZSPM_PTASKHRPLAN_id = ?
+    </Sql>
+    <Parameter name="planId"/>
+  </SqlMethod>
+  <SqlMethod name="isExistingID" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select count(*) from ZSPM_PTASKHRPLAN where ZSPM_PTASKHRPLAN_id = ?
+    </Sql>
+    <Parameter name="planId"/>
+  </SqlMethod>
+  <SqlMethod name="isExistingEmployee" type="preparedStatement" return="string">
+    <Sql>  
+        SELECT count(*) from ZSPM_PTASKHRPLAN where c_projecttask_id = ? and employee_id = ?
+    </Sql>
+    <Parameter name="pTaskId"/>
+    <Parameter name="userId"/>
+  </SqlMethod>
+   <SqlMethod name="getUsername" type="preparedStatement" return="string">
+    <Sql>  
+        SELECT name from ad_user where ad_user_id = ?
+    </Sql>
+    <Parameter name="userId"/>
+  </SqlMethod>
+  </SqlClass>

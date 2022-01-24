@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T10:21:41 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RptStd_ShipmentLines" language="groovy" printOrder="Horizontal" pageWidth="192" pageHeight="22" orientation="Landscape" columnWidth="192" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="f2c82ac5-bf75-416d-9edb-19a77be7ac79">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="4.0"/>
+	<property name="ireport.x" value="185"/>
+	<property name="ireport.y" value="0"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="Detail_Line">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Column_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#666666"/>
+	<parameter name="SHIPMENT_ID" class="java.lang.String"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="PAGE_COUNT_MAIN" class="java.lang.Integer" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE2" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="PRODUCT_ID" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+	m_product.name as name,
+	m_product_po.manufacturernumber as manufacturer,
+	m_product_po.vendorproductno as vendorproductno,
+	c_bpartner.name as vendor
+from
+	m_product
+		left join m_product_po
+			on m_product.m_product_id = m_product_po.m_product_id
+		left join c_bpartner
+			on m_product_po.c_bpartner_id=c_bpartner.c_bpartner_id
+where
+	m_product.m_product_id in ($P{PRODUCT_ID})]]>
+	</queryString>
+	<field name="name" class="java.lang.String"/>
+	<field name="manufacturer" class="java.lang.String"/>
+	<field name="vendorproductno" class="java.lang.String"/>
+	<field name="vendor" class="java.lang.String"/>
+	<pageHeader>
+		<band height="10" splitType="Prevent">
+			<staticText>
+				<reportElement key="textField-16" isPrintRepeatedValues="false" x="0" y="1" width="98" height="9" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="63f37e72-e4ba-49ee-9d6e-677abe4cd68f"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="styled">
+					<font fontName="OpenZ Sans" size="7" isBold="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Vendor]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="textField-16" isPrintRepeatedValues="false" x="97" y="1" width="95" height="9" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" forecolor="#000000" uuid="943c8fd2-3188-4d40-ab98-17c876481783"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="styled">
+					<font fontName="OpenZ Sans" size="7" isBold="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[Product No.]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="11" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-16" positionType="Float" isPrintRepeatedValues="false" x="0" y="0" width="97" height="10" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="8414f27d-2898-4488-af2f-20be653cb22f"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="styled">
+					<font fontName="OpenZ Sans" size="7" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{vendor} == null ? "" : $F{vendor})]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement key="textField-16" positionType="Float" isPrintRepeatedValues="false" x="97" y="0" width="96" height="10" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="8748d620-43e4-4a4c-bb8d-0d8f03fd0cac"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="styled">
+					<font fontName="OpenZ Sans" size="7" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{vendorproductno} == null ? "" : $F{vendorproductno})]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<SqlClass name="CreateDocumentfromSOData" package="org.openz.controller.popup">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT c_orderline_id,line,m_product_id,c_uom_id,description,qtyordered from c_orderline where c_order_id=?
+      ORDER BY line
+      ]]></Sql>
+    <Parameter name="parSODocumentID"/> 
+  </SqlMethod>
+ 
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+  <SqlMethod name="CreateDocumentFromOrder0" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select c_createDocumentFromOrder0(?,?,?)
+    </Sql>
+    <Parameter name="parTargetDoctype"/>
+    <Parameter name="parSODocumentID"/>  
+    <Parameter name="parUserID"/>
+  </SqlMethod> 
+  <SqlMethod name="CreateDocumentFromOrderPO" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select c_createDocumentFromOrderPO(?,?,?)
+    </Sql>
+    <Parameter name="parTargetDoctype"/>
+    <Parameter name="parSODocumentID"/>  
+    <Parameter name="parUserID"/>
+  </SqlMethod> 
+  <SqlMethod name="c_createDocumentHeaderFromSO" type="preparedStatement" connection="true" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select c_createDocumentHeaderFromSO(?,?,?,?)
+    </Sql>
+    <Parameter name="parSODocumentID"/>  
+    <Parameter name="parTargetDoctype"/>
+    <Parameter name="parCBpartnerID"/>
+    <Parameter name="parUserID"/>
+  </SqlMethod>
+  <SqlMethod name="c_createDocumentLineFromSO" type="preparedStatement" connection="true" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select c_createDocumentLineFromSO(?,?,?,?)
+    </Sql>
+    <Parameter name="parNEWDocumentID"/>  
+    <Parameter name="parDescription"/>
+    <Parameter name="parQTY"/>
+    <Parameter name="parcOrderlineId"/>
+  </SqlMethod>
+  <SqlMethod name="postNewDocument" type="preparedStatement" connection="true" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select c_order_post1(null, ?)
+    </Sql>
+    <Parameter name="parNEWDocumentID"/>  
+  </SqlMethod>
+  <SqlMethod name="getLink" type="preparedStatement"  connection="true"  return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select zsse_htmldirectlink('../PurchaseOrder/Header_Relation.html','document.frmMain.inpcOrderId', c_order_id, documentno)
+       from c_order where c_order_id=?
+    </Sql>
+    <Parameter name="parNEWDocumentID"/>  
+  </SqlMethod>
+  <SqlMethod name="issotrx" type="preparedStatement"   return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select issotrx 
+       from c_order where c_order_id=?
+    </Sql>
+    <Parameter name="parDocumentID"/>  
+  </SqlMethod>
+  </SqlClass>

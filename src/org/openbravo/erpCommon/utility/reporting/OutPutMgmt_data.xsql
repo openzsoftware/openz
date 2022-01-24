@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+<SqlClass name="OutPutMgmtData" package="org.openbravo.erpCommon.utility.reporting">
+    <SqlClassComment></SqlClassComment>
+
+    <!-- 
+        This definition exists only to define all the fields used in all the queries.
+        This is needed because all the variables in the generated class are based upon
+        all the fields in the first query of the xsql.
+    -->
+    <SqlMethod name="getOrderInfo" type="preparedStatement" return="multiple">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            select
+                c_order.ad_org_id,
+                c_order.c_order_id as document_id,
+                c_order.docstatus,
+                c_order.c_doctype_id ,
+                c_order.documentno as ourreference,
+                c_order.poreference as cusreference,
+                'N' as documentbyemail
+            from
+                c_order ,c_doctype where c_order.c_doctype_id = c_doctype.c_doctype_id and
+                c_order.docstatus='CO' and
+                c_order.autoprint = 'Y'
+            ]]>
+        </Sql>
+    </SqlMethod>
+    <SqlMethod name="updateOrderInfo" type="preparedStatement" return="rowcount">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            update
+                c_order set autoprint = 'N' ,dateprinted=trunc(now()) where c_order_id=?
+            ]]>
+        </Sql>
+        <Parameter name="cOrderId" />
+    </SqlMethod>
+
+    
+
+</SqlClass>
+

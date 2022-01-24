@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.16.0.final using JasperReports Library version 6.1.1  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="BOMReport" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="50" uuid="4ae85bcc-3268-431e-83b6-37a4d3cfb777">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="default" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="8"/>
+	<style name="Report_Title" fontName="OpenZ Sans" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Data_Label" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Data_Field" fontName="OpenZ Sans" fontSize="11" isBold="false"/>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="11" isBold="true">
+		<box leftPadding="5"/>
+	</style>
+	<style name="GroupHeader_DarkGray" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="12" isBold="true">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Group_Data_Label" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Group_Data_Field" fontName="OpenZ Sans" fontSize="11"/>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#5D5D5D" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="10" isBold="true">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="Detail_Line" fontName="OpenZ Sans" fontSize="8">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Total_Gray" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC"/>
+	<style name="Detail_Data_Label" mode="Opaque" backcolor="#CCCCCC" fontName="OpenZ Sans" fontSize="10" isBold="true"/>
+	<style name="Detail_Data_Field" mode="Opaque" backcolor="#CCCCCC" fontName="OpenZ Sans" fontSize="10"/>
+	<style name="Group_Footer" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Footer" isDefault="true" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="11"/>
+	<parameter name="ATTACH" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_WEB" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="M_PRODUCT_ID" class="java.lang.String"/>
+	<parameter name="ISSPAREPART" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["N"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ISCONSUMABLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["N"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ISINTERNAL" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="AD_ORG_ID" class="java.lang.String"/>
+	<parameter name="AD_LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_Bom_Lines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="ONLYONELEVEL" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT  zssi_strDate(current_date,$P{AD_LANGUAGE}) as curdate,
+        ad_image.binarydata as logo,
+        case $P{ISSPAREPART}||$P{ISCONSUMABLE} WHEN 'NN' then zssi_getText('zsmf_bomcompletetitle',$P{AD_LANGUAGE}) else  zssi_getText('zsmf_bomspareparttitle',$P{AD_LANGUAGE}) END as title,
+        zspr.addressheader,  zspr.address1, zspr.address2, zspr.address3, zspr.address4, zspr.address5, zspr.address6, zspr.address7, zspr.address8, zspr.address9, zspr.footer1, zspr.footer2, zspr.footer3, zspr.footer4, zspr.footer5, zspr.onelineadr,
+        zssi_getproductname($P{M_PRODUCT_ID},$P{AD_LANGUAGE}) as assembly,
+        zssi_getproductkey($P{M_PRODUCT_ID}) as productkey,
+        elr_initbomcalc() as dummy
+FROM    zspr_printinfo zspr
+        LEFT JOIN AD_ORGINFO on  zspr.ad_org_id=AD_ORGINFO.ad_org_id
+        LEFT JOIN ad_image on AD_ORGINFO.your_company_document_image=ad_image.ad_image_id
+  WHERE zspr.ad_org_id=$P{AD_ORG_ID} limit 1]]>
+	</queryString>
+	<field name="curdate" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="curdate"/>
+		<property name="com.jaspersoft.studio.field.label" value="curdate"/>
+	</field>
+	<field name="logo" class="java.io.InputStream">
+		<property name="com.jaspersoft.studio.field.name" value="logo"/>
+		<property name="com.jaspersoft.studio.field.label" value="logo"/>
+	</field>
+	<field name="title" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="title"/>
+		<property name="com.jaspersoft.studio.field.label" value="title"/>
+	</field>
+	<field name="addressheader" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="addressheader"/>
+		<property name="com.jaspersoft.studio.field.label" value="addressheader"/>
+	</field>
+	<field name="address1" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="address1"/>
+		<property name="com.jaspersoft.studio.field.label" value="address1"/>
+	</field>
+	<field name="address2" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="address2"/>
+		<property name="com.jaspersoft.studio.field.label" value="address2"/>
+	</field>
+	<field name="address3" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="address3"/>
+		<property name="com.jaspersoft.studio.field.label" value="address3"/>
+	</field>
+	<field name="address4" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="address4"/>
+		<property name="com.jaspersoft.studio.field.label" value="address4"/>
+	</field>
+	<field name="address5" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="address5"/>
+		<property name="com.jaspersoft.studio.field.label" value="address5"/>
+	</field>
+	<field name="address6" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="address6"/>
+		<property name="com.jaspersoft.studio.field.label" value="address6"/>
+	</field>
+	<field name="address7" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="address7"/>
+		<property name="com.jaspersoft.studio.field.label" value="address7"/>
+	</field>
+	<field name="address8" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="address8"/>
+		<property name="com.jaspersoft.studio.field.label" value="address8"/>
+	</field>
+	<field name="address9" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="address9"/>
+		<property name="com.jaspersoft.studio.field.label" value="address9"/>
+	</field>
+	<field name="footer1" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="footer1"/>
+		<property name="com.jaspersoft.studio.field.label" value="footer1"/>
+	</field>
+	<field name="footer2" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="footer2"/>
+		<property name="com.jaspersoft.studio.field.label" value="footer2"/>
+	</field>
+	<field name="footer3" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="footer3"/>
+		<property name="com.jaspersoft.studio.field.label" value="footer3"/>
+	</field>
+	<field name="footer4" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="footer4"/>
+		<property name="com.jaspersoft.studio.field.label" value="footer4"/>
+	</field>
+	<field name="footer5" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="footer5"/>
+		<property name="com.jaspersoft.studio.field.label" value="footer5"/>
+	</field>
+	<field name="onelineadr" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="onelineadr"/>
+		<property name="com.jaspersoft.studio.field.label" value="onelineadr"/>
+	</field>
+	<field name="assembly" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="assembly"/>
+		<property name="com.jaspersoft.studio.field.label" value="assembly"/>
+	</field>
+	<field name="productkey" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="productkey"/>
+		<property name="com.jaspersoft.studio.field.label" value="productkey"/>
+	</field>
+	<field name="dummy" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="dummy"/>
+		<property name="com.jaspersoft.studio.field.label" value="dummy"/>
+	</field>
+	<variable name="TOTAL_LINENETAMT" class="java.math.BigDecimal"/>
+	<variable name="TOTAL_TAXAMT" class="java.math.BigDecimal"/>
+	<group name="Product">
+		<groupExpression><![CDATA[$P{M_PRODUCT_ID}]]></groupExpression>
+		<groupHeader>
+			<band splitType="Stretch"/>
+		</groupHeader>
+		<groupFooter>
+			<band height="52" splitType="Stretch">
+				<subreport isUsingCache="true">
+					<reportElement key="subreport-1" style="Detail_Line" x="0" y="4" width="802" height="42" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" backcolor="#FFFFFF" uuid="c718f4a8-840e-4910-bc2a-230651b59b52"/>
+					<subreportParameter name="AD_LANGUAGE">
+						<subreportParameterExpression><![CDATA[$P{AD_LANGUAGE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LANGUAGE">
+						<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ISINTERNAL">
+						<subreportParameterExpression><![CDATA[$P{ISINTERNAL}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ISCONSUMABLE">
+						<subreportParameterExpression><![CDATA[$P{ISCONSUMABLE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="BASE_WEB">
+						<subreportParameterExpression><![CDATA[$P{BASE_WEB}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="AD_ORG_ID">
+						<subreportParameterExpression><![CDATA[$P{AD_ORG_ID}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="BASE_DESIGN">
+						<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ATTACH">
+						<subreportParameterExpression><![CDATA[$P{ATTACH}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ISSPAREPART">
+						<subreportParameterExpression><![CDATA[$P{ISSPAREPART}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="SUBREP_Bom_Lines">
+						<subreportParameterExpression><![CDATA[$P{SUBREP_Bom_Lines}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="M_PRODUCT_ID">
+						<subreportParameterExpression><![CDATA[$P{M_PRODUCT_ID}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ONLYONELEVEL">
+						<subreportParameterExpression><![CDATA[$P{ONLYONELEVEL}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[$P{SUBREP_Bom_Lines}
+/*"/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src/org/openbravo/zsoft/smartui/printing/Bom_Lines.jasper"*/]]></subreportExpression>
+				</subreport>
+				<line>
+					<reportElement key="line-35" style="Detail_Data_Field" x="0" y="0" width="802" height="1" uuid="0bec19d0-c43d-4a3b-8e46-f63ca64b3862"/>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="84" splitType="Stretch">
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" x="0" y="20" width="515" height="24" uuid="1325726c-730b-4102-9dd8-73cf6a82c6d9"/>
+				<textElement>
+					<font size="18"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{title}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" x="0" y="44" width="515" height="18" uuid="3c2f506b-acca-4177-85b2-ea8bd055f35f"/>
+				<textElement>
+					<font size="14"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{assembly}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="RetainShape" hAlign="Right" vAlign="Top" isUsingCache="true" isLazy="true">
+				<reportElement key="image-2" style="Report_Footer" x="287" y="0" width="515" height="80" uuid="de395548-671c-46f5-8cb1-396bf17cdd1e"/>
+				<imageExpression><![CDATA[$F{logo}]]></imageExpression>
+			</image>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-12" positionType="Float" x="0" y="0" width="515" height="12" isRemoveLineWhenBlank="true" uuid="b00fab4c-0a62-41eb-8d12-8f96d3548ff4"/>
+				<textElement textAlignment="Left">
+					<font size="10" isBold="true" isUnderline="false" pdfFontName="Helvetica-Bold" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{onelineadr}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-13" x="0" y="62" width="515" height="14" uuid="938f10d6-871f-49cf-963c-cb1aa5fb9bee"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{productkey}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band splitType="Stretch"/>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="16" splitType="Stretch">
+			<line>
+				<reportElement key="line-38" style="Report_Footer" x="0" y="0" width="802" height="1" uuid="1abbf6e6-86f5-4f69-ac9d-cb3d99ec5a5f"/>
+			</line>
+			<staticText>
+				<reportElement key="staticText-4" style="Report_Footer" x="711" y="4" width="37" height="12" forecolor="#666666" uuid="e1bdf1ff-3234-4729-bba5-3fbbf6ab3e2e"/>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Page:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-9" style="Report_Footer" x="748" y="4" width="24" height="12" uuid="0032cda7-e0da-447b-b833-64046efda320"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}.toString()]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report" isBlankWhenNull="false">
+				<reportElement key="textField-10" style="Report_Footer" x="778" y="4" width="24" height="12" uuid="690ab454-3896-4e31-9482-1d925aa093c1"/>
+				<textElement textAlignment="Left">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}.toString()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-5" style="Report_Footer" x="772" y="4" width="6" height="12" uuid="6561f02d-fe94-4aa4-8403-2ec2ea881087"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[/]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-6" style="Report_Footer" x="0" y="4" width="68" height="12" forecolor="#666666" uuid="64cdc09f-7eb4-45db-b122-400a0cbfbd0d"/>
+				<textElement>
+					<font size="8" isBold="true" pdfFontName="Helvetica-Bold"/>
+				</textElement>
+				<text><![CDATA[Printdate:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField-11" x="68" y="4" width="61" height="12" uuid="8d3287e1-21da-4d8a-a30e-0d4ff49f5f29"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curdate}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

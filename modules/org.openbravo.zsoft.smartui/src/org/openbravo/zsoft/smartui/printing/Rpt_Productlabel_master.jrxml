@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T09:47:34 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Rpt_Productlabel_master" language="groovy" printOrder="Horizontal" pageWidth="68" pageHeight="68" columnWidth="68" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="54f11c4b-a433-408f-aad0-8a4e61d23c36">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="default" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="10" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Report_Title" fontName="OpenZ Sans" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="GroupHeader_DarkGray" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="GroupHeader_Gray" mode="Opaque" backcolor="#999999"/>
+	<style name="Detail_Line">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Total_Gray" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC"/>
+	<style name="Group_Footer" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Footer" isDefault="true" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="11"/>
+	<parameter name="ATTACH" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_WEB" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_CLIENT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('1000000')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_ORG" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('0')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_TITLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["REPORT TITLE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_SUBTITLE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="SUBREP_Rpt_Productlabel_57x31_single" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_Rpt_Productlabel_24x24_single_shop" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_Manufacturer_single" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_Rpt_Productlabel_70x48_single_box" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="LANGUAGE2" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="M_PRODUCT_ID" class="java.lang.String"/>
+	<parameter name="Label" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/danny/tomcat7/awebapps/openz/src-loc/design/org/openbravo/zsoft/smartui/printing/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_RptStd_Manufacturer_single_small" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_Manufacturer_single_small_wh" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select    'std57x31' as abschnitt,
+	m_product.m_product_id as id,
+	'' as documentno,
+	'' as doctype_id,
+	m_product_category.name as category,
+	m_product.m_product_id as PRODUCT_ID,
+	'' as barcode,
+	'' as description,
+	m_product.value as value,
+	m_product.name as name
+from
+	m_product
+		left join m_product_category on m_product.m_product_category_id = m_product_category.m_product_category_id
+where
+	m_product.m_product_id in ($P{M_PRODUCT_ID})
+union
+select    'qr25x25' as abschnitt,
+	m_product.m_product_id as id,
+	'' as documentno,
+	'' as doctype_id,
+	m_product_category.name as category,
+	m_product.m_product_id as PRODUCT_ID,
+	substr(m_product.value,1,44) as value,
+	'' as description,
+	m_product.value as barcode,
+	substr(m_product.name,1,44) as name
+from
+	m_product
+		left join m_product_category on m_product.m_product_category_id = m_product_category.m_product_category_id
+where
+	m_product.m_product_id = ($P{M_PRODUCT_ID})
+union
+
+select    'qr70x53' as abschnitt,
+	m_product.m_product_id as id,
+	'' as documentno,
+	'' as doctype_id,
+	m_product_category.name as category,
+	m_product.m_product_id as PRODUCT_ID,
+	substr(m_product.value,1,44) as value,
+	zssi_tinymce2jsreportsHTML(substr(m_product.description,1,60)) as description,
+	m_product.value as barcode,
+	substr(m_product.name,1,44) as name
+from
+	m_product
+		left join m_product_category on m_product.m_product_category_id = m_product_category.m_product_category_id
+where
+	m_product.m_product_id in ($P{M_PRODUCT_ID})]]>
+	</queryString>
+	<field name="abschnitt" class="java.lang.String"/>
+	<field name="id" class="java.lang.String"/>
+	<field name="documentno" class="java.lang.String"/>
+	<field name="doctype_id" class="java.lang.String"/>
+	<field name="category" class="java.lang.String"/>
+	<field name="product_id" class="java.lang.String"/>
+	<field name="barcode" class="java.lang.String"/>
+	<field name="description" class="java.lang.String"/>
+	<field name="value" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<variable name="doctype_id" class="java.lang.String">
+		<variableExpression><![CDATA[$F{doctype_id}]]></variableExpression>
+	</variable>
+	<variable name="variable1" class="java.lang.String"/>
+	<title>
+		<band height="68" splitType="Stretch">
+			<subreport isUsingCache="true">
+				<reportElement key="subreport-3" style="Report_Footer" positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="0" y="0" width="68" height="68" isRemoveLineWhenBlank="true" uuid="91728ea0-c61a-479e-980f-0b202e4938c1">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($P{Label}.equals("qr70x53"))]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="USER_CLIENT">
+					<subreportParameterExpression><![CDATA[$P{USER_CLIENT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_RptStd_Manufacturer_single_small_wh">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_RptStd_Manufacturer_single_small_wh}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_Rpt_Productlabel_57x31_single">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_Rpt_Productlabel_57x31_single}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="REPORT_TITLE">
+					<subreportParameterExpression><![CDATA[$P{REPORT_TITLE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_Rpt_Productlabel_70x48_single_box">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_Rpt_Productlabel_70x48_single_box}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_RptStd_Manufacturer_single_small">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_RptStd_Manufacturer_single_small}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_WEB">
+					<subreportParameterExpression><![CDATA[$P{BASE_WEB}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_DESIGN">
+					<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="USER_ORG">
+					<subreportParameterExpression><![CDATA[$P{USER_ORG}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_RptStd_Manufacturer_single">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_RptStd_Manufacturer_single}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="REPORT_SUBTITLE">
+					<subreportParameterExpression><![CDATA[$P{REPORT_SUBTITLE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOCALE">
+					<subreportParameterExpression><![CDATA[$P{LOCALE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DOCUMENT_ID">
+					<subreportParameterExpression><![CDATA[$P{DOCUMENT_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Label">
+					<subreportParameterExpression><![CDATA[$P{Label}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE2">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE2}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ATTACH">
+					<subreportParameterExpression><![CDATA[$P{ATTACH}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="M_PRODUCT_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_Rpt_Productlabel_24x24_single_shop">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_Rpt_Productlabel_24x24_single_shop}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREP_Rpt_Productlabel_70x48_single_box}]]></subreportExpression>
+			</subreport>
+			<subreport isUsingCache="true">
+				<reportElement key="subreport-2" style="Report_Footer" isPrintRepeatedValues="false" mode="Opaque" x="0" y="0" width="68" height="68" isRemoveLineWhenBlank="true" uuid="e7929ac5-82bc-4b61-98eb-ad1db5cd8310">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($P{Label}.equals("qr25x25"))]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="USER_CLIENT">
+					<subreportParameterExpression><![CDATA[$P{USER_CLIENT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_RptStd_Manufacturer_single_small_wh">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_RptStd_Manufacturer_single_small_wh}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_Rpt_Productlabel_57x31_single">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_Rpt_Productlabel_57x31_single}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="REPORT_TITLE">
+					<subreportParameterExpression><![CDATA[$P{REPORT_TITLE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_Rpt_Productlabel_70x48_single_box">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_Rpt_Productlabel_70x48_single_box}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_RptStd_Manufacturer_single_small">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_RptStd_Manufacturer_single_small}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_WEB">
+					<subreportParameterExpression><![CDATA[$P{BASE_WEB}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_DESIGN">
+					<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="USER_ORG">
+					<subreportParameterExpression><![CDATA[$P{USER_ORG}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_RptStd_Manufacturer_single">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_RptStd_Manufacturer_single}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="REPORT_SUBTITLE">
+					<subreportParameterExpression><![CDATA[$P{REPORT_SUBTITLE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOCALE">
+					<subreportParameterExpression><![CDATA[$P{LOCALE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DOCUMENT_ID">
+					<subreportParameterExpression><![CDATA[$P{DOCUMENT_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Label">
+					<subreportParameterExpression><![CDATA[$P{Label}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE2">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE2}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ATTACH">
+					<subreportParameterExpression><![CDATA[$P{ATTACH}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="M_PRODUCT_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_Rpt_Productlabel_24x24_single_shop">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_Rpt_Productlabel_24x24_single_shop}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREP_Rpt_Productlabel_24x24_single_shop}]]></subreportExpression>
+			</subreport>
+			<subreport isUsingCache="true" runToBottom="false">
+				<reportElement key="subreport-1" style="Report_Footer" positionType="Float" stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" mode="Transparent" x="0" y="0" width="68" height="68" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="352d8167-a270-45ba-900a-b04b4043dc3a">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($P{Label}.equals("std57x31"))]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="USER_CLIENT">
+					<subreportParameterExpression><![CDATA[$P{USER_CLIENT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_RptStd_Manufacturer_single_small_wh">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_RptStd_Manufacturer_single_small_wh}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_Rpt_Productlabel_57x31_single">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_Rpt_Productlabel_57x31_single}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="REPORT_TITLE">
+					<subreportParameterExpression><![CDATA[$P{REPORT_TITLE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_Rpt_Productlabel_70x48_single_box">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_Rpt_Productlabel_70x48_single_box}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_RptStd_Manufacturer_single_small">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_RptStd_Manufacturer_single_small}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_WEB">
+					<subreportParameterExpression><![CDATA[$P{BASE_WEB}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_DESIGN">
+					<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="USER_ORG">
+					<subreportParameterExpression><![CDATA[$P{USER_ORG}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_RptStd_Manufacturer_single">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_RptStd_Manufacturer_single}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="REPORT_SUBTITLE">
+					<subreportParameterExpression><![CDATA[$P{REPORT_SUBTITLE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOCALE">
+					<subreportParameterExpression><![CDATA[$P{LOCALE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DOCUMENT_ID">
+					<subreportParameterExpression><![CDATA[$P{DOCUMENT_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ATTACH">
+					<subreportParameterExpression><![CDATA[$P{ATTACH}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE2">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE2}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="Label">
+					<subreportParameterExpression><![CDATA[$P{Label}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="M_PRODUCT_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREP_Rpt_Productlabel_24x24_single_shop">
+					<subreportParameterExpression><![CDATA[$P{SUBREP_Rpt_Productlabel_24x24_single_shop}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREP_Rpt_Productlabel_57x31_single}]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+</jasperReport>

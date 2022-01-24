@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T08:17:04 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ProductionActivities" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="5" uuid="22847912-3f5c-4dee-85c5-673db84cb5a3">
+	<property name="ireport.zoom" value="1.3310000000000004"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_RptActivityLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select
+--Main Report
+($P{DOCUMENT_ID}) as id,
+--Headers
+zssi_getElementTextByColumname('Productionorder','de_DE') as pah,
+zssi_getElementTextByColumname('Workstep','de_DE') as agh,
+zssi_getElementTextByColumname('Employee','de_DE') as emph,
+zssi_getElementTextByColumname('Shifts','de_DE') as sh,
+zssi_getElementTextByColumname('Workplace','de_DE') as wph,
+zssi_getElementTextByColumname('Productionday','de_DE') as pdh,
+zssi_getElementTextByColumname('Product','de_DE') as ph,
+zssi_getElementTextByColumname('Amountkg','de_DE') as amkg,
+zssi_getElementTextByColumname('Specification','de_DE') as spech,
+zssi_getElementTextByColumname('SOP', 'de_DE') as soph,
+zssi_getElementTextByColumname('Component', 'de_DE') as comph,
+zssi_getElementTextByColumname('Proportionkg','de_DE') as Machkost,
+zssi_getElementTextByColumname('Removed','de_DE') as remh,
+zssi_getElementTextByColumname('plannedbatch','de_DE') as planbh,
+zssi_getElementTextByColumname('Proportiontext','de_DE') as proptext,
+zssi_getElementTextByColumname('BatchNo','de_DE') as batchis,
+zssi_getElementTextByColumname('Receipth','de_DE') as rech,
+--Machine
+mach.name as machine,
+--Activities
+zssi_getusername(a.employee_id) as emp,
+a.datefrom as pd,
+a.shift as shift,
+to_number(a.specification) as spec,
+--Production
+p.name as pa,
+p.value as pv,
+--Production Workstep
+ws.name as ag,
+ws.value as av,
+ws.qty as qty,
+ws.weightproportion as weightp,
+zssi_getproductname(ws.m_product_id,$P{LANGUAGE}) as prd,
+zssi_2html(ws.description) as ad
+from zssm_workstep_v ws,zssm_productionorder_v p, zssm_workstepactivities_v a, zssm_workstepmachines_v m, ma_machine mach
+where a.zssm_workstep_v_id=ws.zssm_workstep_v_id AND m.zssm_workstep_v_id=ws.zssm_workstep_v_id AND ws.zssm_productionorder_v_id=p.zssm_productionorder_v_id AND m.ma_machine_id=mach.ma_machine_id AND a.zssm_workstepactivities_v_id in ($P{DOCUMENT_ID})]]>
+	</queryString>
+	<field name="id" class="java.lang.String"/>
+	<field name="pah" class="java.lang.String"/>
+	<field name="agh" class="java.lang.String"/>
+	<field name="emph" class="java.lang.String"/>
+	<field name="sh" class="java.lang.String"/>
+	<field name="wph" class="java.lang.String"/>
+	<field name="pdh" class="java.lang.String"/>
+	<field name="ph" class="java.lang.String"/>
+	<field name="amkg" class="java.lang.String"/>
+	<field name="spech" class="java.lang.String"/>
+	<field name="soph" class="java.lang.String"/>
+	<field name="comph" class="java.lang.String"/>
+	<field name="machkost" class="java.lang.String"/>
+	<field name="remh" class="java.lang.String"/>
+	<field name="planbh" class="java.lang.String"/>
+	<field name="proptext" class="java.lang.String"/>
+	<field name="batchis" class="java.lang.String"/>
+	<field name="rech" class="java.lang.String"/>
+	<field name="machine" class="java.lang.String"/>
+	<field name="emp" class="java.lang.String"/>
+	<field name="pd" class="java.sql.Timestamp"/>
+	<field name="shift" class="java.lang.String"/>
+	<field name="spec" class="java.math.BigDecimal"/>
+	<field name="pa" class="java.lang.String"/>
+	<field name="pv" class="java.lang.String"/>
+	<field name="ag" class="java.lang.String"/>
+	<field name="av" class="java.lang.String"/>
+	<field name="qty" class="java.math.BigDecimal"/>
+	<field name="weightp" class="java.math.BigDecimal"/>
+	<field name="prd" class="java.lang.String"/>
+	<field name="ad" class="java.lang.String"/>
+	<title>
+		<band height="243" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="114" height="31" uuid="540f8a7d-8e36-40ad-a364-2e7a45302aa1"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{pah}== null ?"":$F{pah}+":")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="37" width="113" height="31" uuid="82d27a2a-d70e-45b9-8492-198958775dfd"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{agh}== null ?"":$F{agh}+":")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="114" y="0" width="162" height="31" uuid="b9ddb4f0-0cfc-43d3-b852-e836458b78bc"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{pa}== null ?"":$F{pa})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="114" y="37" width="162" height="31" uuid="e96fd14f-f054-4138-88ab-2dcfb902f58b"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{ag}== null ?"":$F{ag})]]></textFieldExpression>
+			</textField>
+			<componentElement>
+				<reportElement x="276" y="0" width="279" height="31" uuid="75749434-df02-4208-8435-605151e42e22"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code39 (Extended)" drawText="false" checksumRequired="false">
+					<jr:codeExpression><![CDATA[$F{pv}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<componentElement>
+				<reportElement x="276" y="37" width="279" height="31" uuid="9eb5908d-3398-4d9a-bd39-09489eab9c37"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code39 (Extended)" drawText="false" checksumRequired="false">
+					<jr:codeExpression><![CDATA[$F{av}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<textField>
+				<reportElement x="0" y="87" width="97" height="15" uuid="c7c5a4c9-7c21-4064-9c18-76389d083a03"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{emph}== null ?"":$F{emph}+":")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="101" width="97" height="15" uuid="d155614d-e44b-4fa2-bcb5-0792fd3dfbe4"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{wph}== null ?"":$F{wph}+":")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="97" y="87" width="169" height="15" uuid="ce99a875-a710-41a6-8705-ae8faeea3822"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{emp}== null ?"":$F{emp})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="97" y="101" width="169" height="15" uuid="5fc8ec10-a8ae-44a3-9a7b-d5a886dab9a4"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{machine}== null ?"":$F{machine})]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd.MM.yyyy" isBlankWhenNull="true">
+				<reportElement x="366" y="87" width="189" height="15" uuid="79eccee8-2759-4eee-b5ac-5104782cc169"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pd}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="266" y="87" width="100" height="15" uuid="44ad1b36-3951-4d9a-bd05-17f2cfa55c27"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{pdh}== null ?"":$F{pdh}+":")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="266" y="101" width="100" height="15" uuid="3addeea5-8bcd-47ec-b909-74ac185d65ae"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{sh}== null ?"":$F{sh}+":")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="366" y="101" width="189" height="15" uuid="dedce009-c79f-4481-a336-6ecc125abe72"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{shift}== null ?"":$F{shift})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="55" y="124" width="132" height="20" uuid="eacf63d6-25ad-4b14-8f74-c1f523693cfb"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{prd}== null ?"":$F{prd})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="124" width="55" height="20" uuid="c769b8e1-ab7c-414e-94d4-046f715eb292"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{ph}== null ?"":$F{ph}+":")]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement x="187" y="124" width="79" height="20" uuid="bcfc1bd7-b6cd-4f6d-95ba-b14502c8e623"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{amkg}== null ?"":$F{amkg}+":")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.0000">
+				<reportElement x="266" y="124" width="67" height="20" uuid="d660aad3-3ef7-4672-9e57-e29ba62d008c"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="333" y="124" width="73" height="20" uuid="7d52132e-3737-4c2a-a8e2-c26425b867e8"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{spech}== null ?"":$F{spech}+":")]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.0000" isBlankWhenNull="true">
+				<reportElement x="405" y="124" width="78" height="20" uuid="5c1849de-2921-4fbe-8555-1550cc9d2ae8"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{spec}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="482" y="124" width="73" height="20" uuid="0b8336bb-6037-4708-ab73-05d537215826"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{sh}== null ?"":"kg/"+$F{sh})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="0" y="163" width="555" height="73" uuid="452ed4dc-213d-4335-8485-5703996f138c"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement markup="html"/>
+				<textFieldExpression><![CDATA[($F{ad}== null ?"":"<b>"+$F{soph}+":</b>"+"<br/>"+$F{ad})]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="35" splitType="Stretch">
+			<subreport isUsingCache="true">
+				<reportElement positionType="Float" x="-19" y="0" width="596" height="35" isPrintWhenDetailOverflows="true" uuid="3261ead4-a4c8-4f88-a010-ea8a665e04b1"/>
+				<subreportParameter name="SUBREPORT_DIR"/>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DOCUMENT_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREP_RptActivityLines}]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<summary>
+		<band height="28">
+			<textField>
+				<reportElement x="113" y="0" width="381" height="20" uuid="22f502cc-b2b0-4195-91b8-aac976eb6156"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{proptext}== null ?"":$F{proptext})]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.0000" isBlankWhenNull="true">
+				<reportElement x="493" y="0" width="62" height="20" uuid="11cdc820-2e88-4bf8-a53c-0a63aad593ad"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{weightp}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

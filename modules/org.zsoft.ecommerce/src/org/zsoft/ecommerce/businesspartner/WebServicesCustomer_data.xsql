@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+
+<SqlClass name="WebServicesCustomerData" package="org.zsoft.ecommerce.businesspartner">
+    <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+	    <Sql>
+	      <![CDATA[
+	         SELECT BP.C_BPARTNER_ID AS ID, BP.AD_ORG_ID AS ORG_ID, 
+       				BP.VALUE AS SEARCHKEY, BP.NAME, BP.DESCRIPTION , BPG.VALUE as BPGROUP,
+       				CASE BP.isecommerceactive when 'Y' then 'N' else 'Y' end as isblocked
+  			   FROM C_BPARTNER BP, C_BP_GROUP BPG
+ 			  WHERE BP.c_bp_group_id=BPG.c_bp_group_id
+ 			    AND BP.AD_ORG_ID = ?
+   				AND BP.ISACTIVE = 'Y'
+   				AND BP.ISCUSTOMER='Y'
+	      ]]>
+	    </Sql>
+    	<Parameter name="adOrgId"/>
+  	</SqlMethod>
+  	<SqlMethod name="selectCustomerById" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+	    <Sql>
+	      <![CDATA[
+	         SELECT BP.C_BPARTNER_ID AS ID, BP.AD_ORG_ID AS ORG_ID, 
+                BP.VALUE AS SEARCHKEY, BP.NAME, BPG.VALUE as BPGROUP,
+         		CASE BP.isecommerceactive when 'Y' then 'N' else 'Y' end as isblocked
+               FROM C_BPARTNER BP, C_BP_GROUP BPG
+              WHERE BP.c_bp_group_id=BPG.c_bp_group_id
+          	    AND BP.C_BPARTNER_ID = ?
+                AND BP.ISCUSTOMER = 'Y'
+	      ]]>
+	    </Sql>
+    	<Parameter name="adCustomerId"/>
+  	</SqlMethod>
+  	<SqlMethod name="selectCustomer" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+	    <Sql>
+	      <![CDATA[
+	         SELECT BP.C_BPARTNER_ID AS ID, BP.AD_ORG_ID AS ORG_ID, 
+	         		BP.VALUE AS SEARCHKEY, BP.NAME,BPG.VALUE as BPGROUP
+               FROM C_BPARTNER BP, C_BP_GROUP BPG
+              WHERE BP.c_bp_group_id=BPG.c_bp_group_id
+          	    AND BP.AD_ORG_ID = ?         	    
+                AND BP.ISCUSTOMER = 'Y'
+                AND 1 = 1
+	      ]]>
+	    </Sql>
+    	<Parameter name="adOrgId" />
+    	<Parameter name="name" optional="true" after="AND 1 = 1"><![CDATA[ AND BP.NAME like ?]]></Parameter>
+    	<Parameter name="seachKey" optional="true" after="AND 1 = 1"><![CDATA[ AND BP.VALUE like ?]]></Parameter>	
+  	</SqlMethod>  	
+  	<SqlMethod name="updateCustomer" type="preparedStatement" connection="true" return="string">
+    <SqlMethodComment></SqlMethodComment>
+        <Sql>
+                SELECT zsse_updateCustomer(?,?,?,?,?,?) FROM DUAL
+         </Sql>
+      <Parameter name="customerId"/>
+      <Parameter name="searchKey"/>
+      <Parameter name="name"/>
+      <Parameter name="adUser"/>
+      <Parameter name="adOrg"/>
+      <Parameter name="bpGroup"/>
+    </SqlMethod>
+    <SqlMethod name="deleteECPaymentMethods" type="preparedStatement" connection="true" return="rowcount">
+    <SqlMethodComment></SqlMethodComment>
+        <Sql>
+             DELETE FROM  ZSE_ECOMMERCEGRANT
+                    WHERE  C_BPARTNER_ID=?
+                    AND PAYMENTMETHOD IS NOT NULL
+         </Sql>
+      <Parameter name="bPartnerId"/>
+    </SqlMethod>
+    <SqlMethod name="insertECPaymentMethod" type="preparedStatement" connection="true" return="rowcount">
+    <SqlMethodComment></SqlMethodComment>
+        <Sql>
+             INSERT INTO ZSE_ECOMMERCEGRANT(ZSE_ECOMMERCEGRANT_ID, AD_CLIENT_ID, AD_ORG_ID, CREATEDBY, UPDATEDBY,
+                                            C_BPARTNER_ID, PAYMENTMETHOD)
+                    VALUES (get_uuid(),?,?,?,?,?,?)
+         </Sql>
+      <Parameter name="clientId"/>
+      <Parameter name="orgId"/>
+      <Parameter name="adUser"/>
+      <Parameter name="adUser"/>
+      <Parameter name="bPartnerId"/>
+      <Parameter name="ecPaymentMethod"/>
+    </SqlMethod>
+    <SqlMethod name="getCustomerUID" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+        <Sql>
+                SELECT uidnumber from c_bpartner_location where isheadquarter='Y'  
+                and c_bpartner_id= ?
+         </Sql>
+      <Parameter name="customerId"/>
+    </SqlMethod>
+</SqlClass>

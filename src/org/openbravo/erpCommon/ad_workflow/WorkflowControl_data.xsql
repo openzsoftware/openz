@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="WorkflowControlData" package="org.openbravo.erpCommon.ad_workflow">
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT W.AD_WF_NODE_ID, W.ACTION, W.NAME, W.AD_FORM_ID, W.AD_PROCESS_ID, W.AD_TASK_ID, 
+        W.AD_WINDOW_ID, W.WORKFLOW_ID, XPOSITION, YPOSITION, W.HELP
+        FROM AD_WF_NODENEXT WN, AD_WF_NODE W 
+        WHERE WN.AD_WF_NEXT_ID = W.AD_WF_NODE_ID 
+        AND WN.ISACTIVE = 'Y' 
+        AND WN.AD_CLIENT_ID IN ('1') 
+        AND WN.AD_ORG_ID IN ('1') 
+        AND WN.AD_WF_NODE_ID = ? 
+      ]]>
+    </Sql>
+    <Parameter name="adClientId" optional="true" type="replace" after="AND WN.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="adOrgId" optional="true" type="replace" after="AND WN.AD_ORG_ID IN (" text="'1'"/>
+    <Parameter name="adWfNodeId"/>
+  </SqlMethod>
+  <SqlMethod name="selectTrl" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT W.AD_WF_NODE_ID, W.ACTION, COALESCE(WT.NAME, W.NAME) AS NAME, W.AD_FORM_ID, W.AD_PROCESS_ID, W.AD_TASK_ID, 
+        W.AD_WINDOW_ID, W.WORKFLOW_ID, XPOSITION, YPOSITION, COALESCE(WT.HELP, W.HELP) AS HELP 
+        FROM AD_WF_NODENEXT WN, 
+             AD_WF_NODE W left join AD_WF_NODE_TRL WT on W.AD_WF_NODE_ID = WT.AD_WF_NODE_ID 
+                                                      AND WT.AD_LANGUAGE  = ? 
+        WHERE WN.AD_WF_NEXT_ID = W.AD_WF_NODE_ID 
+        AND WN.ISACTIVE = 'Y' 
+        AND WN.AD_CLIENT_ID IN ('1') 
+        AND WN.AD_ORG_ID IN ('1') 
+        AND WN.AD_WF_NODE_ID = ? 
+      ]]>
+    </Sql>
+    <Parameter name="adLanguage"/>
+    <Parameter name="adClientId" optional="true" type="replace" after="AND WN.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="adOrgId" optional="true" type="replace" after="AND WN.AD_ORG_ID IN (" text="'1'"/>
+    <Parameter name="adWfNodeId"/>
+  </SqlMethod>
+  <SqlMethod name="selectFirstNode" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT AD_WF_NODE_ID FROM AD_WORKFLOW WHERE AD_WORKFLOW_ID = ? 
+      ]]>
+    </Sql>
+    <Parameter name="adWorkflowId"/>
+  </SqlMethod>
+  <SqlMethod name="selectFirstNodeData" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT W.AD_WF_NODE_ID, W.ACTION, W.NAME, W.AD_FORM_ID, W.AD_PROCESS_ID, W.AD_TASK_ID, 
+        W.AD_WINDOW_ID, W.WORKFLOW_ID, XPOSITION, YPOSITION
+        FROM AD_WF_NODE W
+        WHERE W.AD_WF_NODE_ID = ? 
+      ]]>
+    </Sql>
+    <Parameter name="adWfNodeId"/>
+  </SqlMethod>
+  <SqlMethod name="selectFirstNodeDataTrl" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT W.AD_WF_NODE_ID, W.ACTION, COALESCE(WT.NAME, W.NAME) AS NAME, W.AD_FORM_ID, W.AD_PROCESS_ID, W.AD_TASK_ID, 
+        W.AD_WINDOW_ID, W.WORKFLOW_ID, XPOSITION, YPOSITION
+        FROM AD_WF_NODE W left join AD_WF_NODE_TRL WT on W.AD_WF_NODE_ID = WT.AD_WF_NODE_ID 
+                                                    AND WT.AD_LANGUAGE  = ? 
+        WHERE  W.AD_WF_NODE_ID = ? 
+      ]]>
+    </Sql>
+    <Parameter name="adLanguage"/>
+    <Parameter name="adWfNodeId"/>
+  </SqlMethod>
+  <SqlMethod name="selectWorkflowName" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT NAME, HELP FROM AD_WORKFLOW WHERE AD_WORKFLOW_ID = ? 
+      ]]>
+    </Sql>
+    <Parameter name="adWorkflowId"/>
+  </SqlMethod>
+  <SqlMethod name="selectWorkflowNameTrl" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT COALESCE(WT.NAME, W.NAME) AS NAME, COALESCE(WT.HELP, W.HELP) AS HELP 
+        FROM AD_WORKFLOW W left join AD_WORKFLOW_TRL WT on W.AD_WORKFLOW_ID = WT.AD_WORKFLOW_ID 
+                                                      AND WT.AD_LANGUAGE = ? 
+        WHERE W.AD_WORKFLOW_ID = ? 
+      ]]>
+    </Sql>
+    <Parameter name="adLanguage"/>
+    <Parameter name="adWorkflowId"/>
+  </SqlMethod>
+</SqlClass>

@@ -1,0 +1,37 @@
+<SqlClass name="BOMCreateData" package="org.openz.bommanagement.controller">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="selectupper" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    Select ? as language , '' as zssm_workstepbom_v_id, '' as product, '' as qty_plan, '' as quantity, '' as qtyreceived, '' as qty_available, '' as issuing_locator, '' as barcode, '' as type, '' as id, '' as mess, '' as ad_message_value, '' as serialnumber from dual
+    </Sql>
+    <Parameter name="language"/>
+  </SqlMethod>  
+   <SqlMethod name="selectbarcode" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select type,id from  pdc_getDataIdFromScan(?)
+    </Sql>
+    <Parameter name="barcode"/>
+    </SqlMethod>
+       <SqlMethod name="createInsertion" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select pdc_insertnewbom(?,?,?,?,?,?)
+    </Sql>
+    <Parameter name="ClientId"/>
+    <Parameter name="OrgId"/>
+    <Parameter name="UserId"/>
+    <Parameter name="ProductId"/>
+    <Parameter name="Serialnumber"/>
+    <Parameter name="LocatorId"/>
+    </SqlMethod>
+    
+           <SqlMethod name="serialfromConsumtion" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT serialnumber from snr_masterdata where m_internal_consumptionline_id = (select m_internal_consumptionline_id from m_internal_consumptionline where m_internal_consumption_id =?);
+    </Sql>
+    <Parameter name="ConsumptionId"/>
+    </SqlMethod>
+  </SqlClass>

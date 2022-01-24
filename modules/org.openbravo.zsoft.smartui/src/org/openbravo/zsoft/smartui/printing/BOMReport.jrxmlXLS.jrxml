@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.3.1.final using JasperReports Library version 6.3.1  -->
+<!-- 2017-10-16T15:05:14 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="BOMReport_excel" language="groovy" pageWidth="1000" pageHeight="595" orientation="Landscape" columnWidth="1000" leftMargin="0" rightMargin="0" topMargin="20" bottomMargin="20" uuid="4ea2ad53-266b-4b7b-bf2a-000afc45fd8e">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="net.sf.jasperreports.export.xls.ignore.graphics" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.ignore.cell.background" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.ignore.cell.border" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.max.rows.per.sheet" value="0"/>
+	<property name="net.sf.jasperreports.export.xls.collapse.row.span" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.collapse.columns.span" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.one.page.per.sheet" value="false"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.size.fix.enabled" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
+	<property name="net.sf.jasperreports.export.ignore.page.margins" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.wrap.text" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="false"/>
+	<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="false"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="default" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="8"/>
+	<style name="Report_Title" fontName="OpenZ Sans" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Data_Label" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Data_Field" fontName="OpenZ Sans" fontSize="11" isBold="false"/>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="11" isBold="true">
+		<box leftPadding="5"/>
+	</style>
+	<style name="GroupHeader_DarkGray" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="12" isBold="true">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Group_Data_Label" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Group_Data_Field" fontName="OpenZ Sans" fontSize="11"/>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#5D5D5D" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="10" isBold="true">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="Detail_Line" fontName="OpenZ Sans" fontSize="8">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Total_Gray" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC"/>
+	<style name="Detail_Data_Label" mode="Opaque" backcolor="#CCCCCC" fontName="OpenZ Sans" fontSize="10" isBold="true"/>
+	<style name="Detail_Data_Field" mode="Opaque" backcolor="#CCCCCC" fontName="OpenZ Sans" fontSize="10"/>
+	<style name="Group_Footer" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Footer" isDefault="true" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="11"/>
+	<parameter name="ATTACH" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_WEB" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="M_PRODUCT_ID" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ISSPAREPART" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ISCONSUMABLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ISINTERNAL" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="AD_ORG_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AD_LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ONLYONELEVEL" class="java.lang.String"/>
+	<parameter name="ONLYPURCHASE" class="java.lang.String"/>
+	<parameter name="ONLYPRODUCTION" class="java.lang.String"/>
+	<parameter name="TREESTRUCTURE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+        zssi_getproductname($P{M_PRODUCT_ID},$P{AD_LANGUAGE}) as assembly,
+        zssi_getelementtextbycolumname('bom_title',$P{AD_LANGUAGE}) as title,
+        zssi_getproductkey($P{M_PRODUCT_ID}) as productkey
+FROM    zspr_printinfo zspr
+        LEFT JOIN AD_ORGINFO on  zspr.ad_org_id=AD_ORGINFO.ad_org_id
+  WHERE zspr.ad_org_id=$P{AD_ORG_ID}]]>
+	</queryString>
+	<field name="assembly" class="java.lang.String"/>
+	<field name="title" class="java.lang.String"/>
+	<field name="productkey" class="java.lang.String"/>
+	<variable name="TOTAL_LINENETAMT" class="java.math.BigDecimal"/>
+	<variable name="TOTAL_TAXAMT" class="java.math.BigDecimal"/>
+	<group name="Product">
+		<groupExpression><![CDATA[$P{M_PRODUCT_ID}]]></groupExpression>
+		<groupHeader>
+			<band splitType="Stretch"/>
+		</groupHeader>
+		<groupFooter>
+			<band height="91" splitType="Stretch">
+				<subreport isUsingCache="true">
+					<reportElement key="subreport-1" style="Detail_Line" mode="Transparent" x="0" y="46" width="1000" height="42" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" backcolor="#FFFFFF" uuid="fb693345-d41f-4ced-94a4-c9059e9fac3b">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<printWhenExpression><![CDATA[(($P{TREESTRUCTURE}.equals("Y")) ? Boolean.TRUE : Boolean.FALSE)]]></printWhenExpression>
+					</reportElement>
+					<subreportParameter name="AD_LANGUAGE">
+						<subreportParameterExpression><![CDATA[$P{AD_LANGUAGE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LANGUAGE">
+						<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ISINTERNAL">
+						<subreportParameterExpression><![CDATA[$P{ISINTERNAL}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ISCONSUMABLE">
+						<subreportParameterExpression><![CDATA[$P{ISCONSUMABLE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="BASE_WEB">
+						<subreportParameterExpression><![CDATA[$P{BASE_WEB}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="AD_ORG_ID">
+						<subreportParameterExpression><![CDATA[$P{AD_ORG_ID}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="BASE_DESIGN">
+						<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ATTACH">
+						<subreportParameterExpression><![CDATA[$P{ATTACH}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ISSPAREPART">
+						<subreportParameterExpression><![CDATA[$P{ISSPAREPART}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="SUBREPORT_DIR">
+						<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="M_PRODUCT_ID">
+						<subreportParameterExpression><![CDATA[$P{M_PRODUCT_ID}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ONLYONELEVEL">
+						<subreportParameterExpression><![CDATA[$P{ONLYONELEVEL}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ONLYPURCHASE">
+						<subreportParameterExpression><![CDATA[$P{ONLYPURCHASE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ONLYPRODUCTION">
+						<subreportParameterExpression><![CDATA[$P{ONLYPRODUCTION}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[$P{BASE_DESIGN} +"/org/openbravo/zsoft/smartui/printing/Bom_Lines_excel_struct.jasper"]]></subreportExpression>
+				</subreport>
+				<subreport isUsingCache="true">
+					<reportElement key="subreport-1" style="Detail_Line" mode="Transparent" x="0" y="4" width="1000" height="42" isPrintInFirstWholeBand="true" isPrintWhenDetailOverflows="true" backcolor="#FFFFFF" uuid="c842fc1e-cf1c-448d-bf4a-62758aeb1356">
+						<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+						<printWhenExpression><![CDATA[(($P{TREESTRUCTURE}.equals(null) || $P{TREESTRUCTURE}.equals("N")) ? Boolean.TRUE : Boolean.FALSE)]]></printWhenExpression>
+					</reportElement>
+					<subreportParameter name="AD_LANGUAGE">
+						<subreportParameterExpression><![CDATA[$P{AD_LANGUAGE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="LANGUAGE">
+						<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ISINTERNAL">
+						<subreportParameterExpression><![CDATA[$P{ISINTERNAL}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ISCONSUMABLE">
+						<subreportParameterExpression><![CDATA[$P{ISCONSUMABLE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="BASE_WEB">
+						<subreportParameterExpression><![CDATA[$P{BASE_WEB}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="AD_ORG_ID">
+						<subreportParameterExpression><![CDATA[$P{AD_ORG_ID}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="BASE_DESIGN">
+						<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ATTACH">
+						<subreportParameterExpression><![CDATA[$P{ATTACH}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ISSPAREPART">
+						<subreportParameterExpression><![CDATA[$P{ISSPAREPART}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="SUBREPORT_DIR">
+						<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="M_PRODUCT_ID">
+						<subreportParameterExpression><![CDATA[$P{M_PRODUCT_ID}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ONLYONELEVEL">
+						<subreportParameterExpression><![CDATA[$P{ONLYONELEVEL}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ONLYPRODUCTION">
+						<subreportParameterExpression><![CDATA[$P{ONLYPRODUCTION}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ONLYPURCHASE">
+						<subreportParameterExpression><![CDATA[$P{ONLYPURCHASE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA[$P{BASE_DESIGN} + "/org/openbravo/zsoft/smartui/printing/Bom_Lines_excel.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="56" splitType="Stretch">
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" x="0" y="14" width="1000" height="24" uuid="ded61b9c-c0ad-42fc-a667-21b846d8242b">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<textElement>
+					<font size="18"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{assembly}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" x="0" y="0" width="1000" height="14" uuid="1f9f5ce3-f833-49bc-875d-58b76a652c6f"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{title}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-13" x="0" y="38" width="1000" height="14" uuid="6efa4998-ed9c-4cc2-9512-f5836a559fa4"/>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{productkey}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band splitType="Stretch"/>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="16" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

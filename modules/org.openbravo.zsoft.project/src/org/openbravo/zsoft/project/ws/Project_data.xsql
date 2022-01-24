@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+<SqlClass name="ProjectData" package="org.openbravo.zsoft.project.ws">
+    <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+        <Sql>
+          <![CDATA[
+            SELECT c_project_id as id,name,value
+              FROM C_PROJECT 
+             WHERE c_project.projectstatus = 'OR' and c_project.isactive='Y'
+                   AND projectcategory != 'B'   AND projectcategory != 'C'
+          ]]>
+        </Sql>
+    </SqlMethod>
+    <SqlMethod name="selectorg4proj" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+        <Sql>
+          <![CDATA[
+            SELECT ad_org_id as orgid
+              FROM C_PROJECT 
+             WHERE c_project.c_project_id = ?   
+          ]]>
+        </Sql>
+        <Parameter name="orgID"/>
+    </SqlMethod>
+    <SqlMethod name="giveFeedback" type="preparedStatement"  return="string">
+      <SqlMethodComment></SqlMethodComment>
+       <Sql>
+                SELECT zspm_giveFeedback(?,?,?,?,?,?,?) FROM DUAL
+       </Sql>
+      <Parameter name="employeeID"/>
+      <Parameter name="workdate"/>
+      <Parameter name="projectID"/>
+      <Parameter name="phaseID"/>
+      <Parameter name="taskID"/>
+      <Parameter name="hour_from"/>
+      <Parameter name="hour_to"/>
+   </SqlMethod>
+</SqlClass>

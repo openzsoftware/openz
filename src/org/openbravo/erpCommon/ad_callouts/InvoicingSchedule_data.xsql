@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="InvoicingScheduleData" package="org.openbravo.erpCommon.ad_callouts">
+  <SqlMethod name="selectPeriods" type="preparedStatement" connection="true" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      SELECT p.M_WH_PERIOD_ID AS ID, p.STARTDATE, p.ENDDATE, 
+             '' as name, '' as AD_ORG_ID
+      FROM M_WH_PERIOD p 
+      WHERE p.M_WH_SCHEDULE_ID = ? 
+      AND p.STARTDATE >= TO_DATE(?)
+      AND p.ENDDATE <= TO_DATE(?)
+      AND NOT EXISTS (SELECT 1 
+                       FROM M_WH_PERIOD_INVOICED i 
+								      WHERE i.M_WH_PERIOD_ID = p.M_WH_PERIOD_ID 
+								      AND i.C_BPARTNER_ID = ?
+								      AND i.AD_ORG_ID = ? )
+			ORDER BY p.STARTDATE
+    ]]></Sql>
+    <Parameter name="mWhScheduleId"/>
+    <Parameter name="periodfrom"/>
+    <Parameter name="periodto"/>
+    <Parameter name="cBpartnerId"/>
+    <Parameter name="adOrgId"/>
+  </SqlMethod>
+  <SqlMethod name="selectM_WH_Period_ID" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      SELECT M_WH_Period.M_WH_Period_ID as id, (M_WH_Period.StartDate || ' - ' || M_WH_Period.EndDate) as name 
+      FROM M_WH_Period
+      WHERE M_WH_Period.AD_Org_ID IN('1') 
+      AND M_WH_Period.AD_Client_ID IN('1') 
+      AND M_WH_Period.isActive = 'Y' 
+      AND M_WH_Schedule_ID = ?
+      ORDER BY M_WH_Period.StartDate
+    ]]></Sql>
+    <Parameter name="adOrgClient" type="replace" optional="true" after="M_WH_Period.AD_Org_ID IN(" text="'1'"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="M_WH_Period.AD_Client_ID IN(" text="'1'"/>
+    <Parameter name="mWhScheduleId"/>
+  </SqlMethod>
+  <SqlMethod name="selectOrg" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      SELECT AD_ORG_ID
+      FROM AD_ORG
+      WHERE AD_ORG_ID IN ('1')
+    ]]></Sql>
+    <Parameter name="adOrgClient" type="replace" optional="true" after="WHERE AD_ORG_ID IN (" text="'1'"/>
+  </SqlMethod>
+  <SqlMethod name="selectPeriodFrom" type="preparedStatement" return="Date">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      SELECT STARTDATE
+      FROM M_WH_PERIOD 
+      WHERE M_WH_PERIOD_ID = ? 
+    ]]></Sql>
+    <Parameter name="mWhPeriodId"/>
+  </SqlMethod>
+  <SqlMethod name="selectPeriodTo" type="preparedStatement" return="Date">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      SELECT ENDDATE
+      FROM M_WH_PERIOD 
+      WHERE M_WH_PERIOD_ID = ? 
+    ]]></Sql>
+    <Parameter name="mWhPeriodId"/>
+  </SqlMethod>
+  <SqlMethod name="selectCurrency" type="preparedStatement" connection="true" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      SELECT C_Currency_ID
+      FROM M_PriceList 
+      WHERE M_PriceList_ID = ? 
+    ]]></Sql>
+    <Parameter name="mPricelistId"/>
+  </SqlMethod>
+  <SqlMethod name="selectPriceList" type="preparedStatement" connection="true" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      SELECT M_PriceList_ID
+      FROM C_Bpartner 
+      WHERE C_Bpartner_ID = ? 
+    ]]></Sql>
+    <Parameter name="cBpartnerId"/>
+  </SqlMethod>
+  <SqlMethod name="selectUOM" type="preparedStatement" connection="true" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      SELECT C_UOM_ID
+      FROM M_PRODUCT 
+      WHERE M_Product_ID = ? 
+    ]]></Sql>
+    <Parameter name="mProductId"/>
+  </SqlMethod>
+  <SqlMethod name="selectBpartner" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      SELECT Name
+      FROM C_BPartner 
+      WHERE C_BPartner_ID = ? 
+    ]]></Sql>
+    <Parameter name="cBpartnerId"/>
+  </SqlMethod>
+  <SqlMethod name="selectDateordered" type="preparedStatement" return="date">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      SELECT dateordered
+      FROM C_ORDER
+      WHERE C_ORDER_ID = ? 
+    ]]></Sql>
+    <Parameter name="cBpartnerId"/>
+  </SqlMethod>
+  <SqlMethod name="selectProject" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      SELECT C_Project_ID
+      FROM C_ORDER
+      WHERE C_ORDER_ID = ? 
+    ]]></Sql>
+    <Parameter name="cOrderId"/>
+  </SqlMethod>
+  <SqlMethod name="update" type="preparedStatement" connection="true" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      UPDATE M_INOUTLINE SET ISINVOICED='Y' WHERE M_INOUT_ID IN (
+      SELECT IO.M_INOUT_ID
+      FROM M_INOUT IO, M_INOUTLINE IOL
+      WHERE IO.M_INOUT_ID = IOL.M_INOUT_ID
+      AND IO.C_BPARTNER_ID = ?
+      AND IO.AD_ORG_ID IN ('1')
+      AND IO.AD_CLIENT_ID IN ('1') 
+      AND IO.ISLOGISTIC  = 'Y'
+      AND IOL.ISINVOICED = 'N'
+      AND IO.DOCSTATUS = 'CO'
+      AND IO.MOVEMENTDATE >= TO_DATE(?)
+      AND IO.MOVEMENTDATE < TO_DATE(?)
+      GROUP BY IO.M_INOUT_ID)
+    ]]></Sql>
+    <Parameter name="cBpartnerId"/>
+    <Parameter name="adOrgClient" type="replace" optional="true" after="AND IO.AD_ORG_ID IN (" text="'1'"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="AND IO.AD_CLIENT_ID IN (" text="'1'"/>
+    <Parameter name="periodfrom"/>
+    <Parameter name="periodto"/>
+  </SqlMethod>
+  <SqlMethod name="createPeriodInvoiced" type="preparedStatement" connection="true" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      INSERT INTO M_WH_PERIOD_INVOICED (M_WH_PERIOD_INVOICED_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE, CREATED, CREATEDBY, 
+      UPDATED, UPDATEDBY, M_WH_PERIOD_ID, C_BPARTNER_ID, C_ORDER_ID) 
+      VALUES (?, ?, ?, 'Y', now(), ?, 
+      now(), ?, ?, ?, ?)
+    ]]></Sql>
+    <Parameter name="mWhPeriodInvoicedId"/>
+    <Parameter name="adClientId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="mWhPeriodId"/>
+    <Parameter name="cBpartnerId"/>
+    <Parameter name="cOrderId"/>
+  </SqlMethod>
+  <SqlMethod name="insertPInstance" type="preparedStatement" connection="true" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      INSERT INTO AD_PINSTANCE (AD_PINSTANCE_ID, AD_PROCESS_ID, RECORD_ID, ISPROCESSING, CREATED, AD_USER_ID, UPDATED, AD_CLIENT_ID, AD_ORG_ID, CREATEDBY, UPDATEDBY)
+      VALUES(?,?,?,?,now(),?,now(), ?, ?, ?, ?)
+    </Sql>
+    <Parameter name="adPinstanceId"/>
+    <Parameter name="adProcessId"/>
+    <Parameter name="recordId"/>
+    <Parameter name="isprocessing"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="adClientId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="adUserId"/>
+  </SqlMethod>
+  <SqlMethod name="process104" type="callableStatement" return="object" connection="true" object="InvoicingScheduleData">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        CALL C_Order_Post(?)
+      ]]></Sql>
+      <Parameter name="adPinstanceId"></Parameter>
+   </SqlMethod>
+</SqlClass>

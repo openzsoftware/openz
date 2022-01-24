@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ ******************************************************************************
+ * The contents of this file are subject to the   Compiere License  Version 1.1
+ * ("License"); You may not use this file except in compliance with the License
+ * You may obtain a copy of the License at http://www.compiere.org/license.html
+ * Software distributed under the License is distributed on an  "AS IS"  basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
+ * the specific language governing rights and limitations under the License.
+ * The Original Code is                  Compiere  ERP & CRM  Business Solution
+ * The Initial Developer of the Original Code is Jorg Janke  and ComPiere, Inc.
+ * Portions created by Jorg Janke are Copyright (C) 1999-2001 Jorg Janke, parts
+ * created by ComPiere are Copyright (C) ComPiere, Inc.;   All Rights Reserved.
+ * Contributor(s): Openbravo SL
+ * Contributions are Copyright (C) 2001-2006 Openbravo S.L.
+ ******************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="SendMailTextData" package="org.openbravo.erpCommon.ad_process">
+  <SqlMethod name="select" type="preparedStatement" connection="true" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT u.Name, u.EMail, u.AD_User_ID, '' as mailheader, '' as mailtext 
+        FROM R_ContactInterest ci, AD_User u 
+        WHERE ci.AD_User_ID=u.AD_User_ID 
+        AND ci.IsActive='Y' 
+        AND u.IsActive='Y' 
+        AND ci.OptOutDate IS NULL 
+        AND u.EMail IS NOT NULL 
+        AND ci.R_InterestArea_ID = ?
+      ]]>
+    </Sql>
+    <Parameter name="rInterestareaId"/>
+  </SqlMethod>
+  <SqlMethod name="selectBPGroup" type="preparedStatement" connection="true" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT u.Name, u.EMail, u.AD_User_ID 
+        FROM AD_User u, C_BPartner bp
+        WHERE u.C_BPartner_ID=bp.C_BPartner_ID 
+        AND u.IsActive='Y' 
+        AND bp.IsActive='Y' 
+        AND u.EMail IS NOT NULL 
+        AND bp.C_BP_Group_ID = ? 
+      ]]>
+    </Sql>
+    <Parameter name="cBpGroupId"/>
+  </SqlMethod>
+  <SqlMethod name="selectMailData" type="preparedStatement" connection="true" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT mailheader, mailtext
+        FROM R_MailText
+        WHERE IsActive='Y' 
+        AND R_MailText_ID = ?
+      ]]>
+    </Sql>
+    <Parameter name="rMailtextId"/>
+  </SqlMethod>
+   <SqlMethod name="selectMailAttachments" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT string_agg(to_char(?)||'/416-'||r.R_MailText_ID||'/'||f.name,',') as filename
+        FROM R_MailText r,c_file f
+        WHERE r.IsActive='Y' and r.isactive='Y' and f.ad_record_id=r.R_MailText_ID
+        AND R_MailText_ID = ?
+      ]]>
+    </Sql>
+    <Parameter name="AttchmntsPath"/>
+    <Parameter name="rMailtextId"/>
+  </SqlMethod>
+  <SqlMethod name="copyMailAttachments2CRMEntry" type="preparedStatement" return="rowcount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        insert into c_file (c_file_id, ad_client_id, ad_org_id, createdby, updatedby, name, c_datatype_id, seqno, text, ad_table_id, ad_record_id, line)
+        select get_uuid(), ad_client_id, ad_org_id, ?,?,name,c_datatype_id, seqno, text,'2E7422E821194637ADFB67204011EC15',?,line
+        from c_file where ad_table_id='416' and ad_record_id=?
+      ]]>
+    </Sql>
+    <Parameter name="UserId"/>
+    <Parameter name="UserId"/>
+    <Parameter name="CrmEntryId"/>
+    <Parameter name="rMailtextId"/>
+  </SqlMethod>
+  <SqlMethod name="insertCRMEntry" type="preparedStatement" return="rowcount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        insert into zssi_notes4customer(zssi_notes4customer_id, ad_client_id, ad_org_id, createdby, updatedby, description, c_bpartner_id, ad_user_id, dateofcontact, 
+        zssi_crmactions_id, contact_by)     
+        select ?,'C726FEC915A54A0995C568555DA5BB3C',b.ad_org_id,?,?,?,b.c_bpartner_id,u.ad_user_id,trunc(now()),
+        (select zssi_crmactions_id from zssi_crmactions where isactive='Y' order by stdnewsletteritem desc limit 1),? from ad_user u,c_bpartner b where b.c_bpartner_id=u.c_bpartner_id and u.ad_user_id=?]]>
+    </Sql>
+    <Parameter name="gUUID"/>
+    <Parameter name="UserId"/>
+    <Parameter name="UserId"/>
+    <Parameter name="Mailtext"/>
+    <Parameter name="SeningUserId"/>
+    <Parameter name="BpartnerUserId"/>
+  </SqlMethod>
+  <SqlMethod name="update" type="preparedStatement" connection="true" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        UPDATE AD_User SET IsActive='N', Help=Help||' - Invalid User EMail' WHERE AD_User_ID=?
+      ]]>
+    </Sql>
+    <Parameter name="adUserId"/>
+  </SqlMethod>
+</SqlClass>

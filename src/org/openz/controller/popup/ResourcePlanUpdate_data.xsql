@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+
+<SqlClass name="ResourcePlanUpdateData" package="org.openz.controller.popup">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="selectemp" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      select h.c_projecttask_id,h.employee_id,h.datefrom,h.dateto,h.c_salary_category_id,h.zspm_ptaskhrplan_id,'' as zspm_ptaskmachineplan_id,'N' as preselected,
+             '' as quantity, '' as costuom,'' as ma_machine_id ,'' as cname,'' as uname 
+      from zspm_ptaskhrplan h ,c_projecttask t,ad_user u,C_SALARY_CATEGORY c
+      where t.c_projecttask_id=h.c_projecttask_id and
+            u.ad_user_id=h.employee_id and
+            c.C_SALARY_CATEGORY_ID= h.C_SALARY_CATEGORY_ID  and
+            t.c_projecttask_id = ? 
+            order by c.name,u.name
+    ]]></Sql>
+    <Parameter name="parTaskID"/>    
+  </SqlMethod>
+  <SqlMethod name="selectempnew" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      select c_projecttask_id,employee_id,datefrom,dateto,c_salary_category_id,zspm_ptaskhrplan_id,preselected from 
+            (
+            select ? as c_projecttask_id, null as employee_id,null as datefrom,null as dateto, null as c_salary_category_id,get_uuid() as  zspm_ptaskhrplan_id,'Y' as preselected, '' as cname,'' as uname from dual
+            union
+            select h.c_projecttask_id,h.employee_id,h.datefrom,h.dateto,h.c_salary_category_id,h.zspm_ptaskhrplan_id,'N' as preselected,c.name as cname,u.name as uname
+               from zspm_ptaskhrplan h ,c_projecttask t,ad_user u,C_SALARY_CATEGORY c
+            where t.c_projecttask_id=h.c_projecttask_id and
+            u.ad_user_id=h.employee_id and
+            c.C_SALARY_CATEGORY_ID= h.C_SALARY_CATEGORY_ID  and
+            t.c_projecttask_id = ?    
+            ) a  order by preselected desc,cname,uname
+    ]]></Sql>
+    <Parameter name="parTaskID"/>    
+    <Parameter name="parTaskID"/>    
+  </SqlMethod>
+  <SqlMethod name="selectmachine" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      select h.c_projecttask_id,h.ma_machine_id,h.datefrom,h.dateto,h.quantity,h.costuom,h.zspm_ptaskmachineplan_id
+             from zspm_ptaskmachineplan h ,c_projecttask t
+      where t.c_projecttask_id=h.c_projecttask_id and t.c_projecttask_id = ? 
+      ]]></Sql>
+    <Parameter name="parTaskID"/>    
+  </SqlMethod>
+  <SqlMethod name="selectmachinenew" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      select c_projecttask_id,ma_machine_id,datefrom,dateto,quantity,costuom,zspm_ptaskmachineplan_id,preselected from
+      (
+      select ? as c_projecttask_id,null as ma_machine_id,null as datefrom,null as dateto,null as quantity,null as costuom,get_uuid() as zspm_ptaskmachineplan_id,'Y' as preselected
+             from dual
+      union
+      select h.c_projecttask_id,h.ma_machine_id,h.datefrom,h.dateto,h.quantity,h.costuom,h.zspm_ptaskmachineplan_id,'N' as preselected
+             from zspm_ptaskmachineplan h ,c_projecttask t
+      where t.c_projecttask_id=h.c_projecttask_id and t.c_projecttask_id = ? 
+      ) a order by preselected desc
+      ]]></Sql>
+    <Parameter name="parTaskID"/>    
+    <Parameter name="parTaskID"/>    
+  </SqlMethod>
+  <SqlMethod name="isEmployee" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select case when count(*)=1 then 'Y' else 'N' end as returnvalue from zspm_ptaskhrplan where zspm_ptaskhrplan_id = ?
+    </Sql>
+    <Parameter name="parPlanEntry"/>  
+  </SqlMethod>
+  
+  <SqlMethod name="selectPTaskId" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select h.c_projecttask_id
+             from zspm_ptaskhrplan h ,c_projecttask t
+       where t.c_projecttask_id=h.c_projecttask_id and h.zspm_ptaskhrplan_id = ?
+       union
+       select h.c_projecttask_id
+             from zspm_ptaskmachineplan h ,c_projecttask t
+       where t.c_projecttask_id=h.c_projecttask_id and h.zspm_ptaskmachineplan_id = ?
+    </Sql>
+    <Parameter name="parPlanEntry"/>  
+    <Parameter name="parPlanEntry"/>  
+  </SqlMethod>
+  <SqlMethod name="getEmployee" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+     select employee_id from zspm_ptaskhrplan where zspm_ptaskhrplan_id=?
+    </Sql>
+    <Parameter name="parPlanEntry"/>  
+  </SqlMethod>
+  <SqlMethod name="getMachine" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+     select ma_machine_id from zspm_ptaskmachineplan where zspm_ptaskmachineplan_id=?
+    </Sql>
+    <Parameter name="parPlanEntry"/>  
+  </SqlMethod>
+  <SqlMethod name="selectPTaskDateTo" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+     select  to_char(enddate,?) from c_projecttask  where c_projecttask_id=?
+    </Sql>
+    <Parameter name="parDateFormat"/>
+    <Parameter name="parPlanEntry"/>  
+  </SqlMethod>
+  <SqlMethod name="selectPTaskDateFrom" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+     select to_char(startdate,?) from c_projecttask  where c_projecttask_id=?
+    </Sql>
+    <Parameter name="parDateFormat"/>
+    <Parameter name="parPlanEntry"/>  
+  </SqlMethod>
+  <SqlMethod name="delete" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select zssi_deleteResourceTaskEntry(?)
+    </Sql>
+    <Parameter name="parPlanEntry"/>  
+  </SqlMethod>
+  <SqlMethod name="updateTaskDates" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select zssi_updateTaskDates(?,to_date(?,?),to_date(?,?))
+    </Sql>
+    <Parameter name="parPTask"/>  
+    <Parameter name="parDateFrom"/>
+    <Parameter name="parDateFormat"/>
+    <Parameter name="parDateTo"/>
+    <Parameter name="parDateFormat"/>
+  </SqlMethod>
+  <SqlMethod name="updateOrInsert" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select zssi_updateOrInsertResourceTaskEntry(?,?,?,to_date(?,?),to_date(?,?),?,?,?,to_number(?))
+    </Sql>
+    <Parameter name="parPlanEntry"/>  
+    <Parameter name="parPTask"/>  
+    <Parameter name="parResource"/>
+    <Parameter name="parDateFrom"/>
+    <Parameter name="parDateFormat"/>
+    <Parameter name="parDateTo"/>
+    <Parameter name="parDateFormat"/>
+    <Parameter name="paruser"/> 
+    <Parameter name="parSalcategory"/>
+    <Parameter name="parCostUOM"/> 
+    <Parameter name="parQty"/>
+  </SqlMethod>
+  </SqlClass>

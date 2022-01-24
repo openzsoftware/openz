@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2012 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+
+
+<SqlClass name="FormDisplayLogicData" package="org.openz.view" accessModifier="public">
+
+   <SqlMethod name="getlogic4tab" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_getTabFieldDisplayLogic(?,?) from dual
+      </Sql>
+      <Parameter name="tabID"/>
+      <Parameter name="roleID"/>
+   </SqlMethod>
+   <SqlMethod name="getFieldVisibleLogic" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_fieldGetVisibleLogic(?,?) from dual
+      </Sql>
+      <Parameter name="fieldID"/>
+      <Parameter name="roleID"/>
+   </SqlMethod>
+   <SqlMethod name="fieldGetReadonlyLogic" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_fieldGetReadonlyLogic(?,?) from dual
+      </Sql>
+      <Parameter name="fieldID"/>
+      <Parameter name="roleID"/>
+   </SqlMethod>
+   <SqlMethod name="fieldGetMandantoryLogic" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_fieldGetMandantoryLogic(?,?) from dual
+      </Sql>
+      <Parameter name="fieldID"/>
+      <Parameter name="roleID"/>
+   </SqlMethod>
+   <SqlMethod name="fieldGetDefault" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_fieldGetDefault(?) from dual
+      </Sql>
+      <Parameter name="fieldID"/>
+   </SqlMethod>
+   <SqlMethod name="fieldGetName" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_fieldGetName(?) from dual
+      </Sql>
+      <Parameter name="fieldID"/>
+   </SqlMethod>
+   <SqlMethod name="isFieldInForm" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_isFieldInForm(?,?,'N') from dual
+      </Sql>
+      <Parameter name="fieldId"/>
+      <Parameter name="otherFieldName"/>
+   </SqlMethod>
+   <SqlMethod name="isFieldInFormWOPrimaryKey" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_isFieldInForm(?,?,'Y') from dual
+      </Sql>
+      <Parameter name="fieldId"/>
+      <Parameter name="otherFieldName"/>
+   </SqlMethod>
+   <SqlMethod name="fieldGetWindowID" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_window_id from ad_tab,ad_field_v where ad_tab.ad_tab_id=ad_field_v.ad_tab_id
+                and ad_field_v.ad_field_v_id=?
+      </Sql>
+      <Parameter name="fieldID"/>
+   </SqlMethod>
+   <SqlMethod name="fieldGetTabID" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_tab.ad_tab_id from ad_tab,ad_field_v where ad_tab.ad_tab_id=ad_field_v.ad_tab_id
+                and ad_field_v.ad_field_v_id=?
+      </Sql>
+      <Parameter name="fieldID"/>
+   </SqlMethod><SqlMethod name="isTabReadonly" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_IsTabRoleReadonly(?,?) from dual
+      </Sql>
+      <Parameter name="roleID"/>
+      <Parameter name="tabID"/>
+   </SqlMethod>
+   <SqlMethod name="fieldGetListRefDefault" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_getListRefDefault(?) from dual
+      </Sql>
+      <Parameter name="fieldID"/>
+   </SqlMethod>
+   <SqlMethod name="FieldGetDataType" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_FieldGetDataType(?) from dual
+      </Sql>
+      <Parameter name="fieldId"/>
+   </SqlMethod>
+   <SqlMethod name="getTabFieldListDefault" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT ad_getTabFieldDefault(?,?,?)
+        FROM dual
+     </Sql>
+      <Parameter name="tabID"/>  
+      <Parameter name="columnName"/>      
+      <Parameter name="OrgId"/>      
+   </SqlMethod>
+   <SqlMethod name="getTabFieldDatabaseDefault" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT ad_TabFieldgetDatabaseDefault(?)
+     </Sql>  
+      <Parameter name="fieldID"/>      
+   </SqlMethod>
+   <SqlMethod name="isFieldStoredinSession" type="preparedStatement" return="String" default="">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT issessionattr from ad_field f,ad_column c
+        where f.ad_column_id=c.ad_column_id
+        and f.ad_field_id= ?
+      </Sql>  
+      <Parameter name="fieldID"/>      
+   </SqlMethod>
+   <SqlMethod name="ReferenceGetTableID" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_ReferenceGetTableID(?) from dual
+      </Sql>
+      <Parameter name="adReferenceIdorKeycolumnname"/>
+   </SqlMethod>
+   <SqlMethod name="triggersComboReload" type="preparedStatement" return="string">
+      <Sql>
+        SELECT ad_fieldTriggersComboReload(?) from dual
+      </Sql>
+      <Parameter name="fieldId"/>
+   </SqlMethod>
+   <SqlMethod name="windowGetIsSSOTRX" type="preparedStatement" return="string">
+      <Sql>
+        SELECT issotrx from ad_window where ad_window_id=?
+      </Sql>
+      <Parameter name="windowId"/>
+   </SqlMethod>
+</SqlClass>

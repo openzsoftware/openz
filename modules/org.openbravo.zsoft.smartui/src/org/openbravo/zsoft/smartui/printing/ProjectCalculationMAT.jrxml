@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2016-10-18T11:46:50 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="SUBREP_ProjectCalculationMAT" language="groovy" pageWidth="585" pageHeight="842" columnWidth="585" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="7b15d031-0639-4613-85f2-5d3dafe08ff3">
+	<property name="ireport.zoom" value="1.1000000000000005"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="OpenZ.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<parameter name="C_PROJECT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ACTMATCOSP" class="java.math.BigDecimal" isForPrompting="false"/>
+	<parameter name="MATCOSP" class="java.math.BigDecimal" isForPrompting="false"/>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+(select name from m_product where m_product.m_product_id=ptbv.m_product_id) as material,
+zssi_strnumber(case when pt.istaskcancelled='Y' then 0 else ptbv.plannedamt end,$P{LANGUAGE})  as plannedamtemp,
+zssi_strnumber(case when pt.istaskcancelled='Y' then 0 else ptbv.quantity end ,$P{LANGUAGE})  as quantity,
+--EMPLOYEES Post
+zssi_strnumber(coalesce(ptbv.qtyreceived,0),$P{LANGUAGE})  as received,
+zssi_strnumber(coalesce(ptbv.actualcosamount,0),$P{LANGUAGE}) as actualcostamounts,
+zssi_getElementTextByColumname('Project',$P{LANGUAGE}) as ph,
+zssi_getElementTextByColumname('Precalculation',$P{LANGUAGE}) as pc,
+zssi_getElementTextByColumname('Postcalculation',$P{LANGUAGE}) as poc,
+zssi_getElementTextByColumname('Sum',$P{LANGUAGE}) as sum,
+zssi_getElementTextByColumname('Matss',$P{LANGUAGE}) as matss,
+CASE when $P{LANGUAGE}='de_DE' then 'Std' else 'h' end as omt,
+CASE when $P{LANGUAGE}='de_DE' then 'Stk' else 'Pc' end as omp,
+(select cursymbol from c_currency, ad_client where ad_client.c_currency_id=c_currency.c_currency_id) as curs
+from c_project p
+left join c_projecttask pt on p.c_project_id=pt.c_project_id
+left join zspm_projecttaskbom_view ptbv on pt.c_projecttask_id=ptbv.c_projecttask_id
+where pt.c_project_id in ($P{C_PROJECT_ID}) AND ptbv.m_product_id is not null
+and not exists (select 0 from zspm_ptaskmachineplan mpl,ma_machine ma,snr_masterdata snr where mpl.ma_machine_id=ma.ma_machine_id and snr.snr_masterdata_id=ma.snr_masterdata_id and snr.m_product_id=ptbv.m_product_id)
+ORDER BY material]]>
+	</queryString>
+	<field name="material" class="java.lang.String"/>
+	<field name="plannedamtemp" class="java.lang.String"/>
+	<field name="quantity" class="java.lang.String"/>
+	<field name="received" class="java.lang.String"/>
+	<field name="actualcostamounts" class="java.lang.String"/>
+	<field name="ph" class="java.lang.String"/>
+	<field name="pc" class="java.lang.String"/>
+	<field name="poc" class="java.lang.String"/>
+	<field name="sum" class="java.lang.String"/>
+	<field name="matss" class="java.lang.String"/>
+	<field name="omt" class="java.lang.String"/>
+	<field name="omp" class="java.lang.String"/>
+	<field name="curs" class="java.lang.String"/>
+	<variable name="SUMQTYPLAN" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{quantity}]]></variableExpression>
+	</variable>
+	<variable name="SUMQTY" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{received}]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNTPLAN" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{plannedamtemp}]]></variableExpression>
+	</variable>
+	<variable name="SUMAMOUNT" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{actualcostamounts}]]></variableExpression>
+	</variable>
+	<title>
+		<band height="27">
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="0" y="14" width="167" height="13" isPrintInFirstWholeBand="true" backcolor="#E7E7E7" uuid="e6ca9dea-d38c-4081-85bd-5bb64b938940"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="507" y="14" width="78" height="13" isPrintInFirstWholeBand="true" backcolor="#E7E7E7" uuid="52503538-843e-4573-a1ec-9f7bddb1fe22"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="325" y="1" width="260" height="13" isPrintInFirstWholeBand="true" backcolor="#FFFF00" uuid="54a6eb93-d5a1-40c0-8bf7-9be95a3e1d8d"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{poc}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="236" y="14" width="149" height="13" isPrintInFirstWholeBand="true" backcolor="#E7E7E7" uuid="08846129-0c70-4063-8c91-2cb6c5d05fe9"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="167" y="14" width="71" height="13" isPrintInFirstWholeBand="true" backcolor="#E7E7E7" uuid="671a073e-21c6-40d1-aa72-646cf78a38c7"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{omp}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="384" y="14" width="124" height="13" isPrintInFirstWholeBand="true" backcolor="#E7E7E7" uuid="a3e43b9b-5a1e-4b9a-8ae2-df76f7d66ff7"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{omp}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="117" y="1" width="208" height="13" isPrintInFirstWholeBand="true" backcolor="#FFFF00" uuid="95b2719f-505f-44c4-b735-7798e8b6bec5"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pc}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" mode="Opaque" x="0" y="1" width="117" height="13" isPrintInFirstWholeBand="true" backcolor="#FFFF00" uuid="cab8aa75-37f1-4bda-8e8f-19a44abbb4fd"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{matss}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="11" splitType="Stretch">
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="458" y="0" width="66" height="11" isPrintWhenDetailOverflows="true" uuid="353d0f34-4aef-4da3-a596-4619635eea4a"/>
+				<textElement textAlignment="Right">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{actualcostamounts}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="257" y="0" width="17" height="11" isPrintWhenDetailOverflows="true" uuid="78abe06f-928b-4ec8-90d0-14ef55efb554"/>
+				<textElement textAlignment="Right">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="145" y="0" width="49" height="11" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="2d5d3cf8-a7bd-4c47-8f87-d1bcaeea7a02"/>
+				<textElement textAlignment="Right">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{quantity}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="0" y="0" width="146" height="11" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="8ac18a40-b26e-4347-b009-9a68bac85ffc"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font size="7"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{material}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="523" y="0" width="62" height="11" isPrintWhenDetailOverflows="true" uuid="b9464c41-8fe3-4d19-9331-4dec7cc0b699"/>
+				<box>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font size="7"/>
+					<paragraph leftIndent="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0.00;-###0.00">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="328" y="0" width="131" height="11" isPrintWhenDetailOverflows="true" uuid="1f3f7c69-57bf-44bf-8ec0-55d932de9754"/>
+				<textElement textAlignment="Right">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{received}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00;-#,##0.00">
+				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="193" y="0" width="65" height="11" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="4d654769-6c3e-475b-acb8-09013541a7f0"/>
+				<textElement textAlignment="Right">
+					<font size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{plannedamtemp}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="13">
+			<textField evaluationTime="Auto" pattern="###0.00;-###0.00">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="327" y="0" width="132" height="13" isRemoveLineWhenBlank="true" uuid="6069b3e1-5e1d-44ef-a099-296ef8088d17"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{SUMQTY}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="539" y="0" width="46" height="13" uuid="9a95e7da-b093-4357-a20b-40c01a5fbc7a"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+					<paragraph rightIndent="4"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{ACTMATCOSP}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="0" y="0" width="146" height="13" uuid="33058901-2fed-4373-80d2-a39aa21dbebc"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sum}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %" isBlankWhenNull="true">
+				<reportElement positionType="Float" x="273" y="0" width="55" height="13" uuid="dae6ec2d-6663-4088-8819-215f4fb35748"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{MATCOSP}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Auto" pattern="###0.00;-###0.00">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="145" y="0" width="49" height="13" isRemoveLineWhenBlank="true" uuid="ff8603cd-cadc-4007-9da2-b5f144ba99bf"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{SUMQTYPLAN}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Auto" pattern="#,##0.00;-#,##0.00">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="193" y="0" width="65" height="13" isRemoveLineWhenBlank="true" uuid="b9e6b315-a800-4765-8eef-8aa460c5a8ae"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{SUMAMOUNTPLAN}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="523" y="0" width="17" height="13" uuid="e8d87da3-56a1-4b8b-96b9-be2c50821499"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Auto" pattern="#,##0.00;-#,##0.00">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="458" y="0" width="66" height="13" uuid="23efde18-5d60-4366-9e1b-7b895c8a34ac"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{SUMAMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="257" y="0" width="17" height="13" uuid="fa10413c-1ac4-4ed1-975a-09aeccc96f43"/>
+				<box>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{curs}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

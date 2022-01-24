@@ -1,0 +1,21 @@
+             <TD colspan="@NUMCOLS@" class="@CONTENTCELLCLASS@" id="@FIELDNAME@tdx">
+                 <TABLE cellpadding="0" cellspacing="0"  class="Celltable" id="@FIELDNAME@td">
+                 <TR>
+                 <TD style="width:@CONTENTWIDTH@">
+                      <INPUT type="hidden" @REQUIRED@ name="inp@FIELDNAME@" value="@CURRENTIDVALUE@" onchange="logChanges(this);@CALLOUT@;return true;" title="@TITLE@">
+                      <INPUT type="text" class="dojoValidateValid @REQUIRED@ @CLASS@" maxlength="120" @REQUIREDTAG@ @READONLY@ name="inp@FIELDNAME@_DES" id="@FIELDNAME@_DES" value="@CURRENTTEXTVALUE@" @JSSETTINGS@>
+                      <SPAN onmouseover="this.style.display='none'; return false;" class="TextBox_MsgContainer_span" style="display: none;" id="@FIELDNAME@_DESmissingSpan">
+                            <TABLE class="TextBox_MsgContainer_table">
+                              <TR class="TextBox_MsgContainer_tr">
+                                <TD class="TextBox_MsgContainer_td"><DIV class="TextBox_MsgContainer_div"></DIV></TD><TD></TD>
+                              </TR>
+                              <TR>
+                                <TD colspan="2" class="missing"><DIV class="TextBox_MsgContainer_div2" id="@FIELDNAME@_DESmissingSpanText" name="missingText">@REQUIREDMESSAGE@</DIV></TD>
+                              </TR>
+                            </TABLE>
+                       </SPAN>   
+                  </TD>
+                            @BUTTON@
+                   </TR>
+                  </TABLE>
+              </TD>

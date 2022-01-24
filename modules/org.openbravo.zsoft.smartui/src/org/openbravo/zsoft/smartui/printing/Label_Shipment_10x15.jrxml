@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.8.0.final using JasperReports Library version 6.8.0-2ed8dfabb690ff337a5797129f2cd92902b0c87b  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Label_Shipment_15x10" language="groovy" pageWidth="280" pageHeight="430" columnWidth="240" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" uuid="78d369b3-9792-4435-be09-e5dab6b9724a">
+	<property name="ireport.zoom" value="1.4641000000000006"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Title" forecolor="#FFFFFF" fontName="Times New Roman" fontSize="50" isBold="false" pdfFontName="Times-Bold"/>
+	<style name="SubTitle" forecolor="#CCCCCC" fontName="Times New Roman" fontSize="18" isBold="false" pdfFontName="Times-Roman"/>
+	<style name="Column header" forecolor="#666666" fontName="Times New Roman" fontSize="14" isBold="true" pdfFontName="Times-Roman"/>
+	<style name="Detail" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman"/>
+	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="DOCUMENT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select    	$P{DOCUMENT_ID}||m.documentno as id,
+-- Adress Sender
+	CASE WHEN zspr.address1='Ferroxon' then 'Ferroxon-Pigmente' else '' end as Label,
+	zspr.addressheader as sender,
+	zspr.onelineadr,
+	a.name||' '||coalesce(a.description) as compname,
+	zspr.address2,
+	zspr.address3 as street,
+	zspr.address4 as plzcity,
+ 	zssi_getelementtextbycolumname(zspr.address5,$P{LANGUAGE}) as country,
+	zspr.address6 as fon,
+	zspr.address7 as fax,
+	zspr.address8 as mail,
+	zspr.address9 as web,
+-- Shipment Info
+
+	m.documentno as docno,
+	to_char(now(),'DD.MM.YYYY') as lsdate,
+	to_char(m.MovementDate,'DD.MM.YYYY') as deldate,
+	coalesce(m.trackingno,'') as refno,
+	(select rpad(name,3) from c_incoterms where c_incoterms.c_incoterms_id=m.c_incoterms_id) as incoshort,
+(select name from c_incoterms where c_incoterms.c_incoterms_id=m.c_incoterms_id) as inco,
+	coalesce(m.poreference,c_order.documentno) as ordno,
+	to_char(c_order.dateordered,'DD.MM.YYYY') as orddate,
+
+	coalesce(m.weight,0.0) as weight,
+	lower((select x12de355 from c_uom where c_uom.c_uom_id=m.weight_uom)) as wuom,
+	coalesce(m.qtyofpallets,0) as numberpal,
+--bparter info
+cbp.name as sname,
+cl1.address1 as sadd1,
+coalesce(cl1.address2,'') as sadd2,
+cl1.postal as spostal,
+cl1.postal_add as spostaladd,
+cl1.city as scity,
+lk.phone as phonenn,
+(select countrycode from c_country where cl1.c_country_id=c_country.c_country_id) as scountry,
+-- 	Salesrep Info
+m.salesrep_id as contact,
+sr.name,sr.email, sr.phone as phone,
+	sh.name as delservice,
+-- Shipper Ínfo
+coalesce(cl2.address1,'') as shadd1,
+coalesce(cl2.address2,'') as shadd2,
+coalesce(cl2.postal,'') as shpostal,
+coalesce(cl2.postal_add,'') as shpostaladd,
+coalesce(cl2.city,'') as shcity,
+coalesce((select countrycode from c_country where cl2.c_country_id=c_country.c_country_id),'') as shcountry,
+-- Header Lines
+	'Warenversand' as titlehl,
+	zssi_getelementtextbycolumname('Sender',$P{LANGUAGE}) as sendernamehl,
+ 	zssi_getelementtextbycolumname('Adress',$P{LANGUAGE}) as senderadresshl,
+ 	zssi_getelementtextbycolumname('LS-No.',$P{LANGUAGE}) as docnohl,
+	zssi_getelementtextbycolumname('LS-Date',$P{LANGUAGE}) as lsdatehl,
+	zssi_getelementtextbycolumname('Delivery Date',$P{LANGUAGE}) as deldatehl,
+	zssi_getelementtextbycolumname('Delivery Adress',$P{LANGUAGE}) as deladresshl,
+	zssi_getelementtextbycolumname('Contactpartner',$P{LANGUAGE}) as contacthl,
+	zssi_getelementtextbycolumname('Phones',$P{LANGUAGE}) as confonhl,
+	zssi_getelementtextbycolumname('e-mails',$P{LANGUAGE}) as conmailhl,
+	zssi_getelementtextbycolumname('OR-No',$P{LANGUAGE}) as ordernohl,
+	zssi_getelementtextbycolumname('Datebe',$P{LANGUAGE}) as orderdatehl,
+	zssi_getelementtextbycolumname('Delivery Ref',$P{LANGUAGE}) as delrefhl,
+	zssi_getelementtextbycolumname('Incoterms',$P{LANGUAGE}) as incotermshl,
+	zssi_getelementtextbycolumname('Spediteur',$P{LANGUAGE}) as delservicehl,
+	zssi_getelementtextbycolumname('Total Weight',$P{LANGUAGE}) as totalwhl,
+	zssi_getelementtextbycolumname('Palcount',$P{LANGUAGE}) as numberpalhl
+from ad_org a,m_inout m left join m_shipper sh on m.m_shipper_id= sh.m_shipper_id 
+                        left join c_bpartner shbp on sh.c_bpartner_id=shbp.c_bpartner_id
+                        left join c_bpartner_location shbplk on shbp.c_bpartner_id=shbplk.c_bpartner_id
+                        left join c_location cl2 on  shbplk.c_location_id=cl2.c_location_id
+                        left join c_order on m.c_order_id=c_order.c_order_id 
+                        left join ad_user sr on sr.ad_user_id=m.ad_user_id
+,m_inoutline l,c_bpartner_location lk,c_location cl1, c_bpartner cbp,
+zspr_printinfo zspr 
+where m.m_inout_id in ($P{DOCUMENT_ID}) and
+l.m_inout_id=m.m_inout_id and a.ad_org_id=m.ad_org_id and lk.c_bpartner_location_id=m.c_bpartner_location_id and lk.c_location_id=cl1.c_location_id and zspr.ad_org_id=m.ad_org_id
+and  m.c_bpartner_id=cbp.c_bpartner_id]]>
+	</queryString>
+	<field name="id" class="java.lang.String"/>
+	<field name="label" class="java.lang.String"/>
+	<field name="sender" class="java.lang.String"/>
+	<field name="onelineadr" class="java.lang.String"/>
+	<field name="compname" class="java.lang.String"/>
+	<field name="address2" class="java.lang.String"/>
+	<field name="street" class="java.lang.String"/>
+	<field name="plzcity" class="java.lang.String"/>
+	<field name="country" class="java.lang.String"/>
+	<field name="fon" class="java.lang.String"/>
+	<field name="fax" class="java.lang.String"/>
+	<field name="mail" class="java.lang.String"/>
+	<field name="web" class="java.lang.String"/>
+	<field name="docno" class="java.lang.String"/>
+	<field name="lsdate" class="java.lang.String"/>
+	<field name="deldate" class="java.lang.String"/>
+	<field name="refno" class="java.lang.String"/>
+	<field name="incoshort" class="java.lang.String"/>
+	<field name="inco" class="java.lang.String"/>
+	<field name="ordno" class="java.lang.String"/>
+	<field name="orddate" class="java.lang.String"/>
+	<field name="weight" class="java.math.BigDecimal"/>
+	<field name="wuom" class="java.lang.String"/>
+	<field name="numberpal" class="java.math.BigDecimal"/>
+	<field name="sname" class="java.lang.String"/>
+	<field name="sadd1" class="java.lang.String"/>
+	<field name="sadd2" class="java.lang.String"/>
+	<field name="spostal" class="java.lang.String"/>
+	<field name="spostaladd" class="java.lang.String"/>
+	<field name="scity" class="java.lang.String"/>
+	<field name="phonenn" class="java.lang.String"/>
+	<field name="scountry" class="java.lang.String"/>
+	<field name="contact" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="email" class="java.lang.String"/>
+	<field name="phone" class="java.lang.String"/>
+	<field name="delservice" class="java.lang.String"/>
+	<field name="shadd1" class="java.lang.String"/>
+	<field name="shadd2" class="java.lang.String"/>
+	<field name="shpostal" class="java.lang.String"/>
+	<field name="shpostaladd" class="java.lang.String"/>
+	<field name="shcity" class="java.lang.String"/>
+	<field name="shcountry" class="java.lang.String"/>
+	<field name="titlehl" class="java.lang.String"/>
+	<field name="sendernamehl" class="java.lang.String"/>
+	<field name="senderadresshl" class="java.lang.String"/>
+	<field name="docnohl" class="java.lang.String"/>
+	<field name="lsdatehl" class="java.lang.String"/>
+	<field name="deldatehl" class="java.lang.String"/>
+	<field name="deladresshl" class="java.lang.String"/>
+	<field name="contacthl" class="java.lang.String"/>
+	<field name="confonhl" class="java.lang.String"/>
+	<field name="conmailhl" class="java.lang.String"/>
+	<field name="ordernohl" class="java.lang.String"/>
+	<field name="orderdatehl" class="java.lang.String"/>
+	<field name="delrefhl" class="java.lang.String"/>
+	<field name="incotermshl" class="java.lang.String"/>
+	<field name="delservicehl" class="java.lang.String"/>
+	<field name="totalwhl" class="java.lang.String"/>
+	<field name="numberpalhl" class="java.lang.String"/>
+	<group name="Group1">
+		<groupExpression><![CDATA[(int)($V{REPORT_COUNT}/15)]]></groupExpression>
+	</group>
+	<group name="Group2">
+		<groupExpression><![CDATA[(int)($V{REPORT_COUNT}/5)]]></groupExpression>
+	</group>
+	<title>
+		<band/>
+	</title>
+	<detail>
+		<band height="390" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="1" width="240" height="37" uuid="d91dc5bb-fc81-4e67-8014-bb40fcda446b"/>
+				<textElement textAlignment="Center">
+					<font size="16" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{label}+$F{titlehl}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="350" width="240" height="20" uuid="228fac0a-be3a-4d01-9840-87701c38aa10"/>
+				<box>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{numberpalhl}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="331" width="240" height="20" uuid="b87efa77-318e-4144-9850-89d6590d7b6f"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{totalwhl}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="282" width="240" height="49" uuid="54d27c2b-a62b-4e82-a01f-b9be563970dc"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement markup="html">
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{delservicehl}+":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="120" y="253" width="120" height="29" uuid="72258693-765b-4f6d-9f94-5c3813c16a5a"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement markup="html">
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{incotermshl}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="253" width="120" height="29" uuid="14ed5ef1-c583-4636-b3b5-6451b782eac1"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement markup="html">
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{delrefhl}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="220" width="240" height="34" uuid="5a096d6b-b95e-445f-8c73-246a375411a3"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement markup="html">
+					<font size="12" isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ordernohl}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="200" width="240" height="20" uuid="bc5fc20b-0c2d-4d42-bfdc-4f237b5b000d"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement markup="html">
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{contacthl}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="141" width="240" height="59" uuid="05a196b7-d39b-475c-b480-29f971b1bd69"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement markup="html">
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{deladresshl}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="99" width="120" height="42" uuid="41558305-a097-4753-9624-a0b25e24bdc5"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="html">
+					<font size="12" isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docnohl}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="120" y="126" width="120" height="15" uuid="c7e23408-0976-4060-a000-9d4ecbd25961"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font size="9"/>
+					<paragraph leftIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{deldatehl}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="37" width="120" height="62" uuid="6b3bf00c-c525-47d6-87c7-2ac86f524ee6"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement markup="html">
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sendernamehl}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="120" y="37" width="120" height="50" uuid="1386c3b0-40f4-4802-9388-9c8353bf796c"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement markup="html">
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{senderadresshl}+": "]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="295" width="240" height="13" uuid="0061ca42-2d32-4d51-a394-e5a7b8259189"/>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{delservice}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="307" width="240" height="12" uuid="6dc318ea-411b-46b9-a751-24885a7bff0a"/>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{shadd1}+$F{shadd2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="318" width="240" height="12" uuid="2ee92b46-82f0-4c15-b4e2-135e75ce9337"/>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{shcountry}+"-"+$F{shpostal}+" "+$F{shcity}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="265" width="120" height="17" uuid="8840be80-e9c5-4fe7-be96-6646efd8bef8"/>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{refno}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="121" y="220" width="119" height="17" uuid="20cc1924-273c-4ebc-ae10-4678a5b3058a"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+					<paragraph leftIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ordno}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1" y="238" width="119" height="17" uuid="a3214493-aedc-4068-b293-6fafa201d364"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{orderdatehl}+": "]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="120" y="238" width="120" height="17" uuid="021bfd28-f030-4401-b4b1-5e7224433322"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+					<paragraph leftIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{orddate}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="95" y="200" width="145" height="10" uuid="05eea40a-1a2c-465d-9350-e4df994fb37c"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="186" width="46" height="14" uuid="ec6c2231-0c46-4e89-ab13-897447275ca9"/>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{confonhl}+" :"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="41" y="210" width="67" height="10" uuid="26d95df4-6b35-4434-ac87-f058f90b5584"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{phone}== null )? "" :$F{phone})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="108" y="210" width="29" height="10" uuid="d12923c5-ef17-4935-9e29-a2a5378dbb25"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{conmailhl}+": "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="136" y="210" width="104" height="10" uuid="4b725730-fad3-45b7-ad29-3d71c6d1ba98"/>
+				<textElement>
+					<font size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{email}==null)?"":$F{email})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="151" width="240" height="12" uuid="962b2f57-2bf1-48e3-875d-88ac5885da0b"/>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sname}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="163" width="240" height="12" uuid="9b28868e-62ed-4d53-ab0c-378b4326449d"/>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sadd1}+$F{sadd2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="174" width="240" height="12" uuid="b9987816-43e4-48fb-beb9-a63271d9f9a0"/>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{scountry}+"-"+$F{spostal}+" "+$F{scity}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="47" y="99" width="73" height="27" uuid="146e763d-0702-454b-a5a1-b299c0cb143a"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+					<paragraph leftIndent="3"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{docno}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1" y="126" width="63" height="15" uuid="2be19e23-f67a-4a85-a9a6-f31e08a1ccf7"/>
+				<textElement>
+					<font size="9"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lsdatehl}+":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="60" y="126" width="60" height="15" uuid="8e5a0eba-e593-44d6-9243-f7d533d53fce"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{lsdate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="180" y="126" width="60" height="15" uuid="0761d651-e9f1-4ce2-91d9-21ecaf81cb57"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+					<paragraph rightIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{deldate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1" y="52" width="122" height="47" uuid="5e0a1166-d954-4f6e-9720-64222ff80a76"/>
+				<textElement>
+					<font size="10"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{compname}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="120" y="52" width="120" height="12" uuid="b8c2423f-e6d2-441f-a6d8-234937a71ee4"/>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{compname}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="120" y="63" width="120" height="12" uuid="bc521ebc-55c4-4c36-8309-a6003cc323bd"/>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{street}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="120" y="74" width="120" height="12" isRemoveLineWhenBlank="true" uuid="c209ccd9-e078-45ec-ac97-b5cb2f4df9b8"/>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{address2}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" x="120" y="87" width="120" height="12" uuid="beb9bfed-514f-4489-91db-6bfe9d955657"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{plzcity}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="46" y="185" width="193" height="16" uuid="f4ca5db3-b5bf-49d7-bef7-56c0394bec2c"/>
+				<textElement verticalAlignment="Top">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{phonenn}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="120" y="265" width="100" height="17" uuid="af415948-b37a-4d56-8df6-99f9dca7173b"/>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{incoshort}]]></textFieldExpression>
+			</textField>
+			<textField pattern="0.##">
+				<reportElement x="121" y="331" width="100" height="20" uuid="69f8563f-09d8-4b4f-96e0-b47dd4738590"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="10"/>
+					<paragraph rightIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{weight}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="220" y="331" width="20" height="20" uuid="a1a36fb8-da3f-4276-9f30-08b2d6215028"/>
+				<textElement verticalAlignment="Middle">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{wuom}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="120" y="350" width="100" height="20" uuid="6a1a8f78-541e-45c1-bac6-025ba66e74c7"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="10"/>
+					<paragraph rightIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{numberpal}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="120" y="99" width="120" height="27" uuid="2aa79c5f-88bb-4cb3-bc9c-9b96c85d32ff"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<componentElement>
+				<reportElement x="138" y="101" width="83" height="23" uuid="fec9605a-a7e5-47ce-8ed4-e7d2f6408780"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code39" drawText="false" checksumRequired="false">
+					<jr:codeExpression><![CDATA[$F{docno}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+			<textField>
+				<reportElement x="1" y="210" width="40" height="10" uuid="b8ba4d2d-1375-433c-9fa1-5da6acddd7b3"/>
+				<textElement>
+					<font size="8"/>
+					<paragraph leftIndent="5"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{confonhl}+" :"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

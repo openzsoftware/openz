@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, 2011, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+*                 
+* 
+****************************************************************************************************************************************************/
+-->
+
+<SqlClass name="GenerateMinoutmanualData" package="org.openz.controller.form">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+    select ad_client_id, ad_org_id, c_order_id, a_asset_id, c_orderline_id, c_project_id, c_projecttask_id, m_shipper_id, salesrep_id, c_doctype_id, issotrx,to_char(scheddeliverydate,?) as scheddeliverydate,
+                 c_bpartner_id,   businesspartner, m_locator_id,
+                 documentno,  zssi_getorderadditionaltext4manualtrx1(c_order_id,?) as projectname,  zssi_getorderadditionaltext4manualtrx2(c_order_id,?) as doctypename, to_char(dateordered,?) as dateordered, to_char(datepromised,?) as datepromised, shipper_name, salesrepname, totallines, grandtotal,
+                  line,  product_name,  qtyordered, qtydelivered, qtyavailable, 
+                  case when ?='Y' and m_locator_id is not null then least(m_bom_qty_onhand(m_product_id, null,m_locator_id),qty2deliver) else qty2deliver end as qty2deliver, 
+                  description,  completed,m_attributesetinstance_id
+       FROM (
+              SELECT v.ad_client_id, v.ad_org_id, v.c_order_id, v.a_asset_id, v.c_orderline_id, v.c_project_id, v.c_projecttask_id, v.m_shipper_id, v.salesrep_id, v.c_doctype_id, v.issotrx,v.scheddeliverydate,
+              v.c_bpartner_id,  b.name as businesspartner, v.m_product_id as m_product_id,
+              case when v.m_locator_id is null then m_gettransactionlocator(v.m_product_id,v.m_warehouse_id,v.issotrx,v.qtyordered-v.qtydelivered,v.m_attributesetinstance_id,?) else v.m_locator_id end as m_locator_id,
+              v.documentno,   v.dateordered, v.datepromised, v.shipper_name, u.name as salesrepname, v.totallines, v.grandtotal,
+              v.line, 
+              p.value||'-'||coalesce(trl.name,p.name)  as product_name, 
+              v.qtyordered, v.qtydelivered, v.qtyavailable, case when ?='Y' and v.qty2deliver>v.qtyavailable then v.qtyavailable else v.qty2deliver end as qty2deliver, 
+              zssi_html4docs(coalesce(v.description,'')) as description, 'N' as completed,v.m_attributesetinstance_id
+              from m_inout_candidate_v v left join ad_user u on u.ad_user_id=v.salesrep_id, c_bpartner b, 
+                                         m_product p left join   m_product_trl trl on trl.m_product_id=p.m_product_id and trl.ad_language= ?
+              where b.c_bpartner_id=v.c_bpartner_id  and p.m_product_id=v.m_product_id
+              AND 1=1
+              AND 2=2 AND v.ad_org_id in ('1')
+              AND 4=4 AND v.ad_org_id in ('1')
+              AND v.issotrx = ?
+              AND 3=3
+              ) a where 5=5
+      order by businesspartner, documentno, case when c_getconfigoption('sortgeneratelinesbyproduct',ad_org_id)='Y' then product_name end, line 
+      ]]></Sql>
+      <Parameter name="dateformat"/>
+      <Parameter name="language"/>
+      <Parameter name="language"/>
+      <Parameter name="dateformat"/>
+      <Parameter name="dateformat"/>
+      <Parameter name="partlydeliverable"/>
+      <Parameter name="partlydeliverable"/>
+      <Parameter name="partlydeliverable"/>
+      <Parameter name="language"/>
+      <Parameter name="documentno" optional="true" after="AND 1=1"><![CDATA[ AND v.documentno like ?]]></Parameter>
+      <Parameter name="parProject" optional="true" after="AND 1=1"><![CDATA[ AND v.c_project_id like ?]]></Parameter>
+      <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[ AND v.scheddeliverydate >= TO_DATE(?)]]></Parameter>
+      <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[ AND v.scheddeliverydate <= TO_DATE(?)]]></Parameter>
+      <Parameter name="parVendor" optional="true" after="AND 1=1"><![CDATA[ AND COALESCE(v.C_BPARTNER_ID, v.C_BPARTNER_ID,'-1') = TO_CHAR(?)]]></Parameter>
+      <Parameter name="parVendor" optional="true" after="AND 1=1"><![CDATA[ AND COALESCE(v.C_BPARTNER_ID, v.C_BPARTNER_ID,'-1') = TO_CHAR(?)]]></Parameter>
+      <Parameter name="partypeofproduct" optional="true" after="AND 1=1"><![CDATA[ AND v.typeofproduct = ?]]></Parameter>
+      <Parameter name="parcategory" optional="true" after="AND 1=1"><![CDATA[ AND v.m_product_category_id = ?]]></Parameter>
+      <Parameter name="parwarehouse" optional="true" after="AND 1=1"><![CDATA[ AND v.m_warehouse_id = ?]]></Parameter>
+      <Parameter name="adOrgId" optional="true" type="replace" after="AND 2=2 AND v.ad_org_id in (" text="'1'"/>
+      <Parameter name="adUserOrg" optional="true" type="replace" after="AND 4=4 AND v.ad_org_id in (" text="'1'"/>
+      <Parameter name="issotrx"/>
+      <Parameter name="mProductId"  optional="true" type="argument" after="AND 3=3"><![CDATA[AND  v.M_PRODUCT_ID IN]]></Parameter>
+      <Parameter name="paronlyDelivers" optional="true" after="where 5=5"><![CDATA[ AND (m_locator_id is not null or 1=to_number(?))]]></Parameter>
+      </SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+  
+  <SqlMethod name="selectCombined" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+    select ad_client_id, ad_org_id, c_order_id, a_asset_id, c_orderline_id, c_project_id, c_projecttask_id, m_shipper_id, salesrep_id, c_doctype_id, issotrx,to_char(scheddeliverydate,?) as scheddeliverydate,
+                 c_bpartner_id,   businesspartner, m_locator_id,
+                 documentno,  projectname,  doctypename, to_char(dateordered,?) as dateordered, to_char(datepromised,?) as datepromised, shipper_name, salesrepname, null as totallines, null as grandtotal,
+                  line,  product_name,  qtyordered, qtydelivered, qtyavailable, qty2deliver, description,  completed,m_attributesetinstance_id
+       FROM (
+              SELECT v.ad_client_id, v.ad_org_id, v.c_bpartner_id||'#' as c_order_id, 'Div.' as  a_asset_id, v.c_bpartner_id||v.m_product_id as c_orderline_id, 'Div.' as c_project_id, 'Div.' as c_projecttask_id, min(v.m_shipper_id) as  m_shipper_id, min(v.salesrep_id) as salesrep_id, 'Div.' as c_doctype_id, 'Y' as issotrx,min(v.scheddeliverydate) as scheddeliverydate  ,
+              v.c_bpartner_id,  b.name as businesspartner, 
+              'Div.'::text as documentno,  'Div.' as projectname, min(dttrl.name) as doctypename, min(v.dateordered) as dateordered, min(v.datepromised) as datepromised, min(v.shipper_name) as shipper_name,
+              min(u.name) as salesrepname, 
+              min(v.line) as line, 
+              p.value||'-'||coalesce(trl.name,p.name)  as product_name, 
+              m_gettransactionlocator(v.m_product_id,v.m_warehouse_id,'Y',sum(v.qtyordered)-sum(v.qtydelivered),v.m_attributesetinstance_id,?) as m_locator_id,
+              sum(v.qtyordered) as qtyordered, sum(v.qtydelivered) as qtydelivered, min(v.qtyavailable) as qtyavailable, 
+              case when ?='Y' and sum(v.qty2deliver)>min(v.qtyavailable) then min(v.qtyavailable) else sum(v.qty2deliver) end as qty2deliver,
+              string_agg(v.documentno,',')  as description, 'N' as completed, v.m_attributesetinstance_id
+              from m_inout_candidate_v v left join c_doctype_trl dttrl on dttrl.c_doctype_id=v.c_doctype_id and dttrl.ad_language = ?
+                                         left join ad_user u on u.ad_user_id=v.salesrep_id, c_bpartner b, 
+                                         m_product p left join   m_product_trl trl on trl.m_product_id=p.m_product_id and trl.ad_language= ?
+              where b.c_bpartner_id=v.c_bpartner_id  and p.m_product_id=v.m_product_id
+              AND 1=1
+              AND 2=2 AND v.ad_org_id in ('1')
+              AND 4=4 AND v.ad_org_id in ('1')
+              AND v.issotrx = ?
+              AND 3=3
+              group by v.ad_client_id, v.ad_org_id, v.c_bpartner_id,b.name,v.m_warehouse_id,v.m_product_id,p.value,trl.name,p.name,v.m_attributesetinstance_id
+              ) a where 5=5
+      order by businesspartner, documentno, case when c_getconfigoption('sortgeneratelinesbyproduct',ad_org_id)='Y' then product_name end, line 
+      ]]></Sql>
+      <Parameter name="dateformat"/>
+      <Parameter name="dateformat"/>
+      <Parameter name="dateformat"/>
+      <Parameter name="partlydeliverable"/>
+      <Parameter name="partlydeliverable"/>
+      <Parameter name="language"/>
+      <Parameter name="language"/>
+      <Parameter name="documentno" optional="true" after="AND 1=1"><![CDATA[ AND v.documentno like ?]]></Parameter>
+      <Parameter name="parProject" optional="true" after="AND 1=1"><![CDATA[ AND v.c_project_id like ?]]></Parameter>
+      <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[ AND v.scheddeliverydate >= TO_DATE(?)]]></Parameter>
+      <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[ AND v.scheddeliverydate <= TO_DATE(?)]]></Parameter>
+      <Parameter name="parVendor" optional="true" after="AND 1=1"><![CDATA[ AND COALESCE(v.C_BPARTNER_ID, v.C_BPARTNER_ID,'-1') = TO_CHAR(?)]]></Parameter>
+      <Parameter name="parVendor" optional="true" after="AND 1=1"><![CDATA[ AND COALESCE(v.C_BPARTNER_ID, v.C_BPARTNER_ID,'-1') = TO_CHAR(?)]]></Parameter>
+      <Parameter name="partypeofproduct" optional="true" after="AND 1=1"><![CDATA[ AND v.typeofproduct = ?]]></Parameter>
+      <Parameter name="parcategory" optional="true" after="AND 1=1"><![CDATA[ AND v.m_product_category_id = ?]]></Parameter>
+      <Parameter name="parwarehouse" optional="true" after="AND 1=1"><![CDATA[ AND v.m_warehouse_id = ?]]></Parameter>
+      <Parameter name="adOrgId" optional="true" type="replace" after="AND 2=2 AND v.ad_org_id in (" text="'1'"/>
+      <Parameter name="adUserOrg" optional="true" type="replace" after="AND 4=4 AND v.ad_org_id in (" text="'1'"/>
+      <Parameter name="issotrx"/>
+      <Parameter name="mProductId"  optional="true" type="argument" after="AND 3=3"><![CDATA[AND  v.M_PRODUCT_ID IN]]></Parameter>
+      <Parameter name="paronlyDelivers" optional="true" after="where 5=5"><![CDATA[ AND (m_locator_id is not null or 1=to_number(?))]]></Parameter>
+      </SqlMethod>
+  
+  
+  
+  <SqlMethod name="bPartnerDescription" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    SELECT NAME FROM C_BPARTNER 
+    WHERE C_BPARTNER_ID = ?
+    </Sql>
+    <Parameter name="cBpartnerId"/>
+  </SqlMethod>
+  <SqlMethod name="getOrder" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    SELECT c_order_id FROM C_orderline where c_orderline_id = ? limit 1 
+    </Sql>
+    <Parameter name="cOrderLineId"/>
+  </SqlMethod>
+  <SqlMethod name="treeOrg" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT AD_TREE_ORG_ID FROM AD_CLIENTINFO
+        WHERE AD_CLIENT_ID = ?
+    </Sql>
+    <Parameter name="client"/>
+  </SqlMethod>
+  <SqlMethod name="adddate" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT to_char(now()+to_number(?),'dd.mm.yyyy') as res from dual 
+    </Sql>
+    <Parameter name="offset"/>
+  </SqlMethod>
+    <SqlMethod name="insert" connection="true" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      INSERT INTO C_GENERATEMINOUTMANUAL(C_GENERATEMINOUTMANUAL_ID, C_ORDERLINE_ID, C_ORDER_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY, UPDATEDBY, QTY, M_LOCATOR_ID,m_attributesetinstance_id, DELIVERYCOMPLETE,pinstance_id)
+      VALUES(get_uuid(), ?, ?, ?, ?, ?, ?, TO_NUMBER(?), ? ,?, ?, ?)
+      </Sql>
+      <Parameter name="cOrderlineId"/>
+      <Parameter name="cOrderId"/>
+      <Parameter name="adClientId"/>
+      <Parameter name="adOrgId"/>
+      <Parameter name="createdby"/>
+      <Parameter name="updatedby"/>
+      <Parameter name="qty"/>
+      <Parameter name="mLocatorId"/>
+      <Parameter name="mAttributesetinstanceId"/>
+      <Parameter name="deliverycomplete"/>
+      <Parameter name="pInstanceID"/>
+  </SqlMethod>
+  <SqlMethod name="deleteerror" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      DELETE FROM C_GENERATEMINOUTMANUAL where c_orderline_id is null and pinstance_id = ?
+    </Sql>
+    <Parameter name="pInstanceID"/>
+  </SqlMethod>
+  </SqlClass>

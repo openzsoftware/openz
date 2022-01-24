@@ -1,0 +1,91 @@
+<SqlClass name="InventoryData" package="org.openz.internallogistic">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="selectLowerGrid" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+	    Select ils_tempinventory_id , snrselfjoin as ilssourcepackageid,serialnumber as ilsinventory,
+	           m_product_id,ad_user_id,remark,vendor,model,identifier2,identifier3,orderreference, externaltrackingno
+	    from ils_tempinventory where ils_inventory_id = ?
+	</Sql>
+    <Parameter name="ilsinventoryid"/>
+  </SqlMethod>
+ 
+  <SqlMethod name="insertTempInventory" type="preparedStatement" return="rowCount">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        insert into ILS_TEMPINVENTORY(
+            ILS_TEMPINVENTORY_ID,
+            ILS_INVENTORY_ID,
+            AD_CLIENT_ID,
+            AD_ORG_ID,
+            CREATEDBY,
+            UPDATEDBY,
+            M_PRODUCT_ID,
+            ad_user_id,
+            SERIALNUMBER,
+            SNRSELFJOIN,
+            REMARK,
+            VENDOR,
+            MODEL,
+            IDENTIFIER2,
+            IDENTIFIER3,
+            ORDERREFERENCE,
+            EXTERNALTRACKINGNO)
+        values(
+            get_uuid(),
+            ?,
+            'C726FEC915A54A0995C568555DA5BB3C',
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?,
+             ?);
+    </Sql>
+        <Parameter name="TempInventoryId"/>
+        <Parameter name="adOrgId"/>
+        <Parameter name="trxuser"/>
+        <Parameter name="trxuser"/>
+        <Parameter name="mProductId"/>
+        <Parameter name="userId"/>
+        <Parameter name="serialno"/>
+        <Parameter name="relationserial"/>
+        <Parameter name="remark"/>
+        <Parameter name="vendor"/>
+        <Parameter name="model"/>
+        <Parameter name="identifier2"/>
+        <Parameter name="identifier3"/>
+        <Parameter name="orderreference"/>
+        <Parameter name="externaltracking"/>
+  </SqlMethod>   
+  <SqlMethod name="postTempInventory" type="preparedStatement" return="string">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select ils_postTempinventory(?)
+    </Sql>
+        <Parameter name="TempInventoryId"/>
+  </SqlMethod>
+  <SqlMethod name="getSerialFromID" type="preparedStatement" return="string">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select serialnumber from snr_masterdata where snr_masterdata_id = 
+        (select snrselfjoin from ils_tempinventory where ils_inventory_id = ? limit 1)
+    </Sql>
+        <Parameter name="TempInventoryId"/>
+  </SqlMethod>   
+  <SqlMethod name="deleteTempInventory" type="preparedStatement" return="rowcount">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        delete from ILS_TEMPINVENTORY where ILS_INVENTORY_ID = ?
+    </Sql>
+        <Parameter name="TempInventoryId"/>
+  </SqlMethod>   
+</SqlClass>

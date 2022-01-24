@@ -1,0 +1,6 @@
+import org::openbravo::base::model;
+
+classFileName( Entity this ): className.replaceAll("\\.","/")+".java";	
+
+getter(Property this) :
+ 	boolean ? "is" + getterSetterName.toFirstUpper() : "get" + getterSetterName.toFirstUpper();

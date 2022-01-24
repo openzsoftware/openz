@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2006 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s): 02.2012 MaHinrichs
+ ************************************************************************
+-->
+
+<SqlClass name="FileImportData" package="org.openbravo.erpCommon.ad_forms">
+   <SqlClassComment></SqlClassComment>
+   <SqlMethod name="select" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT f.SeqNo,c.ColumnName,f.StartNo,f.EndNo,f.DataType,c.FieldLength,
+        f.DataFormat,f.DecimalPoint,f.DivideBy100,f.ConstantValue,f.Callout, f.Name
+        FROM AD_ImpFormat_Row f,AD_Column c
+        WHERE AD_ImpFormat_ID = ?
+        AND f.AD_Column_ID=c.AD_Column_ID
+        ORDER BY SeqNo
+      ]]></Sql>
+    <Parameter name="adImpformatId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+   </SqlMethod>
+   
+   <SqlMethod name="insert" type="preparedStatement" connection="true" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        INSERT INTO C_ORDER ('1', ad_client_id, ad_org_id, created, createdby, updated, updatedby)
+        VALUES(?, ?, ?, now(), ?, now(), ?)
+     ]]>
+     </Sql>
+     <Parameter name="tableName" type="replace" optional="true" after="INSERT INTO " text="C_ORDER"/>
+     <Parameter name="fieldId"  type="replace" optional="true" after=" (" text="'1'"/>
+     <Parameter name="valueId"/>
+     <Parameter name="client"/>
+     <Parameter name="org"/>
+     <Parameter name="user"/>
+     <Parameter name="user"/>
+  </SqlMethod>
+
+  <SqlMethod name="update" type="statement" connection="true" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        UPDATE C_ORDER SET C_ORDER_ID = '3'
+        WHERE C_ORDER_ID = '1'
+     ]]>
+     </Sql>
+     <Parameter name="tableName" type="replace" optional="true" after="UPDATE " text="C_ORDER"/>
+     <Parameter name="fields"  type="replace" optional="true" after=" SET " text="C_ORDER_ID = '3'"/>
+     <Parameter name="values" type="replace" optional="true" after="WHERE " text="C_ORDER_ID = '1'"/>
+  </SqlMethod>
+
+  <SqlMethod name="table" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+      SELECT t.TableName
+      FROM AD_Table t
+      WHERE t.AD_Table_ID in (SELECT ad_table_id FROM AD_ImpFormat WHERE ad_impformat_id = ?)
+      ]]></Sql>
+        <Parameter name="adImpformatId"/>
+  </SqlMethod>
+
+  <SqlMethod name="keyColumn" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+      SELECT c.ColumnName
+      FROM AD_Table t, AD_Column c 
+      WHERE t.AD_Table_ID=c.AD_Table_ID 
+      AND c.IsKey='Y' 
+      and t.AD_Table_ID in (SELECT ad_table_id FROM AD_ImpFormat WHERE ad_impformat_id = ?)
+      ]]></Sql>
+        <Parameter name="adImpformatId"/>
+  </SqlMethod>
+
+  <SqlMethod name="parse" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+      select substr(to_char(?),to_number(0), to_number(?)) AS FIELD from dual
+      ]]></Sql>
+    <Parameter name="text"/>
+    <Parameter name="length"/>
+  </SqlMethod>
+  
+  <SqlMethod name="parseDate" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+      select to_char(to_date(?, 'dd/mm/yyyy hh24:mi:ss'), ?) AS FIELD from dual
+      ]]></Sql>
+    <Parameter name="text"/>
+    <Parameter name="format"/>
+  </SqlMethod>
+
+  <SqlMethod name="selectSeparator" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+      SELECT FORMATTYPE FROM AD_IMPFORMAT
+      WHERE AD_IMPFORMAT_ID = ? 
+      ]]></Sql>
+    <Parameter name="impFormat"/>
+  </SqlMethod>
+  
+  <SqlMethod name="countrows" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+      SELECT count(*)  
+      FROM AD_ImpFormat_row WHERE ad_impformat_id = ?
+      ]]></Sql>
+        <Parameter name="adImpformatId"/>
+  </SqlMethod>
+ 
+  <SqlMethod name="zsdv_insertDatevImport_01" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT zsdv_insertDatevImport_01(?) AS plresult FROM dual
+     ]]>
+     </Sql>
+    <Parameter name="impFileName"/>
+  </SqlMethod>
+  
+  <SqlMethod name="zsdv_insertDatevImport_02" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT zsdv_insertDatevImport_02(?) AS plresult FROM dual
+     ]]>
+     </Sql>
+    <Parameter name="impFileName"/>
+  </SqlMethod>
+  
+  <SqlMethod name="zsdv_insertDatevImport_03" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT zsdv_insertDatevImport_03(?) AS plresult FROM dual
+     ]]>
+     </Sql>
+    <Parameter name="adOrgId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="i_import_pricelist" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT i_import_pricelist(?,?,?) AS plresult FROM dual
+     ]]>
+     </Sql>
+    <Parameter name="filename"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="Delimiter"/>
+  </SqlMethod>
+  <SqlMethod name="i_import_product" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT i_import_product(?,?,?) AS plresult FROM dual
+     ]]>
+     </Sql>
+    <Parameter name="filename"/>
+    <Parameter name="adUserId"/>
+     <Parameter name="Delimiter"/>
+  </SqlMethod>
+    <SqlMethod name="cmts_import_product" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT '1' AS plresult FROM dual
+     ]]>
+     </Sql>
+     <Parameter name="custom" type="replace" optional="true" after="SELECT " text="'1'"/>
+  </SqlMethod>
+  <SqlMethod name="i_import_producttrl" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT i_import_producttrl(?,?,?) AS plresult FROM dual
+     ]]>
+     </Sql>
+    <Parameter name="filename"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="Delimiter"/>
+  </SqlMethod>
+  <SqlMethod name="i_import_product_po" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT i_import_product_po(?,?,?) AS plresult FROM dual
+     ]]>
+     </Sql>
+    <Parameter name="filename"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="Delimiter"/>
+  </SqlMethod>
+  <SqlMethod name="i_import_costing" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT i_import_costing(?,?,?) AS plresult FROM dual
+     ]]>
+     </Sql>
+    <Parameter name="filename"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="Delimiter"/>
+  </SqlMethod>
+  <SqlMethod name="i_import_requisition" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT i_import_requisition(?,?,?,?) AS plresult FROM dual
+     ]]>
+     </Sql>
+    <Parameter name="filename"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="orgid"/>
+    <Parameter name="Delimiter"/>
+  </SqlMethod>
+  <SqlMethod name="i_import_bom" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT i_import_bom(?,?,?,?) AS plresult FROM dual
+     ]]>
+     </Sql>
+    <Parameter name="filename"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="orgid"/>
+    <Parameter name="Delimiter"/>
+  </SqlMethod>
+  <SqlMethod name="i_import_offer" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT i_import_offer(?,?,?,?) AS plresult FROM dual
+     ]]>
+     </Sql>
+    <Parameter name="filename"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="orgid"/>
+    <Parameter name="Delimiter"/>
+  </SqlMethod>
+  <SqlMethod name="i_import_productionplan" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT i_import_productionplan(?,?,?,?) AS plresult FROM dual
+     ]]>
+     </Sql>
+    <Parameter name="filename"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="orgid"/>
+    <Parameter name="Delimiter"/>
+  </SqlMethod>
+</SqlClass>

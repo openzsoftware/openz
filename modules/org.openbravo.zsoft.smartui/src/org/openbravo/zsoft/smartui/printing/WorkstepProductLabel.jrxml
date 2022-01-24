@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Rpt_Standard" pageWidth="280" pageHeight="134" orientation="Landscape" columnWidth="280" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="default" vAlign="Middle" fontName="OpenZ Sans" fontSize="10" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Report_Title" fontName="OpenZ Sans" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vAlign="Middle">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vAlign="Middle">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="GroupHeader_DarkGray" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vAlign="Middle" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="GroupHeader_Gray" mode="Opaque" backcolor="#999999"/>
+	<style name="Detail_Line">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Total_Gray" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC"/>
+	<style name="Group_Footer" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Footer" isDefault="true" vAlign="Middle" fontName="OpenZ Sans" fontSize="11"/>
+	<parameter name="ATTACH" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_WEB" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_CLIENT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('1000000')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_ORG" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('0')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_TITLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["REPORT TITLE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_SUBTITLE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_InvoiceLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_OrderLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_Manufacturer_single" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_TaxLines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="LANGUAGE2" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	 $P{DOCUMENT_ID} as id,
+	w.value as batch,
+	zssi_getproductname(p.m_product_id,$P{LANGUAGE}) as product,
+	to_number(coalesce(weight,0)) as weight,
+	'kg net.' as weighthd,
+	zssi_getelementtextbycolumname('islot',$P{LANGUAGE}) as lothd,
+	p.value as key,
+	'0840' as ce,
+	zspr.onelineadr,
+	zspr.address6 as fon,
+	zspr.address7 as fax,
+	zspr.address8 as mail,
+	zspr.address9 as web
+
+
+from
+	zssm_workstep_v w
+	left join zssm_workstep_prp_v wp on wp.zssm_workstep_v_id=$P{DOCUMENT_ID},
+	m_product p,
+	zspr_printinfo zspr
+
+where
+	w.zssm_workstep_v_id in ($P{DOCUMENT_ID}) and
+	w.m_product_id=p.m_product_id]]>
+	</queryString>
+	<field name="id" class="java.lang.String"/>
+	<field name="batch" class="java.lang.String"/>
+	<field name="product" class="java.lang.String"/>
+	<field name="weight" class="java.math.BigDecimal"/>
+	<field name="weighthd" class="java.lang.String"/>
+	<field name="lothd" class="java.lang.String"/>
+	<field name="key" class="java.lang.String"/>
+	<field name="ce" class="java.lang.String"/>
+	<field name="onelineadr" class="java.lang.String"/>
+	<field name="fon" class="java.lang.String"/>
+	<field name="fax" class="java.lang.String"/>
+	<field name="mail" class="java.lang.String"/>
+	<field name="web" class="java.lang.String"/>
+	<variable name="doctype_id" class="java.lang.String">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="134" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="280" height="10"/>
+				<textElement textAlignment="Center">
+					<font fontName="Monospaced" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{onelineadr}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="9" width="279" height="25"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Monospaced" size="20" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{product}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="80" y="33" width="88" height="27"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Monospaced" size="16" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[" "+$F{weighthd}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="18" y="59" width="150" height="13"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Monospaced" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{key}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="121" y="82" width="57" height="27"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Monospaced" size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{ce}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="111" width="143" height="10"/>
+				<textElement textAlignment="Center">
+					<font fontName="Monospaced" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["fon: "+$F{fon}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="120" width="143" height="10"/>
+				<textElement textAlignment="Center">
+					<font fontName="Monospaced" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["e-mail: "+$F{mail}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="142" y="111" width="137" height="10"/>
+				<textElement textAlignment="Center">
+					<font fontName="Monospaced" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["fax: "+$F{fax}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="142" y="120" width="137" height="10"/>
+				<textElement textAlignment="Center">
+					<font fontName="Monospaced" size="7"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["web: "+$F{web}]]></textFieldExpression>
+			</textField>
+			<image scaleImage="FillFrame">
+				<reportElement x="101" y="84" width="21" height="21"/>
+				<imageExpression class="java.lang.String"><![CDATA["/home/zisoft/temp/CELogo.svg.png"]]></imageExpression>
+			</image>
+			<textField pattern="0.##">
+				<reportElement x="1" y="33" width="79" height="27"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="Monospaced" size="16" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.math.BigDecimal"><![CDATA[$F{weight}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="168" y="72" width="111" height="10"/>
+				<textElement textAlignment="Center">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[$F{batch}]]></textFieldExpression>
+			</textField>
+			<componentElement>
+				<reportElement x="168" y="33" width="108" height="49"/>
+				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code39" drawText="true" checksumRequired="false" barWidth="0" barHeight="0">
+					<jr:codeExpression><![CDATA[$F{batch}]]></jr:codeExpression>
+				</jr:barbecue>
+			</componentElement>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

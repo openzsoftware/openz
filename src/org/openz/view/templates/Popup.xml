@@ -1,0 +1,88 @@
+<html>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=utf-8">
+<TITLE>@TITLE@</TITLE>
+@SCRIPTSET@
+<SCRIPT language="JavaScript" type="text/javascript" id="selectedColumn">@JSVARS@</SCRIPT>
+
+@ADDITIONALSCRIPTS@
+
+
+<SCRIPT language="JavaScript" type="text/javascript">
+   function closeThisPage() {
+      pageunload();
+      top.close();
+      return true;
+    }
+</SCRIPT>
+<SCRIPT language="JavaScript" type="text/javascript">
+   function pageunload() {
+      try {
+        parent.window.opener.setProcessingMode('window', false);
+        //parent.window.opener.document.body.style.cursor =  "default";
+        setCursor("default");
+      } catch (ignored) {}
+      return true;
+    }
+</SCRIPT>
+<SCRIPT language="JavaScript" type="text/javascript">function onLoadDo(){
+        action = document.forms[0].action;
+        setProcessingMode('popup', false);
+        this.windowTables = new Array(
+           new windowTableId('client', 'buttonok')
+        );
+        setWindowTableParentElement();
+        enableShortcuts('popup');
+        setBrowserAutoComplete(false);
+        onloadFunctions();
+        setWindowElementFocus('@FOCUSFIELD@', 'id');
+}</SCRIPT>
+</HEAD>
+<BODY leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" onload="onLoadDo();" onunload="pageunload();">
+<FORM id="form" method="post" action="ActionButton_Responser.html" name="frmMain">
+<INPUT type="hidden" name="Command">
+<INPUT type="hidden" name="inpLastFieldChanged">
+<INPUT type="hidden" name="inpwindowId" value="" id="window">
+<INPUT type="hidden" name="IsPopUpCall" value="1">
+@HIDDENFIELDS@
+<DIV class="Popup_ContentPane_CircleLogo">
+  <DIV class="Popup_WindowLogo">
+    <IMG class="Popup_WindowLogo_Icon Popup_WindowLogo_Icon_process" src="../web/images/blank.gif" border="0/">
+  </DIV>
+</DIV>
+<TABLE cellspacing="0" cellpadding="0" width="100%">
+  <TR>
+    <TD>
+      <TABLE cellspacing="0" cellpadding="0" class="Popup_ContentPane_NavBar">
+        <TR class="Popup_NavBar_bg"><TD></TD>
+          <TD class="Popup_NavBar_separator_cell"></TD>
+          <TD class="Popup_NavBar_bg_logo_left"></TD>
+          <td class="Popup_NavBar_bg_logo" width="1" onclick="openNewBrowser('http://www.openz.de', 'OpenZ');return false;"><img src="../web/images/blank.gif" alt="OpenZ" title="OpenZ" border="0" id="openbravoLogo" class="Main_NavBar_logo_openz"></td>
+          <TD class="Popup_NavBar_bg_logo_right"></TD>
+          <TD class="Popup_NavBar_Popup_title_cell">@TITLE@</TD>
+          <TD class="Popup_NavBar_bg_logo_left"></TD>
+          <TD class="Popup_NavBar_bg_logo" width="1" onclick="openNewBrowser('http://www.openbravo.com', 'Openbravo');return false;"><IMG src="../web/images/blank.gif" alt="Openbravo" title="Openbravo" border="0" id="openbravoLogo" class="Popup_NavBar_logo"></TD>
+          <TD class="Popup_NavBar_bg_logo_right"></TD>          
+          <TD class="Popup_NavBar_separator_cell"></TD>
+        </TR>
+      </TABLE>
+    </TD>
+  </TR>
+  
+  <TR>
+    <TD>
+      <TABLE cellspacing="0" cellpadding="0" class="Popup_ContentPane_SeparatorBar">
+        <TR>
+          <TD class="Popup_SeparatorBar_bg"></TD>
+        </TR>
+      </TABLE>
+    </TD>
+  </TR>
+</TABLE>
+@MESSAGEBOX@
+
+@CONTENT@
+
+
+</FORM>
+</BODY></html>

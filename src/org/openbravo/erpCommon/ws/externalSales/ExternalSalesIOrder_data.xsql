@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2008 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+<SqlClass name="ExternalSalesIOrderData" package="org.openbravo.erpCommon.ws.externalSales">
+	<SqlMethod name="select" type="preparedStatement" return="multiple">
+		<SqlMethodComment></SqlMethodComment>
+		<Sql>
+			<![CDATA[
+				SELECT I_Order_ID, C_BPartner_ID, BPartnerValue, C_BPartner_Location_ID,
+				COALESCE (Address1,Address2,City) AS Addr, ContactName, Email,
+				AD_Client_ID, AD_Org_ID, Name, AD_OrgTrx_ID, isActive, created, createdBy, updated, updatedBy,
+				I_IsImported, I_ErrorMsg, processing, processed, SalesRep_ID, M_Warehouse_ID, M_Pricelist_ID,
+				C_Currency_ID, M_Shipper_ID, isSOTRX, billTo_ID, C_Location_ID, Address1, Address2, Postal, City,
+				C_Region_ID, RegionName, C_Country_ID, CountryCode, AD_User_ID, Phone, C_Project_ID, C_Activity_ID,
+				C_DocType_ID, DocTypeName, C_PaymentTerm_ID, PaymentTermValue, C_Order_ID, DocumentNo, Description,
+				M_Product_ID, ProductValue, UPC, SKU, C_Tax_ID, TaxIndicator, TaxAmt, C_OrderLine_ID, LineDescription,
+				C_UOM_ID, QtyOrdered, PriceActual, C_Campaign_ID, DateOrdered, DatePromised, Order_ReferenceNo,
+				BPartnerUPC, BillTo_UPC, C_BPartner_Location_UPC, Vendor_UPC, Perform_Post, Paymentamount1, Paymentrule1, Paymentamount2, Paymentrule2, '' AS Date_Time_Format
+				FROM I_Order
+				WHERE I_IsImported='N'
+				AND AD_Client_ID = ?
+			]]>
+		</Sql>
+		<Parameter name="ad_client_id"/>
+	</SqlMethod>
+   <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+	<SqlMethod name="insert" type="preparedStatement" return="rowCount" static="false">
+		<SqlMethodComment></SqlMethodComment>
+		<Sql>
+			<![CDATA[
+				INSERT INTO I_Order (I_ORDER_ID, AD_CLIENT_ID, AD_ORG_ID, DOCUMENTNO, createdBy, created, 
+				C_Doctype_ID,dateordered, C_CURRENCY_ID, BPartnervalue, name, C_BPartner_Location_ID,BillTo_ID,
+				Address1,Address2,Postal,City,RegionName,CountryCode,
+				C_OrderLine_ID,M_Product_Id, qtyOrdered, priceActual, 
+				C_Tax_ID, paymenttermvalue, c_PaymentTerm_Id, salesrep_Id, m_Shipper_Id, m_Pricelist_Id, m_Warehouse_Id, 
+				Perform_Post, Paymentamount1, Paymentrule1, Paymentamount2, Paymentrule2) VALUES 
+				(?,?,?,?,'0',to_date(now()),
+				?,to_date(?,?),?,?,?,?,?,
+				to_char(?),to_char(?),to_char(?),to_char(?),to_char(?),to_char(?),
+				?,?,to_number(?),to_number(?),
+				?,?,?,?,?,?,?, 
+				to_char(?),to_number(?),to_char(?),to_number(?),to_char(?))
+			]]>
+		</Sql>
+		<Parameter name="iOrderId"/>
+		<Parameter name="adClientId"/>
+		<Parameter name="adOrgId"/>
+		<Parameter name="orderReferenceno"/>
+		<Parameter name="cDoctypeId"/>
+		<Parameter name="dateordered"/>
+		<Parameter name="dateTimeFormat"/>
+		<Parameter name="cCurrencyId"/>
+		<Parameter name="bpartnervalue"/>
+		<Parameter name="name"/>
+		<Parameter name="cBpartnerLocationId"/>
+		<Parameter name="billtoId"/>
+		<Parameter name="address1"/>
+		<Parameter name="address2"/>
+		<Parameter name="postal"/>
+		<Parameter name="city"/>
+		<Parameter name="regionname"/>
+		<Parameter name="countrycode"/>
+		<Parameter name="cOrderlineId"/>
+		<Parameter name="mProductId"/>
+		<Parameter name="qtyordered"/>
+		<Parameter name="priceactual"/>
+		<Parameter name="cTaxId"/>
+		<Parameter name="paymenttermvalue"/>
+		<Parameter name="cPaymenttermId"/>
+		<Parameter name="salesrepId"/>
+		<Parameter name="mShipperId"/>
+		<Parameter name="mPricelistId"/>
+		<Parameter name="mWarehouseId"/>
+		<Parameter name="performPost"/>
+		<Parameter name="paymentamount1"/>
+		<Parameter name="paymentrule1"/>
+		<Parameter name="paymentamount2"/>
+		<Parameter name="paymentrule2"/>
+	</SqlMethod>
+	<SqlMethod name="update" type="preparedStatement" return="rowCount" static="false">
+		<SqlMethodComment></SqlMethodComment>
+		<Sql>
+			<![CDATA[
+				UPDATE I_Order SET
+					BPartnerValue=?,
+					Name=?,
+					C_BPartner_ID=?,
+					C_Location_ID=?,
+					C_BPartner_Location_ID=?,
+					billTo_ID=?,
+					AD_User_ID=?,
+					Updated=TO_DATE(now()),
+					UpdatedBy=?,
+					C_Order_ID=?,
+					C_Tax_ID=?,
+					C_OrderLine_ID=?,
+					I_IsImported=?,
+					Processed=?,
+					Order_ReferenceNo=?
+				WHERE I_Order_ID = ?
+			]]>
+		</Sql>
+		<Parameter name="bpartnervalue"/>
+		<Parameter name="name"/>
+		<Parameter name="cBpartnerId"/>
+		<Parameter name="cLocationId"/>
+		<Parameter name="cBpartnerLocationId"/>
+		<Parameter name="billtoId"/>
+		<Parameter name="adUserId"/>
+		<Parameter name="updatedby"/>
+		<Parameter name="cOrderId"/>
+		<Parameter name="cTaxId"/>
+		<Parameter name="cOrderlineId"/>
+		<Parameter name="iIsimported"/>
+		<Parameter name="processed"/>
+		<Parameter name="orderReferenceno"/>
+		<Parameter name="iOrderId"/>
+	</SqlMethod>
+</SqlClass>

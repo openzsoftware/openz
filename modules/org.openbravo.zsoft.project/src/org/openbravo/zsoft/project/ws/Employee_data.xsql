@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+<SqlClass name="EmployeeData" package="org.openbravo.zsoft.project.ws">
+    <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+        <Sql>
+          <![CDATA[
+            SELECT ad_user_id as id,ad.name as name, ad.enumber as enumber
+              FROM AD_USER ad, c_bpartner bp, C_BP_SALCATEGORY cc
+             WHERE bp.c_bpartner_id=ad.c_bpartner_id and bp.c_bpartner_id=cc.c_bpartner_id and 
+                   bp.isemployee='Y' and bp.isactive='Y' and ad.isactive='Y' and ad.enumber is not null
+          ]]>
+        </Sql>
+    </SqlMethod>
+</SqlClass>

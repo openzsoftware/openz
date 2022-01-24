@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+****************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2012 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="SalesCockpitData" package="org.zsoft.cockpit">
+	<SqlClassComment></SqlClassComment>
+	<SqlMethod name="select" type="preparedStatement" return="multiple">
+		<SqlMethodComment></SqlMethodComment>
+		<Sql>
+		<![CDATA[
+		SELECT
+		
+			sum(	case o.docstatus 
+					when 'CO' then 1
+					when 'DR' then 1
+					else 0
+					end * 
+				case ad_get_docbasetype(o.c_doctype_id)
+					when 'SOO' then 1 
+                                        else 0
+					end * o.invoicedamt
+			) as turnover,
+		
+			sum(	case o.docstatus 
+					when 'CO' then 1
+					when 'DR' then 1
+					else 0
+					end * 
+				case ad_get_docbasetype(o.c_doctype_id)
+                                        when 'SOO' then 1 
+                                        else 0
+					end *  o.totallines
+			) - sum(	case o.docstatus 
+                                        when 'CO' then 1
+                                        when 'DR' then 1
+                                        else 0
+                                        end * 
+                                case ad_get_docbasetype(o.c_doctype_id)
+                                        when 'SOO' then 1 
+                                        else 0
+                                        end * o.invoicedamt
+			) as backorder,
+		
+			sum(	case o.docstatus 
+                                        when 'CO' then 1
+                                        when 'DR' then 1
+                                        else 0
+                                        end * 
+                                case ad_get_docbasetype(o.c_doctype_id)
+                                        when 'SOO' then 1 
+                                        else 0
+                                        end * o.totallines
+			) as orders,
+		
+			sum(	case o.docstatus 
+					when 'CO' then 1
+					when 'DR' then 1
+					else 0
+					end *
+				case ad_get_docbasetype(o.c_doctype_id)
+					when 'SALESOFFER' then 1 
+					else 0
+					end * case o.completeordervalue when 0 then o.totallines else o.completeordervalue end
+			) as offers,
+		
+			(select sum(linenetamt) from mrp_salesforecast
+			) as forecast,
+		
+			(select sum(amount) from 
+				(select 
+					dp.amount
+				from 	
+					c_debt_payment dp,
+					ad_ref_list rl 	left join ad_ref_list_trl rlt on rl.ad_ref_list_id = rlt.ad_ref_list_id and rlt.ad_language = 'de_DE',
+					ad_ref_list rl2	left join ad_ref_list_trl rlt2 on rl2.ad_ref_list_id = rlt2.ad_ref_list_id and rlt2.ad_language = 'de_DE',
+					c_currency c 
+				where 
+					dp.c_currency_id = c.c_currency_id and
+					dp.paymentrule = rl.value and
+					rl.ad_reference_id = '195' and
+					dp.status = rl2.value and
+					rl2.ad_reference_id = '800070' and
+					dp.isactive='Y' and
+					dp.isvalid='Y' and
+					dp.isreceipt='Y' and
+					c_debt_payment_status(dp.c_settlement_cancel_id, dp.cancel_processed, dp.generate_processed, dp.ispaid, dp.isvalid, dp.c_cashline_id, dp.c_bankstatementline_id) in ('P')) temptable
+			) as receivable,
+		
+			(select sum(amount) from 
+				(select 
+					dp.amount
+				from 	
+					c_debt_payment dp,
+					ad_ref_list rl 	left join ad_ref_list_trl rlt on rl.ad_ref_list_id = rlt.ad_ref_list_id and rlt.ad_language = 'de_DE',
+					ad_ref_list rl2	left join ad_ref_list_trl rlt2 on rl2.ad_ref_list_id = rlt2.ad_ref_list_id and rlt2.ad_language = 'de_DE',
+					c_currency c 
+				where 
+					dp.c_currency_id = c.c_currency_id and
+					dp.paymentrule = rl.value and
+					rl.ad_reference_id = '195' and
+					dp.status = rl2.value and
+					rl2.ad_reference_id = '800070' and
+					dp.isactive='Y' and
+					dp.isvalid='Y' and
+					dp.isreceipt='N' and
+					c_debt_payment_status(dp.c_settlement_cancel_id, dp.cancel_processed, dp.generate_processed, dp.ispaid, dp.isvalid, dp.c_cashline_id, dp.c_bankstatementline_id) in ('P')) temptable
+			) as payable,
+		
+			sum(	case o.docstatus 
+					when 'CO' then 1
+					when 'DR' then 1
+					else 0
+					end * 
+				case o.c_doctype_id
+					when '5D5792C53FBA46E2988653B6DC9FE5B4' then 1
+					when '1052C4B77714415C8CF89DEB7B4349A3' then 1 
+					when 'ABE2033C7A74499A9750346A83DE3307' then 1 
+					when '0' then 1 
+					else 0
+					end * 
+				case o.c_doctypetarget_id 
+					when '5D5792C53FBA46E2988653B6DC9FE5B4' then 1 
+					when '1052C4B77714415C8CF89DEB7B4349A3' then 1 
+					when 'ABE2033C7A74499A9750346A83DE3307' then 1 
+					else 0
+					end * o.invoicedamt
+			) * 365 / (select now()::date - '2011-10-04'::date)
+			as turnover_runrate,
+		
+			(sum(	case o.docstatus 
+					when 'CO' then 1
+					when 'DR' then 1
+					else 0
+					end * 
+				case o.c_doctype_id
+					when '5D5792C53FBA46E2988653B6DC9FE5B4' then 1 
+					when '1052C4B77714415C8CF89DEB7B4349A3' then 1 
+					when 'ABE2033C7A74499A9750346A83DE3307' then 1 
+					when '0' then 1 
+					else 0
+					end * 
+				case o.c_doctypetarget_id 
+					when '5D5792C53FBA46E2988653B6DC9FE5B4' then 1 
+					when '1052C4B77714415C8CF89DEB7B4349A3' then 1 
+					when 'ABE2033C7A74499A9750346A83DE3307' then 1 
+					else 0
+					end * o.totallines
+			) - sum(	case o.docstatus 
+					when 'CO' then 1
+					when 'DR' then 1
+					else 0
+					end * 
+				case o.c_doctype_id
+					when '5D5792C53FBA46E2988653B6DC9FE5B4' then 1 
+					when '1052C4B77714415C8CF89DEB7B4349A3' then 1 
+					when 'ABE2033C7A74499A9750346A83DE3307' then 1 
+					when '0' then 1 
+					else 0
+					end * 
+				case o.c_doctypetarget_id 
+					when '5D5792C53FBA46E2988653B6DC9FE5B4' then 1 
+					when '1052C4B77714415C8CF89DEB7B4349A3' then 1 
+					when 'ABE2033C7A74499A9750346A83DE3307' then 1 
+					else 0
+					end * o.invoicedamt
+			)) * 365 / (select now()::date - '2011-10-04'::date) 
+			as backorder_runrate,
+		
+			sum(	case o.docstatus 
+					when 'CO' then 1
+					when 'DR' then 1
+					else 0
+					end * 
+				case o.c_doctype_id
+					when '5D5792C53FBA46E2988653B6DC9FE5B4' then 1 
+					when '1052C4B77714415C8CF89DEB7B4349A3' then 1 
+					when 'ABE2033C7A74499A9750346A83DE3307' then 1 
+					when '0' then 1 
+					else 0
+					end * 
+				case o.c_doctypetarget_id 
+					when '5D5792C53FBA46E2988653B6DC9FE5B4' then 1 
+					when '1052C4B77714415C8CF89DEB7B4349A3' then 1 
+					when 'ABE2033C7A74499A9750346A83DE3307' then 1 
+					else 0
+					end * o.totallines
+			) * 365 / (select now()::date - '2011-10-04'::date) 
+			as orders_runrate
+		FROM 	
+			c_order o
+      ]]></Sql>
+    <Field name="rownum" value="count"/>
+  </SqlMethod>
+</SqlClass>

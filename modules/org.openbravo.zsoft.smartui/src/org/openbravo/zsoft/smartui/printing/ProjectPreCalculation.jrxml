@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
+<!-- 2017-02-07T08:21:05 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ProjectCalculation" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="832" leftMargin="5" rightMargin="5" topMargin="5" bottomMargin="5" whenResourceMissingType="Error" isIgnorePagination="true" uuid="76e0065f-a0c3-4424-a026-3dfadc334eb0">
+	<property name="ireport.zoom" value="1.4641000000000008"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="bin/openz_db.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREP_ProjectPreCalculationEmployees" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_ProjectPreCalculationEquipment" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="SUBREP_ProjectPreCalculationExpenses" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="Employee_Plannedamt" class="java.math.BigDecimal"/>
+	<parameter name="Employee_Comerc" class="java.math.BigDecimal"/>
+	<parameter name="Equipment_Plannedamt" class="java.math.BigDecimal"/>
+	<parameter name="Equipment_Comerc" class="java.math.BigDecimal"/>
+	<parameter name="Expenses_Plannedamt" class="java.math.BigDecimal"/>
+	<parameter name="Expenses_Comerc" class="java.math.BigDecimal"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="C_PROJECT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CountMax" class="java.lang.Integer" isForPrompting="false"/>
+	<parameter name="MaxPage" class="java.lang.Integer" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select
+--Main Report
+--Headers
+zssi_getElementTextByColumname('CLIENTh',$P{LANGUAGE}) as CLIENTh,
+zssi_getElementTextByColumname('PROJECT/REACTORh',$P{LANGUAGE}) as PROJECTREACTORh,
+zssi_getElementTextByColumname('PTASKHEADER',$P{LANGUAGE}) as ptaskk,
+zssi_getElementTextByColumname('PROJECTNUMBERh',$P{LANGUAGE}) as PROJECTNUMBERh,
+zssi_getElementTextByColumname('PROJECT DURATIONh',$P{LANGUAGE}) as PROJECTDURATIONh,
+zssi_getElementTextByColumname('TOTALh',$P{LANGUAGE}) as TOTALh,
+zssi_getElementTextByColumname('RENDEMENTh',$P{LANGUAGE}) as RENDEMENTh,
+zssi_getElementTextByColumname('COMERCh',$P{LANGUAGE}) as COMERCh,
+--ProjectData
+pt.c_projecttask_id as id,
+pt.name as ptask,
+p.name as name,
+p.value as value,
+coalesce(zssi_getbpname(p.c_bpartner_id),'') as client,
+to_char(now(),'DD.MM.YYYY') as now,
+coalesce(to_char(p.startdate,'DD.MM.YYYY'),'') as startdate,
+coalesce(to_char(p.datefinish,'DD.MM.YYYY'),'') as datefinish,
+ad_image.binarydata as logo
+from c_project p, c_projecttask pt , AD_ORGINFO LEFT JOIN ad_image on AD_ORGINFO.your_company_document_image=ad_image.ad_image_id
+where ad_orginfo.ad_org_id=p.ad_org_id and p.c_project_id=pt.c_project_id and pt.c_projecttask_id = ($P{C_PROJECT_ID})]]>
+	</queryString>
+	<field name="clienth" class="java.lang.String"/>
+	<field name="projectreactorh" class="java.lang.String"/>
+	<field name="ptaskk" class="java.lang.String"/>
+	<field name="projectnumberh" class="java.lang.String"/>
+	<field name="projectdurationh" class="java.lang.String"/>
+	<field name="totalh" class="java.lang.String"/>
+	<field name="rendementh" class="java.lang.String"/>
+	<field name="comerch" class="java.lang.String"/>
+	<field name="id" class="java.lang.String"/>
+	<field name="ptask" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="value" class="java.lang.String"/>
+	<field name="client" class="java.lang.String"/>
+	<field name="now" class="java.lang.String"/>
+	<field name="startdate" class="java.lang.String"/>
+	<field name="datefinish" class="java.lang.String"/>
+	<field name="logo" class="java.io.InputStream"/>
+	<variable name="Return_EXP_COM" class="java.math.BigDecimal" calculation="System"/>
+	<variable name="Return_EXP_PA" class="java.math.BigDecimal" calculation="System"/>
+	<variable name="Return_EMP_COM" class="java.math.BigDecimal" calculation="System"/>
+	<variable name="Return_EMP_PA" class="java.math.BigDecimal" calculation="System"/>
+	<variable name="Return_EQU_COM" class="java.math.BigDecimal" calculation="System"/>
+	<variable name="Return_EQU_PA" class="java.math.BigDecimal" calculation="System"/>
+	<variable name="PA_AMT" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[($V{Return_EQU_PA}.add($V{Return_EXP_PA}.add($V{Return_EMP_PA})))]]></variableExpression>
+	</variable>
+	<variable name="COM_AMT" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[($V{Return_EQU_COM}.add($V{Return_EXP_COM}.add($V{Return_EMP_COM})))]]></variableExpression>
+	</variable>
+	<variable name="Rendement" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$V{COM_AMT}.subtract( $V{PA_AMT})]]></variableExpression>
+	</variable>
+	<title>
+		<band height="238" splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+			<textField>
+				<reportElement x="10" y="20" width="130" height="10" uuid="1aec96f5-db6e-4bf4-9924-672668e85b85">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{clienth}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="10" y="31" width="130" height="10" uuid="eb6388cf-0932-4318-baa3-3e323585e36f">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{projectreactorh}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="10" y="62" width="130" height="10" uuid="8583994f-355a-4a2d-8599-4ad2a2438c99">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{projectdurationh}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="150" y="31" width="220" height="10" uuid="16ff50bc-bdfa-4d55-a170-a90889abc577">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="150" y="20" width="220" height="10" uuid="aed3a517-70b4-4cad-8baf-d6dd7cc56911">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{client}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="150" y="42" width="220" height="10" uuid="d0212801-a5a0-4661-8524-7b87928b0870">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{value}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="150" y="62" width="220" height="10" uuid="de766dbd-637a-4b99-9eaf-789f61c23dd3">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{startdate}+" - "+$F{datefinish}]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement x="400" y="20" width="401" height="30" uuid="069710a4-6831-4a4d-819d-0cd243c16f0e">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<imageExpression><![CDATA[$F{logo}]]></imageExpression>
+			</image>
+			<subreport isUsingCache="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="2" y="87" width="800" height="49" isRemoveLineWhenBlank="true" uuid="c4e6a3c2-14e5-4f5e-9d70-9b8d37b646e0">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<subreportParameter name="C_PROJECT_ID">
+					<subreportParameterExpression><![CDATA[$P{C_PROJECT_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_DESIGN">
+					<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{BASE_DESIGN} + "/org/openbravo/zsoft/smartui/printing/ProjectPreCalculationEmployees.jasper"
+/*$P{SUBREP_ProjectPreCalculationEmployees}*/]]></subreportExpression>
+			</subreport>
+			<subreport isUsingCache="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="2" y="136" width="800" height="49" isRemoveLineWhenBlank="true" uuid="d07072e2-7666-4960-91aa-9833a85c8d24">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="C_PROJECT_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="Return_EQU_PA" toVariable="Return_EQU_PA"/>
+				<subreportExpression><![CDATA[$P{BASE_DESIGN} + "/org/openbravo/zsoft/smartui/printing/ProjectPreCalculationEquipment.jasper"
+/*$P{SUBREP_ProjectPreCalculationEquipment}*/]]></subreportExpression>
+			</subreport>
+			<subreport isUsingCache="true">
+				<reportElement positionType="Float" isPrintRepeatedValues="false" x="2" y="185" width="800" height="49" isRemoveLineWhenBlank="true" uuid="8f8852c7-a751-48a4-9f3e-47b521d105f0">
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+				</reportElement>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="C_PROJECT_ID">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<returnValue subreportVariable="Return_EXP_PA" toVariable="Return_EXP_PA"/>
+				<subreportExpression><![CDATA[$P{BASE_DESIGN} + "/org/openbravo/zsoft/smartui/printing/ProjectPreCalculationExpenses.jasper"
+/*$P{SUBREP_ProjectPreCalculationExpenses}*/]]></subreportExpression>
+			</subreport>
+			<textField>
+				<reportElement x="10" y="52" width="130" height="10" uuid="f365eb8f-edda-4cb7-a139-e625e1dab558">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ptaskk}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="10" y="42" width="130" height="10" uuid="36bc609b-314e-4259-b54f-07a9f8c4d3ba">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{projectnumberh}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="150" y="52" width="220" height="10" uuid="9157bdbc-f4fc-4496-a598-cbb3a03c3a8b">
+					<property name="com.jaspersoft.studio.unit.y" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+				</reportElement>
+				<textElement verticalAlignment="Middle">
+					<font fontName="SansSerif" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ptask}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band splitType="Stretch">
+			<property name="com.jaspersoft.studio.unit.height" value="pixel"/>
+		</band>
+	</detail>
+	<summary>
+		<band height="77">
+			<break>
+				<reportElement x="0" y="43" width="100" height="1" uuid="24c80744-6447-4a35-9a99-4425eba5936e">
+					<printWhenExpression><![CDATA[$P{CountMax}!=$P{MaxPage}]]></printWhenExpression>
+				</reportElement>
+			</break>
+		</band>
+	</summary>
+</jasperReport>

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, 2011, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+*                 
+* 
+****************************************************************************************************************************************************/
+-->
+
+<SqlClass name="GenerateInvoicesData" package="org.openz.controller.form">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+    select linkname,  targetwindowurl,    fieldid,   C_Order_ID,   cdoctypename,DocumentNo,c_bpartner_id,cbpartnername,DateOrdered,datepromised,zssi_strNumber(amountlines,?) as amountlines, zssi_strNumber(notinvoicedlines,?) as notinvoicedlines, ad_org_id,
+     TermName,TermValue, zssi_strNumber(pendinglines,?) as pendinglines,  m_product_id,positionline,qtydelivered,qtyordered,orderlineid,  qtydiffpending,  qtydiffpending as qtydifffix,m_inoutline_id, orderlineidkey,lineprice,
+     pricenet,pricenet as pricenetfix, priceactual,pendingamt, pendingamt as pendingamtfix,m_attributesetinstance_id,residue,oldescription, searchkey, uom,PROJECT 
+FROM (
+      SELECT 
+        CASE icl.issotrx WHEN 'Y' THEN 'SalesOrder' WHEN 'N' THEN 'PurchaseOrder' END AS linkname, 
+        CASE icl.C_DocType_ID WHEN '6C8EA6FFBB2B4ACBA0542BA4F833C499' THEN 'SubscriptionIntervals_Relation.html' ELSE 'Header_Relation.html' END AS targetwindowurl,     
+        CASE icl.C_DocType_ID WHEN '6C8EA6FFBB2B4ACBA0542BA4F833C499' THEN 'inpcSubscriptionintervalViewId'      ELSE 'inpcOrderId' END AS fieldid,     
+      icl.C_Order_ID,  
+      ad_get_doctypename(icl.C_DocType_ID,?) as cdoctypename,
+      icl.DocumentNo,
+      bp.c_bpartner_id,
+      bp.Name||' - '||bp.value as cbpartnername,
+      icl.DateOrdered,
+      icl.datepromised,
+      icl.amountlines, 
+      icl.ad_org_id,
+      zssi_notinvoicedAmt4order(icl.c_order_id,'ALL') as notinvoicedlines, 
+      l.Name as TermName,
+      l.Value as TermValue, 
+      zssi_notinvoicedAmt4order(icl.c_order_id,'PENDING') as pendinglines, 
+      zssi_getIdentifierFromKey('m_product_id',icl.m_product_id, ?)  as m_product_id,
+      icl.line as positionline,
+      icl.qtydelivered,
+      icl.qtyordered,
+      icl.c_orderline_id||coalesce(icl.m_inoutline_id,'') as orderlineid, 
+      zssi_notinvoicedlines4orderline(icl.c_orderline_id,'PENDING','QTY',icl.m_inoutline_id,TO_DATE(?))  as qtydiffpending,
+      icl.m_inoutline_id,
+      icl.c_orderline_id as orderlineidkey,
+      icl.lineprice,
+      zssi_notinvoicedlines4orderline(icl.c_orderline_id,'PENDING','PRICE',icl.m_inoutline_id,TO_DATE(?))  as pricenet,
+      icl.priceactual as priceactual,
+      zssi_notinvoicedlines4orderline(icl.c_orderline_id,'PENDING','LINEAMT',icl.m_inoutline_id,TO_DATE(?)) AS pendingamt,
+      icl.m_attributesetinstance_id,
+      'N' as residue,
+      zssi_html4docs(coalesce(icl.description,'')) as oldescription,
+      bp.value as searchkey,
+      zssi_getuom(COALESCE((select c_uom_id from m_product_uom where m_product_uom_id=icl.m_product_uom_id),icl.c_uom_id),?) as uom,
+      icl.PROJECT 
+      FROM c_invoice_candidate_lines_v icl, C_BPartner bp, AD_Ref_List l left join AD_Ref_List_trl ltrl on l.AD_Ref_List_ID=ltrl.AD_Ref_List_ID and ltrl.ad_language=?
+      WHERE icl.C_BPartner_ID=bp.C_BPartner_ID AND c_isorderline2invoice(icl.c_orderline_id,case when icl.term='I' then ? else null end,case when icl.term='I' then ? else null end)='Y'
+      AND l.value = icl.term
+      AND icl.term <> 'N'
+      AND AD_Reference_ID='150'
+      AND icl.issotrx = ?
+      AND icl.ad_client_id in ('1')
+      AND icl.ad_org_id in ('1')
+      AND coalesce(icl.m_inout_doctype_id,'') not in ('2317023F9771481696461C5EAF9A0915','2E1E735AA91A49F8BC7181D31B09B370') 
+      AND 1=1
+      AND 2=2 AND icl.ad_org_id in ('1')
+      ) a
+      ORDER BY cbpartnername , DocumentNo, case when c_getconfigoption('sortgeneratelinesbyproduct',ad_org_id)='Y' then m_product_id end,positionline
+      ]]></Sql>
+    <Field name="rownum" value="count"/>
+    <Parameter name="language"/>
+    <Parameter name="language"/>
+    <Parameter name="language"/>
+    <Parameter name="language"/>
+    <Parameter name="language"/>
+    <Parameter name="xparDateTo"/>
+    <Parameter name="xparDateTo"/>
+    <Parameter name="xparDateTo"/>
+    <Parameter name="language"/>
+    <Parameter name="language"/>
+    <Parameter name="xparDateFrom"/>
+    <Parameter name="xparDateTo"/>
+    <Parameter name="issotrx"/>
+    <Parameter name="adUserClient" type="replace" optional="true" after="AND icl.ad_client_id in (" text="'1'"/>
+    <Parameter name="adUserOrg" type="replace" optional="true" after="AND icl.ad_org_id in (" text="'1'"/>
+    <Parameter name="parBPartner" optional="true" after="AND 1=1">AND icl.C_BPartner_ID= ?</Parameter>
+    <Parameter name="documentno" optional="true" after="AND 1=1">AND icl.documentno like ?</Parameter>
+    <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[ AND icl.datepromised >= TO_DATE(?)]]></Parameter>
+    <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[ AND icl.datepromised <= TO_DATE(?)]]></Parameter>
+    <Parameter name="adOrgId" optional="true" type="replace" after="AND 2=2 AND icl.ad_org_id in (" text="'1'"/>
+  </SqlMethod>
+  
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+  
+   <SqlMethod name="selectCombined" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+ select linkname,  targetwindowurl,    fieldid,   C_Order_ID,   cdoctypename,DocumentNo,c_bpartner_id,cbpartnername,DateOrdered,datepromised,zssi_strNumber(amountlines,?) as amountlines, zssi_strNumber(notinvoicedlines,?) as notinvoicedlines, ad_org_id,
+     TermName,TermValue, zssi_strNumber(pendinglines,?) as pendinglines,  m_product_id,positionline,qtydelivered,qtyordered,orderlineid,  qtydiffpending,qtydiffpending as qtydifffix,m_inoutline_id, orderlineidkey,lineprice,
+     pricenet,pricenet as pricenetfix, priceactual,pendingamt,pendingamt as pendingamtfix,m_attributesetinstance_id,residue,oldescription, searchkey, uom,PROJECT 
+FROM (
+      SELECT 
+        'BusinessPartner' AS linkname, 
+        'Header_Relation.html'  AS targetwindowurl,     
+        'inpcBpartnerId' AS fieldid,     
+      bp.C_bpartner_ID||'#' as C_Order_ID,  
+      ad_get_doctypename(icls.p_C_DocType_ID,?) as cdoctypename,
+      'Div.'::text as DocumentNo,
+      bp.c_bpartner_id,
+      bp.Name||' - '||bp.value as cbpartnername,
+      icls.p_dateordered as DateOrdered,
+      icls.p_datepromised as datepromised,
+      icls.p_amountlines as amountlines, 
+      icls.p_ad_org_id as ad_org_id,
+      icls.p_notinvoicedlines as notinvoicedlines, 
+      l.name as TermName,
+      l.value as TermValue, 
+      icls.p_pendinglines as pendinglines, 
+      zssi_getIdentifierFromKey('m_product_id',icl.m_product_id, ?)  as m_product_id,
+      icl.line as positionline,
+      icl.qtydelivered,
+      icl.qtyordered,
+      icl.c_orderline_id||coalesce(icl.m_inoutline_id,'') as orderlineid, 
+      zssi_notinvoicedlines4orderline(icl.c_orderline_id,'PENDING','QTY',icl.m_inoutline_id,TO_DATE(?))  as qtydiffpending,
+      icl.m_inoutline_id,
+      icl.c_orderline_id as orderlineidkey,
+      icl.lineprice,
+      zssi_notinvoicedlines4orderline(icl.c_orderline_id,'PENDING','PRICE',icl.m_inoutline_id,TO_DATE(?))  as pricenet,
+      icl.priceactual as priceactual,
+      zssi_notinvoicedlines4orderline(icl.c_orderline_id,'PENDING','LINEAMT',icl.m_inoutline_id,TO_DATE(?)) AS pendingamt,
+      icl.m_attributesetinstance_id,
+      'N' as residue,
+      icl.documentno  as oldescription,
+      bp.value as searchkey,
+      zssi_getuom(COALESCE((select c_uom_id from m_product_uom where m_product_uom_id=icl.m_product_uom_id),icl.c_uom_id),?) as uom,
+      'Div.'  as PROJECT 
+      FROM c_invoice_candidate_lines_v icl, c_invoice_candidate_combinedselect(?,?,?,icl.c_bpartner_id,?,?) icls,
+           C_BPartner bp, AD_Ref_List l left join AD_Ref_List_trl ltrl on l.AD_Ref_List_ID=ltrl.AD_Ref_List_ID and ltrl.ad_language=?
+      WHERE icl.C_BPartner_ID=bp.C_BPartner_ID AND icls.p_bpartner_id_out=icl.C_BPartner_ID and c_isorderline2invoice(icl.c_orderline_id,case when icl.term='I' then ? else null end,case when icl.term='I' then ? else null end)='Y'
+      AND l.value = icls.p_term
+      AND icl.term <> 'N'
+      AND AD_Reference_ID='150'
+      AND icl.issotrx = ?
+      AND icl.ad_org_id=?
+      AND icl.ad_org_id in ('1')
+      AND coalesce(icl.m_inout_doctype_id,'') not in ('2317023F9771481696461C5EAF9A0915','2E1E735AA91A49F8BC7181D31B09B370') 
+      AND 1=1
+      ) a
+      ORDER BY cbpartnername , DocumentNo, case when c_getconfigoption('sortgeneratelinesbyproduct',ad_org_id)='Y' then m_product_id end,positionline
+      ]]></Sql>
+    <Field name="rownum" value="count"/>
+    <Parameter name="language"/>
+    <Parameter name="language"/>
+    <Parameter name="language"/>
+    <Parameter name="language"/>
+    <Parameter name="language"/>
+    <Parameter name="xparDateTo"/>
+    <Parameter name="xparDateTo"/>
+    <Parameter name="xparDateTo"/>
+    <Parameter name="language"/>
+    <Parameter name="issotrx"/>
+    <Parameter name="xparDateFrom"/>
+    <Parameter name="xparDateTo"/>
+    <Parameter name="xdocumentno"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="language"/>
+    <Parameter name="xparDateFrom"/>
+    <Parameter name="xparDateTo"/>
+    <Parameter name="issotrx"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="adUserOrg" type="replace" optional="true" after="AND icl.ad_org_id in (" text="'1'"/>
+    <Parameter name="parBPartner" optional="true" after="AND 1=1">AND icl.C_BPartner_ID= ?</Parameter>
+    <Parameter name="documentno" optional="true" after="AND 1=1">AND icl.documentno like ?</Parameter>
+    <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[ AND icl.datepromised >= TO_DATE(?)]]></Parameter>
+    <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[ AND icl.datepromised <= TO_DATE(?)]]></Parameter>
+  </SqlMethod>
+  
+ 
+  <SqlMethod name="bPartnerDescription" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    SELECT NAME FROM C_BPARTNER 
+    WHERE C_BPARTNER_ID = ?
+    </Sql>
+    <Parameter name="cBpartnerId"/>
+  </SqlMethod>
+  <SqlMethod name="treeOrg" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT AD_TREE_ORG_ID FROM AD_CLIENTINFO
+        WHERE AD_CLIENT_ID = ?
+    </Sql>
+    <Parameter name="client"/>
+  </SqlMethod>
+  <SqlMethod name="getOrder" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    SELECT c_order_id FROM C_orderline where c_orderline_id = ? limit 1 
+    </Sql>
+    <Parameter name="cOrderLineId"/>
+  </SqlMethod>
+  <SqlMethod name="getBpartner" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    SELECT c_bpartner_id FROM c_order where c_order_id = (select c_order_id from C_orderline where c_orderline_id = ?) 
+    </Sql>
+    <Parameter name="cOrderLineId"/>
+  </SqlMethod>
+  <SqlMethod name="selectOrderlines" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT C_ORDERLINE_ID as orderlineid from c_orderline
+        WHERE c_order_id = ?
+    </Sql>
+    <Parameter name="corderId"/>
+  </SqlMethod>
+    <SqlMethod name="insert" connection="true" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      INSERT INTO C_GENERATEINVOICEMANUAL(C_GENERATEINVOICEMANUAL_ID, C_ORDERLINE_ID, C_ORDER_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY, UPDATEDBY, QTY, PRICE, LINEAMT,IGNORERESIDUE, DESCRIPTION, M_InOutLine_ID,m_attributesetinstance_id,pinstance_id)
+      VALUES(?, ?, ?, ?, ?, ?, ?, TO_NUMBER(?), TO_NUMBER(?),TO_NUMBER(?), ?, 
+      (select description from c_orderline where c_orderline_id=?),?,?,?)
+      </Sql>
+      <Parameter name="cGenerateinvoicemanualId"/>
+      <Parameter name="cOrderlineId"/>
+      <Parameter name="cOrderId"/>
+      <Parameter name="adClientId"/>
+      <Parameter name="adOrgId"/>
+      <Parameter name="createdby"/>
+      <Parameter name="updatedby"/>
+      <Parameter name="qty"/>
+      <Parameter name="price"/>
+      <Parameter name="lineamt"/>
+      <Parameter name="ignoreresidue"/>
+      <Parameter name="cOrderlineId"/>
+      <Parameter name="mInoutlineId"/>
+      <Parameter name="mAttributesetinstanceId"/>
+      <Parameter name="pInstanceId"/>
+  </SqlMethod>
+  <SqlMethod name="deleteerror" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      DELETE FROM C_GENERATEINVOICEMANUAL where c_invoiceline_id is null and pinstance_id = ?
+    </Sql>
+    <Parameter name="pInstanceId"/>
+  </SqlMethod>
+  </SqlClass>

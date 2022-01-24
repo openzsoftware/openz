@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+
+<SqlClass name="EmployeeData" package="org.openz.controller.popup">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT ad_user_id,ad_client_id, ad_org_id, C_BPARTNEREMPLOYEE_VIEW_ID,CREATEDBY, UPDATEDBY,VALUE,
+             NAME,COUNTRY, CITY, ZIPCODE, projects,drivinglicense, certification, g26
+      from (select u.ad_user_id,b.ad_client_id, b.ad_org_id, b.C_BPARTNEREMPLOYEE_VIEW_ID,b.CREATEDBY, b.UPDATEDBY,b.VALUE, b.NAME,b.COUNTRY, b.CITY, b.ZIPCODE,
+      c_getemployeeprojectsplanInRange(b.c_bpartner_id, ?,?,?,'Planned') as projects,
+      u.sachgebiet as drivinglicense, u.schluesselkontakt as certification,u.Veranstaltungsmanagement as g26
+      from C_BPARTNEREMPLOYEE_VIEW b, ad_user u where
+      b.isactive='Y' and u.isactive='Y' and
+      b.c_bpartner_id=u.c_bpartner_id 
+      and b.isinresourceplan in ('Y',?) 
+      and 1=1
+      AND 4=4) a
+      ORDER BY Value
+      ]]></Sql>
+      <Parameter name="parDateFrom"/>
+      <Parameter name="parDateTo"/>
+      <Parameter name="parTaskExclude"/>
+      <Parameter name="parPlannedResource"/>
+      <Parameter name="parName" optional="true" after="and 1=1"><![CDATA[ AND upper(b.name) like upper(?)]]></Parameter>
+      <Parameter name="parValue" optional="true" after="and 1=1"><![CDATA[ AND b.value like ?]]></Parameter>
+      <Parameter name="parOrg" optional="true" after="and 1=1"><![CDATA[ AND b.ad_org_id in ('0',?)]]></Parameter>
+      <Parameter name="pgLimit" type="argument" optional="true" after="AND 4=4"><![CDATA[ LIMIT ]]></Parameter>
+      <Parameter name="orderBy" type="replace" optional="true" after="ORDER BY " text="Value" />
+  </SqlMethod>
+  <SqlMethod name="countRows" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+    <![CDATA[
+      SELECT count(*) AS value
+      from C_BPARTNEREMPLOYEE_VIEW b, ad_user u where
+      b.isactive='Y' and u.isactive='Y' and
+      b.c_bpartner_id=u.c_bpartner_id
+      and b.isinresourceplan in ('Y',?) 
+      and 1=1
+      AND 4=4
+      ]]></Sql>
+      <Parameter name="parPlannedResource"/>
+      <Parameter name="parName" optional="true" after="and 1=1"><![CDATA[ AND b.name like ?]]></Parameter>
+      <Parameter name="parValue" optional="true" after="and 1=1"><![CDATA[ AND b.value like ?]]></Parameter>
+      <Parameter name="parOrg" optional="true" after="and 1=1"><![CDATA[ AND b.ad_org_id in ('0',?)]]></Parameter>
+      <Parameter name="pgLimit" type="argument" optional="true" after="AND 4=4"><![CDATA[ LIMIT ]]></Parameter>
+  </SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+  <SqlMethod name="getSalCategory" type="preparedStatement" return="string">
+    <Sql>  
+        SELECT min(b.C_Salary_Category_id) 
+       from c_bpartner b,C_Salary_Category s WHERE b.C_Salary_Category_id=s.C_Salary_Category_id 
+            and b.c_bpartner_id =  (select c_bpartner_id from ad_user where ad_user_id= ? ) 
+            AND s.isactive='Y'
+            AND exists (select 0 from C_Salary_Category_cost c where c.C_Salary_Category_id=s.C_Salary_Category_id 
+                         and c.COSTUOM='H')
+    </Sql>
+    <Parameter name="userId"/>
+  </SqlMethod>
+  <SqlMethod name="getBegin" type="preparedStatement" return="string">
+    <Sql>  
+        SELECT to_char(startdate,'DD-MM-YYYY') from c_projecttask where c_projecttask_id = ?
+    </Sql>
+    <Parameter name="taskId"/>
+  </SqlMethod>
+  <SqlMethod name="getEnd" type="preparedStatement" return="string">
+    <Sql>  
+        SELECT to_char(enddate,'DD-MM-YYYY') from c_projecttask where c_projecttask_id = ?
+    </Sql>
+    <Parameter name="taskId"/>
+  </SqlMethod>
+  
+  </SqlClass>

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+/***************************************************************************************************************************************************
+
+****************************************************************************************************************************************************/
+-->
+
+<SqlClass name="RequestManagementPOData" package="org.openz.controller.form">
+  <SqlClassComment></SqlClassComment>
+  
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment>-- Handelsspanne:  case when coalesce(sol.priceactual,0)!=0 then  round(100 * ((sol.priceactual - c_currency_convert(pol.priceactual,ccpo.c_currency_id,ccso.c_currency_id,trunc(now()) )) / sol.priceactual),2) else null end as margine,</SqlMethodComment>
+    <Sql>
+    <![CDATA[
+       select pol.c_orderline_id,po.c_bpartner_id, po.c_order_id, zssi_getIdentifierFromKey('c_bpartner_id',po.c_bpartner_id,?) as vendorname, po.documentno,'N' as cnsoline,'N' as opth,
+       		  '' as dummy,'' as dummy2,'' as dummy3,
+              zssi_getIdentifierFromKey('c_project_id',po.c_project_id,?) as project,so.c_order_id as so_order_id,
+              zsse_sendDirectLinkGridNamed('c_order_id',so.c_order_id,'259',so.documentno) as documentnoso,
+              to_char(so.dateordered,?) as dateorderedso,
+              to_char(po.dateordered,?) as dateorderedpo,zssi_getIdentifierFromKey('c_bpartner_id',so.c_bpartner_id,?) as customername,
+              zssi_getIdentifierFromKey('m_product_id',pol.m_product_id,?) as product,
+              ccso.iso_code as currencyso,ccpo.c_currency_id as currencypo,  po.poreference, 
+              case when sol.c_orderline_id is not null then coalesce(pol.isdescription,'N') else 'N' end as connectedsoline, coalesce(sol.isoptional,'N') as isoptional,
+              c_currency_rate(ccpo.c_currency_id,coalesce(ccso.c_currency_id,zsfi_getBookCurrency(pol.ad_org_id)),trunc(now()),null,?) as rate,
+              pol.line as poline,pol.m_product_id,pol.description, pol.auxfield1 as auxfield1, to_char(pol.scheddeliverydate,?) as scheddeliverydatePO,to_char(sol.scheddeliverydate,?) as scheddeliverydateSO,
+              zssi_getIdentifierFromKey('c_uom_id',pol.c_uom_id,?) as uom,pol.qtyordered,pol.priceactual as poprice,pol.discount,pol.pricestd as popricestd,
+              c_currency_convert(pol.priceactual,ccpo.c_currency_id,coalesce(ccso.c_currency_id,zsfi_getBookCurrency(pol.ad_org_id)),trunc(now())) as popriceconv,
+              case when coalesce(pol.priceactual,0)!=0 then  round(100*(sol.priceactual / c_currency_convert(pol.priceactual,ccpo.c_currency_id,coalesce(ccso.c_currency_id,zsfi_getBookCurrency(pol.ad_org_id)),trunc(now())) -1),2) else null end as margine,
+              (select sum(ool.qtyordered) from c_orderline xol,c_order xo , c_orderline ool,c_order oo
+                                where xo.c_order_id=xol.c_order_id and xo.c_doctype_id='8CF74AC370B04133B54C44A12E084749' and xo.docstatus in ('CO','CL')
+                                      and xol.orderlineselfjoin= sol.c_orderline_id
+                                      and oo.c_order_id=ool.c_order_id and oo.issotrx='N' and oo.c_doctype_id!='8CF74AC370B04133B54C44A12E084749' 
+                                      and oo.docstatus in ('DR','CO') and ool.orderlineselfjoin=xol.c_orderline_id
+                              ) as orderedpo,
+              sol.qtyordered  as orderedso,
+              sol.priceactual as soprice, sol.line as soline,sol.c_orderline_id as soorderlineid,
+              zssi_strNumber(so.totallines,?) as totallinesso,zssi_strNumber(c_currency_convert(po.totallines,ccpo.c_currency_id,coalesce(ccso.c_currency_id,zsfi_getBookCurrency(pol.ad_org_id)),trunc(now())),?) as totallinespo
+      from c_currency ccpo,c_order po 
+                           left join c_order so on so.c_order_id=po.orderselfjoin and so.docstatus='CO'
+                           left join c_currency ccso on so.c_currency_id=ccso.c_currency_id
+                           left join c_orderline pol on pol.c_order_id=po.c_order_id
+                           left join c_orderline sol on sol.c_orderline_id=pol.orderlineselfjoin  and sol.c_order_id=so.c_order_id
+           where ccpo.c_currency_id=po.c_currency_id and po.c_order_id=pol.c_order_id
+                 and po.c_doctype_id='8CF74AC370B04133B54C44A12E084749'
+                 and po.docstatus='CO'
+                 and coalesce((select sum(ool.qtyordered) from c_orderline xol,c_order xo , c_orderline ool,c_order oo
+                                where xo.c_order_id=xol.c_order_id and xo.c_doctype_id='8CF74AC370B04133B54C44A12E084749' and xo.docstatus in ('CO','CL')
+                                      and xol.orderlineselfjoin= sol.c_orderline_id
+                                      and oo.c_order_id=ool.c_order_id and oo.issotrx='N' and oo.c_doctype_id!='8CF74AC370B04133B54C44A12E084749' 
+                                      and oo.docstatus in ('DR','CO') and ool.orderlineselfjoin=xol.c_orderline_id
+                              ),0)<coalesce(sol.qtyordered,1)
+                 and not exists (select 0 from c_orderline ool,c_order oo where oo.c_order_id=ool.c_order_id and oo.c_doctype_id!='8CF74AC370B04133B54C44A12E084749' and oo.issotrx='N' and oo.docstatus in ('DR','CO') 
+                                 and ool.orderlineselfjoin=pol.c_orderline_id)
+                 AND po.ad_org_id in ('1')
+                 AND 1=1
+           order by po.c_bpartner_id,po.documentno,pol.line
+      ]]></Sql>
+      <Parameter name="language"/>
+      <Parameter name="language"/>
+      <Parameter name="dateFormat"/>
+      <Parameter name="dateFormat"/>
+      <Parameter name="language"/>
+      <Parameter name="language"/>
+      <Parameter name="adOrgId"/>
+      <Parameter name="dateFormat"/>
+      <Parameter name="dateFormat"/>
+      <Parameter name="language"/>
+      <Parameter name="language"/>
+      <Parameter name="language"/>
+      <Parameter name="adUserOrg" optional="true" type="replace" after="AND po.ad_org_id in (" text="'1'"/>
+      <Parameter name="documentno" optional="true" after="AND 1=1"><![CDATA[ AND po.documentno like ?]]></Parameter>
+      <Parameter name="documentnoso" optional="true" after="AND 1=1"><![CDATA[ AND so.documentno like ?]]></Parameter>
+      <Parameter name="vendorid" optional="true" after="AND 1=1"><![CDATA[ AND po.c_bpartner_id = ?]]></Parameter>
+      <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[ AND po.dateordered >= TO_DATE(?)]]></Parameter>
+      <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[ AND po.dateordered <= TO_DATE(?)]]></Parameter>
+      <Parameter name="parProject" optional="true" after="AND 1=1"><![CDATA[ AND po.c_project_id = ?]]></Parameter>
+      <Parameter name="customerid" optional="true" after="AND 1=1"><![CDATA[ AND so.c_bpartner_id = ?]]></Parameter>
+      <Parameter name="mProductId" optional="true" after="AND 1=1"><![CDATA[ AND pol.m_product_id = ?]]></Parameter>
+      <Parameter name="filteredOrgId" optional="true" after="AND 1=1"><![CDATA[ AND po.ad_org_id = ?]]></Parameter>
+  </SqlMethod>
+  
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+  
+  <SqlMethod name="updatePOHeader" connection="true" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      update c_order set poreference = ?,
+             m_pricelist_id=(select m_pricelist_id from m_pricelist where  issopricelist='N' and isactive='Y' and istaxincluded='N' and c_currency_id=? limit 1) 
+             where c_order_id = ?
+    </Sql>
+    <Parameter name="pporeference"/>
+    <Parameter name="ccurrency"/>
+    <Parameter name="ppoorderId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="updatePO" connection="true" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      update c_orderline set description = ?, auxfield1 = ?, scheddeliverydate= to_date(?,'DD-MM-YYYY'), qtyordered= to_number(?), 
+             priceactual = to_number(?),pricestd=to_number(?),discount=round(to_number(?),2) where c_orderline_id = ?
+    </Sql>
+    <Parameter name="pdescription"/>
+    <Parameter name="pauxfield1"/>
+    <Parameter name="pscheddeliverydate"/>
+    <Parameter name="pqtyordered"/>
+    <Parameter name="ppriceactual"/>
+    <Parameter name="ppricestd"/>
+    <Parameter name="pdiscount"/>
+    <Parameter name="porderlineID"/>
+  </SqlMethod>
+  
+  <SqlMethod name="updateSO" connection="true" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      select  c_updateSalesLineFromPO(?,?,?,?,?,?,?,?) as retval from dual
+    </Sql>
+    <Parameter name="ppoorderlineID"/>
+    <Parameter name="psoorderlineID"/>
+    <Parameter name="psoprice"/>
+    <Parameter name="pisoptional"/>
+    <Parameter name="p_deliverydate"/>
+    <Parameter name="p_user"/>
+    <Parameter name="p_description"/>
+    <Parameter name="piconnectsoline"/>
+  </SqlMethod>
+  
+  <SqlMethod name="updateDocAction" connection="true" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      update c_order set docaction = ? where c_order_id = ?
+    </Sql>
+    <Parameter name="paction"/>
+    <Parameter name="porderID"/>
+  </SqlMethod>
+  
+  <SqlMethod name="postAction" type="preparedStatement" connection="true" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select c_reqMgmtDocAction4POandSO(?)
+    </Sql>
+    <Parameter name="parcOrderID"/>  
+  </SqlMethod>
+  
+  <SqlMethod name="closePOO" type="preparedStatement" connection="true" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+  		UPDATE C_ORDER  SET DocStatus='CL', DocAction='--',Processing='N',processed='Y',proposalstatus='CL',
+          Updated=TO_DATE(NOW()),updatedby=?
+        WHERE C_Order_ID=?
+   </Sql>
+    <Parameter name="parcOrderID"/>  
+    <Parameter name="userID"/>  
+  </SqlMethod>
+  
+  <SqlMethod name="c_createDocumentHeaderFromPO" type="preparedStatement" connection="true" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select c_createDocumentHeaderFromPO(?,?,?,?)
+    </Sql>
+    <Parameter name="parSODocumentID"/>  
+    <Parameter name="parTargetDoctype"/>
+    <Parameter name="parUserID"/>
+     <Parameter name="parSalesOrderLineID"/>
+  </SqlMethod>
+  
+  <SqlMethod name="c_createDocumentLineFromPO" type="preparedStatement" connection="true" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select c_createDocumentLineFromPO(?,?)
+    </Sql>
+    <Parameter name="parNEWDocumentID"/>  
+    <Parameter name="parSourceOrderlineId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="getOrderId" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select c_order_id from c_orderline where c_orderline_id= ?
+    </Sql>
+    <Parameter name="parSourceOrderlineId"/>
+  </SqlMethod>
+  
+   <SqlMethod name="getDocumentMsg" type="preparedStatement" connection="true" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql> <![CDATA[
+       select '<br />'||zsse_htmlLinkDirectKey('../PurchaseOrder/Header_Relation.html',o.c_order_id,o.documentno)||'<br />'  from c_order o where o.c_order_id= ?
+    ]]></Sql>
+    <Parameter name="parOrderId"/>
+  </SqlMethod>
+  
+  <SqlMethod name="checkPOOffersAndCloseFromSO" type="preparedStatement" connection="true" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select c_checkPOOffersAndCloseFromSO(?,?)
+    </Sql>
+    <Parameter name="parSODocumentLineID"/>  
+    <Parameter name="parUserID"/>
+  </SqlMethod>
+  
+  </SqlClass>

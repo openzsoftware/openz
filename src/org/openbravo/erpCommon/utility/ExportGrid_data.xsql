@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2007 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+<SqlClass name="ExportGridData" package="org.openbravo.erpCommon.utility">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="getTitle" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT AD_COLUMN_IDENTIFIER(?,?, ?) AS TITLE
+      FROM DUAL
+    ]]></Sql>
+    <Parameter name="tablename"/>
+    <Parameter name="recordId"/>
+    <Parameter name="language"/>
+  </SqlMethod>
+  <SqlMethod name="isFirstLevel" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      SELECT to_char(tablevel) as tablevel from ad_tab where ad_tab_id= ?
+    ]]></Sql>
+    <Parameter name="tabId"/>
+  </SqlMethod>
+  <SqlMethod name="getKeyColumName" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+    SELECT columnname FROM
+      (SELECT columnname from ad_column, ad_tab where ad_column.ad_column_id=ad_tab.ad_column_id
+                             and ad_tab.ad_tab_id= ?
+       UNION ALL
+       SELECT columnname from ad_column where isparent='Y' and ad_table_id= ?
+       ) a where columnname is not null LIMIT 1
+    ]]></Sql>
+    <Parameter name="tabId"/>
+    <Parameter name="tableId"/>
+  </SqlMethod>
+  <SqlMethod name="getTablenameFromKeycolumn" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+    SELECT t.ad_table_id from ad_column c,ad_table t where lower(c.columnname) = lower(?) and c.iskey='Y' and t.isview='N' and t.ad_table_id=c.ad_table_id
+    ]]></Sql>
+    <Parameter name="keycolumn"/>
+  </SqlMethod>
+  <SqlMethod name="getTabIDFromTableandWindow" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+    SELECT ad_tab_id from ad_tab where ad_window_id = ? and ad_table_id = ? limit 1
+    ]]></Sql>
+    <Parameter name="windowid"/>
+    <Parameter name="tableid"/>
+  </SqlMethod>
+</SqlClass>

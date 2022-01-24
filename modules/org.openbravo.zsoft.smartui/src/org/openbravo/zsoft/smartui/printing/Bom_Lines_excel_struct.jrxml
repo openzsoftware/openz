@@ -1,0 +1,506 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.3.1.final using JasperReports Library version 6.3.1  -->
+<!-- 2017-02-27T14:51:11 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Bom_Lines_excel_struct" pageWidth="1800" pageHeight="100" orientation="Landscape" columnWidth="1800" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="0fd6a5af-9586-43db-967d-5f1582d79c94">
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.export.xls.ignore.graphics" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.detect.cell.type" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.ignore.cell.background" value="false"/>
+	<property name="net.sf.jasperreports.export.xls.ignore.cell.border" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.max.rows.per.sheet" value="0"/>
+	<property name="net.sf.jasperreports.export.xls.collapse.row.span" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.collapse.columns.span" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.one.page.per.sheet" value="false"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.columns" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.remove.empty.space.between.rows" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.size.fix.enabled" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.white.page.background" value="true"/>
+	<property name="net.sf.jasperreports.export.ignore.page.margins" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.wrap.text" value="true"/>
+	<property name="net.sf.jasperreports.export.xls.auto.fit.column" value="false"/>
+	<property name="net.sf.jasperreports.export.xls.auto.fit.row" value="false"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="modules/org.openbravo.zsoft.smartui/src/org/openbravo/zsoft/smartui/printing/OpenZSteuermann.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w1" value="0"/>
+	<property name="com.jaspersoft.studio.data.sql.SQLQueryDesigner.sash.w2" value="1000"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="Detail_Line" fontName="OpenZ Sans" fontSize="8">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#5D5D5D" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="10" isBold="true">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="M_PRODUCT_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ISINTERNAL" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ISSPAREPART" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ISCONSUMABLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ONLYONELEVEL" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AD_ORG_ID" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ONLYPURCHASE" class="java.lang.String"/>
+	<parameter name="ONLYPRODUCTION" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[WITH RECURSIVE temp1 (m_productbom_id, m_product_id, bomqty, product_value, description, PATH ) AS (
+SELECT m_product_bom.m_productbom_id, m_product_bom.m_product_id, m_product_bom.bomqty, m_product_bom.product_value, m_product_bom.description, 
+        CAST(elr_getchildcount(m_productbom_id) || case when m_product_bom.line<100 then ('00' || m_product_bom.line) else ('0' || m_product_bom.line) end || left(m_product_bom.m_productbom_id,5) AS VARCHAR (390)) as PATH
+        FROM m_product_bom WHERE m_product_bom.m_product_id=$P{M_PRODUCT_ID}
+    union
+    select T2.m_productbom_id, T2.m_product_id, T2.bomqty, T2.product_value, T2.description, 
+         CAST( temp1.PATH ||'-'|| elr_getchildcount(T2.m_productbom_id) || case when T2.line<100 then ('00' || T2.line) else ('0' || T2.line) end || left(T2.m_productbom_id,5) AS VARCHAR(390)) 
+         FROM m_product_bom T2 INNER JOIN temp1 ON(temp1.m_productbom_id=T2.m_product_id))
+select temp1.m_productbom_id as ID, temp1.m_product_id as PID,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=1 then  m_product.value||'<br/>'||m_product.name     else '' end as p_value_1,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=2 then m_product.value||'<br/>'||m_product.name   else '' end as p_value_2,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=3 then  m_product.value||'<br/>'||m_product.name    else '' end as p_value_3,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=4 then m_product.value||'<br/>'||m_product.name   else '' end as p_value_4,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=5 then  m_product.value||'<br/>'||m_product.name    else '' end as p_value_5,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=6 then  m_product.value||'<br/>'||m_product.name   else '' end as p_value_6,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=7 then  m_product.value||'<br/>'||m_product.name    else '' end as p_value_7,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=8 then  m_product.value||'<br/>'||m_product.name    else '' end as p_value_8,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=9 then  m_product.value||'<br/>'||m_product.name    else '' end as p_value_9,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=10 then  m_product.value||'<br/>'||m_product.name   else '' end as p_value_10,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=11 then  m_product.value||'<br/>'||m_product.name    else '' end as p_value_11,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=12 then  m_product.value||'<br/>'||m_product.name    else '' end as p_value_12,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=13 then  m_product.value||'<br/>'||m_product.name   else '' end as p_value_13,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=14 then  m_product.value||'<br/>'||m_product.name    else '' end as p_value_14,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=15 then  m_product.value||'<br/>'||m_product.name   else '' end as p_value_15,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=16 then  m_product.value||'<br/>'||m_product.name    else '' end as p_value_16,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=17 then  m_product.value||'<br/>'||m_product.name    else '' end as p_value_17,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=18 then  m_product.value||'<br/>'||m_product.name    else '' end as p_value_18,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=19 then  m_product.value||'<br/>'||m_product.name    else '' end as p_value_19,
+case when (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=20 then  m_product.value||'<br/>'||m_product.name   else '' end as p_value_20,
+m_product.name as product,
+0::numeric as nettotal,
+zssi_getelementtextbycolumname('M_Product_ID',$P{LANGUAGE}) as t_product,
+zssi_getelementtextbycolumname('Quantity',$P{LANGUAGE}) as t_quantity,
+zssi_getelementtextbycolumname('Nettotal',$P{LANGUAGE}) as t_net_total,
+temp1.PATH, (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1 as level, temp1.description as p_description,
+    sum(zssi_onhanqty_overview.qtyonhand) as lagmenge,
+    sum(zssi_onhanqty_overview.qtyinflow) as sumzu,
+    sum(zssi_onhanqty_overview.qtyoutflow) as sumab,
+    ROUND(temp1.bomqty,2) as bomqty
+       from temp1
+		left join m_product on (m_product.m_product_id=temp1.m_productbom_id)
+		left join zssi_onhanqty_overview on (zssi_onhanqty_overview.m_product_id=m_product.m_product_id)
+  where 
+   case when $P{ONLYONELEVEL}='Y' then (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))=1 else 1=1 end and
+   case when $P{ONLYPURCHASE}='Y' then m_product.ispurchased='Y' and m_product.production='N' else 1=1 end and
+    case when $P{ONLYPRODUCTION}='Y' then m_product.ispurchased='N' and m_product.production='Y' else 1=1 end 
+GROUP BY PATH,  ID, PID, p_value_1,p_value_2,p_value_3, p_value_4 , p_value_5 , p_value_6 , p_value_7 , p_value_8 , p_value_9 , p_value_10 , p_value_11 , p_value_12 , p_value_13 , p_value_14 , p_value_15 , p_value_16 , p_value_17 , p_value_18 , p_value_19 , p_value_20 , 
+product, p_description,bomqty
+ORDER by path]]>
+	</queryString>
+	<field name="id" class="java.lang.String"/>
+	<field name="pid" class="java.lang.String"/>
+	<field name="p_value_1" class="java.lang.String"/>
+	<field name="p_value_2" class="java.lang.String"/>
+	<field name="p_value_3" class="java.lang.String"/>
+	<field name="p_value_4" class="java.lang.String"/>
+	<field name="p_value_5" class="java.lang.String"/>
+	<field name="p_value_6" class="java.lang.String"/>
+	<field name="p_value_7" class="java.lang.String"/>
+	<field name="p_value_8" class="java.lang.String"/>
+	<field name="p_value_9" class="java.lang.String"/>
+	<field name="p_value_10" class="java.lang.String"/>
+	<field name="p_value_11" class="java.lang.String"/>
+	<field name="p_value_12" class="java.lang.String"/>
+	<field name="p_value_13" class="java.lang.String"/>
+	<field name="p_value_14" class="java.lang.String"/>
+	<field name="p_value_15" class="java.lang.String"/>
+	<field name="p_value_16" class="java.lang.String"/>
+	<field name="p_value_17" class="java.lang.String"/>
+	<field name="p_value_18" class="java.lang.String"/>
+	<field name="p_value_19" class="java.lang.String"/>
+	<field name="p_value_20" class="java.lang.String"/>
+	<field name="product" class="java.lang.String"/>
+	<field name="nettotal" class="java.math.BigDecimal"/>
+	<field name="t_product" class="java.lang.String"/>
+	<field name="t_quantity" class="java.lang.String"/>
+	<field name="t_net_total" class="java.lang.String"/>
+	<field name="path" class="java.lang.String"/>
+	<field name="level" class="java.lang.Integer"/>
+	<field name="p_description" class="java.lang.String"/>
+	<field name="lagmenge" class="java.math.BigDecimal"/>
+	<field name="sumzu" class="java.math.BigDecimal"/>
+	<field name="sumab" class="java.math.BigDecimal"/>
+	<field name="bomqty" class="java.math.BigDecimal"/>
+	<variable name="grandtotal" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{nettotal}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="19" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Header" mode="Opaque" x="0" y="0" width="30" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="e25630cf-0166-493d-b22c-f1b620cab26d"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{t_quantity}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement key="textField-1" style="Detail_Header" mode="Opaque" x="30" y="0" width="1000" height="19" forecolor="#000000" backcolor="#FFFFFF" uuid="f7fe3cef-684c-4509-b9e0-fef26091c64a">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle" markup="none">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{t_product}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="24" splitType="Stretch">
+			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
+				<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="0" y="0" width="30" height="24" uuid="63e81bca-714e-480a-8583-41842e051d11"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font size="8"/>
+					<paragraph leftIndent="1"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bomqty}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" mode="Opaque" x="980" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" backcolor="#CCCCCC" uuid="683232d6-8de9-469d-bd86-79a847f60810">
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_20}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="930" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="12098785-b983-4663-acbc-7ffecbe1deff"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_19}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" mode="Opaque" x="880" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" backcolor="#CCCCCC" uuid="1fd0ee02-1da1-4747-b73d-90654f4d8a59"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_18}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="830" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="ffc2d2f7-7b1e-42cf-9126-b1e5e85116fb"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_17}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" mode="Opaque" x="780" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" backcolor="#CCCCCC" uuid="6a20467c-ed0f-49d1-89d4-3b2736f34bfe"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_16}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="730" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="2927051a-be10-4140-aa1e-a69d150d4b92"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_15}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" mode="Opaque" x="680" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" backcolor="#CCCCCC" uuid="68ee531f-370d-4b6c-84de-d73fb26abeb3"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_14}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="630" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="a6043d44-e551-4f41-a9c9-00fc5bf1ba11"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_13}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" mode="Opaque" x="580" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" backcolor="#CCCCCC" uuid="c2a04358-c578-48d5-9f77-6418b83dc02d"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_12}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="530" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="e4a6983f-72c5-40f0-af0d-6826a9fd6ea2"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_11}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" mode="Opaque" x="480" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" backcolor="#CCCCCC" uuid="0d24e21e-d070-4390-a7dd-f8242e6aad50"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_10}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="430" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="6b2bec5f-ec43-4699-aa19-e301b8d30c10"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_9}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" mode="Opaque" x="380" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" backcolor="#CCCCCC" uuid="2b82dcb7-1b40-43ca-b14b-2c7acfd5ee14"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_8}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="330" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="a0b43958-c284-4482-9144-18f8874a82d7"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_7}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" mode="Opaque" x="280" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" backcolor="#CCCCCC" uuid="d23e70e0-85f0-496f-96c8-748183db4c61"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_6}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="230" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="e2c2e511-cc82-4468-8dbf-a9e60c1fe983"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_5}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" mode="Opaque" x="180" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" backcolor="#CCCCCC" uuid="fcad8ec5-d6df-4677-b74b-d68d1059c250"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_4}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="130" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="59fe8ddf-b85f-4d1d-b3e6-cf330f04652b"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_3}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" mode="Opaque" x="80" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" backcolor="#CCCCCC" uuid="311f4b71-beae-4999-b3f8-2c0b42d14634"/>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_2}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="30" y="0" width="250" height="24" isRemoveLineWhenBlank="true" isPrintWhenDetailOverflows="true" uuid="7ccbfb07-78de-47cc-aa79-94a31e214dcb">
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{p_value_1}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

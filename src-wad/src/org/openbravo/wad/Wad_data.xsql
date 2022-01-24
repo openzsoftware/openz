@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ *************************************************************************
+ * The contents of this file are subject to the Openbravo  Public  License
+ * Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+ * Version 1.1  with a permitted attribution clause; you may not  use this
+ * file except in compliance with the License. You  may  obtain  a copy of
+ * the License at http://www.openbravo.com/legal/license.html 
+ * Software distributed under the License  is  distributed  on  an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific  language  governing  rights  and  limitations
+ * under the License. 
+ * The Original Code is Openbravo ERP. 
+ * The Initial Developer of the Original Code is Openbravo SL 
+ * All portions are Copyright (C) 2001-2009 Openbravo SL 
+ * All Rights Reserved. 
+ * Contributor(s):  ______________________________________.
+ ************************************************************************
+-->
+
+
+
+<SqlClass name="WadData" package="org.openbravo.wad">
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Names of the columns of the fields of a tab</SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT MAX(COALESCE(ACTION, '') || AD_MODEL_OBJECT_ID) AS NAME, CLASSNAME, CLASSNAME AS DISPLAYNAME, 
+      MAX(LOADONSTARTUP) AS LOADONSTARTUP, '' AS VALUE, '' AS LINE, '' AS AUTH, '' as buildxml
+      FROM AD_MODEL_OBJECT 
+      WHERE ISACTIVE = 'Y' 
+      AND OBJECT_TYPE = 'S'
+      GROUP BY CLASSNAME
+      ORDER BY NAME
+      ]]>
+    </Sql>
+  </SqlMethod>
+  <SqlMethod name="set" type="constant" return="multiple">
+      <SqlMethodComment>Create a registry</SqlMethodComment>
+      <Sql></Sql>
+  </SqlMethod>
+  <SqlMethod name="selectMapping" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Names of the columns of the fields of a tab</SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT MAX(MO.ACTION || MO.AD_MODEL_OBJECT_ID) AS NAME, MOM.MAPPINGNAME AS CLASSNAME, MO.CLASSNAME AS DISPLAYNAME 
+      FROM AD_MODEL_OBJECT MO, AD_MODEL_OBJECT_MAPPING MOM
+      WHERE MO.ISACTIVE = 'Y'
+      AND MO.OBJECT_TYPE = 'S' 
+      AND MO.AD_MODEL_OBJECT_ID = MOM.AD_MODEL_OBJECT_ID 
+      AND MOM.ISACTIVE = 'Y' 
+      GROUP BY MO.CLASSNAME, MOM.MAPPINGNAME
+      ORDER BY NAME
+      ]]>
+    </Sql>
+  </SqlMethod>
+  <SqlMethod name="selectFilter" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Names of the columns of the fields of a tab</SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT MAX(COALESCE(ACTION, '') || AD_MODEL_OBJECT_ID) AS NAME, CLASSNAME, CLASSNAME AS DISPLAYNAME
+      FROM AD_MODEL_OBJECT 
+      WHERE ISACTIVE = 'Y' 
+      AND OBJECT_TYPE = 'F'
+      GROUP BY SEQNO,CLASSNAME
+      ORDER BY SEQNO,NAME
+      ]]>
+    </Sql>
+  </SqlMethod>
+  
+  <SqlMethod name="selectSessionTimeOut" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Names of the columns of the fields of a tab</SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT P.VALUE
+      FROM AD_MODEL_OBJECT O, AD_MODEL_OBJECT_PARA P
+      WHERE O.ISACTIVE = 'Y' 
+      AND O.OBJECT_TYPE = 'ST'
+      AND P.AD_MODEL_OBJECT_ID = O.AD_MODEL_OBJECT_ID
+      AND UPPER(P.NAME) = 'TIMEOUT' 
+      ]]>
+    </Sql>
+  </SqlMethod>
+  
+  <SqlMethod name="selectResource" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Names of the columns of the fields of a tab</SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT NAME, CLASSNAME, (SELECT MAX(VALUE)
+                                 FROM AD_MODEL_OBJECT_PARA P
+                                WHERE O.AD_MODEL_OBJECT_ID = P.AD_MODEL_OBJECT_ID
+                                  AND UPPER(P.NAME) = 'AUTH') AS AUTH 
+      FROM AD_MODEL_OBJECT  O
+      WHERE ISACTIVE = 'Y' 
+      AND OBJECT_TYPE = 'R'
+      ORDER BY seqno
+      ]]>
+    </Sql>
+  </SqlMethod>
+  
+  <SqlMethod name="selectFilterMapping" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Names of the columns of the fields of a tab</SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT MAX(MO.ACTION || MO.AD_MODEL_OBJECT_ID) AS NAME, MOM.MAPPINGNAME AS CLASSNAME, MO.CLASSNAME AS DISPLAYNAME 
+      FROM AD_MODEL_OBJECT MO, AD_MODEL_OBJECT_MAPPING MOM
+      WHERE MO.ISACTIVE = 'Y'
+      AND MO.OBJECT_TYPE = 'F' 
+      AND MO.AD_MODEL_OBJECT_ID = MOM.AD_MODEL_OBJECT_ID 
+      AND MOM.ISACTIVE = 'Y'
+      GROUP BY MO.CLASSNAME, MOM.MAPPINGNAME, MO.SEQNO 
+      ORDER BY SEQNO,NAME
+      ]]>
+    </Sql>
+  </SqlMethod>
+  <SqlMethod name="selectContextParams" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Selects all model object parameters of object type C</SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT P.NAME, P.VALUE
+      FROM AD_MODEL_OBJECT MO, AD_MODEL_OBJECT_PARA P
+      WHERE MO.ISACTIVE = 'Y'
+      AND MO.OBJECT_TYPE = 'C' 
+      AND MO.AD_MODEL_OBJECT_ID = P.AD_MODEL_OBJECT_ID 
+      AND P.ISACTIVE = 'Y'
+      ORDER BY MO.SEQNO, P.LINE, P.NAME
+      ]]>
+    </Sql>
+  </SqlMethod>
+  <SqlMethod name="selectParams" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Names of the columns of the fields of a tab</SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT MAX(LINE) AS  LINE, P.NAME, MAX(P.VALUE) AS VALUE
+      FROM AD_MODEL_OBJECT MO, AD_MODEL_OBJECT_PARA P
+      WHERE MO.ISACTIVE = 'Y'
+      AND MO.OBJECT_TYPE = ? 
+      AND MO.CLASSNAME = ?
+      AND MO.AD_MODEL_OBJECT_ID = P.AD_MODEL_OBJECT_ID 
+      AND P.ISACTIVE = 'Y'
+      GROUP BY P.NAME 
+      ORDER BY LINE, NAME
+      ]]>
+    </Sql>
+    <Parameter name="objectType"/>
+    <Parameter name="classname"/>
+  </SqlMethod>
+  <SqlMethod name="selectListener" type="preparedStatement" return="multiple">
+    <SqlMethodComment>Names of the columns of the fields of a tab</SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT COALESCE(ACTION, '') || AD_MODEL_OBJECT_ID AS NAME, CLASSNAME, CLASSNAME AS DISPLAYNAME
+      FROM AD_MODEL_OBJECT 
+      WHERE ISACTIVE = 'Y' 
+      AND OBJECT_TYPE = 'L'
+      ORDER BY SEQNO, NAME
+      ]]>
+    </Sql>
+  </SqlMethod>
+  <SqlMethod name="selectPixelSize" type="preparedStatement" return="String" default="">
+    <SqlMethodComment>Names of the columns of the fields of a tab</SqlMethodComment>
+    <Sql>
+      <![CDATA[
+      SELECT PIXELSIZE 
+      FROM AD_LANGUAGE 
+      WHERE AD_LANGUAGE = ? 
+      ]]>
+    </Sql>
+    <Parameter name="adLanguage"/>
+  </SqlMethod>
+  
+  <SqlMethod name="genereteWebXml" type="preparedStatement" return="boolean" default="true">
+    <Sql>
+      <![CDATA[
+         select (case when count(*)=0 then 0 else 1 end) as buildxml
+          from ad_system_info
+         where last_build < (select max(updated)
+                               from (select max(updated) as updated
+                                       from ad_model_object
+                                      union
+                                     select max(updated) 
+                                       from ad_model_object_mapping) upd) 
+      ]]>
+    </Sql>
+  </SqlMethod>
+  <SqlMethod name="updateIdentifiers" type="callableStatement" return="object" object="WadData">
+      <SqlMethodComment>procedure AD_Update_Table_Identifier</SqlMethodComment>
+      <Sql><![CDATA[
+        CALL AD_Update_Table_Identifier(NULL, ?)
+      ]]></Sql>
+      <Parameter name="quick"/>
+   </SqlMethod>
+</SqlClass>
