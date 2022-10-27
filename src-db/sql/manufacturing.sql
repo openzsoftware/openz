@@ -1017,6 +1017,7 @@ v_isclosed varchar;
 v_pcategory varchar;
 v_product varchar;
 v_value varchar;
+v_calcdate timestamp without time zone;
 BEGIN
 -- RAISE EXCEPTION '% = %', TG_NAME, TG_OP;
   IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; END IF;
@@ -1028,6 +1029,7 @@ BEGIN
   end if; 
   
   IF TG_OP != 'DELETE' then
+      select coalesce(coalesce(p.startdate,pt.startdate),trunc(now()))  into v_calcdate from c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and pt.c_projecttask_id=new.c_projecttask_id;
       if new.directship is null then new.directship:='N'; end if;
       if new.consumption is null then new.consumption:='N'; end if;
       select count(*) into v_count from m_product where (isactive!='Y' or Producttype!='I') and m_product_id=new.m_product_id;
@@ -1045,7 +1047,7 @@ BEGIN
       PERFORM zsmf_CheckProductBOMRecursive(v_product,new.m_product_id);
       -- Calculate actual planned amt
       if new.isreturnafteruse='N' then
-        new.plannedamt:=coalesce(m_get_product_cost(new.m_product_id,to_date(now()),null,new.ad_org_id)*new.quantity,0);
+        new.plannedamt:=coalesce(m_get_product_cost(new.m_product_id,v_calcdate,null,new.ad_org_id)*new.quantity,0);
       else
          new.plannedamt:=0;
       end if;
@@ -1135,6 +1137,8 @@ v_sql character varying;
 TYPE_Ref REFCURSOR;
 v_cursor TYPE_Ref%TYPE;
 v_cur RECORD;
+v_rlocator varchar;
+v_ilocator varchar;
 v_locator varchar;
 BEGIN
     --  Update AD_PInstance
@@ -1151,8 +1155,8 @@ BEGIN
            from c_project,c_projecttask 
            where c_project.c_project_id=c_projecttask.c_project_id and c_projecttask.c_projecttask_id=v_Record_ID;
     
-    select m_product.m_product_id,m_locator.m_warehouse_id,c_projecttask.qty,c_projecttask.ad_client_id,c_projecttask.ad_org_id 
-          into v_product,v_pwareh,v_qty,v_client,v_org from m_product,c_projecttask,m_locator where 
+    select m_product.m_product_id,m_locator.m_warehouse_id,c_projecttask.qty,c_projecttask.ad_client_id,c_projecttask.ad_org_id,c_projecttask.issuing_locator,c_projecttask.receiving_locator
+          into v_product,v_pwareh,v_qty,v_client,v_org,v_ilocator,v_rlocator from m_product,c_projecttask,m_locator where 
                                                           c_projecttask.m_product_id=m_product.m_product_id and m_product.m_locator_id=m_locator.m_locator_id and c_projecttask_id=v_Record_ID;
     select m_warehouse_id into v_tmpwh from m_product_org,m_locator where m_locator.m_locator_id=m_product_org.m_locator_id and m_product_id=v_product and m_warehouse_id=v_warehouse limit 1;
     if v_tmpwh is not null then 
@@ -1173,13 +1177,17 @@ BEGIN
     LOOP
          select coalesce(p.cutoff,0),p.producttype,c_uom.stdprecision into v_cutoff,v_ptype,v_prec 
                 from c_uom, m_product p where p.c_uom_id=c_uom.c_uom_id and p.m_product_id=v_cur.M_PRODUCT_ID;
+         select  m_locator_id into v_locator from m_product where m_product_id=v_cur.m_product_id;
          if v_ptype='I' then 
             if (select count(*) from zspm_projecttaskbom where C_PROJECTTASK_ID = v_Record_ID and m_product_id=v_cur.m_product_id)=0 then
                 insert into zspm_projecttaskbom(ZSPM_PROJECTTASKBOM_ID, C_PROJECTTASK_ID, AD_CLIENT_ID, AD_ORG_ID,CREATEDBY, updatedby, M_PRODUCT_ID, 
-                            QTY_PLAN,cutoff,quantity,constuctivemeasure,rawmaterial,line)
-                values (get_uuid(),v_Record_ID,v_client,v_org,v_user,v_user,v_cur.m_product_id,v_cur.quantity,v_cutoff,round(v_cur.quantity*coalesce(v_qty,1),v_prec),v_cur.constuctivemeasure,v_cur.rawmaterial,v_cur.line);
+                            QTY_PLAN,cutoff,quantity,constuctivemeasure,rawmaterial,line,issuing_locator,receiving_locator)
+                values (get_uuid(),v_Record_ID,v_client,v_org,v_user,v_user,v_cur.m_product_id,v_cur.quantity,v_cutoff,round(v_cur.quantity*coalesce(v_qty,1),v_prec),v_cur.constuctivemeasure,v_cur.rawmaterial,v_cur.line,
+                       coalesce(v_ilocator,v_locator),coalesce(v_rlocator,v_locator)
+                );
             else
-                update zspm_projecttaskbom set M_PRODUCT_ID=v_cur.M_PRODUCT_ID, QTY_PLAN=v_cur.quantity , quantity=round(v_cur.quantity*coalesce(v_qty,1),v_prec) , constuctivemeasure=v_cur.constuctivemeasure , rawmaterial = v_cur.rawmaterial
+                update zspm_projecttaskbom set M_PRODUCT_ID=v_cur.M_PRODUCT_ID, QTY_PLAN=v_cur.quantity , quantity=round(v_cur.quantity*coalesce(v_qty,1),v_prec) , constuctivemeasure=v_cur.constuctivemeasure , 
+                       rawmaterial = v_cur.rawmaterial,issuing_locator=coalesce(v_ilocator,v_locator),receiving_locator=coalesce(v_rlocator,v_locator)
                 where C_PROJECTTASK_ID = v_Record_ID and  m_product_id=v_cur.m_product_id;
             end if;
          end if;
@@ -1691,6 +1699,7 @@ v_batch   varchar;
 v_lineUUId varchar;
 v_isserial boolean:=false;
 v_DocumentNo varchar;
+v_qtyOnHand numeric;
 BEGIN 
      select c_project.m_warehouse_id,c_project.c_project_id,c_project.ad_client_id,c_project.ad_org_id into v_warehouse,v_project,v_client, v_org
            from c_project,c_projecttask 
@@ -1714,22 +1723,25 @@ BEGIN
     LOOP      
         -- uom
         select c_uom_id,isserialtracking,isbatchtracking into v_uom,v_serial,v_batch from m_product where m_product_id=v_cur.m_product_id;
-        v_Line:=v_Line+10;
-        select get_uuid() into v_lineUUId;
-        insert into M_INTERNAL_CONSUMPTIONLINE(M_INTERNAL_CONSUMPTIONLINE_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY, M_INTERNAL_CONSUMPTION_ID, 
+        select m_bom_qty_onhand(v_cur.m_product_id,null,v_cur.m_locator_id) into v_qtyOnHand;
+        if v_qtyOnHand>0 then
+            v_Line:=v_Line+10;
+            select get_uuid() into v_lineUUId;
+            insert into M_INTERNAL_CONSUMPTIONLINE(M_INTERNAL_CONSUMPTIONLINE_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY, M_INTERNAL_CONSUMPTION_ID, 
                                             M_LOCATOR_ID, M_PRODUCT_ID, LINE, MOVEMENTQTY, DESCRIPTION, C_UOM_ID, C_PROJECT_ID, C_PROJECTTASK_ID,zspm_projecttaskbom_id)
                 values (v_lineUUId,v_client,v_Org,NOW(), v_User, NOW(),v_User,v_uid,
-                    v_cur.m_locator_id,v_cur.M_Product_ID,v_Line,v_cur.quantity-v_cur.qtyreceived,'Generated by Production->Get Material from Stock',v_uom,v_project, v_projecttaskid,v_cur.zspm_projecttaskbom_id);
-        -- seruial Number Tracking?
-        if v_serial='Y' or v_batch='Y' then
-           v_isserial:=true;
-           v_message:=v_message||zsse_htmlLinkDirectKey('../InternalMaterialMovements/Lines_Relation.html',v_lineUUId,'Serial Number Tracking')||'<br />';
-        end if;
-        if (select allownegativestock from ad_clientinfo where ad_client_id=v_cur.ad_client_id)='N' then
-            if (select m_bom_qty_onhand(v_cur.m_product_id,null,v_cur.m_locator_id)) < (v_cur.quantity-v_cur.qtyreceived) then
-                raise exception '%', '@NotEnoughStocked@';
+                    v_cur.m_locator_id,v_cur.M_Product_ID,v_Line,least(v_qtyOnHand,(v_cur.quantity-v_cur.qtyreceived)),'Generated by Production->Get Material from Stock',v_uom,v_project, v_projecttaskid,v_cur.zspm_projecttaskbom_id);
+            -- seruial Number Tracking?
+            if v_serial='Y' or v_batch='Y' then
+                v_isserial:=true;
+                v_message:=v_message||zsse_htmlLinkDirectKey('../InternalMaterialMovements/Lines_Relation.html',v_lineUUId,'Serial Number Tracking')||'<br />';
             end if;
         end if;
+        --if (select allownegativestock from ad_clientinfo where ad_client_id=v_cur.ad_client_id)='N' then
+        --    if (select m_bom_qty_onhand(v_cur.m_product_id,null,v_cur.m_locator_id)) < (v_cur.quantity-v_cur.qtyreceived) then
+        --        raise exception '%', '@NotEnoughStocked@';
+        --    end if;
+        --end if;
     END LOOP;
     -- Take movable Machines into Workstep, if configured - First generate Messages for machines we cannot get....
     for v_cur in (select distinct snr.m_product_id,m.name,snr.serialnumber ,snr.m_locator_id,snr.c_projecttask_id
@@ -1924,9 +1936,27 @@ Contributor(s): ______________________________________.
 ***************************************************************************************************************************************************
 Restriction-Trigger for Internal-Consumption
 *****************************************************/
+DECLARE
+    v_snrs numeric;
+    v_bomplan numeric;
 BEGIN
   IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; END IF;
   IF TG_OP != 'DELETE' then
+      -- on Consumption for palnned serials, not more then we plan to produce...
+      /*
+      if new.movementtype='D-' and new.plannedserialnumber is not null and new.c_projecttask_id is not null and TG_OP = 'INSERT' then
+        select qty into v_bomplan from c_projecttask where c_projecttask_id=new.c_projecttask_id and assembly='Y';
+        if v_bomplan>0 and 
+            (select count(*) from m_internal_consumption where c_projecttask_id=new.c_projecttask_id and m_internal_consumption_id!=new.m_internal_consumption_id and plannedserialnumber=new.plannedserialnumber)=0 
+        then
+            select count(distinct plannedserialnumber) into v_snrs from m_internal_consumption where c_projecttask_id=new.c_projecttask_id and m_internal_consumption_id!=new.m_internal_consumption_id;
+
+            if v_snrs+1>v_bomplan then
+               RAISE EXCEPTION '%', round(v_bomplan,0)||' @toomanypannedserials@'; 
+            end if;
+        end if;
+      end if;
+      */
       if TG_OP = 'UPDATE' then
          if old.processing!=new.processing or old.processed!=new.processed or old.posted!=new.posted then
             RETURN NEW;
@@ -1946,8 +1976,7 @@ END;
 $BODY$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;
-
-
+ 
 CREATE OR REPLACE FUNCTION zsmf_mintconsumptionline_trg()
   RETURNS trigger AS
 $BODY$ DECLARE 
@@ -1973,7 +2002,12 @@ v_QUANTITYORDER NUMERIC;
 v_batchQty      NUMERIC;
 v_batchno varchar;
 v_cur RECORD;
-
+v_plannedsnr varchar;
+v_prj varchar;
+v_prd varchar;
+v_prodtsk varchar;
+v_qty numeric;
+v_rc snr_internal_consumptionline%rowtype;
 BEGIN
   IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; END IF;
   IF TG_OP != 'DELETE' then
@@ -1996,6 +2030,40 @@ BEGIN
           RETURN OLD; 
       end if;
   end if; 
+  -- Passing Workstep (Durchreiche AG mit SNR/CNR Verfolgung) -> Geplante SNR in Zeile einfügen
+  IF TG_OP = 'INSERT' then 
+    select m.plannedserialnumber,ml.c_project_id,ml.m_product_id,ml.movementqty into v_plannedsnr,v_prj,v_prd,v_qty from m_internal_consumption m,m_internal_consumptionline ml,c_project p,c_projecttask pt 
+        where m.m_internal_consumption_id=ml.m_internal_consumption_id and ml.c_projecttask_id=pt.c_projecttask_id and p.c_project_id=pt.c_project_id 
+        and p.projectcategory='PRO' and m.movementtype='D-' and pt.assembly='N' and ml.m_internal_consumptionline_id=new.m_internal_consumptionline_id; -- Durchreicher mit SNR/CNR (Entnahme)
+    if v_plannedsnr is not null and (select count(*) from c_projecttask where c_project_id=v_prj and assembly='Y' and m_product_id=v_prd)=1 then -- Prod-Task existiert für Artikel
+        select c_projecttask_id into v_prodtsk from c_projecttask where c_project_id=v_prj and assembly='Y' and m_product_id=v_prd;
+        -- Wurde SNR Produziert?
+        select snr.* into v_rc from snr_internal_consumptionline snr,m_internal_consumptionline l,m_internal_consumption m where l.m_internal_consumptionline_id=snr.m_internal_consumptionline_id and 
+               l.m_internal_consumption_id=m.m_internal_consumption_id and l.c_project_id=v_prj and m.movementtype='P+' and m.processed='Y' and m.plannedserialnumber=v_plannedsnr limit 1;
+        if v_rc.snr_internal_consumptionline_id is not null then
+            if (select sum(snr.quantity) from snr_internal_consumptionline snr,m_internal_consumptionline l,m_internal_consumption m where l.m_internal_consumptionline_id=snr.m_internal_consumptionline_id and 
+                           l.m_internal_consumption_id=m.m_internal_consumption_id and m.c_projecttask_id=new.c_projecttask_id  and m.processed='Y' and m.plannedserialnumber=v_plannedsnr and m.movementtype='D+' 
+                           and m.description='Generated by PDC ->Send produced Material on Stock')>=
+                   (select sum(snr.quantity) from snr_internal_consumptionline snr,m_internal_consumptionline l,m_internal_consumption m where l.m_internal_consumptionline_id=snr.m_internal_consumptionline_id and 
+                           l.m_internal_consumption_id=m.m_internal_consumption_id and l.c_project_id=v_prj and m.movementtype='P+' and m.processed='Y' and m.plannedserialnumber=v_plannedsnr)        
+            then
+                RAISE EXCEPTION '%', '@plannedserialisproduced@';
+            else
+                v_rc.snr_internal_consumptionline_id:=get_uuid();
+                v_rc.createdby:=new.createdby;
+                v_rc.updatedby:=new.updatedby;
+                v_rc.created:=new.created;
+                v_rc.updated:=new.updated;
+                v_rc.ad_org_id:=new.ad_org_id;
+                v_rc.m_internal_consumptionline_id:=new.m_internal_consumptionline_id;
+                v_rc.quantity:=v_qty;
+                insert into snr_internal_consumptionline select v_rc.*; 
+            end if;   
+        else
+           RAISE EXCEPTION '%', '@ThisItemWasNotProducedHere@' ; 
+        end if;
+    end if;
+  END IF;
   --
   -- Batch Control with FIFO
   IF TG_OP = 'INSERT' then
@@ -2033,7 +2101,7 @@ BEGIN
          end if;
     end if;
     if (select isbatchtracking from M_PRODUCT   WHERE M_Product_ID=NEW.M_PRODUCT_ID)='Y' and
-        (select c_getconfigoption('autoselectlotnumber',new.ad_org_id))='Y' and
+        (select c_getconfigoption('autoselectlotnumberprod',new.ad_org_id))='Y' and
         (select movementtype from M_Internal_Consumption where M_Internal_Consumption_id=new.M_Internal_Consumption_ID)='P+'
     then
         if c_getconfigoption('cnrdin', new.ad_org_id)='Y'  then

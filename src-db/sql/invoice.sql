@@ -51,10 +51,9 @@ BEGIN
   FROM C_INVOICE
   WHERE C_INVOICE_ID=v_C_INVOICE_ID;
   IF TG_OP = 'UPDATE' THEN
-    IF(v_Processed='Y' AND ((COALESCE(OLD.LINE, 0) <> COALESCE(NEW.LINE, 0))
-         OR(COALESCE(OLD.M_PRODUCT_ID, '0') <> COALESCE(NEW.M_PRODUCT_ID, '0'))
+    IF(v_Processed='Y' AND ((COALESCE(OLD.M_PRODUCT_ID, '0') <> COALESCE(NEW.M_PRODUCT_ID, '0'))
       OR(COALESCE(OLD.QTYINVOICED, 0) <> COALESCE(NEW.QTYINVOICED, 0))
-      OR(COALESCE(old.LINE, 0) <> COALESCE(NEW.LINE, 0))
+      --OR(COALESCE(old.LINE, 0) <> COALESCE(NEW.LINE, 0))
       OR(COALESCE(OLD.PRICELIST, 0) <> COALESCE(NEW.PRICELIST, 0))
       OR(COALESCE(OLD.PRICEACTUAL, 0) <> COALESCE(NEW.PRICEACTUAL, 0))
       --OR(COALESCE(OLD.PRICELIMIT, 0) <> COALESCE(NEW.PRICELIMIT, 0))
@@ -93,7 +92,6 @@ BEGIN
       end if;
   end if;
 IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
-
 END;$_$;
 
 
@@ -710,7 +708,7 @@ $BODY$ DECLARE
                         v_DateInvoiced, 
                         NULL, 'N', v_DateInvoiced, v_DateInvoiced, -- DateInvoiced=DateAcct
                         Cur_Order.C_PaymentTerm_ID, coalesce(v_invoicereceiver,Cur_Order.C_BPartner_ID), coalesce(v_invoiceadress,Cur_Order.BillTo_ID), Cur_Order.AD_User_ID,
-                        Cur_Order.POReference, Cur_Order.deliverylocationtext, Cur_Order.DateOrdered, Cur_Order.IsDiscountPrinted, Cur_Order.C_Currency_ID,
+                        case when Cur_Order.IsSOTrx='Y' then Cur_Order.POReference else null end, Cur_Order.deliverylocationtext, Cur_Order.DateOrdered, Cur_Order.IsDiscountPrinted, Cur_Order.C_Currency_ID,
                         Cur_Order.PaymentRule, Cur_Order.C_Charge_ID, Cur_Order.ChargeAmt, Cur_Order.IsSelfService,
                         0, 0, Cur_Order.M_PriceList_ID, Cur_Order.C_Campaign_ID,
                         Cur_Order.C_Activity_ID, Cur_Order.AD_OrgTrx_ID, Cur_Order.User1_ID,
@@ -722,7 +720,7 @@ $BODY$ DECLARE
                     v_lzend :=trunc(now()+100);
                     select ad_language into v_lang from c_bpartner where c_bpartner_id=coalesce(v_invoicereceiver,Cur_Order.C_BPartner_ID);
                     if v_lang is null then
-                        select coalesce(ad_language,'de_DE') into v_lang from ad_client where ad_client_id=new.ad_client_id;
+                        select coalesce(ad_language,'de_DE') into v_lang from ad_client where ad_client_id=Cur_Order.AD_Client_ID;
                     end if;
                     -- Update paymentschedule
                     if v_paymentschedule_id is not null then
@@ -3097,7 +3095,7 @@ BEGIN
      end if;
   end if; --Inserting 
   IF(TG_OP = 'UPDATE') then
-    if new.ispaid!=old.ispaid then
+    if new.ispaid!=old.ispaid or new.docstatus!=old.docstatus or old.totalpaid!=new.totalpaid then
         PERFORM zse_invoice_ecommercestatus(new.c_invoice_id);
     end if;
   end if;
@@ -3656,6 +3654,7 @@ CREATE VIEW c_invoice_candidate_v AS
            FROM c_order o,c_orderline l left join m_inoutline sl on sl.C_OrderLine_ID=l.C_OrderLine_ID AND sl.IsInvoiced='N' and c_orderinvoicerule(l.c_order_id) in ('D','O','S','DI')
                                         left join m_inout s on s.M_InOut_ID = sl.M_InOut_ID AND s.DocStatus = 'CO'
            WHERE  o.c_order_id = l.c_order_id
+                and o.iscompletelyinvoiced='N'
                 and c_isinvoicecandidate(o.c_order_id)='Y' and o.docstatus  = 'CO' 
   GROUP BY o.ad_client_id, o.ad_org_id, o.c_bpartner_id, o.c_order_id, o.documentno, o.datepromised,o.dateordered, o.c_doctype_id, o.issotrx, o.totallines, o.completeordervalue,o.invoicedamt,o.grandtotal, o.invoicerule, o.m_pricelist_id, o.c_currency_id
   ) sq;

@@ -208,7 +208,8 @@ select zsse_dropfunction ('zsco_get_indirect_cost');
 
 CREATE or replace FUNCTION zsco_get_indirect_cost(p_ma_indcost_id character varying, p_movementdate timestamp with time zone, p_costuom character varying,
                                                   p_projecttask_id varchar,p_planorfact varchar,p_product_id varchar,
-                                                  p_empcost OUT numeric,p_matcost OUT numeric, p_machinecost out numeric,p_vendorcost out numeric, p_extservicecost out numeric) RETURNS  RECORD
+                                                  p_empcost OUT numeric,p_matcost OUT numeric, p_machinecost out numeric,p_vendorcost out numeric, p_extservicecost out numeric,
+                                                  p_revenuecost out numeric) RETURNS  RECORD
 AS $_$
 DECLARE
 /***************************************************************************************************************************************************
@@ -229,18 +230,18 @@ v_expenseamt numeric;
 v_extserviceamt  numeric;
 v_invoicecost numeric;
 v_glcost numeric;
-v_taskdate timestamp;
 v_curr varchar;
   BEGIN
-    select coalesce(coalesce(pt.startdate,p.startdate),trunc(now()))  into v_taskdate from c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and pt.c_projecttask_id=p_projecttask_id;
     select a.c_currency_id into v_curr from ad_org_acctschema oa,c_acctschema a,c_project p,c_projecttask pt where oa.c_acctschema_id=a.c_acctschema_id 
     and oa.ad_org_id=p.ad_org_id and p.c_project_id=pt.c_project_id and pt.c_projecttask_id=p_projecttask_id;
-    for v_cost in ( select cv.ma_indirect_cost_value_id,coalesce(cv.empcost,0) as a,coalesce(cv.machinecost,0) as b,coalesce(cv.materialcost,0) as c,coalesce(cv.vendorcost,0) as d,coalesce(cv.extservicecost,0) as e
+    for v_cost in ( select cv.ma_indirect_cost_value_id,coalesce(cv.empcost,0) as a,coalesce(cv.machinecost,0) as b,coalesce(cv.materialcost,0) as c,coalesce(cv.vendorcost,0) as d,
+                    coalesce(cv.extservicecost,0) as e,coalesce(cv.revenue,0) as f
                     from ma_indirect_cost_value cv,ma_indirect_cost c where c.ma_indirect_cost_id=cv.ma_indirect_cost_id and
                     c.isactive='Y' and c.cost_type='S' and c.ma_indirect_cost_id=p_ma_indcost_id  
-                    and cv.datefrom<=v_taskdate and coalesce(p_costuom,'H')= cv.cost_uom and cv.isactive='Y'
+                    and cv.datefrom<=p_movementdate and coalesce(p_costuom,'H')= cv.cost_uom and cv.isactive='Y'
                     order by  cv.datefrom desc LIMIT 1)
     LOOP
+        p_revenuecost:=v_cost.f;
         if coalesce(p_planorfact,'Ä')='plan' and coalesce(p_costuom,'H')='P' and p_projecttask_id is not null then
             select sum(plannedamt)*v_cost.c/100 into v_bomamt from zspm_projecttaskbom where c_projecttask_id=p_projecttask_id  and isactive='Y'
                    and not exists (select 0 from ma_indirect_cost_value_product where  ma_indirect_cost_value_id=v_cost.ma_indirect_cost_value_id and m_product_id=zspm_projecttaskbom.m_product_id);                 
@@ -253,6 +254,12 @@ v_curr varchar;
                 else
                     if v_cur.m_product_id=p_product_id then
                         p_vendorcost:=coalesce(p_vendorcost,0)+round(coalesce(v_cur.plannedamt,0)*v_cur.cost/100,2);
+                        p_empcost:=coalesce(p_empcost,0);
+                        p_matcost:=coalesce(p_matcost,0);
+                        p_machinecost:=coalesce(p_machinecost,0);
+                        p_vendorcost:=coalesce(p_vendorcost,0);
+                        p_extservicecost:=coalesce(p_extservicecost,0);
+                        p_revenuecost:=coalesce(p_revenuecost,0);
                         RETURN;
                     end if;
                 end if;
@@ -274,6 +281,12 @@ v_curr varchar;
                 else
                     if v_cur.m_product_id=p_product_id then
                         p_vendorcost:=round(coalesce(v_cur.plannedamt,0)*v_cur.cost/100,2);
+                        p_empcost:=coalesce(p_empcost,0);
+                        p_matcost:=coalesce(p_matcost,0);
+                        p_machinecost:=coalesce(p_machinecost,0);
+                        p_vendorcost:=coalesce(p_vendorcost,0);
+                        p_extservicecost:=coalesce(p_extservicecost,0);
+                        p_revenuecost:=coalesce(p_revenuecost,0);
                         RETURN;
                     end if;
                 end if;
@@ -325,6 +338,12 @@ v_curr varchar;
                 else
                     if v_cur.m_product_id=p_product_id then
                         p_vendorcost:=round(coalesce(v_cur.invcost,0)*v_cur.cost/100,2);
+                        p_empcost:=coalesce(p_empcost,0);
+                        p_matcost:=coalesce(p_matcost,0);
+                        p_machinecost:=coalesce(p_machinecost,0);
+                        p_vendorcost:=coalesce(p_vendorcost,0);
+                        p_extservicecost:=coalesce(p_extservicecost,0);
+                        p_revenuecost:=coalesce(p_revenuecost,0);
                         RETURN;
                     end if;
                 end if;
@@ -340,6 +359,12 @@ v_curr varchar;
                 else
                     if v_cur.m_product_id=p_product_id then
                         p_vendorcost:=round(coalesce(v_cur.actualcosamount,0)*v_cur.cost/100,2);
+                        p_empcost:=coalesce(p_empcost,0);
+                        p_matcost:=coalesce(p_matcost,0);
+                        p_machinecost:=coalesce(p_machinecost,0);
+                        p_vendorcost:=coalesce(p_vendorcost,0);
+                        p_extservicecost:=coalesce(p_extservicecost,0);
+                        p_revenuecost:=coalesce(p_revenuecost,0);
                         RETURN;
                     end if;
                 end if;
@@ -356,13 +381,21 @@ v_curr varchar;
             p_machinecost:=v_cost.b;
             p_vendorcost:=round(v_expenseamt,2);
             p_extservicecost:=round(v_extserviceamt,2);
+            p_empcost:=coalesce(p_empcost,0);
+            p_matcost:=coalesce(p_matcost,0);
+            p_machinecost:=coalesce(p_machinecost,0);
+            p_vendorcost:=coalesce(p_vendorcost,0);
+            p_extservicecost:=coalesce(p_extservicecost,0);
+            p_revenuecost:=coalesce(p_revenuecost,0);
             RETURN;
         end if;
     END LOOP;
-    p_empcost:=0;
-    p_matcost:=0;
-    p_machinecost:=0;
-    p_vendorcost:=0;
+    p_empcost:=coalesce(p_empcost,0);
+    p_matcost:=coalesce(p_matcost,0);
+    p_machinecost:=coalesce(p_machinecost,0);
+    p_vendorcost:=coalesce(p_vendorcost,0);
+    p_extservicecost:=coalesce(p_extservicecost,0);
+    p_revenuecost:=coalesce(p_revenuecost,0);
     RETURN;
 END;
 $_$  LANGUAGE 'plpgsql';

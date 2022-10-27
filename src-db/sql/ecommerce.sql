@@ -1355,20 +1355,38 @@ LANGUAGE 'plpgsql';
 CREATE OR REPLACE FUNCTION zse_invoice_ecommercestatus(p_recordid varchar) RETURNS VOID AS
 $body$
 DECLARE 
+    v_docstatus varchar;
     v_status varchar;
     v_order  varchar;
+    v_fresh numeric;
+    v_cur RECORD;
 BEGIN
- -- Bankeinzug, Überweisung, Bar
- select i.ispaid,o.c_order_id into v_status,v_order from c_invoice i,c_order o where o.c_order_id=i.c_order_id and i.c_invoice_id=p_recordid 
-        and i.paymentrule in ('B','R','P') and i.issotrx='Y';
- if coalesce(v_status,'#')='Y' then
-    update zse_shoporderstatus set status='PAYMENT COMPLETED',updated=now(),ispaid='Y',isrefelctiondone='N' where c_order_id=v_order 
-           and issotrx='Y';
- end if;
- if coalesce(v_status,'#')='N' then
-    update zse_shoporderstatus set status='PAYMENT CANCELLED',updated=now(),ispaid='N',isrefelctiondone='N' where c_order_id=v_order 
-           and issotrx='Y';
- end if;
+    -- Rechnung erstellt, Zahlung: Bankeinzug, Überweisung, Bar
+    select i.docstatus,i.ispaid into v_docstatus,v_status from c_invoice i where i.c_invoice_id=p_recordid 
+         and i.issotrx='Y';
+    -- Existiert eine Zahlung ?
+    select count(*) into v_fresh from c_debt_payment where c_invoice_id=p_recordid and c_cashline_id is null and c_bankstatementline_id is null and c_settlement_cancel_id is null and c_settlement_generate_id is null;
+    if v_fresh=1 then
+        v_status:=null;
+    end if;
+    -- All Orders in the invoice..
+    for v_cur in (select distinct ol.c_order_id from c_orderline ol,c_invoiceline il where il.c_orderline_id=ol.c_orderline_id and il.c_invoice_id=p_recordid)
+    LOOP
+        -- Docstatus
+        if v_docstatus='CO' and v_fresh=1 then
+            update zse_shoporderstatus set status='INVOICE CREATED',updated=now(),ispaid='N',isrefelctiondone='N' where c_order_id=v_cur.c_order_id
+                and issotrx='Y';
+        end if;
+        -- Payment status 
+        if coalesce(v_status,'#')='Y' then
+            update zse_shoporderstatus set status='PAYMENT COMPLETED',updated=now(),ispaid='Y',isrefelctiondone='N' where c_order_id=v_cur.c_order_id
+                and issotrx='Y';
+        end if;
+        if coalesce(v_status,'#')='N' then
+            update zse_shoporderstatus set status='PAYMENT CANCELLED',updated=now(),ispaid='N',isrefelctiondone='N' where c_order_id=v_cur.c_order_id
+                and issotrx='Y';
+        end if;
+    END LOOP;
 END;
 $body$
 LANGUAGE 'plpgsql';

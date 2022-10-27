@@ -50,9 +50,9 @@
         <Parameter name="adUserOrg" type="replace" optional="true" after="mw.AD_Org_ID IN (" text="'1'"/>
         <Parameter name="key" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(m.VALUE) LIKE UPPER(?) ]]></Parameter>
         <Parameter name="warehouse" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(mw.NAME) LIKE UPPER(?) ]]></Parameter>
-        <Parameter name="aisle" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(m.X) LIKE UPPER(?) ]]></Parameter>
-        <Parameter name="bin" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(m.Y) LIKE UPPER(?) ]]></Parameter>
-        <Parameter name="level" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(m.Z) LIKE UPPER(?) ]]></Parameter>
+        <Parameter name="aisle" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND m.X = to_number(?) ]]></Parameter>
+        <Parameter name="bin" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND m.Y = to_number(?) ]]></Parameter>
+        <Parameter name="level" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND m.Z = to_number(?) ]]></Parameter>
         <Parameter name="orderBy" type="replace" optional="true" after="ORDER BY " text="m.M_LOCATOR_ID" />
         <Parameter name="oraLimit" type="argument" optional="true" after="WHERE 1=1"><![CDATA[AND RN1 BETWEEN ]]></Parameter>
         <Parameter name="pgLimit" type="argument" optional="true" after="WHERE 1=1"><![CDATA[LIMIT ]]></Parameter>
@@ -83,9 +83,9 @@
         <Parameter name="adUserOrg" type="replace" optional="true" after="mw.AD_Org_ID IN (" text="'1'"/>
         <Parameter name="key" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(m.VALUE) LIKE UPPER(?) ]]></Parameter>
         <Parameter name="warehouse" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(mw.NAME) LIKE UPPER(?) ]]></Parameter>
-        <Parameter name="aisle" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(m.X) LIKE UPPER(?) ]]></Parameter>
-        <Parameter name="bin" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(m.Y) LIKE UPPER(?) ]]></Parameter>
-        <Parameter name="level" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(m.Z) LIKE UPPER(?) ]]></Parameter>
+        <Parameter name="aisle" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND m.X =to_number(?) ]]></Parameter>
+        <Parameter name="bin" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND m.Y =to_number(?) ]]></Parameter>
+        <Parameter name="level" ignoreValue="%" optional="true" after="AND m.ISACTIVE = 'Y'"><![CDATA[ AND m.Z =to_number(?) ]]></Parameter>
         <Parameter name="pgLimit" type="argument" optional="true" after="AND 1=1"><![CDATA[LIMIT ]]></Parameter>
         <Parameter name="oraLimit1" type="argument" optional="true" after=") B"><![CDATA[ WHERE ROWNUM <= ]]></Parameter>
         <Parameter name="oraLimit2" type="argument" optional="true" after=") A "><![CDATA[WHERE RN1 BETWEEN ]]></Parameter>

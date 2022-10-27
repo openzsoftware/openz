@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<!-- Created with Jaspersoft Studio version 6.16.0.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RptStd_ShipmentLines" language="groovy" pageWidth="515" pageHeight="802" columnWidth="515" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="cd8dd5ca-d506-47b5-9313-c1efb3326dd2">
 	<property name="ireport.scriptlethandling" value="0"/>
 	<property name="ireport.encoding" value="UTF-8"/>
 	<property name="ireport.zoom" value="4.177248169415657"/>
 	<property name="ireport.x" value="1010"/>
 	<property name="ireport.y" value="0"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Localhost"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<import value="net.sf.jasperreports.engine.*"/>
 	<import value="java.util.*"/>
@@ -28,12 +28,16 @@
 	</parameter>
 	<parameter name="LANGUAGE2" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
-		<![CDATA[SELECT zssi_tinymce2jsreportsHTML(zspr_getProductPrintoutText(m_inoutline_id,$P{LANGUAGE},$P{LANGUAGE2})) as name,m_inoutline.ispagebreak,
+		<![CDATA[SELECT name,ispagebreak,zspr_getlocatorsfromshipline(m_inout_id,c_orderline_id) as checklocator,UOMNAME,uomid2,description,min(line) as line,
+       zssi_strNumber(coalesce(min(setqty),sum(MOVEMENTQTY)),$P{LANGUAGE}) as MOVEMENTQTY,zssi_strNumber(sum(quantityorder),$P{LANGUAGE}) as quantityorder,qtyordered,qtytodo,attribute,boxnumber,min(line2) as line2
+FROM (
+SELECT zssi_tinymce2jsreportsHTML(zspr_getProductPrintoutText(m_inoutline_id,$P{LANGUAGE},$P{LANGUAGE2})) as name,'N' as ispagebreak,c_orderline_id,io.m_inout_id,
        zssi_getuom(m_inoutline.c_uom_id,$P{LANGUAGE}) AS UOMNAME,
        zssi_getuom(m_product_uom.c_uom_id,$P{LANGUAGE}) AS uomid2,
        zssi_tinymce2jsreportsHTML(m_inoutline.description) as description, to_char(line) as line,
-       zssi_strNumber(MOVEMENTQTY,$P{LANGUAGE}) as MOVEMENTQTY,
-       zssi_strNumber(quantityorder,$P{LANGUAGE}) as quantityorder,
+       MOVEMENTQTY as MOVEMENTQTY,
+       setqty,
+       quantityorder,
        case when io.movementtype in ('V+','C-') then zssi_strNumber((select qtyordered from c_orderline where
                  c_orderline.c_orderline_id=m_inoutline.c_orderline_id),$P{LANGUAGE}) else '' end as qtyordered,
        case when io.movementtype in ('V+','C-') then
@@ -51,8 +55,9 @@
                                            and m_inoutline.m_product_id = m_product_uom.m_product_id,
              m_inout io
        where io.m_inout_id=m_inoutline.m_inout_id and m_inoutline.M_INOUT_ID IN ($P{SHIPMENT_ID})
+) a group by m_inout_id,c_orderline_id,name,ispagebreak,UOMNAME,uomid2,description,qtyordered,qtytodo,attribute,boxnumber
 UNION
-SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGUAGE2}) as name,'N' as ispagebreak,
+SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGUAGE2}) as name,'N' as ispagebreak,'' as checklocator,
        zssi_getuom(c_orderline.c_uom_id,$P{LANGUAGE}) AS UOMNAME,
        zssi_getuom(m_product_uom.c_uom_id,$P{LANGUAGE}) AS uomid2,
        zssi_tinymce2jsreportsHTML(c_orderline.description) as description, '' as line,
@@ -75,42 +80,59 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
        order by line2]]>
 	</queryString>
 	<field name="name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="name"/>
 		<property name="com.jaspersoft.studio.field.label" value="name"/>
 	</field>
 	<field name="ispagebreak" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ispagebreak"/>
 		<property name="com.jaspersoft.studio.field.label" value="ispagebreak"/>
 	</field>
+	<field name="checklocator" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="checklocator"/>
+		<property name="com.jaspersoft.studio.field.label" value="checklocator"/>
+	</field>
 	<field name="uomname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="uomname"/>
 		<property name="com.jaspersoft.studio.field.label" value="uomname"/>
 	</field>
 	<field name="uomid2" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="uomid2"/>
 		<property name="com.jaspersoft.studio.field.label" value="uomid2"/>
 	</field>
 	<field name="description" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="description"/>
 		<property name="com.jaspersoft.studio.field.label" value="description"/>
 	</field>
 	<field name="line" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="line"/>
 		<property name="com.jaspersoft.studio.field.label" value="line"/>
 	</field>
 	<field name="movementqty" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="movementqty"/>
 		<property name="com.jaspersoft.studio.field.label" value="movementqty"/>
 	</field>
 	<field name="quantityorder" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="quantityorder"/>
 		<property name="com.jaspersoft.studio.field.label" value="quantityorder"/>
 	</field>
 	<field name="qtyordered" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="qtyordered"/>
 		<property name="com.jaspersoft.studio.field.label" value="qtyordered"/>
 	</field>
 	<field name="qtytodo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="qtytodo"/>
 		<property name="com.jaspersoft.studio.field.label" value="qtytodo"/>
 	</field>
 	<field name="attribute" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="attribute"/>
 		<property name="com.jaspersoft.studio.field.label" value="attribute"/>
 	</field>
 	<field name="boxnumber" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="boxnumber"/>
 		<property name="com.jaspersoft.studio.field.label" value="boxnumber"/>
 	</field>
 	<field name="line2" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="line2"/>
 		<property name="com.jaspersoft.studio.field.label" value="line2"/>
 	</field>
 	<group name="Total">
@@ -149,7 +171,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 					<paragraph rightIndent="1"/>
 				</textElement>
 				<text><![CDATA[Pos.]]></text>
@@ -164,7 +186,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Product]]></text>
 			</staticText>
@@ -178,7 +200,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Quantity outstanding]]></text>
 			</staticText>
@@ -192,7 +214,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Unit]]></text>
 			</staticText>
@@ -209,7 +231,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Quantity]]></text>
 			</staticText>
@@ -223,7 +245,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Check]]></text>
 			</staticText>
@@ -237,7 +259,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Quantity ordered]]></text>
 			</staticText>
@@ -255,7 +277,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
-					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{name} + (($F{description} == null) ? "" : $F{description})]]></textFieldExpression>
 			</textField>
@@ -269,7 +291,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{uomname} + (($F{uomid2} == null) ? "" : "<br/>" + $F{uomid2})]]></textFieldExpression>
 			</textField>
@@ -286,7 +308,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph rightIndent="0"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{movementqty} + (($F{quantityorder} == null) ? "" : "<br/>" + $F{quantityorder})]]></textFieldExpression>
@@ -303,7 +325,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{line}]]></textFieldExpression>
 			</textField>
@@ -317,7 +339,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph rightIndent="2"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{qtytodo}]]></textFieldExpression>
@@ -332,7 +354,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[]]></textFieldExpression>
 			</textField>
@@ -346,7 +368,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph rightIndent="2"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{qtyordered}]]></textFieldExpression>
@@ -363,7 +385,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -379,7 +401,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -392,7 +414,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 			</textField>
 			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
@@ -405,7 +427,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
-					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -418,7 +440,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -431,7 +453,7 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph rightIndent="2"/>
 				</textElement>
 			</textField>
@@ -444,10 +466,10 @@ SELECT DISTINCT zspr_getProductPrintoutText(c_orderline_id,$P{LANGUAGE},$P{LANGU
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
-				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="8" />
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{checklocator}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>

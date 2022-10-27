@@ -1845,13 +1845,6 @@ CREATE TRIGGER zssi_resourceplanmachine_trg
   ON zspm_ptaskmachineplan FOR EACH ROW
   EXECUTE PROCEDURE zssi_resourceplanmachine_trg();
   
-  
-select zsse_dropview('zspm_workstepdropdown_v');
-CREATE OR REPLACE VIEW zspm_workstepdropdown_v AS
-SELECT pt.c_projecttask_id as zspm_workstepdropdown_v_id,p.ad_org_id,p.ad_client_id,p.updated,p.updatedby,p.created,p.createdby,'Y'::character as isactive, 
-       p.name||'-'||pt.name as name,pt.c_projecttask_id,p.projectstatus
-FROM c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and p.projectstatus in ('OP','OR') and pt.iscomplete='N' and pt.istaskcancelled='N' and p.ishidden='N';
-
 
 
 CREATE OR REPLACE FUNCTION zssi_deleteResourceTaskEntry(p_idvalue varchar)

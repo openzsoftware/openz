@@ -2,45 +2,40 @@
 
 SELECT zsse_DropView ('pdc_barcode_v');
 CREATE VIEW pdc_barcode_v AS
-  SELECT bp.value::varchar(200) AS barcode, 'EMPLOYEE' AS type, u.ad_user_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight
+  SELECT 'D' as ord,bp.value::varchar(200) AS barcode, 'EMPLOYEE' AS type, u.ad_user_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
   FROM ad_user u, c_bpartner bp
   WHERE 1=1
    AND bp.c_bpartner_id = u.c_bpartner_id
-   AND bp.isemployee = 'Y'
+   AND bp.isemployee = 'Y' and bp.isactive='Y' and u.isactive='Y'
  UNION
-  SELECT l.value::varchar(200) AS barcode, 'LOCATOR' AS type, l.m_locator_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight
-  FROM m_locator l
+  SELECT 'A' as ord,l.value::varchar(200) AS barcode, 'LOCATOR' AS type, l.m_locator_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+  FROM m_locator l where l.isactive='Y'
  UNION
-  SELECT p.value::varchar(200) AS barcode, 'PRODUCT' AS type, p.m_product_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight
-  FROM m_product p
+ -- SELECT 'B' as ord,p.value::varchar(200) AS barcode, 'PRODUCT' AS type, p.m_product_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+ -- FROM m_product p where p.isactive='Y'
+ --UNION
+ SELECT 'C' as ord,coalesce(ws.value,pro.value||'-'||ws.name)::varchar(200) AS barcode, 'WORKSTEP' AS type, ws.c_projecttask_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+  FROM c_projecttask ws, c_project pro 
+  WHERE ws.c_project_id = pro.c_project_id and pro.projectcategory != 'PRP'
  UNION
-  SELECT ws.value::varchar(200) AS barcode, 'WORKSTEP' AS type, ws.c_projecttask_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight
-  FROM c_projecttask ws, c_project pro WHERE ws.c_project_id = pro.c_project_id and pro.projectcategory = 'PRO'
- UNION
-  SELECT e.columnname::varchar(200) AS barcode, 'CONTROL' AS type, e.ad_element_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight
+  SELECT 'E' as ord,e.columnname::varchar(200) AS barcode, 'CONTROL' AS type, e.ad_element_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
   FROM ad_element e WHERE e.ad_module_id = '000CDBE191604F5A835A3EC3213719E8' AND description like 'CODE-128-code action%'
  UNION 
-  SELECT e.columnname::varchar(200) AS barcode, 'CALCULATION' AS type, e.ad_element_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight
+  SELECT 'H' as ord,e.columnname::varchar(200) AS barcode, 'CALCULATION' AS type, e.ad_element_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
   FROM ad_element e WHERE e.ad_module_id = '000CDBE191604F5A835A3EC3213719E8' AND description='scan calc'
  UNION
-  SELECT l.serialnumber::varchar(200) AS barcode, 'SERIALNUMBER' AS type, l.snr_masterdata_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight
+  SELECT 'F' as ord,l.serialnumber::varchar(200) AS barcode, 'SERIALNUMBER' AS type, l.snr_masterdata_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
   FROM snr_masterdata l
  UNION
-  SELECT l.batchnumber::varchar(200) AS barcode, 'BATCHNUMBER' AS type, l.snr_batchmasterdata_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight
-  FROM snr_batchmasterdata l;
+  SELECT 'G' as ord,l.batchnumber::varchar(200) AS barcode, 'BATCHNUMBER' AS type, l.snr_batchmasterdata_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+  FROM snr_batchmasterdata l
+ UNION
+  SELECT 'I' as ord,l.documentno::varchar(200) AS barcode, case when l.issotrx='Y' then 'SHIPMENT' else 'RECEIPT' end AS type, l.m_inout_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+  FROM m_inout l;
 
 CREATE OR REPLACE FUNCTION pdc_getDataIdFromScan(p_value VARCHAR)
 RETURNS SETOF pdc_barcode_v -- value, type, id, mess, ad_message_value
 AS $body$
--- SELECT * FROM pdc_getDataIdFromScan('xxxx');
--- SELECT * FROM pdc_getDataIdFromScan('9783939316800');     -- employee
--- SELECT * FROM pdc_getDataIdFromScan('Elektronik');        -- locator
--- SELECT * FROM pdc_getDataIdFromScan('Elektronik-2');
--- SELECT * FROM pdc_getDataIdFromScan('730192IAIEUF0005');  -- product
--- SELECT * FROM pdc_getDataIdFromScan('9783826604935');     -- workstep
--- SELECT * FROM pdc_getDataIdFromScan('bc cancel');         -- SBC_1_Abbrechen
--- SELECT * FROM pdc_getDataIdFromScan('bc next');           -- SBC_2_Naechster
--- SELECT * FROM pdc_getDataIdFromScan('bc readz');          -- SBC_3_Fertig
 DECLARE
   v_message  VARCHAR;
   y INTEGER := 0;
@@ -60,6 +55,7 @@ DECLARE
   v_product varchar;
   v_prodvalue varchar;
   v_snrorbtchvalue varchar;
+  v_snrvalue varchar;
   v_btchvalue varchar;
   v_weight varchar;
 BEGIN
@@ -69,22 +65,24 @@ BEGIN
         select SPLIT_PART(p_value, '|', 2) into v_snrorbtchvalue;-- 2nd Part (Serial or Batch)
         select SPLIT_PART(p_value, '|', 3) into v_btchvalue;-- 3rd Part 
         select SPLIT_PART(p_value, '|', 4) into v_weight;-- 4th Part 
-        select isserialtracking,isbatchtracking,m_product_id  into v_serial,v_batch,v_product from m_product where value=v_prodvalue;
+        select isserialtracking,isbatchtracking,m_product_id  into v_serial,v_batch,v_product from m_product where value=v_prodvalue and isactive='Y';
         -- Serial always in 2nd Part.
         if coalesce(v_serial,'')='Y' then
            select snr.snr_masterdata_id
                   into v_serialid from snr_masterdata snr,m_product p where p.m_product_id=snr.m_product_id and p.m_product_id=v_product
                                              and snr.serialnumber=v_snrorbtchvalue;
+           v_snrvalue:=v_snrorbtchvalue;
+        end if;        
+        -- Batch in New Barcodes 3rd Part
+        if v_batch='Y' and v_btchvalue!=''  then   
+            select snr.snr_batchmasterdata_id into v_batchid from snr_batchmasterdata snr,m_product p where p.m_product_id=snr.m_product_id and p.m_product_id=v_product
+                                             and snr.batchnumber=v_btchvalue;
         end if;
         -- Batch in old Barcodes also in 2nd Part
         if v_batch='Y' and v_btchvalue=''  then
            select snr.snr_batchmasterdata_id into v_batchid from snr_batchmasterdata snr,m_product p where p.m_product_id=snr.m_product_id and p.m_product_id=v_product
                                              and snr.batchnumber=v_snrorbtchvalue;
-        end if;
-        -- Batch in New Barcodes 3rd Part
-        if v_batch='Y' and v_btchvalue!=''  then   
-            select snr.snr_batchmasterdata_id into v_batchid from snr_batchmasterdata snr,m_product p where p.m_product_id=snr.m_product_id and p.m_product_id=v_product
-                                             and snr.batchnumber=v_btchvalue;
+           v_btchvalue:=v_snrorbtchvalue;
         end if;
         if v_product is not null then
             v_pdc_barcode_v.barcode := p_value;
@@ -92,6 +90,8 @@ BEGIN
             v_pdc_barcode_v.id := v_product;
             v_pdc_barcode_v.snrmasterdata_id := v_serialid;
             v_pdc_barcode_v.batchmasterdata_id := v_batchid;
+            v_pdc_barcode_v.serialnumber:=v_snrvalue;
+            v_pdc_barcode_v.lotnumber:=v_btchvalue;
             if v_weight!='' then
                 begin
                     v_pdc_barcode_v.weight:=to_number(v_weight);
@@ -104,12 +104,21 @@ BEGIN
             RETURN NEXT v_pdc_barcode_v;
         end if;       
     else
-        FOR v_resultSet IN
-        (SELECT * FROM pdc_barcode_v bc  WHERE bc.barcode = p_value)
-        LOOP
-        y := y + 1;
-        RETURN NEXT v_resultSet;
-        END LOOP;
+        SELECT 'B' as ord,p.value::varchar(200) AS barcode, 'PRODUCT' AS type, p.m_product_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+                   into v_pdc_barcode_v
+        FROM m_product p where p.isactive='Y' and (p.value=p_value or p.upc=p_value);
+        if v_pdc_barcode_v.type is not null then
+            v_pdc_barcode_v.barcode := p_value;
+            RETURN NEXT v_pdc_barcode_v;
+            y := y + 1;
+        else
+            FOR v_resultSet IN
+            (SELECT * FROM pdc_barcode_v bc  WHERE bc.barcode = p_value order by ord)
+            LOOP
+            y := y + 1;
+            RETURN NEXT v_resultSet;
+            END LOOP;
+        end if;
     end if;
     --RAISE NOTICE 'value=% y=%', p_value, y;
 
@@ -122,22 +131,6 @@ BEGIN
       v_pdc_barcode_v.batchmasterdata_id := '';
       RETURN NEXT v_pdc_barcode_v;
     END IF;
-/*
-    ELSEIF (y = 1) THEN
-      RETURN NEXT v_resultSet;
-
-    ELSEIF (y > 1) THEN
- -- SELECT * FROM pdc_getDataIdFromScan('Elektron%');
-      FOR v_resultSet IN
-        (SELECT * FROM pdc_barcode_v v WHERE v.barcode LIKE p_value || '%') -- ROWTYPE
-      LOOP
-        v_resultSet.type := 'UNDEFINED';
-        v_resultSet.mess := '@zssm_ResultSetAmbiguous@' || ' : ''' || v_resultSet.type || '''';
-        RETURN NEXT v_resultSet;
-        EXIT;
-      END LOOP;
-    END IF;
-*/
   END;
 EXCEPTION
 WHEN OTHERS THEN
@@ -164,10 +157,14 @@ DECLARE
   v_isBatchOrSerial CHAR := 'N';
   v_message VARCHAR;
   v_snr numeric;
+  v_tmpsnr numeric;
   v_qty numeric;
 BEGIN
   BEGIN
-    
+    if (select count(*) from m_internal_consumption where m_internal_consumption_id=p_consumption_id and relocationtrx='S')>0 then
+        -- Seriel Relocation always OK
+        return 'N';
+    end if;
     SELECT sum(micl.movementqty) into v_qty
     FROM m_internal_consumptionline micl , m_product p
     WHERE micl.m_product_id = p.m_product_id
@@ -178,7 +175,8 @@ BEGIN
       WHERE snr.m_internal_consumptionline_id=micl.m_internal_consumptionline_id and micl.m_product_id = p.m_product_id
        AND ( (p.isbatchtracking = 'Y') OR (p.isserialtracking = 'Y') )
        AND micl.m_internal_consumption_id = p_consumption_id;
-    if (coalesce(v_qty,0)-coalesce(v_snr,0))!=0 THEN 
+    select count(*) into v_tmpsnr from pdc_tempitems where m_internal_consumption_id = p_consumption_id;
+    if (coalesce(v_qty,0)-(coalesce(v_snr,0) + coalesce(v_tmpsnr,0)))!=0 THEN 
         v_isBatchOrSerial := 'Y';
     END IF;
     RETURN v_isBatchOrSerial;
@@ -444,135 +442,181 @@ END;
 $body$
 LANGUAGE 'plpgsql';
 
+-- For Task Feedback...
+select zsse_dropview('zspm_workstepdropdown_v');
+CREATE OR REPLACE VIEW zspm_workstepdropdown_v AS
+SELECT pt.c_projecttask_id as zspm_workstepdropdown_v_id,p.ad_org_id,p.ad_client_id,p.updated,p.updatedby,p.created,p.createdby,'Y'::character as isactive, 
+       p.name||'-'||pt.name as name,pt.c_projecttask_id,p.projectstatus
+FROM c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and p.projectstatus in ('OP','OR') and pt.iscomplete='N' and pt.istaskcancelled='N' and p.ishidden='N'
+     and pt.taskbegun='Y' and pt.feedbackfinished='N' and not exists (select 0 from c_bpartner b where b.c_project_id=p.c_project_id);
+
+
 select zsse_DropFunction ('pdc_settimefeedback');
-CREATE OR REPLACE FUNCTION pdc_settimefeedback (
-  p_org_id varchar,
-  p_workstep_id varchar,
-  p_user_id varchar,
-  p_timestamp timestamp
-)
+CREATE OR REPLACE FUNCTION pdc_settimefeedback (p_org_id varchar, p_workstep_id varchar, p_user_id varchar, p_timestamp timestamp,p_command varchar,p_description varchar,p_lang varchar)
 RETURNS varchar AS
 $body$
 DECLARE
-  y INTEGER := 0;
-  v_message  VARCHAR;
-  v_zspm_ptaskfeedbackline zspm_ptaskfeedbackline%ROWTYPE;
-  v_zssm_workstep_v  zssm_workstep_v%ROWTYPE;
-  v_c_project_id     VARCHAR;
-  v_gui_mess         VARCHAR;      -- dyn. erweiterbares Array
-  v_g                INTEGER := -1;
-  v_recordCount      INTEGER;
-  v_timestamp timestamp:=now();
+
+  v_message  VARCHAR:='';
+  v_prj varchar;
+  v_prt varchar;
+  v_tprj varchar; -- Reines Zeiterfassungsprojekt
+  v_tprt varchar;
+  v_description varchar;
+  v_timestamp_now timestamp:=now();
+  v_timestamp timestamp:='0001-01-01 00:00:00 BC'::timestamp   -- nur ab Stunden speichern, Tag ist immer 01.01.0001 -> Einheitlich mit Datum aus der GUI
+                         + (extract(hour from v_timestamp_now)) * interval '1 hour'
+                         + (extract(minute from v_timestamp_now)) * interval '1 minute'
+                         + (extract(second from v_timestamp_now)) * interval '1 second';
 BEGIN
-  IF (p_org_id IS NULL) THEN
-    RETURN ''; -- wg XSQL
+  if p_org_id is null then return 'COMPILE'; end if;
+  if p_description is not null and p_description!='' then 
+    v_description:=p_description;
+  end if;
+  -- Reines Zeiterfassungsprojekt (Komen/Gehen)
+  select  b.c_project_id into v_tprj from c_bpartner b,ad_user u where u.c_bpartner_id=b.c_bpartner_id and u.ad_user_id=p_user_id;
+  select c_projecttask_id into v_tprt from c_projecttask where c_project_id=v_tprj and taskbegun='Y' and feedbackfinished='N' and iscomplete='N' and istaskcancelled='N' order by seqno limit 1;
+  -- Arbeitsprojekt
+  if p_workstep_id is not null and p_workstep_id!=coalesce(v_tprt,'') then
+    select c_project_id into v_prj from c_projecttask where c_projecttask_id=p_workstep_id;
+    v_prt:=p_workstep_id;
+  end if; 
+  if v_prt is null and v_tprt is null then
+    raise exception '%','Kein Projekt gefunden. Zeitrückmeldung nicht möglich.';
+  end if;
+  -- Arbeisprojekt wird immer zurückgemeldet, sofern angegeben.
+  if v_prt is not null then 
+    IF (SELECT count(*) from zspm_ptaskfeedbackline where ad_user_id=p_user_id and hour_from is not null and hour_to is null and c_projecttask_id = v_prt and createdbytimefeedbackapp = 'Y')=0  and p_command!='LEAVING' THEN
+        -- Projekt anmelden
+        INSERT INTO zspm_ptaskfeedbackline (
+            zspm_ptaskfeedbackline_id,
+            ad_client_id,
+            ad_org_id,
+            createdby,
+            updatedby,
+            c_project_id,
+            c_projecttask_id,
+            ad_user_id,
+            workdate,
+            hour_from,
+            hour_to,
+            description,
+            createdbytimefeedbackapp
+        )
+        VALUES (
+            get_uuid(),
+            'C726FEC915A54A0995C568555DA5BB3C', --  ad_client_id VARCHAR(32) NOT NULL,
+            p_org_ID,                           --  ad_org_id VARCHAR(32) NOT NULL,
+            p_user_id,          --  createdby VARCHAR(32) NOT NULL,
+            p_user_id,          --  updatedby VARCHAR(32) NOT NULL,
+            v_prj,     -- c_project_id VARCHAR(32) NOT NULL,
+            v_prt,      -- c_projecttask_id VARCHAR(32) NOT NULL,
+            p_user_id,          -- ad_user_id VARCHAR(32),
+            TRUNC(v_timestamp_now), -- workdate TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+            v_timestamp,        -- hour_from TIMESTAMP WITHOUT TIME ZONE,
+            NULL ,               -- hour_to TIMESTAMP WITHOUT TIME ZONE,
+            v_description,
+            'Y'                  -- createdbytimefeedbackapp character(1) not null default 'N'
+        );
+        -- Evtl anderes offenes Projekt abmelden
+        UPDATE zspm_ptaskfeedbackline fbl SET
+            hour_to = v_timestamp,
+            updatedby = p_user_id,
+            updated = now(),
+            description=coalesce(v_description,description) 
+        WHERE fbl.ad_user_id = p_user_ID
+            AND fbl.hour_to IS NULL
+            AND fbl.c_projecttask_id != v_prt
+            AND fbl.c_projecttask_id != coalesce(v_tprt,'')
+            AND createdbytimefeedbackapp = 'Y'; -- nur projekte abmelden, die über app angemeldet wurden
+            v_message:='Aufgabe Beginn';
+    ELSE -- Projekt abmelden
+        UPDATE zspm_ptaskfeedbackline fbl SET
+        hour_to = v_timestamp,
+        updatedby = p_user_id,
+        updated = now(),
+        description=coalesce(v_description,description) 
+        WHERE fbl.ad_user_id = p_user_ID
+        AND fbl.hour_to IS NULL
+        AND case when p_command='LEAVING' and v_tprt is null then 1=1 else fbl.c_projecttask_id = v_prt end
+        AND createdbytimefeedbackapp = 'Y'; -- nur projekte abmelden, die über app angemeldet wurden
+        if p_command='LEAVING' then
+            v_message:='Arbeitszeit Ende';
+        else
+            v_message:='Aufgabe Ende';
+        end if;
+    END IF;
   END IF;
-  IF (p_timestamp IS NOT NULL) THEN
-    v_timestamp := p_timestamp;
-  END IF;
--- SELECT pdc_settimefeedback('AE3637495E9E4EBFA7E766FE9B97893A', 'E4169A63B193416F88D91905D4776B55', '3F1FCD828F544C89BDB948EB43575BE3', now()::timestamp); -- 'Zusammenbau PC-System'
--- SELECT pdc_settimefeedback('AE3637495E9E4EBFA7E766FE9B97893A', 'F9211A1C7EA449DA999DFE024C22B7BF', '3F1FCD828F544C89BDB948EB43575BE3', NULL); -- 'Allgemein'
--- SELECT pdc_settimefeedback('AE3637495E9E4EBFA7E766FE9B97893A', 'C2A0D112FE234BB08183087B0B331FF7', '3F1FCD828F544C89BDB948EB43575BE3', NULL); -- 'PRP'
-
--- get workstep according to productionorder (PRO)
-  SELECT pdc_ws.* FROM zssm_workstep_v pdc_ws, zssm_productionorder_v pdc_pro  -- projectCategory = 'PRO' only
-  INTO v_zssm_workstep_v  -- ROWTYPE
-  WHERE 1=1
-   AND pdc_ws.zssm_productionorder_v_id = pdc_pro.zssm_productionorder_v_id
-   AND pdc_ws.zssm_workstep_v_id = p_workstep_ID;  -- 'E4169A63B193416F88D91905D4776B55';
-
- -- restrictions
-  IF (v_zssm_workstep_v.zssm_workstep_v_id IS NULL) OR (v_zssm_workstep_v.zssm_productionorder_v_id IS NULL) THEN
-    RAISE EXCEPTION '%', '@zssm_WorkstepNotFound@'; -- PRO
-  ELSE
-    v_c_project_id := v_zssm_workstep_v.zssm_productionorder_v_id; --  zspm_ptaskfeedbackline.c_project_id NOT NULL;
-  END IF;
-
- -- select first record to be updated / by limit
-  SELECT * FROM zspm_ptaskfeedbackline fbl INTO v_zspm_ptaskfeedbackline
-  WHERE 1=1
-   AND fbl.c_projecttask_id = p_workstep_ID
-   AND fbl.ad_user_id = p_user_ID
-  ORDER BY fbl.hour_to DESC LIMIT 1; -- select record (hour_to IS NULL) first
- --
-  v_gui_mess:='NO Data found';
-  IF (v_zspm_ptaskfeedbackline.zspm_ptaskfeedbackline_id IS NULL) -- no record found in table zspm_ptaskfeedbackline
-  OR   (v_zspm_ptaskfeedbackline.hour_to IS NOT NULL)             -- one record to be finished
-   THEN
-   -- first timefeedback onto this workstep
-    INSERT INTO zspm_ptaskfeedbackline (
-     -- (v_zssm_workstep_v.taskbegun = 'Y') : managed by trigger
-      zspm_ptaskfeedbackline_id,
-      ad_client_id,
-      ad_org_id,
-      createdby,
-      updatedby,
-      c_project_id,
-      c_projecttask_id,
-      ad_user_id,
-      workdate,
-      hour_from,
-      hour_to
-    )
-    VALUES (
-      get_uuid(),
-      'C726FEC915A54A0995C568555DA5BB3C', --  ad_client_id VARCHAR(32) NOT NULL,
-      p_org_ID,                           --  ad_org_id VARCHAR(32) NOT NULL,
-      p_user_id,          --  createdby VARCHAR(32) NOT NULL,
-      p_user_id,          --  updatedby VARCHAR(32) NOT NULL,
-      v_c_project_id,     -- c_project_id VARCHAR(32) NOT NULL,
-      p_workstep_ID,      -- c_projecttask_id VARCHAR(32) NOT NULL,
-      p_user_id,          -- ad_user_id VARCHAR(32),
-      TRUNC(v_timestamp), -- workdate TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-      v_timestamp,        -- hour_from TIMESTAMP WITHOUT TIME ZONE,
-      NULL                -- hour_to TIMESTAMP WITHOUT TIME ZONE
-  --, isprocessed:='Y'    -- set by trigger zspm_ptaskfeedbackline_trg
-    );
-    v_g := (v_g + 1);
-    v_gui_mess := '@TimeFeedbackAdded@';
- -- RAISE NOTICE '%', v_gui_mess[v_g];
-  ELSEIF (     (v_zspm_ptaskfeedbackline.zspm_ptaskfeedbackline_id IS NOT NULL) -- record found for update
-           AND (v_zspm_ptaskfeedbackline.hour_from IS NOT NULL)
-           AND (v_zspm_ptaskfeedbackline.hour_to   IS NULL) ) THEN
-    UPDATE zspm_ptaskfeedbackline fbl SET
-      hour_to = v_timestamp,
-      updatedby = p_user_id,
-      updated = now()
-    WHERE 1=1
-     AND fbl.ad_user_id = p_user_ID
-     AND fbl.hour_to IS NULL
-     AND fbl.c_projecttask_id = p_workstep_ID;
-
-    v_g := (v_g + 1);
-    v_gui_mess := '@TimeFeedbackFinished@';
-  END IF;
-
--- update timefeedback: this user, other worksteps, not finished
-  SELECT COUNT(*) FROM zspm_ptaskfeedbackline fbl
-  INTO v_recordCount
-  WHERE 1=1
-   AND fbl.ad_user_id = p_user_ID
-   AND fbl.hour_to IS NULL
-   AND fbl.c_projecttask_id <> p_workstep_ID;
-
-  IF (v_recordCount >= 1) THEN
-    UPDATE zspm_ptaskfeedbackline fbl SET
-      hour_to = v_timestamp,
-      updatedby = p_user_id,
-      updated = now()
-    WHERE 1=1
-     AND fbl.ad_user_id = p_user_ID
-     AND fbl.hour_to IS NULL
-     AND fbl.c_projecttask_id <> p_workstep_ID;
-
-    v_g := (v_g + 1);
-    v_gui_mess := '@TimeFeedbackFinished@';
-  END IF;
-  RETURN v_gui_mess;
-EXCEPTION
-WHEN OTHERS THEN
-  v_message := 'SQL_PROC: pdc_settimefeedback()' || SQLERRM;
-  RAISE EXCEPTION '%', v_message;
+  if v_tprt is not null then 
+    -- Zeiterfassungsprojekt rückmelden
+    if p_command='COMING' then
+        if (SELECT count(*) from zspm_ptaskfeedbackline where ad_user_id=p_user_id and hour_from is not null and hour_to is null and c_projecttask_id = v_tprt and createdbytimefeedbackapp = 'Y')>0 then
+            raise exception '%','Zeit läuft bereits-Anmeldung nicht möglich.';
+        else
+            INSERT INTO zspm_ptaskfeedbackline (
+            zspm_ptaskfeedbackline_id,
+            ad_client_id,
+            ad_org_id,
+            createdby,
+            updatedby,
+            c_project_id,
+            c_projecttask_id,
+            ad_user_id,
+            workdate,
+            hour_from,
+            hour_to,
+            description,
+            createdbytimefeedbackapp
+            )
+            VALUES (
+            get_uuid(),
+            'C726FEC915A54A0995C568555DA5BB3C', --  ad_client_id VARCHAR(32) NOT NULL,
+            p_org_ID,                           --  ad_org_id VARCHAR(32) NOT NULL,
+            p_user_id,          --  createdby VARCHAR(32) NOT NULL,
+            p_user_id,          --  updatedby VARCHAR(32) NOT NULL,
+            v_tprj,     -- c_project_id VARCHAR(32) NOT NULL,
+            v_tprt,      -- c_projecttask_id VARCHAR(32) NOT NULL,
+            p_user_id,          -- ad_user_id VARCHAR(32),
+            TRUNC(v_timestamp_now), -- workdate TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+            v_timestamp,        -- hour_from TIMESTAMP WITHOUT TIME ZONE,
+            NULL,                -- hour_to TIMESTAMP WITHOUT TIME ZONE,
+            v_description,
+            'Y'                  -- createdbytimefeedbackapp character(1) not null default 'N'
+            );
+            if v_message !='' then
+                v_message:='Arbeitszeit/Aufgabe Beginn';
+            else
+                v_message:='Arbeitszeit Beginn';
+            end if;
+        end if;
+    end if;
+    if p_command='LEAVING' then
+        if (SELECT count(*) from zspm_ptaskfeedbackline where ad_user_id=p_user_id and hour_from is not null and hour_to is null and c_projecttask_id = v_tprt and createdbytimefeedbackapp = 'Y')=0 then
+            raise exception '%','Nicht angemeldet-Abmeldung nicht möglich.';
+        else
+           -- zuerst möglichen Arbeitsschritt schließen, erst dann Zeiterfassungsprojekt
+           UPDATE zspm_ptaskfeedbackline fbl SET
+                hour_to = v_timestamp,
+                updatedby = p_user_id,
+                updated = now(),
+                description=coalesce(v_description,description)
+            WHERE fbl.ad_user_id = p_user_ID
+            AND fbl.hour_to IS NULL
+            AND fbl.createdbytimefeedbackapp = 'Y'
+            AND fbl.c_projecttask_id != v_tprt; -- nicht Zeiterfassungsprojekt
+            UPDATE zspm_ptaskfeedbackline fbl SET
+                hour_to = v_timestamp,
+                updatedby = p_user_id,
+                updated = now(),
+                description=coalesce(v_description,description)
+            WHERE fbl.ad_user_id = p_user_ID
+            AND fbl.hour_to IS NULL
+            AND fbl.createdbytimefeedbackapp = 'Y';
+            v_message:='Arbeitszeit Ende';
+        end if;
+     end if;
+  end if;
+  return v_message;
 END;
 $body$
 LANGUAGE 'plpgsql';
@@ -673,43 +717,140 @@ END;
 $body$
 LANGUAGE 'plpgsql';
 
-CREATE OR REPLACE FUNCTION pdc_isProductionPlannedSerialPossible(p_workstepid VARCHAR,p_plannedserial varchar) RETURNS varchar
+
+CREATE OR REPLACE FUNCTION pdc_getStrictBATCHPossibleQty(p_workstepid VARCHAR,p_plannedBtchNo VARCHAR) RETURNS numeric
 AS $body$
 DECLARE
   v_cur RECORD;
   v_count INTEGER;
 
   v_receivedqty numeric;
+  v_producedqty numeric;
+  v_oneqty numeric;
+  v_plannedqty numeric;
+  v_possibleqty numeric;
+BEGIN
+  select count(*) into v_count from c_projecttask pt where pt.c_projecttask_id=p_workstepid and pt.assembly='Y';
+  if v_count=1 then --assembling Workstep.
+     select sum(ml.movementqty) into v_producedqty from m_internal_consumptionline ml,m_internal_consumption m where m.m_internal_consumption_id=ml.m_internal_consumption_id
+            and m.processed='Y' and ml.c_projecttask_id=p_workstepid and  m.plannedserialnumber=p_plannedBtchNo
+            and m.movementtype ='P+';
+     if v_producedqty is null then v_producedqty:=0; end if;
+     select trunc(qty) into v_plannedqty from c_projecttask where c_projecttask_id=p_workstepid;
+     v_possibleqty:=v_plannedqty-v_producedqty;
+     -- Iterating BOM and Consumptions
+     FOR v_cur IN (select zspm_projecttaskbom_id as zspm_projecttaskbom_id,qtyreceived as qtyreceived,quantity as quantity,m_product_id 
+                   from zspm_projecttaskbom where c_projecttask_id=p_workstepid)
+     LOOP
+        v_oneqty:=(v_cur.quantity / (case coalesce(v_plannedqty,1) when 0 then 1 else coalesce(v_plannedqty,1) end));
+        select sum((case when m.movementtype='D+' then -1 else 1 end)*ml.movementqty) into v_receivedqty from m_internal_consumptionline ml,m_internal_consumption m where m.m_internal_consumption_id=ml.m_internal_consumption_id
+            and m.processed='Y' and ml.c_projecttask_id=p_workstepid and ml.m_product_id=v_cur.m_product_id and m.plannedserialnumber=p_plannedBtchNo
+            and m.movementtype in ('D+','D-');
+            --raise notice '%',v_cur.m_product_id||'#'|| coalesce(v_receivedqty,0)||'#'||
+        if (coalesce(v_receivedqty,0)/v_oneqty)<v_possibleqty then
+            v_possibleqty:=(coalesce(v_receivedqty,0)/v_oneqty);
+        end IF;
+     END LOOP;
+  else -- Durchreiche 
+    select sum((case when m.movementtype='M+' then -1 else 1 end) * snr.quantity) into v_possibleqty from snr_internal_consumptionline snr,m_internal_consumptionline l,m_internal_consumption m where l.m_internal_consumptionline_id=snr.m_internal_consumptionline_id and 
+               l.m_internal_consumption_id=m.m_internal_consumption_id and l.c_projecttask_id=p_workstepid  and m.processed='Y' and m.plannedserialnumber=p_plannedBtchNo
+               and snr.lotnumber=p_plannedBtchNo;
+    if v_producedqty is null then v_producedqty:=0; end if;           
+  end if;
+  if round(v_possibleqty-v_producedqty,3)=0.000 then
+    return null;
+  else  
+    RETURN v_possibleqty-v_producedqty;
+  end if;
+END;
+$body$
+LANGUAGE 'plpgsql';
+
+select zsse_dropfunction('pdc_isProductionPlannedSerialPossible');
+CREATE OR REPLACE FUNCTION pdc_isProductionPlannedSerialPossible(p_workstepid VARCHAR,p_plannedserial varchar,p_qtyprod numeric) RETURNS varchar
+AS $body$
+DECLARE
+  v_cur RECORD;
+  v_count INTEGER;
+
+  v_receivedqty numeric;
+  v_producedqty numeric;
   v_oneqty numeric;
  v_plannedqty numeric;
 BEGIN
   select count(*) into v_count from c_projecttask pt where pt.c_projecttask_id=p_workstepid and pt.assembly='Y';
   if v_count=1 then --assembling Workstep.
-    select count(*) into v_count from m_internal_consumption where plannedserialnumber=p_plannedserial and movementtype='P+' and processed='Y';
-    if v_count>0 then -- Already produced?
-        RETURN 'N';
-    end if;
+     select sum(ml.movementqty) into v_producedqty from m_internal_consumptionline ml,m_internal_consumption m where m.m_internal_consumption_id=ml.m_internal_consumption_id
+            and m.processed='Y' and ml.c_projecttask_id=p_workstepid and  m.plannedserialnumber=p_plannedserial
+            and m.movementtype ='P+';
+     if v_producedqty is null then v_producedqty:=0; end if;
      select trunc(qty) into v_plannedqty from c_projecttask where c_projecttask_id=p_workstepid;
      -- On Planned Serials always qty=1 
      FOR v_cur IN (select zspm_projecttaskbom_id as zspm_projecttaskbom_id,qtyreceived as qtyreceived,quantity as quantity,m_product_id 
                    from zspm_projecttaskbom where c_projecttask_id=p_workstepid)
      LOOP
-        v_oneqty:=v_cur.quantity / (case coalesce(v_plannedqty,1) when 0 then 1 else coalesce(v_plannedqty,1) end);
-        select sum((case when m.movementtype='M+' then -1 else 1 end)*ml.movementqty) into v_receivedqty from m_internal_consumptionline ml,m_internal_consumption m where m.m_internal_consumption_id=ml.m_internal_consumption_id
-            and m.processed='Y' and ml.c_projecttask_id=p_workstepid and ml.m_product_id=v_cur.m_product_id and m.plannedserialnumber=p_plannedserial;
+        v_oneqty:=(v_cur.quantity / (case coalesce(v_plannedqty,1) when 0 then 1 else coalesce(v_plannedqty,1) end))*(p_qtyprod+v_producedqty);
+        select sum((case when m.movementtype='D+' then -1 else 1 end)*ml.movementqty) into v_receivedqty from m_internal_consumptionline ml,m_internal_consumption m where m.m_internal_consumption_id=ml.m_internal_consumption_id
+            and m.processed='Y' and ml.c_projecttask_id=p_workstepid and ml.m_product_id=v_cur.m_product_id and m.plannedserialnumber=p_plannedserial
+            and m.movementtype in ('D+','D-');
             --raise notice '%',v_cur.m_product_id||'#'|| coalesce(v_receivedqty,0)||'#'||
         if coalesce(v_receivedqty,0)<v_oneqty then
             RETURN 'N';
         end IF;
      END LOOP;
      RETURN 'Y';
+  else -- Durchreiche 
+    if (select sum((case when m.movementtype='M+' then -1 else 1 end) * snr.quantity) from snr_internal_consumptionline snr,m_internal_consumptionline l,m_internal_consumption m where l.m_internal_consumptionline_id=snr.m_internal_consumptionline_id and 
+               l.m_internal_consumption_id=m.m_internal_consumption_id and l.c_projecttask_id=p_workstepid  and m.processed='Y' and m.plannedserialnumber=p_plannedserial
+               and (snr.lotnumber=p_plannedserial or snr.serialnumber=p_plannedserial))>=p_qtyprod
+    then
+        RETURN 'Y';
+    end if;
   end if;
   RETURN 'N';
 END;
 $body$
 LANGUAGE 'plpgsql';
 
+select zsse_dropfunction('pdc_ProductionPlannedSerialQty');
+CREATE OR REPLACE FUNCTION pdc_ProductionPlannedSerialQty(p_workstepid VARCHAR,p_plannedserial varchar) RETURNS varchar
+AS $body$
+DECLARE
+  v_cur RECORD;
+  v_count INTEGER;
 
+  v_receivedqty numeric;
+  v_producedqty numeric;
+  v_oneqty numeric;
+ v_plannedqty numeric;
+ v_possibleqty numeric:=0;
+BEGIN
+  select count(*) into v_count from c_projecttask pt where pt.c_projecttask_id=p_workstepid and pt.assembly='Y';
+  if v_count=1 then --assembling Workstep.
+    select sum(ml.movementqty) into v_producedqty from m_internal_consumptionline ml,m_internal_consumption m where m.m_internal_consumption_id=ml.m_internal_consumption_id
+            and m.processed='Y' and ml.c_projecttask_id=p_workstepid  and m.plannedserialnumber=p_plannedserial
+            and m.movementtype ='P+';
+     if v_producedqty is null then v_producedqty:=0; end if;
+     select trunc(qty) into v_plannedqty from c_projecttask where c_projecttask_id=p_workstepid;
+     -- On Planned Serials always qty=1 
+     FOR v_cur IN (select zspm_projecttaskbom_id as zspm_projecttaskbom_id,qtyreceived as qtyreceived,quantity as quantity,m_product_id 
+                   from zspm_projecttaskbom where c_projecttask_id=p_workstepid)
+     LOOP
+        v_oneqty:=(v_cur.quantity / (case coalesce(v_plannedqty,1) when 0 then 1 else coalesce(v_plannedqty,1) end));
+        select sum((case when m.movementtype='M+' then -1 else 1 end)*ml.movementqty) into v_receivedqty from m_internal_consumptionline ml,m_internal_consumption m where m.m_internal_consumption_id=ml.m_internal_consumption_id
+            and m.processed='Y' and ml.c_projecttask_id=p_workstepid and ml.m_product_id=v_cur.m_product_id and m.plannedserialnumber=p_plannedserial
+            and m.movementtype in ('D+','D-');
+            --raise notice '%',v_cur.m_product_id||'#'|| coalesce(v_receivedqty,0)||'#'||v_oneqty;
+        if coalesce(v_receivedqty/v_oneqty,0)>v_possibleqty then
+            v_possibleqty:=coalesce(v_receivedqty/v_oneqty,0);
+        end IF;
+     END LOOP;
+     RETURN  zssi_strnumber(v_possibleqty-v_producedqty,'de_DE');
+  end if;
+  RETURN 'N';
+END;
+$body$
+LANGUAGE 'plpgsql';
 
 CREATE OR REPLACE FUNCTION pdc_bc_btn_cancel() RETURNS VARCHAR AS
 $body$
@@ -803,7 +944,7 @@ $body$
 LANGUAGE 'plpgsql';
 
 SELECT zsse_dropview('pdc_workstepbom_v');
-CREATE VIEW pdc_workstepbom_v 
+CREATE VIEW pdc_workstepbom_v
 AS
 SELECT
   zspmwsbom.zspm_projecttaskbom_id AS pdc_workstepbom_v_id,
@@ -819,9 +960,9 @@ SELECT
   zspmwsbom.m_product_id,
   zspmwsbom.line,
   zspmwsbom.quantity,
-  case when t.assembly='N' and zspmwsbom.line=10 then 1 else case when t.qty >0 then zspmwsbom.quantity/t.qty else 0 end end as qtyforone,
-  case when t.assembly='N' and zspmwsbom.line=10 then t.qty-t.qtyproduced-zspmwsbom.qtyreceived else case when t.qty >0 and t.qtyproduced>0 then zspmwsbom.quantity-zspmwsbom.quantity*(t.qtyproduced/t.qty) else zspmwsbom.quantity end end AS qtyrequired,
-  case when t.assembly='N' and zspmwsbom.line=10 then zspmwsbom.qtyreceived else case when t.qty >0 and t.qtyproduced>0 then zspmwsbom.qtyreceived-zspmwsbom.quantity*(t.qtyproduced/t.qty) else zspmwsbom.qtyreceived end end as qtyreceived, -- set by trigger or function
+  round(case when t.assembly='N' and zspmwsbom.line=(select min(x.line) from zspm_projecttaskbom x where x.c_projecttask_id=t.c_projecttask_id) then 1 else case when t.qty >0 then zspmwsbom.quantity/t.qty else 0 end end,3) as qtyforone,
+  round(case when t.assembly='N' and zspmwsbom.line=(select min(x.line) from zspm_projecttaskbom x where x.c_projecttask_id=t.c_projecttask_id) then t.qty-t.qtyproduced-zspmwsbom.qtyreceived else case when t.qty >0 and t.qtyproduced>0 then zspmwsbom.quantity-zspmwsbom.quantity*(t.qtyproduced/t.qty) else zspmwsbom.quantity end end,3) AS qtyrequired,
+  round(case when t.assembly='N' and zspmwsbom.line=(select min(x.line) from zspm_projecttaskbom x where x.c_projecttask_id=t.c_projecttask_id) then zspmwsbom.qtyreceived else case when t.qty >0 and t.qtyproduced>0 then zspmwsbom.qtyreceived-zspmwsbom.quantity*(t.qtyproduced/t.qty) else zspmwsbom.qtyreceived end end,3) as qtyreceived, -- set by trigger or function
   zspmwsbom.receiving_locator,
   zspmwsbom.issuing_locator,
   zspmwsbom.m_locator_id,
@@ -1009,55 +1150,34 @@ SELECT zsse_DropView ('pdc_inouttrx_v');
 CREATE VIEW pdc_inouttrx_v AS
   SELECT io.documentno||'-'||b.value||'-'||b.name||coalesce('-'||o.documentno,'')::varchar(2000) as name,io.m_inout_id as pdc_inouttrx_v_id,io.created,io.createdby,io.updated,io.updatedby,io.isactive,io.movementtype,io.ad_org_id,io.ad_client_id
   from m_inout io left join c_order o on o.c_order_id=io.c_order_id,c_bpartner b where b.c_bpartner_id=io.c_bpartner_id
-    and io.docstatus='DR';
+    and io.docstatus in ('DR','RS') and io.pdcpickinprogress='N' and io.isLogistic = 'N' order by io.documentno;
     
     
-select zsse_dropfunction('m_pdcinoutstyle');
-CREATE OR REPLACE FUNCTION  m_pdcinoutstyle(p_inoutline varchar) RETURNS varchar AS
+
+CREATE OR REPLACE FUNCTION  pdc_inoutIscomplete(p_inoutId varchar) RETURNS varchar AS
 $_$ 
 DECLARE
- v_return varchar :='';
+ v_return varchar :='TRUE';
  v_inout varchar;
  v_org varchar;
  v_usecase varchar:='';
  v_cur record;
 BEGIN
-
-    select m_inout_id,ad_org_id into v_inout,v_org from m_inoutline where m_inoutline_id=p_inoutline;
-    if c_getconfigoption('PDCINOUTFULLSCAN',v_org)='N' then
-        v_usecase:='SERIAL';
-    end if;
-    for v_cur in (select a.m_inoutline_id,row_number() over() as linecnt,a.todos,a.pdcproduct,a.pdclocator,a.movementqty as pdcqty,a.m_product_id,a.isserialtracking,a.isbatchtracking from
-            (Select f.m_inoutline_id,p.m_product_id,p.isserialtracking,p.isbatchtracking,
-            case when (p.isserialtracking='Y' or  p.isbatchtracking='Y') and coalesce(sum(snr.quantity),0)!=f.movementqty then 'TODO' else 'READY' end as todos,
-            '' AS pdcproduct,
-            l.value as pdclocator,f.movementqty
-            from m_product p,m_inoutline f left join  m_locator l on  f.m_locator_id=l.m_locator_id
-                                                left join snr_minoutline snr on f.m_inoutline_id=snr.m_inoutline_id
-            where f.m_inout_id=v_inout
-            and p.m_product_id=f.m_product_id 
-            and case when v_usecase = 'SERIAL' then isserialtracking='Y' or isbatchtracking='Y' else 1=1 end
-            group by f.m_inoutline_id,f.m_product_id,p.isserialtracking, p.isbatchtracking,f.movementqty,l.value,p.m_product_id
-            order by case when (p.isserialtracking='N' and  p.isbatchtracking='N') or coalesce(sum(snr.quantity),0)=f.movementqty then f.line+1000 else f.line end) a
-        order by linecnt)
+    if p_inoutId is null or p_inoutId='' then return 'FALSE'; end if;
+    for v_cur in (select * from m_inoutline where m_inout_id=p_inoutId)
     LOOP
-        if v_cur.m_inoutline_id=p_inoutline then
-            if v_cur.todos='TODO' and v_cur.linecnt=1 then
-                v_return:=' color:black; background-color:#ffff00;';
+        if v_cur.qtycontrolcount!=v_cur.movementqty then
+            return 'FALSE';
+        end if;
+        if (SELECT p.isserialtracking||p.isbatchtracking from m_inoutline l,m_product p where l.m_inoutline_id=v_cur.m_inoutline_id and p.m_product_id =l.m_product_id)!='NN' then
+            if (select sum(quantity) from snr_minoutline where m_inoutline_id=v_cur.m_inoutline_id)!=v_cur.movementqty then
+                return 'FALSE';
             end if;
-            if v_cur.todos='TODO' and v_cur.linecnt>1 then
-                v_return:='';
-            end if;
-            if v_cur.todos='READY'  then
-                v_return:=' color:black; background-color:#006600;'; 
-            end if;
-            RETURN v_return;
         end if;
     END LOOP;
-    RETURN v_return;
+    RETURN 'Y';
 END;
 $_$ LANGUAGE plpgsql;
-
 
 
 select zsse_dropfunction('pdc_internalconsumptionclean');
@@ -1084,10 +1204,15 @@ BEGIN
                                                                                         where m_internal_consumption_id=v_cur.m_internal_consumption_id); 
         delete from m_internal_consumptionline where m_internal_consumption_id=v_cur.m_internal_consumption_id;     
         delete from m_internal_consumption where m_internal_consumption_id=v_cur.m_internal_consumption_id;    
-    end loop;   
+    end loop; 
+      
+    for v_cur in (select m_inventory_id from m_inventory where name like '%PDC->%' and  processed='N')  
+    loop 
+        delete from m_inventoryline where m_inventory_id=v_cur.m_inventory_id;     
+        delete from m_inventory where m_inventory_id=v_cur.m_inventory_id;     
+    end loop; 
     return 'Internal Consumptions cleaned Up';  
 END ; 
-
 $_$ LANGUAGE plpgsql;
 
 select zsse_dropfunction('pdc_getReturnQtyBomProduct');
@@ -1109,10 +1234,23 @@ v_qtyfor1 numeric;
 v_prodqty numeric;
 v_planqty numeric;
 v_qtyreceived numeric;
+v_ass varchar;
 BEGIN   
-    select qtyproduced,case when qty is null then 1 when qty=0 then 1 else qty end into v_prodqty,v_planqty from c_projecttask where c_projecttask_id=p_workstepId;
-        select bom.quantity/v_planqty ,qtyreceived into v_qtyfor1,v_qtyreceived from zspm_projecttaskbom bom,c_projecttask  t where t.c_projecttask_id=bom.c_projecttask_id 
-            and bom.m_product_id=p_product_id and t.c_projecttask_id=p_workstepId;
+    select qtyproduced,case when qty is null then 1 when qty=0 then 1 else qty end,assembly into v_prodqty,v_planqty,v_ass from c_projecttask where c_projecttask_id=p_workstepId;
+    if v_ass='N' and (select m_product_id from pdc_workstepbom_v where zssm_workstep_v_id=p_workstepId order by line limit 1)=p_product_id then --- Durchreiche AG
+      if p_snrbnr is null or p_snrbnr='' then -- Workstep-Level Calculation
+        select sum(case when m.movementtype='D+' then -1 else 1 end * ml.movementqty) into v_qtyreceived from m_internal_consumptionline ml,m_internal_consumption m
+            where m.m_internal_consumption_id=ml.m_internal_consumption_id and m.c_projecttask_id=p_workstepId and ml.m_product_id=p_product_id
+                  and m.processed='Y' and m.movementtype in ('D+','D-');        
+      else
+        select sum(case when m.movementtype='D+' then -1 else 1 end * ml.movementqty) into v_qtyreceived from m_internal_consumptionline ml,m_internal_consumption m
+            where m.m_internal_consumption_id=ml.m_internal_consumption_id and m.c_projecttask_id=p_workstepId and ml.m_product_id=p_product_id
+                  and m.processed='Y' and m.plannedserialnumber=p_snrbnr and m.movementtype in ('D+','D-');
+      end if;
+      return coalesce(v_qtyreceived,0);
+    end if;
+    select bom.quantity/v_planqty ,qtyreceived into v_qtyfor1,v_qtyreceived from zspm_projecttaskbom bom,c_projecttask  t where t.c_projecttask_id=bom.c_projecttask_id 
+         and bom.m_product_id=p_product_id and t.c_projecttask_id=p_workstepId;
     if p_snrbnr is null or p_snrbnr='' then -- Workstep-Level Calculation
         return to_char(v_qtyreceived - v_qtyfor1*v_prodqty);
     else -- Material TRX Calculation
@@ -1161,3 +1299,780 @@ BEGIN
     return 'NO Passing Worksteps';  
 END ; 
 $_$ LANGUAGE plpgsql;
+
+
+select zsse_dropfunction('pdc_isTrxPossible');
+CREATE OR REPLACE FUNCTION  pdc_isTrxPossible(p_consumptionId varchar,p_locatorId varchar,p_mProductId varchar,p_qty numeric, p_lang varchar) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+    v_intrx numeric;
+    v_stocked numeric;
+BEGIN   
+    select sum( qtyonhand) into v_stocked from m_storage_detail where m_product_id=p_mProductId and m_locator_id=p_locatorId;
+    select sum(movementqty) into v_intrx from m_internal_consumptionline where m_product_id=p_mProductId and m_locator_id=p_locatorId and m_internal_consumption_id=p_consumptionId;
+    if coalesce(v_stocked,0) < (case when p_qty=1 then (coalesce(v_intrx,0)+1) else p_qty end) then
+        RETURN zssi_getText('underStock', p_lang)||coalesce(v_stocked,0)||')';
+    else
+        RETURN 'TRUE';
+    end if;
+END ; $_$ LANGUAGE plpgsql;
+
+select zsse_dropfunction('pdc_isSnrBnrTrxPossible');
+CREATE OR REPLACE FUNCTION  pdc_isSnrBnrTrxPossible(p_locatorId varchar,p_mProductId varchar,p_qty numeric, p_snr varchar, p_btch varchar,p_lang varchar) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+    v_intrx numeric;
+    v_stocked numeric;
+    v_isin  varchar;
+BEGIN   
+    if p_snr is not null and p_snr!='' then
+        if (select count(*) from snr_masterdata where m_product_id=p_mProductId and serialnumber=p_snr and m_locator_id=p_locatorId)=0 then
+            select l.value into v_isin from snr_masterdata s,m_locator l where s.m_product_id=p_mProductId and s.serialnumber=p_snr and s.m_locator_id=l.m_locator_id;
+            RETURN zssi_getText('underStockSNR', p_lang)||coalesce('(In:'||v_isin||')','');
+        end if;
+    end if;
+    if p_btch is not null and p_btch!='' then
+        select bl.qtyonhand into v_intrx from snr_batchmasterdata b,snr_batchlocator bl where bl.snr_batchmasterdata_id=b.snr_batchmasterdata_id
+                   and b.m_product_id=p_mProductId and b.batchnumber=p_btch and bl.m_locator_id=p_locatorId;
+        if v_intrx is null then v_intrx:=0; end if;
+        if v_intrx<p_qty then
+            RETURN zssi_getText('underStockBNR', p_lang)||coalesce(v_intrx,0)||')';
+        end if;
+    end if;
+    RETURN 'TRUE';
+END ; $_$ LANGUAGE plpgsql;
+
+
+select zsse_dropfunction('pdc_isRelocationPossible');
+CREATE OR REPLACE FUNCTION  pdc_isRelocationPossible(p_consumptionId varchar,p_returnId varchar) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+    v_return varchar:='Y';
+    v_cur record;
+    v_retqty numeric;
+    v_tmpqty numeric;
+BEGIN   
+    for v_cur in (select sum(movementqty) as qty,m_product_id from m_internal_consumptionline where m_internal_consumption_id=p_consumptionId group by m_product_id)
+    LOOP
+        select sum(movementqty) into v_retqty from m_internal_consumptionline where m_internal_consumption_id=p_returnId and m_product_id=v_cur.m_product_id  group by m_product_id;
+        if coalesce(v_retqty,0)!=v_cur.qty then
+            v_return:='N';
+        end if;
+    END LOOP;
+    for v_cur in (select sum(s.quantity) as qty,s.serialnumber,s.lotnumber,l.m_product_id from snr_internal_consumptionline s,m_internal_consumptionline l 
+                  where s.m_internal_consumptionline_id =l.m_internal_consumptionline_id and l.m_internal_consumption_id=p_consumptionId group by l.m_product_id,s.serialnumber,s.lotnumber)
+    LOOP
+        select sum(s.quantity)  into v_retqty from snr_internal_consumptionline s,m_internal_consumptionline l 
+                  where s.m_internal_consumptionline_id =l.m_internal_consumptionline_id and l.m_internal_consumption_id=p_returnId and m_product_id=v_cur.m_product_id
+                        and coalesce(v_cur.serialnumber,'')=coalesce(s.serialnumber,'') and  coalesce(v_cur.lotnumber,'')=coalesce(s.lotnumber,'');
+        select sum(1) into v_tmpqty from pdc_tempitems where m_internal_consumption_id=p_returnId and m_product_id=v_cur.m_product_id and coalesce(v_cur.serialnumber,'')=coalesce(serialnumber,'');
+        if coalesce(v_retqty,0)+coalesce(v_tmpqty,0)!=v_cur.qty then
+           v_return:='N';
+        end if; 
+    END LOOP;
+    RETURN v_return;
+END ; $_$ LANGUAGE plpgsql;
+
+
+
+select zsse_dropfunction('pdc_relocationCorrect');
+CREATE OR REPLACE FUNCTION  pdc_relocationCorrect(p_consumptionId varchar,p_returnId varchar,p_productID varchar,p_qty numeric,p_snr varchar,p_bnr varchar) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+    v_return varchar:='Y';
+    v_cur record;
+    v_psum numeric;
+    v_rsum numeric;
+    v_tsum numeric;
+BEGIN   
+    if coalesce(p_consumptionId,'')='' or  coalesce(p_returnId,'')='' or coalesce(p_consumptionId,'')=coalesce(p_returnId,'') then
+        if p_consumptionId is not null and p_returnId is not null  and (coalesce(p_snr,'')!='' or coalesce(p_bnr,'')!='') then
+             select sum(s.quantity) into v_psum from snr_internal_consumptionline s,m_internal_consumptionline l where s.m_internal_consumptionline_id =l.m_internal_consumptionline_id 
+                and l.m_internal_consumption_id=p_consumptionId and l.m_product_id=p_productID and coalesce(p_snr,'')=coalesce(s.serialnumber,'')  and  coalesce(p_bnr,coalesce(s.lotnumber,''))=coalesce(s.lotnumber,'');
+             if coalesce(v_psum,0)=0 then
+                -- snr/bnr nicht entnommen
+                return 'N';
+             end if;
+        end if;
+        RETURN v_return;
+    end if;
+    select sum(movementqty) into v_psum from m_internal_consumptionline where m_internal_consumption_id=p_consumptionId and m_product_id=p_productID;
+    select sum(movementqty) into v_rsum from m_internal_consumptionline where m_internal_consumption_id=p_returnId and m_product_id=p_productID;
+    if v_psum is null then v_psum:=0; end if;
+    if coalesce(v_psum,0)<p_qty then
+        v_return:='N';
+    end if;
+    if p_qty=1 and coalesce(v_psum,0)<coalesce(v_rsum,0)+1 and coalesce(p_bnr,'')='' and coalesce(p_snr,'')='' then
+        v_return:='N';
+    end if;
+    if coalesce(p_snr,'')!='' or coalesce(p_bnr,'')!='' then
+        select sum(s.quantity) into v_psum from snr_internal_consumptionline s,m_internal_consumptionline l where s.m_internal_consumptionline_id =l.m_internal_consumptionline_id 
+                and l.m_internal_consumption_id=p_consumptionId and l.m_product_id=p_productID and coalesce(p_snr,'')=coalesce(s.serialnumber,'')  and  coalesce(p_bnr,coalesce(s.lotnumber,''))=coalesce(s.lotnumber,'');
+        if v_psum is null then v_psum:=0; end if;
+        select sum(s.quantity) into v_rsum from snr_internal_consumptionline s,m_internal_consumptionline l where s.m_internal_consumptionline_id =l.m_internal_consumptionline_id 
+                and l.m_internal_consumption_id=p_returnId and l.m_product_id=p_productID and coalesce(p_snr,'')=coalesce(s.serialnumber,'')  and  coalesce(p_bnr,coalesce(s.lotnumber,''))=coalesce(s.lotnumber,'');
+        select sum(1) into v_tsum from pdc_tempitems where m_internal_consumption_id=p_returnId and m_product_id=p_productID and coalesce(p_snr,'')=coalesce(serialnumber,'');
+        if v_rsum is null then v_rsum:=0; end if;
+        v_rsum:=v_rsum+coalesce(v_tsum,0);
+        if v_psum<p_qty then
+            --raise exception '%',v_psum||'#'||p_qty;
+            v_return:='N';
+        end if;   
+        if p_qty=1 and v_rsum>0 and coalesce(v_psum,0)<coalesce(v_rsum,0)+1 then
+            v_return:='N';
+        end if; 
+        
+    end if;
+    RETURN v_return;
+END ; $_$ LANGUAGE plpgsql;
+
+
+select zsse_dropfunction('pdc_InternalConsumptionSNRBNRRequired');
+CREATE OR REPLACE FUNCTION  pdc_InternalConsumptionSNRBNRRequired(p_internalconsumption varchar,p_productId varchar,p_locatorId varchar) RETURNS varchar AS
+$_$ 
+DECLARE
+ v_return varchar :='FALSE';
+ v_lineId varchar;
+BEGIN
+    SELECT  M_INTERNAL_CONSUMPTIONLINE_ID into v_lineId from M_INTERNAL_CONSUMPTIONLINE where M_INTERNAL_CONSUMPTION_ID=p_internalconsumption and m_product_id = p_productId and  m_locator_id=p_locatorId; 
+    if v_lineId is not null and (select p.isserialtracking||p.isbatchtracking from m_product p,m_internal_consumptionline l where p.m_product_id=l.m_product_id and l.m_internal_consumptionline_id=v_lineId)!='NN' then
+        if (select movementqty from m_internal_consumptionline where m_internal_consumptionline_id=v_lineId) !=
+           coalesce((select sum(snr.quantity) from snr_internal_consumptionline snr where snr.m_internal_consumptionline_id=v_lineId),0)
+        then            
+             v_return:='TRUE'; -- rot
+        end if;
+    end if;
+    RETURN v_return;
+END;
+$_$ LANGUAGE plpgsql;
+
+
+select zsse_dropfunction('pdc_InternalConsumptionlineSNRBNRUpdate');
+CREATE OR REPLACE FUNCTION  pdc_InternalConsumptionlineSNRBNRUpdate(p_LineId varchar,p_user_id varchar,p_qty numeric,p_snr varchar,p_bnr varchar,p_lang varchar,p_weight numeric) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+  v_prod varchar;
+  v_btch varchar;
+  v_btchno varchar;
+  v_sn   varchar;
+  v_otherbqty numeric;
+  v_qty numeric;
+  v_tmpqty numeric;
+  v_client varchar;
+  v_org varchar;
+  v_user varchar;
+  v_locator varchar;
+  v_product varchar;
+  v_conumption varchar;
+  v_mvmTyp varchar;
+  v_reloctype  varchar;
+BEGIN   
+    if p_LineId is null then return 'COMPILE'; end if;
+    select l.updatedby,l.ad_client_id,l.ad_org_id,l.m_product_id,p.isserialtracking,p.isbatchtracking,l.m_internal_consumption_id into v_user,v_client,v_org,v_prod,v_btch,v_sn,v_conumption
+           from m_internal_consumptionline l,m_product p where p.m_product_id=l.m_product_id and l.m_internal_consumptionline_id=p_LineId;
+    select movementtype,relocationtrx into v_mvmTyp,v_reloctype from m_internal_consumption where m_internal_consumption_id=v_conumption;
+    if p_qty=0 then
+            delete from snr_internal_consumptionline where m_internal_consumptionline_id=p_LineId and case when coalesce(p_snr,'')!='' then serialnumber=p_snr else lotnumber=p_bnr end;
+            select sum(quantity) into v_qty from snr_internal_consumptionline where m_internal_consumptionline_id=p_LineId;
+            if v_qty is null then v_qty:=1; end if;
+            update m_internal_consumptionline set movementqty=v_qty,weight=weight-p_weight where m_internal_consumptionline_id=p_LineId;
+    else
+        if v_mvmTyp='D-' then
+            select m_locator_id ,m_product_id into v_locator,v_product from m_internal_consumptionline where m_internal_consumptionline_id=p_LineId;
+            if p_qty=1 and coalesce(p_snr,'')='' and coalesce(p_bnr,'')!='' then 
+                select sum(quantity) into v_otherbqty from snr_internal_consumptionline where m_internal_consumptionline_id=p_LineId and lotnumber=p_bnr;
+            end if;
+            if v_otherbqty is null then v_otherbqty:=0; end if;
+            if pdc_isSnrBnrTrxPossible(v_locator,v_product,p_qty+v_otherbqty, p_snr,p_bnr,p_lang)!='TRUE' then
+                raise exception '%',pdc_isSnrBnrTrxPossible(v_locator,v_product,p_qty+v_otherbqty, p_snr,p_bnr,p_lang);
+            end if;
+        end if;
+        if coalesce(p_snr,'')!='' then
+            select b.batchnumber into v_btchno from snr_batchmasterdata b,snr_masterdata s where s.m_product_id=v_prod and s.serialnumber=p_snr and s.snr_batchmasterdata_id=b.snr_batchmasterdata_id;
+            if (select count(*) from snr_internal_consumptionline where m_internal_consumptionline_id=p_LineId and serialnumber=p_snr)>0 then
+                raise exception '%','@doublescan@';
+            else
+                select sum(quantity) into v_qty from snr_internal_consumptionline where m_internal_consumptionline_id=p_LineId;
+                select sum(1) into v_tmpqty from pdc_tempitems where m_internal_consumptionline_id=p_LineId;                
+                v_qty:=coalesce(v_tmpqty,0)+coalesce(v_qty,0)+1;                            
+                update m_internal_consumptionline set movementqty=v_qty,weight=coalesce(weight,0)+p_weight  where m_internal_consumptionline_id=p_LineId;
+                -- on Relocations with stocked Serials-> Save in TMP Items
+                select m_product_id into v_product from m_internal_consumptionline where m_internal_consumptionline_id=p_LineId;
+                select m_locator_id  into v_locator from snr_masterdata where m_product_id=v_product and serialnumber=p_snr;
+                if v_mvmTyp='D+' and v_reloctype='R' and v_locator is not null then
+                    select m_locator_id ,m_product_id into v_locator,v_product from m_internal_consumptionline where m_internal_consumptionline_id=p_LineId;
+                    if (select count(*) from pdc_tempitems where m_internal_consumptionline_id=p_LineId and serialnumber=p_snr)>0 then
+                        raise exception '%','@doublescan@';
+                    end if;
+                    insert into pdc_tempitems ( pdc_tempitems_id, ad_client_id, ad_org_id, createdby, updatedby, m_internal_consumption_id,m_internal_consumptionline_id, m_product_id,serialnumber,m_locator_id)
+                               values(get_uuid(),v_client,v_org,v_user,v_user,v_conumption,p_LineId,v_product,p_snr,v_locator);
+                else
+                    insert into snr_internal_consumptionline(snr_internal_consumptionline_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY,  UPDATEDBY, M_INTERNAL_CONSUMPTIONLINE_ID, 
+                                                  quantity,lotnumber,serialnumber)
+                    values (get_uuid(),v_client,v_org,v_user,v_user,p_LineId,1,v_btchno,p_snr);
+                end if;
+            end if;
+        end if;
+        if coalesce(p_snr,'')='' and coalesce(p_bnr,'')!='' then
+            if p_qty=1 then --increment
+                select sum(quantity)+1 into v_qty from snr_internal_consumptionline where m_internal_consumptionline_id=p_LineId;
+                if v_qty is null then v_qty:=1; end if;
+                update m_internal_consumptionline set movementqty=v_qty,weight=coalesce(weight,0)+p_weight  where m_internal_consumptionline_id=p_LineId;
+            else
+                select sum(quantity) into v_otherbqty from snr_internal_consumptionline where m_internal_consumptionline_id=p_LineId and lotnumber!=p_bnr;
+                if v_otherbqty is null then v_otherbqty:=0; end if;
+                update m_internal_consumptionline set movementqty=p_qty+v_otherbqty,weight=coalesce(weight,0)+p_weight  where m_internal_consumptionline_id=p_LineId;
+            end if;    
+            if (select count(*) from  snr_internal_consumptionline where M_INTERNAL_CONSUMPTIONLINE_ID=p_LineId and lotnumber=p_bnr)=0 then
+                insert into snr_internal_consumptionline(snr_internal_consumptionline_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY,  UPDATEDBY, M_INTERNAL_CONSUMPTIONLINE_ID, 
+                                                  quantity,lotnumber,serialnumber)
+                values (get_uuid(),v_client,v_org,v_user,v_user,p_LineId,p_qty,p_bnr,null);
+            else
+                update snr_internal_consumptionline set quantity=case when p_qty=1 then quantity+1 else p_qty end where m_internal_consumptionline_id=p_LineId and lotnumber=p_bnr;
+            end if;
+        end if;
+    end if;
+    return 'OK';
+END ; $_$ LANGUAGE plpgsql;
+
+select zsse_dropfunction('pdc_tempItems2Relocation');
+CREATE OR REPLACE FUNCTION  pdc_tempItems2Relocation(p_internalconsumption varchar) RETURNS varchar AS
+$_$ 
+DECLARE
+ v_cur record;
+ v_btchno varchar;
+BEGIN
+    if p_internalconsumption is null then return 'COMPILE'; end if;
+    for v_cur in (select * from pdc_tempitems where m_internal_consumption_id=p_internalconsumption)
+    LOOP
+        select b.batchnumber into v_btchno from snr_batchmasterdata b,snr_masterdata s where s.m_product_id=v_cur.m_product_id and s.serialnumber= v_cur.serialnumber and s.snr_batchmasterdata_id=b.snr_batchmasterdata_id;
+        insert into snr_internal_consumptionline(snr_internal_consumptionline_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY,  UPDATEDBY, M_INTERNAL_CONSUMPTIONLINE_ID, 
+                                                  quantity,lotnumber,serialnumber)
+                    values (get_uuid(),v_cur.ad_client_id,v_cur.ad_org_id,v_cur.createdby,v_cur.createdby,v_cur.m_internal_consumptionline_id,1,v_btchno,v_cur.serialnumber);
+    END LOOP;
+    RETURN 'OK';
+END;
+$_$ LANGUAGE plpgsql;
+
+
+select zsse_dropfunction('pdc_InventoryCreate');
+CREATE OR REPLACE FUNCTION  pdc_InventoryCreate(p_locatorId varchar,p_UserId varchar,p_OrgId varchar) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+    v_name varchar;
+    v_trxuuid varchar;
+    v_client varchar:='C726FEC915A54A0995C568555DA5BB3C';
+    v_wh varchar;
+    v_intrx numeric;
+    v_stocked numeric;
+    v_locator varchar;
+BEGIN   
+    if p_locatorId is null then return 'COMPILE'; end if;
+    v_trxuuid:=get_uuid();
+    select m_warehouse_id,value into v_wh,v_locator from m_locator where m_locator_id=p_locatorId;
+    select to_char(now(),'YYYY-MM-DD')||'-'||count(*)+1||' PDC-> '||v_locator into v_name from m_inventory where movementdate=trunc(now());
+    insert into m_inventory (m_inventory_id, ad_client_id, ad_org_id, createdby, updatedby, name,  m_warehouse_id, movementdate)
+    values (v_trxuuid,v_client,p_OrgId,p_UserId,p_UserId,v_name,v_wh,trunc(now()));
+    return v_trxuuid;
+END ; $_$ LANGUAGE plpgsql;
+
+select zsse_dropfunction('pdc_InventoryUpdate');
+CREATE OR REPLACE FUNCTION  pdc_InventoryUpdate(p_InventoryId varchar,p_user_id varchar) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+  v_cur record;
+  v_wht numeric;
+BEGIN   
+    if p_InventoryId is null then return 'COMPILE'; end if;
+    update m_inventoryline set qtycount=0,weight=0 where m_inventory_id=p_InventoryId;
+    delete from m_inventoryline where m_inventory_id=p_InventoryId and qtybook =0;
+    for v_cur in (select * from m_inventoryline where m_inventory_id=p_InventoryId)
+    LOOP
+        select sum(weight) into v_wht from m_storage_detail where m_locator_id=v_cur.m_locator_id and m_product_id=v_cur.m_product_id and 
+            coalesce(m_attributesetinstance_id,'')=coalesce(v_cur.m_attributesetinstance_id,'');
+        update m_inventoryline set weightbook=v_wht,createdby=p_user_id,updatedby=p_user_id where m_inventoryline_id=v_cur.m_inventoryline_id;
+        delete from snr_inventoryline where  m_inventoryline_id=v_cur.m_inventoryline_id;
+    END LOOP;
+    return 'OK';
+END ; $_$ LANGUAGE plpgsql;
+
+select zsse_dropfunction('pdc_InventoryUpdateLine');
+CREATE OR REPLACE FUNCTION  pdc_InventoryUpdateLine(p_InventoryId varchar,p_locator_id varchar,p_product_id varchar,p_attrsetInstId varchar,p_qtycount numeric) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+  v_qty numeric;
+  v_invklineId varchar;
+  v_isbatch varchar;
+  v_isser varchar;
+  v_ad_org_id varchar;
+  v_ad_client_id varchar;
+  v_createdby  varchar;
+  v_line numeric;
+  v_uom     varchar;
+  v_batchqty numeric;
+BEGIN   
+    if p_InventoryId is null then return 'COMPILE'; end if;
+    if p_qtycount is null then p_qtycount:=1; end if;
+    select m_inventoryline_id,ad_org_id,ad_client_id,createdby into v_invklineId ,v_ad_org_id,v_ad_client_id,v_createdby 
+           from m_inventoryline where m_inventory_id=p_InventoryId and m_product_id=p_product_id
+           and  coalesce(m_attributesetinstance_id,'0')=coalesce(p_attrsetInstId,'0');
+    select isserialtracking,isbatchtracking,c_uom_id into v_isser,v_isbatch,v_uom from m_product where m_product_id=p_product_id;
+    if v_invklineId is null then 
+        v_invklineId:=get_uuid();
+        select max(line)+10,max(ad_client_id),max(ad_org_id),max(createdby) into v_line,v_ad_client_id,v_ad_org_id,v_createdby 
+               from M_InventoryLine where m_inventory_id=p_InventoryId;
+        if v_line is null then
+            v_line:=10;
+            select ad_client_id,ad_org_id,createdby into v_ad_client_id,v_ad_org_id,v_createdby 
+               from M_Inventory where m_inventory_id=p_InventoryId;
+        end if;
+        INSERT INTO M_InventoryLine( M_InventoryLine_ID, Line, AD_Client_ID, AD_Org_ID,CreatedBy, UpdatedBy, M_Inventory_ID, M_Locator_ID, M_ATTRIBUTESETINSTANCE_ID, M_Product_ID,
+              QtyBook, QtyCount, C_UOM_ID)
+        VALUES(v_invklineId,v_line,v_ad_client_id,v_ad_org_id,v_createdby,v_createdby,p_InventoryId,p_locator_id,p_attrsetInstId,p_product_id,0,0,v_uom);
+    end if;
+    -- Batch and Serials are teated in pdc_InventorylineSNRBNRUpdate
+    if v_isser='N' and v_isbatch='N' then 
+        if p_qtycount=1 then -- increment
+            select qtycount+p_qtycount into v_qty from  m_inventoryline where m_inventoryline_id=v_invklineId;
+        end if;
+        if p_qtycount<>1 or v_qty is null then
+            v_qty:=p_qtycount;
+        end if;
+        update m_inventoryline set updated=now(),qtycount=coalesce(v_qty,qtycount) where m_inventoryline_id=v_invklineId;
+    end if;
+    return 'OK';
+END ; $_$ LANGUAGE plpgsql;
+
+
+select zsse_dropfunction('pdc_InventorylineSNRBNRUpdate');
+CREATE OR REPLACE FUNCTION  pdc_InventorylineSNRBNRUpdate(p_InventoryId varchar,p_product_id varchar,p_qtycount numeric,p_weight numeric,p_snr varchar,p_bnr varchar) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+  v_qty numeric;
+  v_invklineId varchar;
+  v_isbatch varchar;
+  v_isser varchar;
+  v_wht numeric;
+  v_ad_org_id varchar;
+  v_ad_client_id varchar;
+  v_createdby  varchar;
+  v_line numeric;
+  v_uom     varchar;
+  v_batchqty numeric;
+  v_prod varchar;
+  v_snrmaster varchar;
+BEGIN   
+    if p_InventoryId is null then return 'COMPILE'; end if;
+    if p_weight=0 then p_weight:=null; end if;
+    if p_qtycount is null then p_qtycount:=1; end if;
+    select m_inventoryline_id,ad_org_id,ad_client_id,createdby,m_product_id into v_invklineId ,v_ad_org_id,v_ad_client_id,v_createdby,v_prod 
+           from m_inventoryline where m_inventory_id=p_InventoryId and m_product_id=p_product_id;
+    select isserialtracking,isbatchtracking,c_uom_id into v_isser,v_isbatch,v_uom from m_product where m_product_id=p_product_id;
+    if v_invklineId is null then 
+        raise exception '%','No Line, But serial??';
+    end if;
+    if coalesce((select value from ad_preference where attribute='WEIGHTMANDATORY'),'N')='Y' and  coalesce(p_weight,0)=0  then
+        raise exception '%','No Weight!';
+    end if;
+    -- Qty=0 : Delete Batch/SNR
+    if p_qtycount=0 then
+        delete from snr_inventoryline where m_inventoryline_id=v_invklineId and case when coalesce(p_snr,'')!='' then serialnumber=p_snr else lotnumber=p_bnr end;
+        select sum(quantity) into v_qty from snr_inventoryline where m_inventoryline_id=v_invklineId;
+        if v_qty is null then v_qty:=0; end if;
+        update m_inventoryline set qtycount=v_qty,updated=now(),weight=weight-p_weight  where m_inventoryline_id=v_invklineId;
+    end if;
+    -- Double Serial
+    if v_isser='Y' and p_qtycount>0 and (select count(*) from snr_inventoryline where m_inventoryline_id=v_invklineId and serialnumber=p_snr)!=0 then
+        raise exception '%','@doublescan@';
+    end if;
+    -- on batch: If Qty=1 -> Increment same Batch
+    -- on batch: If Qty>1 -> Set Qty on this Batch
+    v_batchqty:=0;
+    if v_isbatch='Y' and v_isser='N' and p_qtycount>0 then
+        if p_qtycount>1 then
+            delete from snr_inventoryline where m_inventoryline_id=v_invklineId and lotnumber=p_bnr;
+            v_wht:=p_weight;
+        end if;
+        select sum(quantity) into v_qty from snr_inventoryline where  m_inventoryline_id= v_invklineId;
+        if p_qtycount=1 then -- increment
+            select sum(quantity) into v_batchqty from snr_inventoryline where m_inventoryline_id=v_invklineId and lotnumber=p_bnr;
+            if v_batchqty is null then v_batchqty:=0; end if;
+            select weight+p_weight into v_wht from m_inventoryline where m_inventoryline_id=v_invklineId;
+            if v_wht is null then v_wht:=p_weight; end if;
+        end if;
+        delete from snr_inventoryline where m_inventoryline_id=v_invklineId and lotnumber=p_bnr;
+        v_qty:=coalesce(v_qty,0)+p_qtycount;
+    end if;
+    if v_isser='Y' and p_qtycount>0 and (select count(*) from snr_inventoryline where m_inventoryline_id=v_invklineId and serialnumber=p_snr)=0 then
+        select weight+p_weight into v_wht from m_inventoryline where m_inventoryline_id=v_invklineId;
+        if v_wht is null then v_wht:=p_weight; end if;
+        select sum(quantity) into v_qty from snr_inventoryline where  m_inventoryline_id= v_invklineId;
+        v_qty:=coalesce(v_qty,0)+1;
+        if p_bnr is null and v_isbatch='Y' then -- Batch from Masterdata..
+            select b.batchnumber into p_bnr from snr_batchmasterdata b,snr_masterdata s where s.m_product_id=v_prod and s.serialnumber=p_snr and s.snr_batchmasterdata_id=b.snr_batchmasterdata_id;
+        end if;
+        select snr_masterdata_id into v_snrmaster from snr_masterdata  where m_product_id=v_prod and serialnumber=p_snr and weight is null;
+        if v_snrmaster is not null then
+            update snr_masterdata set weight=p_weight where snr_masterdata_id=v_snrmaster;
+        end if;
+    end if;
+    if v_isbatch='Y' or v_isser='Y' and p_qtycount>0 then
+        update m_inventoryline set updated=now(),qtycount=coalesce(v_qty,qtycount),weight=v_wht where m_inventoryline_id=v_invklineId;  
+        if (p_snr is not null and (select count(*) from snr_inventoryline where m_inventoryline_id=v_invklineId and serialnumber=p_snr)=0)
+           or (p_bnr is not null and p_snr is null and (select count(*) from snr_inventoryline where m_inventoryline_id=v_invklineId and lotnumber=p_bnr)=0)
+        then
+            insert into snr_inventoryline(snr_inventoryline_id,AD_Client_ID, AD_Org_ID,  CreatedBy,  UpdatedBy,m_inventoryline_id,quantity,lotnumber,serialnumber)
+                values(get_uuid(),v_ad_client_id,v_ad_org_id,v_createdby,v_createdby,v_invklineId,p_qtycount+v_batchqty,p_bnr,p_snr);
+        end if;
+    end if;
+    return 'OK';
+END ; $_$ LANGUAGE plpgsql;
+
+select zsse_dropfunction('pdc_InventoryDelete');
+CREATE OR REPLACE FUNCTION  pdc_InventoryDelete(p_InventoryId varchar) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+  v_cur record;
+  v_wht numeric;
+BEGIN   
+    if p_InventoryId is null then return 'COMPILE'; end if;
+    delete from m_inventoryline where m_inventory_id=p_InventoryId;
+    delete from m_inventory where m_inventory_id=p_InventoryId;
+    return 'OK';
+END ; $_$ LANGUAGE plpgsql;
+
+
+select zsse_dropfunction('m_pdcinventorystyle');
+CREATE OR REPLACE FUNCTION  m_pdcinventorystyle(p_inventoryline varchar,p_firstproduct varchar) RETURNS varchar AS
+$_$ 
+DECLARE
+ v_return varchar :='';
+ v_qtycount numeric;
+ v_qtybook numeric;
+ v_qtysnr numeric;
+ v_snrbtch varchar;
+ v_product varchar;
+BEGIN
+    
+    select p.isserialtracking||p.isbatchtracking as snrbtch,l.qtybook,l.qtycount,sum(snr.quantity),p.m_product_id into v_snrbtch,v_qtybook,v_qtycount,v_qtysnr, v_product
+                                from m_product p,m_inventoryline l
+                                left join snr_inventoryline snr on l.m_inventoryline_id=snr.m_inventoryline_id 
+            where p.m_product_id=l.m_product_id and l.m_inventoryline_id=p_inventoryline
+            group by p.m_product_id,p.isserialtracking,p.isbatchtracking,l.qtybook,l.qtycount;
+    --
+    if v_qtybook=v_qtycount and (case when v_snrbtch='NN' then 1=1 else coalesce(v_qtysnr,0)=v_qtycount end) then
+        v_return:=' color:black; background-color:#a4fcae;'; --grün (Mengen korrekt)
+    end if;
+    if v_qtybook>v_qtycount  then
+        v_return:=' color:black; background-color:#ffa8a8;'; -- rot (Untermenge oder noch nicht gezählt)
+    end if;
+    if p_firstproduct=v_product and (case when v_snrbtch='NN' then 1=0 else coalesce(v_qtysnr,v_qtycount)<v_qtybook end) then
+        v_return:=' color:black; background-color:#b3dee6;'; -- blau (Snr zu Zählen)
+    end if;
+    if v_qtybook=0 or v_qtybook<v_qtycount then
+        v_return:=' color:black; background-color:#ffeca6;';  -- gelb (In Zählliste nicht vorh. oder Übermenge)
+    end if;
+    RETURN v_return;
+END;
+$_$ LANGUAGE plpgsql;
+
+
+select zsse_dropfunction('m_pdcconsumptionstyle');
+CREATE OR REPLACE FUNCTION  m_pdcconsumptionstyle(p_internalconsumptionline varchar) RETURNS varchar AS
+$_$ 
+DECLARE
+ v_return varchar :='';
+ v_inout varchar;
+ v_org varchar;
+ v_usecase varchar:='';
+ v_cur record;
+BEGIN
+    if (select p.isserialtracking||p.isbatchtracking from m_product p,m_internal_consumptionline l where p.m_product_id=l.m_product_id and l.m_internal_consumptionline_id=p_internalconsumptionline)!='NN' then
+        if (select movementqty from m_internal_consumptionline where m_internal_consumptionline_id=p_internalconsumptionline) != (
+           coalesce((select sum(snr.quantity) from snr_internal_consumptionline snr where snr.m_internal_consumptionline_id=p_internalconsumptionline),0)
+           + coalesce((select sum(1) from pdc_tempitems snr where snr.m_internal_consumptionline_id=p_internalconsumptionline),0)
+           )
+        then
+            -- Menge QTY und SNR Qty passen nicht->Rot
+             v_return:=' color:black; background-color:#ffa8a8;'; -- rot
+        end if;
+    end if;
+    RETURN v_return;
+END;
+$_$ LANGUAGE plpgsql;
+
+select zsse_dropfunction('m_pdcinoutstyle');
+CREATE OR REPLACE FUNCTION  m_pdcinoutstyle(p_inoutline varchar,p_firstline varchar) RETURNS varchar AS
+$_$ 
+DECLARE
+ v_return varchar :='';
+ v_inout varchar;
+ v_org varchar;
+ v_usecase varchar:='';
+ v_cur record;
+BEGIN
+
+    select m_inout_id,ad_org_id into v_inout,v_org from m_inoutline where m_inoutline_id=p_inoutline;
+    if c_getconfigoption('PDCINOUTFULLSCAN',v_org)='N' then
+        v_usecase:='SERIAL';
+    end if;
+    for v_cur in (select a.m_inoutline_id,row_number() over() as linecnt,a.todos from
+                    (Select f.m_inoutline_id,
+                            case when (p.isserialtracking='Y' or  p.isbatchtracking='Y') and coalesce(sum(snr.quantity),0)!=f.movementqty then 'TODO' else
+                            case when coalesce(f.qtycontrolcount,0)=f.movementqty then 'READY' else case when coalesce(f.qtycontrolcount,0)>f.movementqty then 'OVER' else 'TODO' end end end as todos           
+                     from m_product p,  m_locator l ,m_inoutline f left join snr_minoutline snr on f.m_inoutline_id=snr.m_inoutline_id
+                     where f.m_inout_id=v_inout
+                     and p.m_product_id=f.m_product_id 
+                     and f.m_locator_id=l.m_locator_id
+                     and case when v_usecase = 'SERIAL' then p.isserialtracking='Y' or p.isbatchtracking='Y' else 1=1 end
+                     group by f.m_inoutline_id,f.m_product_id,p.isserialtracking, p.isbatchtracking,f.movementqty,l.value,p.m_product_id,
+                                f.weight,f.qtycontrolcount,f.whtcontrol,l.m_locator_id
+                     order by case when f.qtycontrolcount=f.movementqty then f.line+1000 else case when coalesce(p_firstline,'')=f.m_inoutline_id then 1 else f.line end end) a
+                order by linecnt)
+    LOOP
+        if v_cur.m_inoutline_id=p_inoutline then
+            if v_cur.todos='TODO' and v_cur.linecnt=1 then
+                v_return:=' color:black; background-color:#b3dee6;'; -- blau
+            end if;
+            if v_cur.todos='TODO' and v_cur.linecnt>1 then 
+                v_return:=' color:black; background-color:#ffa8a8;'; -- rot
+            end if;
+            if v_cur.todos='READY'  then
+                v_return:=' color:black; background-color:#a4fcae;'; --Grün 
+            end if;
+            if v_cur.todos='OVER'  then
+                v_return:=' color:black; background-color:#ffeca6;'; --Gelb 
+            end if;
+            RETURN v_return;
+        end if;
+    END LOOP;
+    RETURN v_return;
+END;
+$_$ LANGUAGE plpgsql;
+
+
+
+select zsse_dropfunction('pdc_issimplyfied');
+CREATE OR REPLACE FUNCTION  pdc_issimplyfied(p_workstep varchar,p_consumption varchar) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+    v_issimple varchar:='N';
+    v_issimplemanu varchar;
+    v_cur1 record;
+    v_cur2 record;
+    v_possible numeric:=100000;
+    v_oneqty numeric;
+    v_mfgqty numeric;
+    v_ass varchar;
+    v_prd varchar;
+BEGIN   
+    select qty,assembly into v_mfgqty,v_ass from c_projecttask where c_projecttask_id=p_workstep;
+    SELECT  v.simplyfiedmanufacturing into v_issimplemanu from zssm_workstep_v v where v.zssm_workstep_v_id = p_workstep; 
+    if v_ass='Y' and v_issimplemanu is null then
+        SELECT  p.simplyfiedmanufacturing into v_issimplemanu from m_product p,zssm_workstep_v v where v.m_product_id=p.m_product_id and v.zssm_workstep_v_id = p_workstep; 
+    end if;
+    if v_ass='N' and v_issimplemanu is null then
+         SELECT  p.simplyfiedmanufacturing into v_issimplemanu from m_product p,pdc_workstepbom_v where v.m_product_id=p.m_product_id and zssm_workstep_v_id=p_workstep order by line limit 1;
+    end if;
+    if coalesce(v_issimplemanu,'N')='Y' then
+        if v_ass='Y' then
+            for v_cur1 in (select * from pdc_workstepbom_v where zssm_workstep_v_id=p_workstep)
+            LOOP
+                v_oneqty:=v_cur1.quantity / coalesce(v_mfgqty,1);
+                select * into v_cur2 from m_internal_consumptionline where m_internal_consumption_id=p_consumption and m_product_id=v_cur1.m_product_id;
+                if v_cur2 is null then 
+                    return 'N';
+                else
+                    v_possible:=floor(least(v_possible,v_cur2.movementqty/v_oneqty));
+                end if;
+            END LOOP;
+            if v_possible>0 and v_possible!=100000 then         
+                for v_cur1 in (select * from pdc_workstepbom_v where zssm_workstep_v_id=p_workstep)
+                LOOP
+                    -- Update auf ganze Geräte bei vereinfachter Prod.
+                    v_oneqty:=v_cur1.quantity / coalesce(v_mfgqty,1);
+                    select * into v_cur2 from m_internal_consumptionline where m_internal_consumption_id=p_consumption and m_product_id=v_cur1.m_product_id;
+                    --raise notice '%',v_oneqty||'#'||v_possible;
+                    if (v_cur2.movementqty/(v_possible*v_oneqty))>1 then
+                        update m_internal_consumptionline set movementqty=(v_possible*v_oneqty) where m_internal_consumptionline_id=v_cur2.m_internal_consumptionline_id;
+                    end if;
+                END LOOP;
+                v_issimple:=to_char(v_possible);
+            else
+                v_issimple:='N';
+            end if;
+        else -- Durchreicher
+            SELECT  m_product_id into v_prd from pdc_workstepbom_v where zssm_workstep_v_id=p_workstep order by line limit 1;
+            select movementqty into v_possible from m_internal_consumptionline where m_internal_consumption_id=p_consumption and m_product_id=v_prd order by line limit 1;
+            if coalesce(v_possible,0)>0 then
+               v_issimple:=to_char(v_possible);
+            else
+                v_issimple:='N';
+            end if;
+        end if;
+    end if;
+    return v_issimple;
+END ; $_$ LANGUAGE plpgsql;
+
+
+
+
+
+
+-- Individualisierbare Zahlen Darstellung in BDE
+
+select zsse_dropfunction('pdc_inoutqtys');
+CREATE OR REPLACE FUNCTION  pdc_inoutqtys(p_qtysoll numeric,p_whtsoll numeric,p_qtyist numeric,p_whtist numeric, p_lang varchar) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+  
+BEGIN   
+    return zssi_strNumber(p_qtysoll,p_lang)||'/'||zssi_strNumber(p_qtyist,p_lang);
+END ; $_$ LANGUAGE plpgsql;
+
+select zsse_dropfunction('pdc_numfield');
+CREATE OR REPLACE FUNCTION  pdc_numfield(p_num numeric,p_wht numeric,p_lang varchar) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+  
+BEGIN   
+    return zssi_strNumber(p_num,p_lang);
+END ; $_$ LANGUAGE plpgsql;
+
+-- Open Worksteps...
+select zsse_dropview('pdc_openworkstep_v');
+CREATE OR REPLACE VIEW pdc_openworkstep_v AS
+SELECT pt.c_projecttask_id as pdc_openworkstep_v_id,p.ad_org_id,p.ad_client_id,p.updated,p.updatedby,p.created,p.createdby,'Y'::character as isactive, 
+       case when coalesce(pt.value,p.value)=p.value then p.value||' - '||p.name||case when p.name!=coalesce(pt.name,p.name) then ' - '||pt.name else '' end else pt.value||' - '||pt.name||' ('||p.name||' - '||p.value||')' end as name,
+       pt.c_projecttask_id,p.projectstatus
+FROM c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and p.projectstatus ='OR' and p.projectcategory='PRO' and pt.iscomplete='N' and pt.istaskcancelled='N';

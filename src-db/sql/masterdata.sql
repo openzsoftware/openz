@@ -142,17 +142,17 @@ select zsse_DropView ('c_bpartneremployee_view');
 CREATE OR REPLACE VIEW c_bpartneremployee_view AS 
             select c_bpartner.C_BPARTNER_ID as c_bpartneremployee_view_id,c_bpartner.C_BPARTNER_ID as C_BPARTNER_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED,ISACTIVE,UPDATED,CREATEDBY, UPDATEDBY, VALUE, NAME, DESCRIPTION, C_BP_GROUP_ID, ISEMPLOYEE, ISSALESREP, REFERENCENO, AD_LANGUAGE,
                    TAXID, ISTAXEXEMPT, C_GREETING_ID, ISWORKER, COUNTRY, CITY, ZIPCODE, ISPROJECTMANAGER, ISPROCUREMENTMANAGER, APPROVALAMT, ISAPPROVER, ISPRAPPROVER, ISPAYMENTAPPROVER,c_salary_category_id,rating,c_bp_employee.a_asset_id,
-                   isinresourceplan, 'N'::character(1) as isSummary, c_bpartner.ad_image_id, c_bpartner.imageurl
+                   isinresourceplan, 'N'::character(1) as isSummary, c_bpartner.ad_image_id, c_bpartner.imageurl,c_bpartner.c_project_id
             from   c_bpartner left join c_bp_employee on c_bpartner.c_bpartner_id = c_bp_employee.c_bpartner_id
             where ISEMPLOYEE='Y';
 
 CREATE OR REPLACE RULE c_bpartneremployee_view_insert AS
         ON INSERT TO c_bpartneremployee_view DO INSTEAD 
         (INSERT INTO c_bpartner (C_BPARTNER_ID, AD_CLIENT_ID, AD_ORG_ID, CREATEDBY, UPDATEDBY, VALUE, NAME, DESCRIPTION, C_BP_GROUP_ID, ISEMPLOYEE, ISSALESREP, REFERENCENO, AD_LANGUAGE, TAXID, ISTAXEXEMPT, C_GREETING_ID, ISWORKER,isinresourceplan,
-                   COUNTRY, CITY, ZIPCODE, ISPROJECTMANAGER, ISPROCUREMENTMANAGER, APPROVALAMT, ISAPPROVER, ISPRAPPROVER, ISPAYMENTAPPROVER,c_salary_category_id,rating,ad_image_id,imageurl)
+                   COUNTRY, CITY, ZIPCODE, ISPROJECTMANAGER, ISPROCUREMENTMANAGER, APPROVALAMT, ISAPPROVER, ISPRAPPROVER, ISPAYMENTAPPROVER,c_salary_category_id,rating,ad_image_id,imageurl,c_project_id)
         VALUES (new.C_BPARTNER_ID, new.AD_CLIENT_ID, new.AD_ORG_ID, new.CREATEDBY, new.UPDATEDBY, new.VALUE, new.NAME, new.DESCRIPTION, new.C_BP_GROUP_ID, 'Y', new.ISSALESREP, 
                    new.REFERENCENO, new.AD_LANGUAGE, new.TAXID, new.ISTAXEXEMPT, new.C_GREETING_ID, new.ISWORKER,new.isinresourceplan,
-                   new.COUNTRY, new.CITY, new.ZIPCODE, new.ISPROJECTMANAGER, new.ISPROCUREMENTMANAGER, new.APPROVALAMT, new.ISAPPROVER, new.ISPRAPPROVER, new.ISPAYMENTAPPROVER,new.c_salary_category_id,new.rating,new.ad_image_id,new.imageurl);    
+                   new.COUNTRY, new.CITY, new.ZIPCODE, new.ISPROJECTMANAGER, new.ISPROCUREMENTMANAGER, new.APPROVALAMT, new.ISAPPROVER, new.ISPRAPPROVER, new.ISPAYMENTAPPROVER,new.c_salary_category_id,new.rating,new.ad_image_id,new.imageurl,new.c_project_id);    
         INSERT INTO c_bp_employee(c_bpartner_id, a_asset_id)
         VALUES (new.C_BPARTNER_ID, new.a_asset_id));
 
@@ -169,7 +169,7 @@ CREATE OR REPLACE RULE c_bpartneremployee_view_update AS
                 COUNTRY=new.COUNTRY, CITY=new.CITY, ZIPCODE=new.ZIPCODE, ISPROJECTMANAGER=new.ISPROJECTMANAGER, ISPROCUREMENTMANAGER=new.ISPROCUREMENTMANAGER, APPROVALAMT=new.APPROVALAMT, ISAPPROVER=new.ISAPPROVER,
                 ISPRAPPROVER=new.ISPRAPPROVER,ISPAYMENTAPPROVER= new.ISPAYMENTAPPROVER,c_salary_category_id=new.c_salary_category_id,rating=new.rating,
                 isactive=new.isactive,
-                ad_image_id=new.ad_image_id,imageurl=new.imageurl
+                ad_image_id=new.ad_image_id,imageurl=new.imageurl,c_project_id=new.c_project_id
                where C_BPARTNER_ID=new.C_BPARTNER_ID;
         UPDATE c_bp_employee SET
         A_ASSET_ID=new.A_ASSET_ID 
@@ -267,13 +267,23 @@ BEGIN
              values(get_uuid(),new.AD_Client_ID, new.AD_Org_ID, now(), new.CREATEDBY, now(), new.UPDATEDBY, new.M_PRODUCT_ID,now(),to_date('01.01.9999','dd.mm.yyyy'),'N',0,'ST',0);
   END IF; 
   IF (TG_OP = 'UPDATE') THEN
-    IF (new.value!=old.value) THEN
-      UPDATE zssm_workstep_prp_v set value=replace(value,old.value,new.value) where value like '%'||old.value||'%';
-      UPDATE zssm_productionplan_v set value=replace(value,old.value,new.value) where value like '%'||old.value||'%';
-    END IF;
-    IF (new.name!=old.name) then
-	  UPDATE zssm_workstep_prp_v set name=replace(name,old.name,new.name) where name like '%'||old.name||'%';
-      UPDATE zssm_productionplan_v set name=replace(name,old.name,new.name) where name like '%'||old.name||'%';
+    IF (new.value!=old.value or new.name!=old.name) THEN
+      for v_cur in (select * from zssm_workstep_prp_v where m_product_id=new.m_product_id) 
+      LOOP
+          if new.value!=old.value then
+                UPDATE zssm_workstep_prp_v set value=substr(replace(value,old.value,new.value),1,40) where  zssm_workstep_prp_v_id=v_cur.zssm_workstep_prp_v_id;            
+          else
+                UPDATE zssm_workstep_prp_v set name=substr(replace(name,old.name,new.name),1,60)  where  zssm_workstep_prp_v_id=v_cur.zssm_workstep_prp_v_id; 
+          end if;
+          for v_cur2 in (select * from Zssm_Productionplan_Task_V where zssm_workstep_prp_v_id=v_cur.zssm_workstep_prp_v_id)
+          LOOP
+            if new.value!=old.value then
+                UPDATE zssm_productionplan_v set value=substr(replace(value,old.value,new.value),1,40) where zssm_productionplan_v_id=v_cur2.zssm_productionplan_v_id;            
+            else
+                UPDATE zssm_productionplan_v set name=substr(replace(name,old.name,new.name),1,60) where zssm_productionplan_v_id=v_cur2.zssm_productionplan_v_id;  
+            end if;
+          END LOOP;
+      END LOOP;
     END IF;
     IF (coalesce(new.imageurl,'')!=coalesce(old.imageurl,'') or coalesce(new.ad_image_id,'')!=coalesce(old.ad_image_id,'')) then
         update zse_image_product set url=new.imageurl,ad_image_id=new.ad_image_id,updated=now() where zse_product_shop_id in 
@@ -597,6 +607,12 @@ BEGIN
         END IF;   
     END IF;
    END IF;
+   
+ -- # are not allowed in name and searchkey
+ IF (NEW.name LIKE '%#%' OR NEW.value LIKE '%#%') THEN
+    RAISE EXCEPTION '%', '@invalidcharacter@' || ': #';
+ END IF;
+   
 RETURN NEW;
 END;
 $BODY$
@@ -1070,31 +1086,32 @@ v_manufacturer varchar;
 v_manuno varchar;
 BEGIN
   IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; END IF; 
-   if (TG_OP in ('INSERT','UPDATE')) then
+   if (TG_OP = 'UPDATE') then
       v_productid:=new.m_product_id;
       v_org:=new.ad_org_id;
-      select max(validfrom) into v_youngest from m_product_po_history where 
-             case when new.priceeffective is not null then validfrom<=new.priceeffective else 1=1 end 
-             and m_product_po_id=new.m_product_po_id;
-      if trunc(coalesce(new.priceeffective,now()))>coalesce(v_youngest,now()-1) then
+      select max(validfrom) into v_youngest from m_product_po_history where m_product_po_id=new.m_product_po_id;
+      if trunc(now())>coalesce(v_youngest,now()-1)  then
         insert into m_product_po_history (M_PRODUCT_PO_HISTORY_ID,M_PRODUCT_PO_ID, M_PRODUCT_ID, C_BPARTNER_ID, AD_CLIENT_ID, AD_ORG_ID, 
                                           CREATEDBY, UPDATEDBY, PRICELIST, PRICEPO, PRICELASTPO, QTYPO, VALIDFROM,qualityrating) 
-        VALUES (get_uuid(),new.M_PRODUCT_PO_ID, new.M_PRODUCT_ID, new.C_BPARTNER_ID, new.AD_CLIENT_ID, new.AD_ORG_ID, 
-                                          new.CREATEDBY, new.UPDATEDBY, new.PRICELIST, new.PRICEPO, new.PRICELASTPO, new.QTYLASTPO, trunc(coalesce(new.priceeffective,now())),new.qualityrating);
+        VALUES (get_uuid(),old.M_PRODUCT_PO_ID, old.M_PRODUCT_ID, old.C_BPARTNER_ID, old.AD_CLIENT_ID, old.AD_ORG_ID, 
+                                          old.CREATEDBY, old.UPDATEDBY, old.PRICELIST, old.PRICEPO, old.PRICELASTPO, old.QTYLASTPO, trunc(now()),old.qualityrating);
 
       else
-        update m_product_po_history set updated=now(),updatedby=new.updatedby,PRICELIST=new.PRICELIST,PRICEPO=new.PRICEPO, PRICELASTPO=new.PRICELASTPO, QTYPO=new.QTYLASTPO,qualityrating=new.qualityrating
-        where m_product_po_id=new.m_product_po_id and validfrom=v_youngest;
+        update m_product_po_history set updated=now(),updatedby=old.updatedby,PRICELIST=old.PRICELIST,PRICEPO=old.PRICEPO, PRICELASTPO=old.PRICELASTPO, QTYPO=old.QTYLASTPO,qualityrating=old.qualityrating
+        where m_product_po_id=old.m_product_po_id and validfrom=v_youngest;
       end if;
-       if (TG_OP ='UPDATE') then
-        if coalesce(old.c_uom_id,'')!=coalesce(new.c_uom_id,'') then
+      if coalesce(old.c_uom_id,'')!=coalesce(new.c_uom_id,'') then
             update m_offer_v set c_uom_id=new.c_uom_id, updated=now(),updatedby=new.updatedby
             where  m_product_po_id=new.m_product_po_id ;
-        end if;
        end if;
-   else
+   end if;
+   if (TG_OP = 'DELETE') then
       v_productid:=old.m_product_id;
       v_org:=old.ad_org_id;
+   end if;
+   if (TG_OP = 'INSERT') then
+      v_productid:=new.m_product_id;
+      v_org:=new.ad_org_id;
    end if;
    -- Select current Vendor
    select PO.C_BPARTNER_ID,po.vendorproductno,m.name,po.manufacturernumber into v_vendor ,v_vproductno,v_manufacturer,v_manuno
@@ -1405,7 +1422,7 @@ BEGIN
             -- Zusammenfassen gleicher Materialpositionen.
             -- Generieren der Workstep BOM
             delete from zspm_projecttaskbom where c_projecttask_id=v_cur.c_projecttask_id and m_product_id=coalesce(v_oldprod,v_prod);
-            for v_cur2 in (select * from m_product_bom where m_product_id=v_ass and isactive='Y' and m_productbom_id=v_prod order by line)
+            for v_cur2 in (select * from m_product_bom where m_product_id=v_ass and isactive='Y' and m_productbom_id=v_prod and workstepname is null order by line)
             LOOP
                 v_desc:=coalesce(v_desc,'')||case when v_pos is not null then '. Pos.'||v_cur2.line||', Qty.'||v_cur2.bomqty||': ' else '' end ||coalesce(v_cur2.description,'');
                 v_constrm:=coalesce(v_constrm,'')||case when v_pos is not null then '. Pos.'||v_cur2.line||': ' else '' end ||coalesce(v_cur2.constuctivemeasure,'');
@@ -1554,6 +1571,12 @@ BEGIN
             raise exception '%', '@invalidcharacter@'||': |';
         end if;
    END IF;
+   
+ -- # are not allowed in name and searchkey
+ IF (NEW.name LIKE '%#%' OR NEW.value LIKE '%#%') THEN
+    RAISE EXCEPTION '%', '@invalidcharacter@' || ': #';
+ END IF;
+   
 RETURN NEW;
 END; $BODY$
   LANGUAGE 'plpgsql' VOLATILE

@@ -85,7 +85,7 @@ public class ConfigureNumberbox {
     		if (vars.getSessionValue("#ISMOBILE").equals("TRUE"))
     			script.addJScript("window.addEventListener(\"load\", function(){numpad.attach({id : \"" + fieldname + "\"},\"Y\");});");    		
     	}
-    	stdJSSettings="";
+    	stdJSSettings=" onchange=\"@CALLOUT@\" ";
     	
     } else if ( isGrid) {
     	template=  servlet.getServletContext().getAttribute("numberboxTEMPLATEGRID");

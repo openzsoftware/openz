@@ -53,6 +53,20 @@ Contributor(s): ______________________________________.
       <Parameter name="objectname"/>
       <Parameter name="adLanguage"/>
    </SqlMethod>
+   <SqlMethod name="getProcessResult" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select ad_get_pinstance_result(?) from dual
+      </Sql>
+      <Parameter name="PInstanceID"/>
+   </SqlMethod>
+   <SqlMethod name="getProcessResultWC" type="preparedStatement" connection="true" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select ad_get_pinstance_result(?) from dual
+      </Sql>
+      <Parameter name="PInstanceID"/>
+   </SqlMethod>
    <SqlMethod name="getProcessDescriptionText" type="preparedStatement" return="string">
       <SqlMethodComment></SqlMethodComment>
       <Sql>

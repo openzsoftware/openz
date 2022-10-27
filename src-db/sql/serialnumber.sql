@@ -154,14 +154,20 @@ v_attrstocked varchar;
 BEGIN
     if p_table='inventoryline' then
         select 'IVT',qtycount,m_product_id,m_attributesetinstance_id into v_movtype,v_qty,v_product,v_attrset from m_inventoryline where m_inventoryline_id=p_id;
-        select count(*) into v_double from snr_inventoryline  where m_inventoryline_id=p_id and serialnumber is not null group by serialnumber having count(*)>1 ;
+        select count(*) into v_double from snr_inventoryline s,m_inventoryline l where l.m_inventoryline_id=s.m_inventoryline_id and s.serialnumber is not null 
+              and l.m_inventory_id=(select m_inventory_id from m_inventoryline where m_inventoryline_id=p_id)
+              group by l.m_product_id,s.serialnumber having count(*)>1 ;
     elsif p_table='inoutline' then
         select a.movementtype,b.movementqty,b.m_product_id,b.m_attributesetinstance_id into v_movtype,v_qty,v_product,v_attrset from m_inoutline b,m_inout a where a.m_inout_id=b.m_inout_id and b.m_inoutline_id=p_id;
-        select count(*) into v_double from snr_minoutline  where m_inoutline_id=p_id and serialnumber is not null group by serialnumber having count(*)>1 ;
+        select count(*) into v_double from snr_minoutline s,m_inoutline l where l.m_inoutline_id=s.m_inoutline_id and s.serialnumber is not null 
+               and l.m_inout_id=(select m_inout_id from m_inoutline where m_inoutline_id=p_id) 
+               group by l.m_product_id,s.serialnumber having count(*)>1 ;
     elsif p_table='internal_consumptionline' then 
         select a.movementtype,b.movementqty,b.m_product_id,b.m_attributesetinstance_id into v_movtype,v_qty,v_product,v_attrset from m_internal_consumptionline b,m_internal_consumption a where 
-               a.m_internal_consumption_id=b.m_internal_consumption_id and b.m_internal_consumptionline_id=p_id;
-        select count(*) into v_double from snr_internal_consumptionline  where m_internal_consumptionline_id=p_id and serialnumber is not null group by serialnumber having count(*)>1;
+               a.m_internal_consumption_id=b.m_internal_consumption_id and b.m_internal_consumptionline_id=p_id;        
+        select count(*) into v_double from snr_internal_consumptionline s,m_internal_consumptionline l  where l.m_internal_consumptionline_id=s.m_internal_consumptionline_id and s.serialnumber is not null 
+               and l.m_internal_consumption_id=(select m_internal_consumption_id from m_internal_consumptionline where m_internal_consumptionline_id=p_id) 
+               group by l.m_product_id,s.serialnumber having count(*)>1 ;
     elsif p_table='movementline' then
          select 'MOV',movementqty,m_product_id,m_attributesetinstance_id into v_movtype,v_qty,v_product,v_attrset from  m_movementline where m_movementline_id=p_id;
          select count(*) into v_double from snr_movementline  where m_movementline_id=p_id and serialnumber is not null group by serialnumber having count(*)>1;
@@ -231,7 +237,9 @@ BEGIN
                         end if;
                         if v_movtype in ('P+') and v_qty>0 then
                             if v_masterdata is not null and (select count(*) from SNR_Serialnumbertracking where snr_masterdata_id=v_masterdata)>0 then
+                              if (select assembly from c_projecttask where c_projecttask_id=(select c_projecttask_id from m_internal_consumptionline where m_internal_consumptionline_id=p_id))='Y' then 
                                 return '@snr_isproduced@'||v_cur.serialnumber||'@snr_cannotstockagain@: '||v_name;
+                              end if;
                             end if;
                         end if;
                         if v_movtype = 'IVT' then
@@ -315,8 +323,8 @@ BEGIN
  
    IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; END IF; 
    IF TG_OP != 'DELETE' THEN 
-       select processed into v_processed from m_inout where m_inout_id=(select m_inout_id from m_inoutline where m_inoutline_id=new.m_inoutline_id);
-       if v_processed='Y' then  
+       select docstatus into v_processed from m_inout where m_inout_id=(select m_inout_id from m_inoutline where m_inoutline_id=new.m_inoutline_id);
+       if v_processed='CO' then  
           raise exception '%', '@DocumentProcessed@';
        end if;
        if coalesce(new.serialnumber,'#')=coalesce(new.lotnumber,'x') then
@@ -325,8 +333,8 @@ BEGIN
        select  snr_checkline('inoutline',new.m_inoutline_id) into v_return;
        if v_return!='OK' then raise exception '%', v_return; end if;
    else
-       select processed into v_processed from m_inout where m_inout_id=(select m_inout_id from m_inoutline where m_inoutline_id=old.m_inoutline_id);
-       if v_processed='Y' then  
+       select docstatus into v_processed from m_inout where m_inout_id=(select m_inout_id from m_inoutline where m_inoutline_id=old.m_inoutline_id);
+       if v_processed='CO' then  
           raise exception '%', '@DocumentProcessed@';
        end if;
    end if;
@@ -361,6 +369,11 @@ Contributor(s): ______________________________________.
 */
 v_processed character varying;
 v_return character varying;
+v_qtyreceived numeric;
+v_consumption varchar;
+v_plannedsnr varchar;
+v_task varchar;
+v_product varchar;
 BEGIN
  
    IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; END IF; 
@@ -386,6 +399,27 @@ BEGIN
        end if;
        select  snr_checkline('internal_consumptionline',new.m_internal_consumptionline_id) into v_return;
        if v_return!='OK' then raise exception '%', v_return; end if;
+        -- Check in Production Worksteps: Serials that are not Received cannot be returned.
+        if (select count(*) from m_internal_consumptionline l,m_internal_consumption c,c_project p where l.m_internal_consumptionline_id=new.m_internal_consumptionline_id 
+                   and l.m_internal_consumption_id=c.m_internal_consumption_id
+                   and c.c_project_id=p.c_project_id and c.movementtype='D+' and p.projectcategory='PRO')=1
+        then -- Production
+             -- load task
+             select c.m_internal_consumption_id,c.plannedserialnumber,l.c_projecttask_id,l.m_product_id into v_consumption,v_plannedsnr,v_task,v_product 
+                   from m_internal_consumptionline l,m_internal_consumption c
+                   where l.m_internal_consumptionline_id=new.m_internal_consumptionline_id 
+                   and l.m_internal_consumption_id=c.m_internal_consumption_id;
+             -- check Snrs
+             select case when c.movementtype='D+' then (-1) else (1) end * sum(s.quantity)  into v_qtyreceived from m_internal_consumption c,m_internal_consumptionline l, snr_internal_consumptionline s
+               where l.m_internal_consumption_id=c.m_internal_consumption_id and c.c_projecttask_id=v_task and c.m_internal_consumption_id!=v_consumption
+               and s.m_internal_consumptionline_id=l.m_internal_consumptionline_id and coalesce(s.serialnumber,'')=coalesce(new.serialnumber,'') and coalesce(s.lotnumber,'')=coalesce(new.lotnumber,'') 
+               and l.m_product_id=v_product and coalesce(c.plannedserialnumber,'')=coalesce(v_plannedsnr,'') and c.processed='Y' and c.movementtype in ('D+','D-')
+               group by c.movementtype;
+             if (v_qtyreceived is null) then v_qtyreceived=0; end if;  
+             if v_qtyreceived<round(new.quantity,3) then
+                RAISE EXCEPTION '%', coalesce('SNR:'||v_plannedsnr,'')||' @zsmf_cannotbringbackmorethanreceived@ ' ||v_qtyreceived||', Snr/Cnr:'||coalesce(new.serialnumber,'')||coalesce(new.lotnumber,'')||'#'||(select value from m_product where M_Product_ID=v_product); 
+             end if;
+        end if;
    else
        select processed into v_processed from m_internal_consumption where m_internal_consumption_id=(select m_internal_consumption_id from m_internal_consumptionline where m_internal_consumptionline_id=old.m_internal_consumptionline_id);
        if v_processed='Y' then  
@@ -571,6 +605,7 @@ v_masterdata_locator varchar;
 v_locatorto varchar;
 v_multi numeric;
 v_msg varchar;
+v_weight numeric;
 BEGIN
     v_sql:='select * from m_'||p_table||'line  where m_'||p_table||'_id = '||chr(39)||p_id||chr(39);
     OPEN v_cursor FOR EXECUTE v_sql;
@@ -616,12 +651,17 @@ BEGIN
                     PERFORM snr_initmasterdata(v_snrcur.updatedby,v_snrcur.ad_org_id,v_snrcur.serialnumber,v_cur.m_product_id,v_snrcur.lotnumber);
                     
                     select movementdate into v_mdate from m_inventory where m_inventory_id=v_cur.m_inventory_id;
-                    select snr_masterdata_id, m_locator_id into v_snrmdid, v_masterdata_locator from snr_masterdata where serialnumber=coalesce(v_snrcur.serialnumber,'not available') and m_product_id=v_cur.m_product_id;
+                    select snr_masterdata_id, m_locator_id,weight into v_snrmdid, v_masterdata_locator,v_weight from snr_masterdata where serialnumber=coalesce(v_snrcur.serialnumber,'not available') and m_product_id=v_cur.m_product_id;
 
-            -- überprüfe ob die eingetragene Seriennummer überhaupt im Lager der Position liegt
-            if v_locator != v_masterdata_locator then
-                    raise exception '%', 'In Zeile '||v_cur.line||': Für das Produkt '||zssi_getproductname(v_cur.m_product_id,'de_DE')||' ist der Lagerort der Seriennummer nicht korrekt zugeordnet. Die Lagerorte der Seriennummer und des Produktes müssen gleich sein.'; 
-            end if;
+                    -- überprüfe ob die eingetragene Seriennummer überhaupt im Lager der Position liegt (ggf. Korrigieren im Alt-Lagerort)
+                    if v_locator != coalesce(v_masterdata_locator,v_locator) then
+                        --raise exception '%', 'In Zeile '||v_cur.line||': Für das Produkt '||zssi_getproductname(v_cur.m_product_id,'de_DE')||' ist der Lagerort der Seriennummer nicht korrekt zugeordnet. Die Lagerorte der Seriennummer und des Produktes müssen gleich sein.'; 
+                        if v_weight is null then
+                            select weight into v_weight from m_product where m_product_id=v_cur.m_product_id;
+                        end if;
+                        update m_storage_detail set weight=weight-v_weight,qtyonhand=qtyonhand-1 where  m_locator_id=v_masterdata_locator and m_product_id=v_cur.m_product_id
+                               and coalesce(M_AttributeSetInstance_ID,'0')=coalesce(v_cur.M_AttributeSetInstance_ID,'0');
+                    end if;
 
                     select snr_batchmasterdata_id into v_bmdid from snr_batchmasterdata  where batchnumber=coalesce(v_snrcur.lotnumber,'not available') and m_product_id=v_cur.m_product_id;
                     if v_bmdid is not null and v_snrmdid is not null then
@@ -804,7 +844,7 @@ BEGIN
     END LOOP;
     CLOSE v_cursor;
     -- Stücklisten von Gerätren prüfen, bei + Trxes müssen die SNR da raus sein.
-    If  instr(v_type,'+')>0 then
+    If  instr(v_type,'+')>0 and v_isserial='Y' then
         select count(*),string_agg(s.serialnumber,',') into v_count,v_msg from snr_inventoryline s,m_inventoryline ml, m_inventory m, snr_currentbom_serials bs
                where ml.m_inventory_id=m.m_inventory_id and ml.m_inventoryline_id=s.m_inventoryline_id 
                and bs.snr_masterdata_id=s.snr_masterdata_id and m.m_inventory_id=p_id;
@@ -841,7 +881,8 @@ BEGIN
  
    IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; END IF; 
    IF TG_OP = 'UPDATE' THEN
-       if new.processed='Y' and old.processed='N' then 
+       -- Reservations are not checked
+       if new.docstatus='CO' and old.docstatus!='CO' then 
             perform snr_checkpost('inout',new.m_inout_id);
        end if;
    end if;
@@ -1331,7 +1372,7 @@ CREATE TRIGGER snr_batchmasterdata_trg
  
   
  
-CREATE OR REPLACE FUNCTION getAutoLotNo(v_org varchar, issotrx varchar,v_minoutline_id varchar)
+CREATE OR REPLACE FUNCTION getAutoLotNo(v_org varchar, issotrx varchar,v_minoutline_id varchar, choice varchar)
   RETURNS varchar AS
 $BODY$ DECLARE 
 /***************************************************************************************************************************************************
@@ -1354,12 +1395,15 @@ BEGIN
     if issotrx='N' then
         select p.isserialtracking,p.isbatchtracking  into v_serial,v_batch from m_product p, m_inoutline m where m.m_product_id=p.m_product_id and m.m_inoutline_id = v_minoutline_id;
         select movementdate,movementtype into v_mmdate,v_type from m_inout,m_inoutline where m_inoutline.m_inout_id=m_inout.m_inout_id and m_inoutline.m_inoutline_id=v_minoutline_id;
-        if c_getconfigoption('autoselectlotnumber', v_org)='Y' and v_serial = 'N' and v_batch='Y'  and v_type='V+' then
+  --      if c_getconfigoption('autoselectlotnumber', v_org)='Y' and v_serial = 'N' and v_batch='Y'  and v_type='V+' then
+        if choice = 'batch' then
             if c_getconfigoption('cnrdin', v_org)='Y'  then
                 v_return:=zssi_cnrcodex(v_mmdate);
             else
                 select p_documentno into v_return from ad_sequence_doc('Batchnumber',v_org,'Y');
             end if;
+        elsif choice = 'serial' then
+                select p_documentno into v_return from ad_sequence_doc('Serialnumber',v_org,'Y');
         end if;
     end if;
     return coalesce(v_return,'');
@@ -1665,6 +1709,7 @@ v_currbomid varchar;
 v_count numeric;
 v_client varchar:='C726FEC915A54A0995C568555DA5BB3C';
 v_snrmasterdata varchar;
+v_btchmasterdata varchar;
 v_qty numeric;
 v_currentbom_qty numeric;
 v_currentbom record;
@@ -1672,20 +1717,31 @@ v_curSubProduct record;
 v_text1 varchar;
 v_text2 varchar;
 v_plannedsnrbnr varchar;
+v_prd varchar;
+v_dscr varchar;
+v_prj varchar;
+v_othertaskqty numeric;
 BEGIN 
     
     -- 1. hole weitere Informationen über diese Position ein 
-    select m.movementtype,ml.c_projecttask_id,p.isserialtracking, p.isbatchtracking,ml.movementqty,m.updatedby,m.ad_org_id,m.plannedserialnumber 
-        into v_type,v_task,v_serial,v_batch,v_qty,v_user,v_org,v_plannedsnrbnr 
+    select m.movementtype,ml.c_projecttask_id,p.isserialtracking, p.isbatchtracking,ml.movementqty,m.updatedby,m.ad_org_id,m.plannedserialnumber, p.m_product_id, m.description,m.c_project_id
+        into v_type,v_task,v_serial,v_batch,v_qty,v_user,v_org,v_plannedsnrbnr , v_prd,v_dscr, v_prj
         from m_internal_consumption m, m_internal_consumptionline ml, m_product p where m.m_internal_consumption_id=ml.m_internal_consumption_id and  p.m_product_id=ml.m_product_id and ml.m_internal_consumptionline_id=p_minconsline_id; 
     
     -- 2. wenn die Positionen eine Warenbewegung vom Typ Produktion und Serien- bzw. Chargennummer-pflichtig ist 
     if v_type='P+' and (v_serial='Y' or v_batch='Y') and v_qty>0 then 
         select case when qty=0 then 1 else qty end into v_qty from c_projecttask where c_projecttask_id=v_task;
     -- 3. dann iteriere alle Serien/Chargenummer die zu dieser Position passen
-        for v_cur in (select snr_masterdata_id, snr_batchmasterdata_id from snr_internal_consumptionline where m_internal_consumptionline_id=p_minconsline_id)
+        for v_cur in (select snr_masterdata_id, snr_batchmasterdata_id,ad_org_id from snr_internal_consumptionline where m_internal_consumptionline_id=p_minconsline_id)
         loop
-
+        if (select count(*) from snr_currentbom where snr_masterdata_id=v_cur.snr_masterdata_id)>0  OR 
+           (select count(*) from snr_currentbom where snr_batchmasterdata_id = v_cur.snr_batchmasterdata_id and c_getconfigoption('serialbomstrict',v_cur.ad_org_id)='Y')>0 then
+                raise exception '%','@prodNotPossibleBOMnotEmpty@';
+        end if;
+        -- Produzierte CNR Menge eintragen
+        if v_batch='Y' then
+            update snr_batchmasterdata set prodqty=qtyonhand where snr_batchmasterdata_id = v_cur.snr_batchmasterdata_id;
+        end if;
         -- 4. die Menge eines in der Stückliste enthaltenen Artikels zusammenrechnen -- nur Einträge deren movmenttype 'D-' ist zählen, der Rest wird erstmal ignoriert
         --select round((quantity/v_qty),4) as qty,m_product_id from zspm_projecttaskbom where c_projecttask_id = v_task
         for v_curSubProduct  in (select  sum(ml.movementqty*(case when m.movementtype='D+' then -1 else 1 end)) as qty,ml.m_product_id
@@ -1695,7 +1751,7 @@ BEGIN
                                 and coalesce(m.plannedserialnumber,'')=coalesce(v_plannedsnrbnr,'')
                                 group by ml.m_product_id)
         loop
-            delete  from snr_currentbom where (snr_masterdata_id=v_cur.snr_masterdata_id OR snr_batchmasterdata_id = v_cur.snr_batchmasterdata_id) and m_product_id=v_curSubProduct.m_product_id;
+            --delete  from snr_currentbom where (snr_masterdata_id=v_cur.snr_masterdata_id OR snr_batchmasterdata_id = v_cur.snr_batchmasterdata_id) and m_product_id=v_curSubProduct.m_product_id;
             -- A. alle Einträge werden neu angelegt
             if v_curSubProduct.qty > 0 then
                 -- A5.  Den Artikel in die Stückliste der/s Position/Ober-Artikels mit der berechneten Menge eintragen
@@ -1723,16 +1779,18 @@ BEGIN
         end loop;
 
     else -- D+/D-
-
+        -- Einbau/Ausbau BOM Navigation
         select ml.snr_masterdata_id,ml.m_product_id, case when v_type='D+' then (-1)*ml.movementqty else ml.movementqty end  ,ml.text1,ml.text2
         into v_snrmasterdata ,v_product,v_qty,v_text1,v_text2
         from m_internal_consumptionline ml where ml.m_internal_consumptionline_id=p_minconsline_id;
         if v_snrmasterdata is  null then
+            -- Einbau/Ausbau BOM Navigation Über Projekt (Wartung einer Maschine)
             select m.snr_masterdata_id,ml.m_product_id, case when v_type='D+' then (-1)*ml.movementqty else ml.movementqty end  into v_snrmasterdata ,v_product,v_qty
             from ma_machine m,c_project p,m_internal_consumptionline ml
             where m.ma_machine_id=p.ma_machine_id and p.c_project_id=ml.c_project_id and ml.m_internal_consumptionline_id=p_minconsline_id;
         end if;
         if v_snrmasterdata is  null then
+            -- Einbau/Ausbau BOM Navigation Über Projekt (Wartung einer Kunden-Anlage)
             select a.snr_masterdata_id,ml.m_product_id, case when v_type='D+' then (-1)*ml.movementqty else ml.movementqty end  into v_snrmasterdata ,v_product,v_qty
             from a_asset a,c_project p,m_internal_consumptionline ml
             where a.a_asset_id=p.a_asset_id and p.c_project_id=ml.c_project_id and ml.m_internal_consumptionline_id=p_minconsline_id;
@@ -1741,6 +1799,28 @@ BEGIN
             update m_internal_consumptionline set snr_masterdata_id=v_snrmasterdata where m_internal_consumptionline_id=p_minconsline_id;
             if (select m_product_id from snr_masterdata where snr_masterdata_id=v_snrmasterdata)=v_product then
                 raise exception '%','@zsmf_BOMHasRecoursion@';
+            end if;
+            -- Test if Material was BUILT into Assembly (Only D+)
+            if c_getconfigoption('bringbackmorematerialthanreceivedsnrbom','0')='N'  and v_type='D+' then
+                select qty+v_qty into v_count from snr_currentbom where snr_masterdata_id=v_snrmasterdata and m_product_id=v_product;
+                --RAISE EXCEPTION '%', v_count||'#'||v_snrmasterdata||'#'||v_product;
+                if v_count is null then v_count:=-1; end if;
+                if v_count<0 then
+                    RAISE EXCEPTION '%', (select p.value from m_product p,snr_masterdata s where s.m_product_id=p.m_product_id and s.snr_masterdata_id=v_snrmasterdata)||'-'||(select serialnumber from snr_masterdata where snr_masterdata_id=v_snrmasterdata)||':'||'@zsmf_cannotbringbackmorethanreceived@'||' '||(select value from m_product where m_product_id=v_product);
+                end if;
+                if (select isserialtracking from m_product where m_product_id=v_product)='Y' or (select isbatchtracking from m_product where m_product_id=v_product)='Y' then
+                    for v_cur3 in (select b.snr_batchmasterdata_id,s.snr_masterdata_id from m_internal_consumptionline ml,snr_internal_consumptionline l
+                                          left join snr_batchmasterdata b on b.m_product_id=v_product and b.batchnumber=l.lotnumber
+                                          left join snr_masterdata s on s.m_product_id=v_product and s.serialnumber=l.serialnumber
+                                          where ml.m_internal_consumptionline_id=p_minconsline_id and ml.m_internal_consumptionline_id=l.m_internal_consumptionline_id)
+                    LOOP
+                        select snr_currentbom_id into v_currbomid from snr_currentbom where snr_masterdata_id=v_snrmasterdata and m_product_id=v_product;
+                        if (select count(*) from snr_currentbom_serials where snr_currentbom_v_id=v_currbomid 
+                                                and (snr_batchmasterdata_id=coalesce(v_cur3.snr_batchmasterdata_id,'') or snr_masterdata_id=coalesce(v_cur3.snr_masterdata_id,'')))=0 then                                     
+                            RAISE EXCEPTION '%', (select p.value from m_product p,snr_masterdata s where s.m_product_id=p.m_product_id and s.snr_masterdata_id=v_snrmasterdata)||'-'||(select serialnumber from snr_masterdata where snr_masterdata_id=v_snrmasterdata)||':'||'@zsmf_cannotbringbackmorethanreceived@'||' '||coalesce((select p.value||'-'||s.serialnumber from m_product p,snr_masterdata s where s.snr_masterdata_id=v_cur3.snr_masterdata_id and s.m_product_id=p.m_product_id),'')||coalesce((select p.value||'-'||s.batchnumber from m_product p,snr_batchmasterdata s where s.snr_batchmasterdata_id=v_cur3.snr_batchmasterdata_id and s.m_product_id=p.m_product_id),''); 
+                        end if;
+                    END LOOP;
+                end if;
             end if;
             select count(*) into v_count from snr_currentbom where snr_masterdata_id=v_snrmasterdata and m_product_id=v_product;
             if v_count=0 and v_qty>0 then
@@ -1761,13 +1841,25 @@ BEGIN
                     for v_cur3 in (select snr_masterdata_id,quantity,snr_batchmasterdata_id  from snr_internal_consumptionline where m_internal_consumptionline_id=p_minconsline_id)
                     LOOP
                         if v_type='D-' then
-                            insert into snr_currentbom_serials(snr_currentbom_serials_id , snr_currentbom_v_id, snr_batchcurrentbom_v_id, snr_masterdata_id ,ad_client_id, ad_org_id , isactive , createdby, updatedby ,snr_batchmasterdata_id,qty)
-                            values(get_uuid(),v_currbomid,v_currbomid,v_cur3.snr_masterdata_id,v_client,v_org,'Y',v_user,v_user,v_cur3.snr_batchmasterdata_id,v_cur3.quantity);
-                            update snr_masterdata set snrselfjoin=v_snrmasterdata where snr_masterdata_id=v_cur3.snr_masterdata_id;
-                            
-                        else
-                            delete from snr_currentbom_serials where (snr_currentbom_v_id=v_currbomid OR snr_batchcurrentbom_v_id=v_currbomid) and snr_masterdata_id=v_cur3.snr_masterdata_id or snr_batchmasterdata_id=v_cur3.snr_batchmasterdata_id;
-                            update snr_masterdata set snrselfjoin=null where snr_masterdata_id=v_cur3.snr_masterdata_id;
+                            if v_cur3.snr_masterdata_id is null and v_cur3.snr_batchmasterdata_id is not null 
+                               and (select count(*) from snr_currentbom_serials where snr_currentbom_v_id=v_currbomid and snr_batchmasterdata_id=v_cur3.snr_batchmasterdata_id)>0
+                            then -- Existing Batches, no SNR -> Increase QTY
+                                    update snr_currentbom_serials set qty=qty+v_cur3.quantity  where snr_currentbom_v_id=v_currbomid and snr_batchmasterdata_id=v_cur3.snr_batchmasterdata_id;
+                            else -- serials or non ex. Batches
+                                insert into snr_currentbom_serials(snr_currentbom_serials_id , snr_currentbom_v_id, snr_batchcurrentbom_v_id, snr_masterdata_id ,ad_client_id, ad_org_id , isactive , createdby, updatedby ,snr_batchmasterdata_id,qty)
+                                values(get_uuid(),v_currbomid,v_currbomid,v_cur3.snr_masterdata_id,v_client,v_org,'Y',v_user,v_user,v_cur3.snr_batchmasterdata_id,v_cur3.quantity);
+                                update snr_masterdata set snrselfjoin=v_snrmasterdata where snr_masterdata_id=v_cur3.snr_masterdata_id;
+                            end if;
+                        else                             
+                            -- Update BOM Serials/Batches
+                            if v_cur3.snr_masterdata_id is null and v_cur3.snr_batchmasterdata_id is not null 
+                               and coalesce((select qty-v_cur3.quantity from snr_currentbom_serials where snr_currentbom_v_id=v_currbomid and snr_batchmasterdata_id=v_cur3.snr_batchmasterdata_id),0)>0
+                            then -- Existing Batches, no SNR -> DECREASE QTY
+                                    update snr_currentbom_serials set qty=qty-v_cur3.quantity  where snr_currentbom_v_id=v_currbomid and snr_batchmasterdata_id=v_cur3.snr_batchmasterdata_id;
+                            else -- serials or  Batches without QTY left  (mehrere Chargen, eine ist zu löschen)                          
+                                delete from snr_currentbom_serials where (snr_currentbom_v_id=v_currbomid OR snr_batchcurrentbom_v_id=v_currbomid) and (snr_masterdata_id=v_cur3.snr_masterdata_id or snr_batchmasterdata_id=v_cur3.snr_batchmasterdata_id);
+                                update snr_masterdata set snrselfjoin=null where snr_masterdata_id=v_cur3.snr_masterdata_id;
+                            end if;
                         end if;
                     END LOOP;
                 else
@@ -1789,14 +1881,120 @@ BEGIN
             END LOOP;
         end if;
     end if;
+    -- Durchreiche AG: Stückliste ergänzen - Funktion nur bei erster Zeile auslösen (1. Zeile ist Assembly.)
+    if v_type='D+' and (v_serial='Y' or v_batch='Y') and (select count(*) from c_projecttask where c_projecttask_id=v_task and assembly='N')>0
+       and (SELECT  m_product_id as id from zssm_workstepbom_v  where zssm_workstep_v_id = v_task order by line limit 1) = v_prd
+       and v_dscr='Generated by PDC ->Send produced Material on Stock'
+    then 
+        select s.snr_masterdata_id into v_snrmasterdata from snr_masterdata s where s.m_product_id=v_prd and s.serialnumber=coalesce(v_plannedsnrbnr,'');
+        select s.snr_batchmasterdata_id into v_btchmasterdata from snr_batchmasterdata s where s.m_product_id=v_prd and s.batchnumber=coalesce(v_plannedsnrbnr,'');
+        -- 4. die Menge eines in der Stückliste enthaltenen Artikels zusammenrechnen -- nur Einträge deren movmenttype 'D-' ist zählen, der Rest wird erstmal ignoriert
+        --select round((quantity/v_qty),4) as qty,m_product_id from zspm_projecttaskbom where c_projecttask_id = v_task
+        for v_curSubProduct  in (select  sum(ml.movementqty*(case when m.movementtype='D+' then -1 else 1 end)) as qty,ml.m_product_id
+                                from  m_internal_consumptionline ml,m_internal_consumption m 
+                                where m.m_internal_consumption_id=ml.m_internal_consumption_id
+                                and ml.c_projecttask_id=v_task and m.processed='Y' and m.movementtype in ('D+','D-')
+                                and coalesce(m.plannedserialnumber,'')=coalesce(v_plannedsnrbnr,'') and ml.m_product_id!=v_prd
+                                group by ml.m_product_id)
+        loop
+            -- A. alle Einträge werden neu angelegt
+            if v_curSubProduct.qty > 0 then
+                -- A5.  Den Artikel in die Stückliste der/s Position/Ober-Artikels mit der berechneten Menge eintragen
+                select snr_currentbom_id into v_currbomid from snr_currentbom where (snr_masterdata_id=v_snrmasterdata or snr_batchmasterdata_id=v_btchmasterdata) and m_product_id=v_curSubProduct.m_product_id;
+                if v_currbomid is null then
+                    select get_uuid() into v_currbomid;
+                    insert into snr_currentbom(snr_currentbom_id , snr_masterdata_id, snr_batchmasterdata_id, ad_client_id, ad_org_id , isactive , createdby, updatedby , m_product_id, qty)
+                    values (v_currbomid,v_snrmasterdata,v_btchmasterdata,v_client,v_org,'Y',v_user,v_user, v_curSubProduct.m_product_id, v_curSubProduct.qty);
+                else
+                    select  sum(ml.movementqty*(case when m.movementtype='D+' then -1 else 1 end)) into v_othertaskqty 
+                            from  m_internal_consumptionline ml,m_internal_consumption m 
+                                where m.m_internal_consumption_id=ml.m_internal_consumption_id
+                                and ml.c_projecttask_id!=v_task and ml.c_project_id=v_prj and m.processed='Y' and m.movementtype in ('D+','D-')
+                                and coalesce(m.plannedserialnumber,'')=coalesce(v_plannedsnrbnr,'') and ml.m_product_id=v_curSubProduct.m_product_id;
+                    update snr_currentbom set qty=v_othertaskqty+v_curSubProduct.qty where snr_currentbom_id=v_currbomid;
+                end if;
+                -- Insert SERIALS
+                for v_cur3 in (select l.snr_masterdata_id, sum(l.quantity*(case when m.movementtype='D+' then -1 else 1 end)) as summed_Quantity, l.snr_batchmasterdata_id 
+                                                from snr_internal_consumptionline l, m_internal_consumptionline ml,m_internal_consumption m 
+                                                where m.m_internal_consumption_id=ml.m_internal_consumption_id
+                                and ml.m_internal_consumptionline_id=l.m_internal_consumptionline_id and ml.m_product_id=v_curSubProduct.m_product_id
+                                and ml.c_projecttask_id=v_task and m.processed='Y' and m.movementtype in ('D+','D-')
+                                and coalesce(m.plannedserialnumber,'')=coalesce(v_plannedsnrbnr,'')
+                                group by l.snr_masterdata_id, l.snr_batchmasterdata_id) 
+                loop 
+                                if v_cur3.summed_Quantity>0 then
+                                    -- A8. Serien/Chargennummer-Einträge für die Chargennummer-Stücklisten-Einträge anlegen
+                                    insert into snr_currentbom_serials(snr_currentbom_serials_id , snr_currentbom_v_id, snr_batchcurrentbom_v_id, snr_masterdata_id ,ad_client_id, ad_org_id , isactive , createdby, updatedby ,snr_batchmasterdata_id,qty) 
+                                    values(get_uuid(),v_currbomid, v_currbomid,v_cur3.snr_masterdata_id,v_client,v_org,'Y',v_user,v_user,v_cur3.snr_batchmasterdata_id,v_cur3.summed_Quantity);
+                                    update snr_masterdata set snrselfjoin=v_snrmasterdata where snr_masterdata_id=v_cur3.snr_masterdata_id; 
+                                end if;
+                end loop;
+            end if;
+        end loop;
+    end if;
     return;
 END;
 $_$                          
 LANGUAGE 'plpgsql' VOLATILE
 COST 100;
 
-  
-  CREATE or replace FUNCTION zssi_cnrcodex(p_date timestamp with time zone) RETURNS character varying                                                                                                        AS $_$                                                                  
+
+CREATE or replace FUNCTION snrCheckPlannedSNROK(p_workstep varchar,p_plannedsnr varchar) RETURNS varchar  AS $_$                                                                  
+DECLARE
+    v_product varchar;
+    v_othertask varchar;                                                                                    
+BEGIN
+    SELECT  m_product_id into v_product from c_projecttask  where c_projecttask_id = p_workstep and assembly='Y';
+    select t.value into v_othertask from m_internal_consumption c,c_projecttask t where t.c_projecttask_id=c.c_projecttask_id and t.c_projecttask_id!=p_workstep
+                             and c.plannedserialnumber=p_plannedsnr and t.m_product_id=v_product and t.assembly='Y' and t.iscomplete='N';
+    if v_othertask is null then
+        return 'OK';
+    else
+        return v_othertask;
+    end if;
+END;
+$_$                          
+LANGUAGE 'plpgsql' VOLATILE
+COST 100;
+
+
+CREATE or replace FUNCTION snrIsSerialOrBtchProduced(p_plannedsnr varchar,p_workstep varchar) RETURNS varchar  AS $_$                                                                  
+DECLARE
+    v_org varchar;
+    v_prod varchar;
+    v_othertask varchar;
+    v_return varchar;
+BEGIN
+    SELECT  ad_org_id into v_org from c_projecttask  where c_projecttask_id = p_workstep and assembly='Y';
+    if v_org is not null then -- Assembly
+        SELECT case when count(*)>0 then 'Y' else 'N' end into v_return  from m_internal_consumption c,m_internal_consumptionline il,m_product p
+        where p.m_product_id=il.m_product_id and il.m_internal_consumption_id=c.m_internal_consumption_id 
+              and (p.isserialtracking='Y' or (p.isbatchtracking='Y' and c_getconfigoption('serialbomstrict',v_org)='Y')) -- 1:1 - Charge darf nur einmal produziert werden.
+              and c.processed='Y' and c.movementtype='P+'
+              and c.plannedserialnumber=p_plannedsnr and c.c_projecttask_id=p_workstep;
+    else -- Durchreiche (Passing Workstep)
+        SELECT  ad_org_id into v_org from c_projecttask  where c_projecttask_id = p_workstep;
+        select m_product_id into v_prod from zspm_projecttaskbom where c_projecttask_id = p_workstep order by line limit 1;
+        SELECT case when count(*)>0 then 'Y' else 'N' end into v_return  from m_internal_consumption c,m_internal_consumptionline il,m_product p
+        where p.m_product_id=il.m_product_id and il.m_internal_consumption_id=c.m_internal_consumption_id 
+              and (p.isserialtracking='Y' or (p.isbatchtracking='Y' and c_getconfigoption('serialbomstrict',v_org)='Y')) -- 1:1 - Charge darf nur einmal produziert werden.
+              and c.processed='Y' and c.movementtype='D+'
+              and c.plannedserialnumber=p_plannedsnr and c.c_projecttask_id=p_workstep and il.m_product_id=v_prod;
+        
+    end if;
+    RETURN v_return;
+END;
+$_$                          
+LANGUAGE 'plpgsql' VOLATILE
+COST 100;
+
+select zsse_DropView ('snr_planedserials_v');
+CREATE OR REPLACE VIEW snr_planedserials_v AS 
+ SELECT distinct t.c_projecttask_id||c.plannedserialnumber as snr_planedserials_v_id, c.plannedserialnumber as name ,c.c_projecttask_id,
+        c.ad_client_id, '0' as ad_org_id, 'Y'::character as isactive , trunc(now()) as created  , '0' as createdby , trunc(now()) as updated,'0' as updatedby
+ from m_internal_consumption c,c_projecttask t where t.c_projecttask_id=c.c_projecttask_id and  t.iscomplete='N' and c.plannedserialnumber is not null;
+
+CREATE or replace FUNCTION zssi_cnrcodex(p_date timestamp with time zone) RETURNS character varying      AS $_$                                                                  
 /***************************************************************************************************************************************************
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
 compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html

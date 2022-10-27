@@ -1478,6 +1478,14 @@ BEGIN
     update ad_preference set value=new.projectvaluereadonly where attribute=upper('projectvaluereadonly');
     update ad_preference set value=new.refreshintervall where attribute=upper('refreshinterval');
     update ad_tab_instance set isactive=new.prefedineserials where ad_tab_id='11BDCB38C8AC4A129E843458CEC58AE9';
+    if new.prefedineserials='Y' then
+        update AD_Ref_Fieldcolumn set isactive='Y' where AD_Ref_Fieldcolumn_id='E572976E95024F388D51F3040EAD6698';
+        update AD_Ref_Fieldcolumn set isactive='N' where AD_Ref_Fieldcolumn_id='F929D4568D244B3BA9DDCB9153A1367E';
+    end if;
+    if new.prefedineserials='N' then
+        update AD_Ref_Fieldcolumn set isactive='N' where AD_Ref_Fieldcolumn_id='E572976E95024F388D51F3040EAD6698';
+        update AD_Ref_Fieldcolumn set isactive='Y' where AD_Ref_Fieldcolumn_id='F929D4568D244B3BA9DDCB9153A1367E';
+    end if;
 -- Updating
 IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
 END ; $_$;
@@ -2132,6 +2140,15 @@ elsif p_tablename='SNR_MASTERDATA' then
            zssi_docshortcut(v_doctypeid)
     into ad_org_id,document_id,docstatus,docTypeTargetId,ourreference,cusreference,bpartner_id,bpartner_language,unique_timestamp,bpartner_name,orga,docname
     from SNR_MASTERDATA p where SNR_MASTERDATA_id=p_idvalue;
+elsif p_tablename='SNR_BATCHMASTERDATA' then
+    select c_doctype_id into v_doctypeid from c_doctype where name = 'Batchnumber';
+    select p.ad_org_id,p_idvalue,'CO',v_doctypeid,p.batchnumber,'','','',
+           to_char(CURRENT_TIMESTAMP, 'YYDDDSSSS'),
+           '',
+           zssi_juwiorgshortcut(p.ad_org_id),
+           zssi_docshortcut(v_doctypeid)
+    into ad_org_id,document_id,docstatus,docTypeTargetId,ourreference,cusreference,bpartner_id,bpartner_language,unique_timestamp,bpartner_name,orga,docname
+    from SNR_BATCHMASTERDATA p where SNR_BATCHMASTERDATA_id=p_idvalue;
 elsif p_tablename='ZSSM_PRODUCTIONORDER_V' then
     select c_doctype_id into v_doctypeid from c_doctype where name = 'Productionorder';
     select p.ad_org_id,p_idvalue,'CO',v_doctypeid,p.name,p.poreference,p.c_bpartner_id,
@@ -2235,7 +2252,7 @@ elsif p_tablename='MRP_DELIVERIES_EXPECTED' then
     from MRP_DELIVERIES_EXPECTED p where MRP_DELIVERIES_EXPECTED_id=p_idvalue;
 elsif p_tablename='DUNRUN_HISTORY' then
     select c_doctype_id into v_doctypeid from c_doctype where name = 'DunningRun';
-    select p.ad_org_id as ad_org_id,p_idvalue,'CO',v_doctypeid,'Mahnung' as name,'' as poreference,p.c_bpartner_id,
+    select p.ad_org_id as ad_org_id,p_idvalue,'CO',v_doctypeid,(select value from c_bpartner b where b.c_bpartner_id=p.c_bpartner_id) as name,'' as poreference,p.c_bpartner_id,
            (select ad_language from c_bpartner b where b.c_bpartner_id=p.c_bpartner_id) , 
            to_char(CURRENT_TIMESTAMP, 'YYDDDSSSS'), 
            (select name from c_bpartner b where b.c_bpartner_id=p.c_bpartner_id),
@@ -2408,8 +2425,20 @@ CREATE OR REPLACE FUNCTION to_number(text)
 $BODY$
   DECLARE v_version CHARACTER VARYING;
 BEGIN
-    RETURN to_number(replace($1,'.',','), 'S99999999999999D999999');
+    -- Replace first ',' or '.' from the right with 'x'. This will be interpreted as the decimal point. After that delete all remainding ',' and '.'. Finally replace the 'x' with ','.
+    -- 123.456.789,46 -> 123456789,46; 123,456,789.46 -> 123456789,46; 123.456,789.46 -> 123456789,46; 123456789,46 -> 123456789,46
+    RETURN to_number(regexp_replace(regexp_replace(reverse(regexp_replace(reverse($1), '(\,|\.)', 'x')), '(\,|\.)', '', 'g'), 'x', ','), 'S99999999999999D999999');
 END;
 $BODY$
   LANGUAGE plpgsql IMMUTABLE
   COST 100;
+
+CREATE OR REPLACE FUNCTION isnumeric(text) RETURNS BOOLEAN AS $_$
+DECLARE x NUMERIC;
+BEGIN
+    x = $1::NUMERIC;
+    RETURN TRUE;
+EXCEPTION WHEN others THEN
+    RETURN FALSE;
+END;
+$_$ LANGUAGE plpgsql IMMUTABLE;

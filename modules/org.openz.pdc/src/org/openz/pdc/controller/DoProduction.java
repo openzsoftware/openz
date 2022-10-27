@@ -2,7 +2,7 @@ package org.openz.pdc.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-
+import java.sql.Connection;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.data.FieldProvider;
+import org.openbravo.erpCommon.utility.OBError;
 import org.openbravo.erpCommon.utility.Utility;
 
 import org.openbravo.utils.Replace;
@@ -64,6 +65,7 @@ public class DoProduction  extends HttpSecureAppServlet {
       String strSkeleton="";
       //Html Output of the Servlet
       String strOutput ="" ;
+      String InfobarText = "";
       //Calling the Formhelper to create the Fieldgroups and Grids
       Formhelper fh=new Formhelper();
       //>Setting up the Fieldproviders - they provide Data for the Grids
@@ -73,10 +75,10 @@ public class DoProduction  extends HttpSecureAppServlet {
       FieldProvider[] lowerGridData;
       // Do the Business Logic HERE
       VariablesSecureApp vars = new VariablesSecureApp(request);
+      Connection con=null;
       if (vars.getOrg().equals("0"))
         throw new ServletException("@needOrg2UseFunction@");
 
-      try{
         //Getting Session Values
         strProductionid=vars.getSessionValue("pdcProductionID");
         // Getting Form Fields
@@ -88,6 +90,8 @@ public class DoProduction  extends HttpSecureAppServlet {
         PdcCommons commons = new PdcCommons();
         //setting History
         String strpdcFormerDialogue=vars.getSessionValue("PDCFORMERDIALOGUE");
+   // Staring   
+   try{
         if ((strpdcFormerDialogue.equals(""))||(strpdcFormerDialogue.equals("/org.openz.pdc.ad_forms/DoProduction.html"))){
         	vars.setSessionValue("PDCFORMERDIALOGUE","/org.openz.pdc.ad_forms/PdcMainDialogue.html");
         	strpdcFormerDialogue=vars.getSessionValue("PDCFORMERDIALOGUE");
@@ -97,8 +101,10 @@ public class DoProduction  extends HttpSecureAppServlet {
         vars.removeSessionValue("PDCINVOKESERIAL");
         if (commandserial.isEmpty()) {
             setLocalSessionVariable(vars, "pdcproductionquantity", vars.getNumericParameter("inppdcproductionquantity"));
-            setLocalSessionVariable(vars,"plannedserialorbatch", vars.getStringParameter("inpplannedserialorbatch"));
-            if (!vars.getStringParameter("inpplannedserialorbatch").isEmpty())
+            String plannedsnr=PdcCommonData.getPlannedSerial(this, vars.getStringParameter("inpplannedserialorbatchno"));
+            setLocalSessionVariable(vars,"plannedserialorbatch", plannedsnr);
+            setLocalSessionVariable(vars,"plannedserialorbatchno", vars.getStringParameter("inpplannedserialorbatchno"));
+            if (!vars.getStringParameter("inpplannedserialorbatchno").isEmpty())
           	  vars.setSessionValue("pdcAssemblySerialOrBatchNO",getLocalSessionVariable(vars,"plannedserialorbatch")); // If Input Changes, Propagate to global var
         }
         // Getting Workstep       
@@ -114,8 +120,9 @@ public class DoProduction  extends HttpSecureAppServlet {
         
         
         if (vars.commandIn("SAVE_NEW_NEW")){
+          vars.setSessionValue("PDCSTATUS","OK");
+          vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_DataSelected",vars.getLanguage()));  
           if (!strBarcode.isEmpty()) {
-        	 
             // Analyze Scanned Barcode..
             PdcCommonData[] data  = PdcCommonData.selectbarcode(this, strBarcode);
             // In this Servlet CONTROL, EMPLOYEE or PRODUCT or CALCULATION, LOCATOR, WORKSTEP can be scanned,
@@ -125,6 +132,11 @@ public class DoProduction  extends HttpSecureAppServlet {
             if (data.length>=1) {
                 bcid=data[0].id;  
                 bctype=data[0].type;
+                snrbnr=data[0].serialnumber;
+                if (FormatUtils.isNix(snrbnr))
+              	  snrbnr=data[0].lotnumber;
+                if (FormatUtils.isNix(snrbnr))
+          	    snrbnr="";
             }                     
             // The Function to Scan Serial and Batch Numbers direct was implemented later.
             // This Servlet does not use it and determins SERIAL and Batches in own querys.
@@ -147,9 +159,8 @@ public class DoProduction  extends HttpSecureAppServlet {
                 vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_sucessful",vars.getLanguage()));
             } else if (bctype.equals("WORKSTEP")||bctype.equals("KOMBI")||bctype.equals("PRODUCT")){
                 if (strProductionid.isEmpty()) {
-                  if (bctype.equals("KOMBI")) {
-                		String[] kombi=vars.getStringParameter("inp" + BarcodeADName).split("\\|");  
-                		snrbnr=kombi[1];
+                  if (bctype.equals("KOMBI")) {                		
+                		strpdcWorkstepID=PdcCommonData.getWorkstepFromKombi(this, bcid, snrbnr);
                 		PdcCommons.setWorkstepVars(null,bcid,snrbnr, vars,this);
                 		if (PdcCommonData.isserialtracking(this, bcid).equals("Y") && UtilsData.getOrgConfigOption(this, "serialbomstrict", vars.getOrg()).equals("Y")) {
                 			  setLocalSessionVariable(vars, "pdcproductionquantity", "1");
@@ -158,7 +169,7 @@ public class DoProduction  extends HttpSecureAppServlet {
                   }
                   if (bctype.equals("WORKSTEP"))
                 	  strpdcWorkstepID=bcid;
-                  else 
+                  if (bctype.equals("PRODUCT"))
                 	  strpdcWorkstepID=PdcCommonData.getWorkstepFromProduct(this, bcid);
                   if (FormatUtils.isNix(strpdcWorkstepID)) {
                 	  vars.setSessionValue("PDCSTATUS","ERROR");
@@ -167,7 +178,12 @@ public class DoProduction  extends HttpSecureAppServlet {
                 	  if (FormatUtils.isNix(snrbnr))
                 		  PdcCommons.setWorkstepVars(strpdcWorkstepID,null,null, vars,this);
 	              	  setLocalSessionVariable(vars, WorkstepIDADName,strpdcWorkstepID);
-	              	  commons.prepareProduction(vars,null,strpdcWorkstepID,strProductionid,strpdcUserID,null,vars.getSessionValue("pdcLocatorID"),this);
+	              	  try {
+		              	  con=this.getTransactionConnection();	
+		              	  commons.prepareProduction(vars,null,strpdcWorkstepID,strProductionid,strpdcUserID,null,vars.getSessionValue("pdcLocatorID"),this,con);
+		              	  con.commit();
+		              	  con.close();
+	              	  } catch (Exception e) { try {con.rollback();}catch (Exception ign) {} try {con.close();}catch (Exception ign) {} throw e;}
 	              	  bcCommand="ALLPOSITIONS";
 	              	  strProductionid=vars.getSessionValue("pdcProductionID");
 	              	  vars.setSessionValue("PDCSTATUS","OK");
@@ -186,7 +202,7 @@ public class DoProduction  extends HttpSecureAppServlet {
                 bcCommand="CLOSEWS";
               else {
                 vars.setSessionValue("PDCSTATUS","ERROR");
-                vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_bcnotapplicable",vars.getLanguage()));
+                vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_bcnotapplicable",vars.getLanguage())+"-"+vars.getStringParameter("inppdcmaterialconsumptionbarcode"));
               }
             } else if (bctype.equals("UNKNOWN")){
               vars.setSessionValue("PDCSTATUS","ERROR");
@@ -206,7 +222,6 @@ public class DoProduction  extends HttpSecureAppServlet {
           bcCommand=vars.getCommand();    
         }
         // Evaluate Command
-        String InfobarText = "";
         Boolean loadDataOK=false;
         // Determin, if workstep and user is set.
         if (strpdcUserID.isEmpty()) 
@@ -223,26 +238,49 @@ public class DoProduction  extends HttpSecureAppServlet {
             response.sendRedirect(strDireccion + strpdcFormerDialogue);
           }
           if (bcCommand.equals("CLOSEWS")||bcCommand.equals("DONE")){
-        	if (UtilsData.getOrgConfigOption(this, "serialbomstrict", vars.getOrg()).equals("Y") && getLocalSessionVariable(vars,"plannedserialorbatch").isEmpty() && vars.getSessionValue("ISSNRBNR").equals("Y")) {
+        	if (UtilsData.getOrgConfigOption(this, "serialbomstrict", vars.getOrg()).equals("Y") && getLocalSessionVariable(vars,"plannedserialorbatch").isEmpty() && 
+        			vars.getSessionValue("ISSNRBNR").equals("Y") && DoProductionData.isMovingWorkstep(this, strpdcWorkstepID).equals("N")) {
     			  vars.setSessionValue("PDCSTATUS","ERROR");
     			  vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_PlannedSerialNumberNecessary",vars.getLanguage()));
-        	} else
-          	commons.finishProduction(response,strProductionid,strpdcWorkstepID,bcCommand,strpdcUserID,vars,this);
+        	} else {
+        		if (strProductionid.isEmpty()) {
+        			vars.setSessionValue("PDCSTATUS","ERROR");
+        			vars.setSessionValue("PDCSTATUSTEXT","Produktion nicht möglich. Untere Liste ist leer.");
+        		} else {
+        			try {
+	        			con=this.getTransactionConnection();	
+	        			commons.finishProduction(response,strProductionid,strpdcWorkstepID,bcCommand,strpdcUserID,vars,this,con);
+	        			con.commit();
+	        			con.close();
+        			} catch (Exception e) { try {con.rollback();}catch (Exception ign) {} try {con.close();}catch (Exception ign) {} throw e;}
+        		}
+        	}
           }
           
           if ((bcCommand.equals("DEFAULT")||bcCommand.equals("ALLPOSITIONS")) && loadDataOK){
         	if (vars.commandIn("ALLPOSITIONS")) {
-        		if (FormatUtils.isNix(strProductionid)) {
-            	  String prod=commons.prepareProduction(vars,null,strpdcWorkstepID,strProductionid,strpdcUserID,null,vars.getSessionValue("pdcLocatorID"),this);
-            	  vars.setSessionValue("pdcProductionID",prod);
-            	  strProductionid=prod;
-        		} else {
-        			PdcCommonData.deleteAllMaterialLines( this, strProductionid);
-                    PdcCommonData.deleteMaterialTransaction( this, strProductionid);
-                    vars.removeSessionValue("pdcProductionID");
-        		}
                 vars.setSessionValue("PDCSTATUS","OK");
-                vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_sucessful",vars.getLanguage()));
+        		if (UtilsData.getOrgConfigOption(this, "serialbomstrict", vars.getOrg()).equals("Y") && getLocalSessionVariable(vars,"plannedserialorbatch").isEmpty() && vars.getSessionValue("ISSNRBNR").equals("Y")) {
+      			  vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_PlannedSerialNumberNecessary",vars.getLanguage()));
+        		} else {
+	        		if (FormatUtils.isNix(strProductionid)) {
+	        			String prod=null;
+	        			try {
+		        		  con=this.getTransactionConnection();	
+		            	  prod=commons.prepareProduction(vars,null,strpdcWorkstepID,strProductionid,strpdcUserID,null,vars.getSessionValue("pdcLocatorID"),this,con);
+		            	  con.commit();
+		            	  con.close();
+	        			} catch (Exception e) { try {con.rollback();}catch (Exception ign) {} try {con.close();}catch (Exception ign) {} throw e;}
+	            	  vars.setSessionValue("pdcProductionID",prod);
+	            	  strProductionid=prod;
+	        		} else {
+	        			PdcCommonData.deleteAllMaterialLines( this, strProductionid);
+	                    PdcCommonData.deleteMaterialTransaction( this, strProductionid);
+	                    vars.removeSessionValue("pdcProductionID");
+	        		}
+	        		if (vars.getSessionValue("PDCSTATUS").equals("OK"))
+	        			vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_sucessful",vars.getLanguage()));
+        		}
         	}
             upperGridData = DoProductionData.selectupper(this,vars.getLanguage(),strpdcWorkstepID,strProductionid,"");
             lowerGridData = DoProductionData.selectlower(this,vars.getLanguage(),strProductionid,"");
@@ -258,7 +296,18 @@ public class DoProduction  extends HttpSecureAppServlet {
             upperGridData = DoProductionData.set();
             lowerGridData = DoProductionData.set();
           }
-        
+      // Present Errors on the User Screen          
+      } catch (Exception e) { 
+    	e.printStackTrace();
+      	vars.setSessionValue("PDCSTATUS","ERROR");    	
+      	OBError s=new OBError();
+      	s=Utility.translateError(this, vars, vars.getLanguage(),e.getMessage());
+      	vars.setSessionValue("PDCSTATUSTEXT",s.getMessage());
+      	upperGridData = DoProductionData.set();
+        lowerGridData = DoProductionData.set();
+      }   
+      try {
+   	    // Build the GUI      
         // Initialize Infobar helper variables
         String InfobarPrefix = "<span style=\"font-size: 20pt; color: #000000;\">" + Utility.messageBD(this, "pdc_production",vars.getLanguage()) + "<br />";
         String InfobarSuffix = "</span>";

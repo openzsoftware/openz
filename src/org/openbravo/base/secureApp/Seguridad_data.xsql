@@ -13,7 +13,7 @@
 
 
 
-<SqlClass name="SeguridadData" package="org.openbravo.base.secureApp">
+<SqlClass name="SeguridadData" package="org.openbravo.base.secureApp" accessModifier="public">
    <SqlClassComment></SqlClassComment>
    <SqlMethod name="select" type="preparedStatement" return="multiple">
       <SqlMethodComment></SqlMethodComment>
@@ -345,5 +345,17 @@
      ]]></Sql>
      <Parameter name="roleId"/>
      <Parameter name="tabId"/>
+   </SqlMethod>
+   <SqlMethod name="getUserPermsessin" type="preparedStatement" return="string">
+        <Sql><![CDATA[
+            SELECT permsessionid from ad_user where ad_user_id=?
+        ]]></Sql>
+        <Parameter name="adUserId"/>
+   </SqlMethod>
+   <SqlMethod name="getPermsessinUser" type="preparedStatement" return="string">
+        <Sql><![CDATA[
+            SELECT ad_user_id from ad_user where permsessionid=?
+        ]]></Sql>
+        <Parameter name="permsessionId"/>
    </SqlMethod>
 </SqlClass>

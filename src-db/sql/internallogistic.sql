@@ -545,7 +545,7 @@ SELECT    snr.m_product_id,
           m_locator l1,
           c_bpartner b,
           ad_user u
-        WHERE l1.m_locator_id=snr.m_locator_id  and
+        WHERE snr.m_locator_id is not null and l1.m_locator_id=snr.m_locator_id  and
               l1.islogistic='Y' and
               CASE WHEN ils_getdirectmail(snr.serialnumber)='Y' then 1=1 else snr.m_locator_id=ils_getuserlogisticstoragebin(snr.ad_user_id) end and
               b.c_bpartner_id=u.c_bpartner_id and 

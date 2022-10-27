@@ -209,7 +209,7 @@ Returns Order ID, if Successful
 
 This function was extended to a generic funktion to gen. Orders (PO/SO) - Not only for webservices-Also within OZ
 1. Use:  p_shopid is a valid zse_shop_id. If null, as preference for the PreferenceType WebshopOrder (SOO) is used in smartinvoiceprefs with shop-id = null else specific for the shop to Determin doctype etc.
-               In that case p_ec_paymentmethod is a shop-Payment-method ListRef (8EE47A7F188B4F86936C8AF91A55490A) and has to be mapped to OZ paymentrule List Ref (195) . See Mapping to Paymentrule below.
+               In that case p_ec_paymentmethod is a shop-Payment-method ListRef 'Paymentmethod ECommerce' (8EE47A7F188B4F86936C8AF91A55490A) and has to be mapped to OZ paymentrule List Ref (195) . See Mapping to Paymentrule below.
  
  2. Use: In p_shopid is not a zse_shop_id, BUT a Value of the List PreferenceType Ref-List-ID F2F614C13163411D8EFD805E23037EE0, Field invoicetype in smartinvoiceprefs. In this case Field invoicetype in smartinvoiceprefs is used to determin the doctype_id etc.
                In that Case The Payment method,  is used from the settings in bpartner or invoiceprefs
@@ -253,6 +253,24 @@ BEGIN
         select ad_user_id into v_user from ad_user where ad_user_id=p_user;
     end if;
     if v_user is null or v_client is null then v_message:='ERR: WRONG USER or ORG ID'; end if;
+    if coalesce(p_shopid,'')!='INTERNAL' and (select seqno from ad_user where ad_user_id=v_user) is null then
+        v_message:='ERR: Shop User not Licensed! Single Role eCommerce, Username required!'; 
+    end if;
+    if coalesce(p_shopid,'')!='INTERNAL' and (select count(*) from zssi_smartinvoiceprefs where ad_client_id=v_client and ad_org_id in ('0',p_org_Id) and invoicetype=p_shopid and isactive='Y')=0 then
+        if (select count(*) from ad_user_roles where  ad_user_id=v_user)!=1 then
+            v_message:='ERR: Shop User not Licensed! Role eCommerce is required as single User-Role!'; 
+        end if;
+        if (select count(*) from ad_user_roles where  ad_user_id=v_user and ad_role_id='80B12F63EE224C6CB6975132A3163AAF')!=1 then
+            v_message:='ERR: Shop User not Licensed! Role eCommerce required as User-Role !'; 
+        end if;
+        if (select count(*) from zse_shop where zse_shop_id=p_shopid)=0 and p_shopid is not null then
+            v_message:='ERR: You have to define Document preferences to generate a Document of this type!'; 
+        end if;
+    else
+        if coalesce(p_shopid,'')='INTERNAL' then
+            p_shopid:=null;
+        end if;
+    end if;
     select count(*) into v_count from c_bpartner where c_bpartner_Id=p_bpartner_Id;
     if v_count!=1 then v_message:='ERR: BUSINESS Partner does not exist!'; end if;
     -- Get Billto Location

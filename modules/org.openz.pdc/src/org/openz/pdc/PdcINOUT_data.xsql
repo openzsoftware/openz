@@ -20,138 +20,389 @@ Contributor(s): ______________________________________.
   
 <SqlMethod name="select" type="preparedStatement" return="multiple">
 <SqlMethodComment></SqlMethodComment>
-    <Sql>
-    select a.m_inoutline_id,a.todos,a.pdcproduct,a.pdclocator,zssi_strNumber(a.movementqty,?) as pdcqty,a.m_product_id,a.isserialtracking,a.isbatchtracking,row_number() over() as linecnt from
-         (Select f.m_inoutline_id,p.m_product_id,p.isserialtracking,p.isbatchtracking,
-         case when (p.isserialtracking='Y' or  p.isbatchtracking='Y') and coalesce(sum(snr.quantity),0)!=f.movementqty then 'TODO' else 'READY' end as todos,
-         case when p.isserialtracking='Y' then 'S:'||coalesce(string_agg(snr.serialnumber,','),'')||'#' when p.isbatchtracking='Y' then 'C:'||coalesce(string_agg(snr.lotnumber||'/'||snr.quantity,','),'')||'#' end||zssi_getproductnamewithvalue(f.m_product_id,?) AS pdcproduct,
-         l.value as pdclocator,f.movementqty
-           from m_product p,m_inoutline f left join  m_locator l on  f.m_locator_id=l.m_locator_id
-                                             left join snr_minoutline snr on f.m_inoutline_id=snr.m_inoutline_id
+    <Sql> 
+    <![CDATA[
+    select a.m_inoutline_id,a.todos,a.pdcproduct,a.pdclocator,pdc_inoutqtys(a.movementqty,a.weight,a.qtycontrolcount,a.whtcontrol,?) as pdcqty,a.m_product_id,a.isserialtracking,a.isbatchtracking,a.m_locator_id,
+         a.movementqty as qtybooknum,a.qtycontrolcount as qtycountnum,a.weight,a.whtcontrol,case when to_char(a.sn)='0' then '' else to_char(a.sn) end as sn,
+         row_number() over() as linecnt from
+         (Select f.m_inoutline_id,p.m_product_id,p.isserialtracking,p.isbatchtracking,coalesce(sum(snr.quantity),0) as sn,
+         case when (p.isserialtracking='Y' or  p.isbatchtracking='Y') and coalesce(sum(snr.quantity),0)!=f.movementqty then 'TODO' else
+         case when coalesce(f.qtycontrolcount,0)=f.movementqty then 'READY' else 'TODO' end end as todos,           
+         zssi_getproductnamewithvalue(f.m_product_id,?) AS pdcproduct,
+         l.value as pdclocator,f.movementqty,coalesce(f.qtycontrolcount,0) as qtycontrolcount,l.m_locator_id,
+         f.weight,f.whtcontrol
+           from m_product p,  m_locator l ,m_inoutline f left join snr_minoutline snr on f.m_inoutline_id=snr.m_inoutline_id
            where f.m_inout_id=?
            and p.m_product_id=f.m_product_id 
-           and case when ? = 'SERIAL' then isserialtracking='Y' or isbatchtracking='Y' else 1=1 end
-           group by f.m_inoutline_id,f.m_product_id,p.isserialtracking, p.isbatchtracking,f.movementqty,l.value,p.m_product_id
-           order by case when (p.isserialtracking='N' and  p.isbatchtracking='N') or coalesce(sum(snr.quantity),0)=f.movementqty then f.line+1000 else f.line end) a
+           and f.m_locator_id=l.m_locator_id
+           and case when ? = 'SERIAL' then p.isserialtracking='Y' or p.isbatchtracking='Y' else 1=1 end
+           group by f.m_inoutline_id,f.m_product_id,p.isserialtracking, p.isbatchtracking,f.movementqty,l.value,p.m_product_id,
+                    f.weight,f.qtycontrolcount,f.whtcontrol,l.m_locator_id
+           order by case when f.qtycontrolcount=f.movementqty then f.line+1000 else case when coalesce(?,'')=f.m_inoutline_id then 1 else f.line end end) a
     order by linecnt
+    ]]>
     </Sql>
     <Parameter name = "language"/>
     <Parameter name = "language"/>
     <Parameter name = "consumptionid"/>
     <Parameter name = "usecase"/>
+    <Parameter name = "firstLineID"/>   
 </SqlMethod>
 
-<SqlMethod name="countlower" type="preparedStatement" return="String">
+<SqlMethod name="getFirstLineID" type="preparedStatement" return="string">
 <SqlMethodComment></SqlMethodComment>
-    <Sql>
-        select count(*)
-           from m_internal_consumptionline f left join  m_locator l on  f.m_locator_id=l.m_locator_id
-                                             left join snr_internal_consumptionline snr on f.m_internal_consumptionline_id=snr.m_internal_consumptionline_id
-           where f.m_internal_consumption_id=?
+    <Sql> 
+    <![CDATA[
+    select a.m_inoutline_id,row_number() over() as linecnt  from
+         (Select p.m_product_id,f.m_inoutline_id
+           from m_product p,  m_locator l ,m_inoutline f left join snr_minoutline snr on f.m_inoutline_id=snr.m_inoutline_id
+           where f.m_inout_id=?
+           and p.m_product_id=f.m_product_id 
+           and f.m_locator_id=l.m_locator_id
+           and case when ? = 'SERIAL' then p.isserialtracking='Y' or p.isbatchtracking='Y' else 1=1 end
+           group by f.m_inoutline_id,f.m_product_id,p.isserialtracking, p.isbatchtracking,f.movementqty,l.value,p.m_product_id,
+                    f.weight,f.qtycontrolcount,f.whtcontrol,l.m_locator_id
+           order by case when f.qtycontrolcount=f.movementqty then f.line+1000 else case when coalesce(?,'')=f.m_inoutline_id then 1 else f.line end end) a
+    order by linecnt limit 1
+    ]]>
     </Sql>
     <Parameter name = "consumptionid"/>
+    <Parameter name = "usecase"/>
+    <Parameter name = "firstLineID"/>   
 </SqlMethod>
 
-<SqlMethod name="insertConsumption" type="preparedStatement" connection="true" return="rowCount">
-<SqlMethodComment>Initializes a  Transaction</SqlMethodComment>
-    <Sql>
-        insert into M_INTERNAL_CONSUMPTION(
-            M_INTERNAL_CONSUMPTION_ID,
-            AD_CLIENT_ID,
-            AD_ORG_ID,
-            CREATED,
-            CREATEDBY,
-            UPDATED,
-            UPDATEDBY,
-            NAME,
-            DESCRIPTION,
-            MOVEMENTDATE, 
-            C_PROJECT_ID,
-            C_PROJECTTASK_ID,
-            MOVEMENTTYPE,
-            DOCUMENTNO,
-            DATEACCT)
-        values(
-            ?,
-            ?,
-            ?,
-            NOW(),
-            ?,
-            NOW(),
-            ?,
-            'Internal Consumption - Generated by PDC',
-            ?,
-            now(),
-            ?,
-            ?,
-            ?,
-            ad_sequence_doc('Production',?,'Y'),
-            trunc(now()))
+<SqlMethod name="isFirstProductSerial" type="preparedStatement" return="string">
+<SqlMethodComment></SqlMethodComment>
+    <Sql> 
+    <![CDATA[
+    select (select case when count(*)=1 then 'Y' else 'N' end from snr_masterdata where m_product_id=b.m_product_id and serialnumber=? ) as retv
+        from
+         (select  a.m_product_id,row_number() over() as linecnt  from 
+         (Select p.m_product_id,p.isserialtracking,p.isbatchtracking,row_number() over() as linecnt 
+           from m_product p,  m_locator l ,m_inoutline f left join snr_minoutline snr on f.m_inoutline_id=snr.m_inoutline_id
+           where f.m_inout_id=?
+           and p.m_product_id=f.m_product_id 
+           and f.m_locator_id=l.m_locator_id
+           and case when ? = 'SERIAL' then p.isserialtracking='Y' or p.isbatchtracking='Y' else 1=1 end
+           group by f.m_inoutline_id,f.m_product_id,p.isserialtracking, p.isbatchtracking,f.movementqty,l.value,p.m_product_id,
+                    f.weight,f.qtycontrolcount,f.whtcontrol,l.m_locator_id
+           order by case when f.qtycontrolcount=f.movementqty then f.line+1000 else case when coalesce(?,'')=f.m_inoutline_id then 1 else f.line end end) a
+    order by linecnt limit 1) b
+    ]]>
     </Sql>
-	<Parameter name="uuId"/>
-	<Parameter name="adClientId"/>
-	<Parameter name="adOrgId"/>
-	<Parameter name="user"/>
-	<Parameter name="user"/>
-	<Parameter name="description"/>
-	<Parameter name="cProjectId"/>
-	<Parameter name="cProjecttaskId"/>
-	<Parameter name="direction"/>
-	<Parameter name="adOrgId"/>
+    <Parameter name = "barcode"/>
+    <Parameter name = "InOutid"/>
+    <Parameter name = "usecase"/>
+    <Parameter name = "firstLineID"/>   
 </SqlMethod>
 
-<SqlMethod name="updateConsumption" type="preparedStatement" connection="true" return="rowCount">
-<SqlMethodComment>Initializes a  Transaction</SqlMethodComment>
-    <Sql>
-       update M_INTERNAL_CONSUMPTION set description=? where M_INTERNAL_CONSUMPTION_id=?
+<SqlMethod name="isFirstProductBatch" type="preparedStatement" return="string">
+<SqlMethodComment></SqlMethodComment>
+    <Sql> 
+    <![CDATA[
+    select (select case when count(*)=1 then 'Y' else 'N' end from snr_batchmasterdata where m_product_id=b.m_product_id and batchnumber=?) as retv from
+         (select  a.m_product_id,row_number() over() as linecnt  from 
+         (Select p.m_product_id,p.isserialtracking,p.isbatchtracking
+           from m_product p,  m_locator l ,m_inoutline f left join snr_minoutline snr on f.m_inoutline_id=snr.m_inoutline_id
+           where f.m_inout_id=? and p.isserialtracking='N'
+           and p.m_product_id=f.m_product_id 
+           and f.m_locator_id=l.m_locator_id
+           and case when ? = 'SERIAL' then p.isserialtracking='Y' or p.isbatchtracking='Y' else 1=1 end
+           group by f.m_inoutline_id,f.m_product_id,p.isserialtracking, p.isbatchtracking,f.movementqty,l.value,p.m_product_id,
+                    f.weight,f.qtycontrolcount,f.whtcontrol,l.m_locator_id
+           order by case when f.qtycontrolcount=f.movementqty then f.line+1000 else case when coalesce(?,'')=f.m_inoutline_id then 1 else f.line end end) a
+    order by linecnt limit 1) b
+    ]]>
     </Sql>
-	<Parameter name="descittion"/>
-	<Parameter name="mInternalConsId"/>
+    <Parameter name = "barcode"/>
+    <Parameter name = "consumptionid"/>
+    <Parameter name = "usecase"/>
+    <Parameter name = "firstLineID"/>   
 </SqlMethod>
 
- <SqlMethod name="insertMaterialLine" type="preparedStatement" connection="true" return="rowCount">
+<SqlMethod name="getInOutLinefromProduct" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT m_inoutline_id from m_inoutline where m_inout_id=? and m_product_id = ?  order by case when coalesce( qtycontrolcount,0)=movementqty then 1000 else 0 end + line limit 1;
+      ]]>  
+      </Sql>
+      <Parameter name="mInOutId"/>
+      <Parameter name="mProductId"/>
+</SqlMethod>
+
+<SqlMethod name="getTotal" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT pdc_numfield(sum(qtycontrolcount),sum(whtcontrol),?) as rv from m_inoutline where m_inout_id=? 
+      ]]>  
+      </Sql>
+      <Parameter name="lang"/>
+      <Parameter name="mInOutId"/>
+</SqlMethod>
+
+<SqlMethod name="getDocno" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT documentno from m_inout where m_inout_id=? 
+      ]]>  
+      </Sql>
+      <Parameter name="mInOutId"/>
+</SqlMethod>
+
+<SqlMethod name="getSnrBnr4ProductFromLine" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT p.isserialtracking||p.isbatchtracking from m_inoutline l,m_product p where l.m_inoutline_id=? and p.m_product_id =l.m_product_id
+      ]]>  
+      </Sql>
+      <Parameter name="mInOutLineId"/>
+</SqlMethod>
+
+<SqlMethod name="getMvMtQtyFromLine" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT movementqty from m_inoutline l where l.m_inoutline_id=? 
+      ]]>  
+      </Sql>
+      <Parameter name="mInOutLineId"/>
+</SqlMethod>
+
+<SqlMethod name="getInOutLinefromKombi" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT m_inoutline_id from m_inoutline where m_inout_id=? and m_product_id = ?  and
+               (m_locator_id=(select m_locator_id from snr_masterdata where m_product_id=? and serialnumber=?) or
+                m_locator_id in (select l.m_locator_id from snr_batchlocator l,snr_batchmasterdata m where 
+                                        m.snr_batchmasterdata_id=l.snr_batchmasterdata_id and m.batchnumber=? and m.m_product_id=?
+                                        and l.qtyonhand>0))
+         order by case when coalesce( qtycontrolcount,0)<movementqty then 1000 else 0 end + line limit 1
+      ]]>  
+      </Sql>
+      <Parameter name="mInOutId"/>
+      <Parameter name="mProductId"/>
+      <Parameter name="mProductId"/>
+      <Parameter name="mSerialno"/>
+      <Parameter name="Btchno"/>
+      <Parameter name="mProductId"/>
+</SqlMethod>
+
+<SqlMethod name="getBtchNoFromProductAndSerial" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT b.batchnumber from snr_masterdata s,snr_batchmasterdata b where s.snr_batchmasterdata_id=b.snr_batchmasterdata_id
+               and s.m_product_id=? and s.serialnumber=?
+      ]]>  
+      </Sql>
+      <Parameter name="mProductId"/>
+      <Parameter name="snr"/>
+</SqlMethod>
+
+<SqlMethod name="getProductFromLine" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT m_product_id from m_inoutline where m_inoutline_id=?
+      ]]>  
+      </Sql>
+      <Parameter name="mioLId"/>
+</SqlMethod>
+
+<SqlMethod name="setLocatorInOutLine" type="preparedStatement"  return="rowCount">
     <SqlMethodComment></SqlMethodComment>
     <Sql>
       <![CDATA[
-       insert into M_INTERNAL_CONSUMPTIONLINE(M_INTERNAL_CONSUMPTIONLINE_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY, M_INTERNAL_CONSUMPTION_ID, 
-                                                  M_LOCATOR_ID, M_PRODUCT_ID, LINE, MOVEMENTQTY, DESCRIPTION, C_UOM_ID, C_PROJECT_ID, C_PROJECTTASK_ID)
-                  values (?,?,?,NOW(), ?, NOW(),?,?,
-                          ?,?,to_number(?),to_number(?),'Generated by PDC',?,?, ?);
+       UPDATE M_INOUTLINE SET m_locator_id=? where M_INOUTLINE_ID=?
       ]]>
     </Sql>
-    <Parameter name="uuID"/>
-    <Parameter name="adClientId"/>
-    <Parameter name="adOrgId"/>
-    <Parameter name="user"/>
-    <Parameter name="user"/>
-    <Parameter name="consumptionId"/>
-    <Parameter name="locatorId"/>
-    <Parameter name="productId"/>
-    <Parameter name="line"/>
-    <Parameter name="qty"/>
-    <Parameter name="uomId"/>
-    <Parameter name="cProjectId"/>
-    <Parameter name="cProjecttaskId"/>
-  </SqlMethod>
-  
-    <SqlMethod name="insertSerialLine" type="preparedStatement"  connection="true" return="rowCount">
+    <Parameter name="locatorID"/>
+    <Parameter name="inoutlineId"/>
+</SqlMethod>
+
+<SqlMethod name="setTrxPicking" type="preparedStatement"  return="rowCount">
     <SqlMethodComment></SqlMethodComment>
     <Sql>
       <![CDATA[
-       insert into snr_internal_consumptionline(snr_internal_consumptionline_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY, M_INTERNAL_CONSUMPTIONLINE_ID, 
+       UPDATE M_INOUT SET pdcpickinprogress='Y',updatedby=?,updated=now() where m_inout_id=?
+      ]]>
+    </Sql>
+    <Parameter name="inoutId"/>
+    <Parameter name="userId"/>
+</SqlMethod>
+
+<SqlMethod name="resetTrxPicking" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       UPDATE M_INOUT SET pdcpickinprogress='N',updatedby=?,updated=now() where m_inout_id=?
+      ]]>
+    </Sql>
+    <Parameter name="userId"/>
+    <Parameter name="inoutId"/>
+</SqlMethod>
+
+<SqlMethod name="resetPickCounts" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       UPDATE M_INOUTLINE SET qtycontrolcount=0,whtcontrol=0 where m_inout_id=?
+      ]]>
+    </Sql>
+    <Parameter name="inoutId"/>
+</SqlMethod>
+
+<SqlMethod name="getTrxPicking" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT m_inout_id from m_inout where pdcpickinprogress='Y' and updatedby=?;
+      ]]>  
+      </Sql>
+      <Parameter name="userId"/>
+</SqlMethod>
+
+<SqlMethod name="isMorePickingIncrement" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT case when qtycontrolcount+1<= movementqty then 'N' else 'Y' end as rv from m_inoutline where m_inoutline_id=?
+      ]]>  
+      </Sql>
+      <Parameter name="lineid"/>
+</SqlMethod>
+
+<SqlMethod name="isMorePicking" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT case when to_number(?)<= movementqty then 'N' else 'Y' end as rv from m_inoutline where m_inoutline_id=?
+      ]]>  
+      </Sql>
+      <Parameter name="qty"/>
+      <Parameter name="lineid"/>
+</SqlMethod>
+
+<SqlMethod name="updateInOutLine" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       UPDATE M_INOUTLINE SET updatedby=?,updated=now(),qtycontrolcount=case when to_number(?)<= movementqty then to_number(?) else qtycontrolcount end,whtcontrol=case when ? is null then whtcontrol else whtcontrol+to_number(?) end  where M_INOUTLINE_ID=?
+      ]]>
+    </Sql>
+    <Parameter name="user"/>
+    <Parameter name="qtycount"/>
+    <Parameter name="qtycount"/>
+    <Parameter name="whtcount"/>
+    <Parameter name="whtcount"/>
+    <Parameter name="inoutlineId"/>
+</SqlMethod>
+
+<SqlMethod name="incrementInOutLine" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       UPDATE M_INOUTLINE SET updatedby=?,updated=now(),qtycontrolcount=qtycontrolcount+case when qtycontrolcount+1<= movementqty then 1 else 0 end ,whtcontrol=case when ? is null or qtycontrolcount+1> movementqty then whtcontrol else whtcontrol+to_number(?) end where M_INOUTLINE_ID=?
+      ]]>
+    </Sql>
+    <Parameter name="user"/>
+    <Parameter name="whtcountItem"/>
+    <Parameter name="whtcountItem"/>
+    <Parameter name="inoutlineId"/>
+</SqlMethod>
+
+<SqlMethod name="insertSerialLine" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       insert into snr_minoutline(snr_minoutline_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY, m_inoutline_id, 
                                                   quantity,lotnumber,serialnumber)
-                  values (get_uuid(),?,?,NOW(), ?, NOW(),?,?,
+                  values (get_uuid(),'C726FEC915A54A0995C568555DA5BB3C',(select ad_org_id from m_inoutline where m_inoutline_id=?),NOW(), ?, NOW(),?,?,
                           to_number(?),?, ?);
       ]]>
     </Sql>
-    <Parameter name="adClientId"/>
-    <Parameter name="adOrgId"/>
+    <Parameter name="InOUtLineId"/>
     <Parameter name="user"/>
     <Parameter name="user"/>
-    <Parameter name="consumptionLineId"/>
+    <Parameter name="InOUtLineId"/>
     <Parameter name="qty"/>
     <Parameter name="batchno"/>
     <Parameter name="serialno"/>
-  </SqlMethod>
- 
+</SqlMethod>
+
+<SqlMethod name="deleteBtchLine" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       delete from snr_minoutline where m_inoutline_id = ? and lotnumber = ?
+      ]]>
+    </Sql>
+    <Parameter name="mInOutlineId"/>
+    <Parameter name="BtchNo"/>
+</SqlMethod>
+
+<SqlMethod name="deleteSerialLine" type="preparedStatement" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       delete from snr_minoutline where m_inoutline_id = ? and serialnumber = ?
+      ]]>
+    </Sql>
+    <Parameter name="mInOutlineId"/>
+    <Parameter name="SerialNo"/>
+</SqlMethod>
+
+<SqlMethod name="getSerialLine" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT snr_minoutline_id from snr_minoutline where m_inoutline_id=? and serialnumber =?
+      ]]>  
+      </Sql>
+      <Parameter name="mInOutlineId"/>
+      <Parameter name="serialno"/>
+</SqlMethod>
+
+
+<SqlMethod name="getLotQty" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT sum(quantity) as rv from snr_minoutline s,m_inoutline l where l.m_inoutline_id=s.m_inoutline_id and l.m_inoutline_id=? and s.lotnumber =?  limit 1
+      ]]>  
+      </Sql>
+      <Parameter name="mInOutlineId"/>
+      <Parameter name="lotno"/>
+</SqlMethod>
+
+<SqlMethod name="getSerialLineQtys" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT sum(quantity) as rv from snr_minoutline where m_inoutline_id=? 
+      ]]>  
+      </Sql>
+      <Parameter name="mInOutlineId"/>
+</SqlMethod>
+
+<SqlMethod name="incrementBtchLine" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       UPDATE snr_minoutline SET quantity=quantity+1 where m_inoutline_id = ? and lotnumber =? 
+      ]]>
+    </Sql>
+    <Parameter name="lineID"/>
+    <Parameter name="Btch"/>
+</SqlMethod>
+
+<SqlMethod name="deleteAllSnrLines" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       delete from snr_minoutline where M_INOUTLINE_ID in (select M_INOUTLINE_ID from M_INOUTLINE where M_INOUT_id = ?)
+      ]]>
+    </Sql>
+    <Parameter name="inoutId"/>
+</SqlMethod>
+<SqlMethod name="deleteSnrLinesOnInoutline" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       delete from snr_minoutline where M_INOUTLINE_ID  = ?
+      ]]>
+    </Sql>
+    <Parameter name="inoutLineId"/>
+</SqlMethod>
 </SqlClass>

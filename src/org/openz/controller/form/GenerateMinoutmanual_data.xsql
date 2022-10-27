@@ -26,13 +26,13 @@
                  documentno,  zssi_getorderadditionaltext4manualtrx1(c_order_id,?) as projectname,  zssi_getorderadditionaltext4manualtrx2(c_order_id,?) as doctypename, to_char(dateordered,?) as dateordered, to_char(datepromised,?) as datepromised, shipper_name, salesrepname, totallines, grandtotal,
                   line,  product_name,  qtyordered, qtydelivered, qtyavailable, 
                   case when ?='Y' and m_locator_id is not null then least(m_bom_qty_onhand(m_product_id, null,m_locator_id),qty2deliver) else qty2deliver end as qty2deliver, 
-                  description,  completed,m_attributesetinstance_id
+                  description,  completed,m_attributesetinstance_id,0::numeric as SequenceNO,m_product_id
        FROM (
               SELECT v.ad_client_id, v.ad_org_id, v.c_order_id, v.a_asset_id, v.c_orderline_id, v.c_project_id, v.c_projecttask_id, v.m_shipper_id, v.salesrep_id, v.c_doctype_id, v.issotrx,v.scheddeliverydate,
               v.c_bpartner_id,  b.name as businesspartner, v.m_product_id as m_product_id,
               case when v.m_locator_id is null then m_gettransactionlocator(v.m_product_id,v.m_warehouse_id,v.issotrx,v.qtyordered-v.qtydelivered,v.m_attributesetinstance_id,?) else v.m_locator_id end as m_locator_id,
               v.documentno,   v.dateordered, v.datepromised, v.shipper_name, u.name as salesrepname, v.totallines, v.grandtotal,
-              v.line, 
+              v.line, v.priorityrule,
               p.value||'-'||coalesce(trl.name,p.name)  as product_name, 
               v.qtyordered, v.qtydelivered, v.qtyavailable, case when ?='Y' and v.qty2deliver>v.qtyavailable then v.qtyavailable else v.qty2deliver end as qty2deliver, 
               zssi_html4docs(coalesce(v.description,'')) as description, 'N' as completed,v.m_attributesetinstance_id
@@ -131,7 +131,36 @@
       <Parameter name="paronlyDelivers" optional="true" after="where 5=5"><![CDATA[ AND (m_locator_id is not null or 1=to_number(?))]]></Parameter>
       </SqlMethod>
   
-  
+<SqlMethod name="selectOptions" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+    select ad_client_id, ad_org_id, c_order_id, a_asset_id, c_orderline_id, c_project_id, c_projecttask_id, m_shipper_id, salesrep_id, c_doctype_id, scheddeliverydate,
+                 c_bpartner_id,   businesspartner, m_locator_id,
+                 documentno,  projectname,  doctypename, dateordered,datepromised, shipper_name, salesrepname, totallines, grandtotal,
+                  line,  product_name,  qtyordered, qtydelivered, qtyavailable, 
+                 qty2deliver, 
+                  description,  completed,m_attributesetinstance_id,m_product_id
+       FROM m_generateinoutcustomer( ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) order by SequenceNO,SequenceNO2;      
+      ]]></Sql>
+      <Parameter name="bpartner"/>
+      <Parameter name="datefrom"/>
+      <Parameter name="dateto"/>
+      <Parameter name="documentno"/>
+      <Parameter name="parProject"/>
+      <Parameter name="parwarehouse"/>
+      <Parameter name="adOrgId"/>
+      <Parameter name="userOrgList"/>
+      <Parameter name="ProductList"/>
+      <Parameter name="partypeofproduct"/>
+      <Parameter name="parcategory" />
+      <Parameter name="option"/>
+      <Parameter name="combined"/>
+      <Parameter name="partly"/>
+      <Parameter name="dateformat"/>
+      <Parameter name="lang"/>
+      
+  </SqlMethod>  
   
   <SqlMethod name="bPartnerDescription" type="preparedStatement" return="String" default="">
     <SqlMethodComment></SqlMethodComment>
@@ -166,8 +195,8 @@
     <SqlMethod name="insert" connection="true" type="preparedStatement" return="rowCount">
     <SqlMethodComment></SqlMethodComment>
     <Sql>
-      INSERT INTO C_GENERATEMINOUTMANUAL(C_GENERATEMINOUTMANUAL_ID, C_ORDERLINE_ID, C_ORDER_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY, UPDATEDBY, QTY, M_LOCATOR_ID,m_attributesetinstance_id, DELIVERYCOMPLETE,pinstance_id)
-      VALUES(get_uuid(), ?, ?, ?, ?, ?, ?, TO_NUMBER(?), ? ,?, ?, ?)
+      INSERT INTO C_GENERATEMINOUTMANUAL(C_GENERATEMINOUTMANUAL_ID, C_ORDERLINE_ID, C_ORDER_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY, UPDATEDBY, QTY, M_LOCATOR_ID,m_attributesetinstance_id, DELIVERYCOMPLETE,pinstance_id,m_product_id)
+      VALUES(get_uuid(), ?, ?, ?, ?, ?, ?, TO_NUMBER(?), ? ,?, ?, ?,?)
       </Sql>
       <Parameter name="cOrderlineId"/>
       <Parameter name="cOrderId"/>
@@ -180,6 +209,7 @@
       <Parameter name="mAttributesetinstanceId"/>
       <Parameter name="deliverycomplete"/>
       <Parameter name="pInstanceID"/>
+      <Parameter name="mProductID"/>
   </SqlMethod>
   <SqlMethod name="deleteerror" type="preparedStatement" return="rowCount">
     <SqlMethodComment></SqlMethodComment>

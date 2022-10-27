@@ -467,6 +467,9 @@ public class Formhelper{
     	  else
     		  strTableCells=strTableCells.append(ConfigureImage.doConfigure(servlet,vars,script,data[i].name,Integer.parseInt(data[i].leadingemptycols), Integer.parseInt(data[i].colstotal),Integer.parseInt(data[i].maxlength),required, readonly, onchangeevent ,fieldvalue1,tooltip, datastyle,textelement));
       }
+      if (data[i].template.equals("IFRAME")){
+          strTableCells=strTableCells.append(ConfigureIframe.doConfigure(servlet, vars, Sqlc.TransformaNombreColumna(data[i].name), Integer.parseInt(data[i].colstotal), Integer.parseInt(data[i].maxlength), FormDisplayLogic.getFieldDefaultValue(servlet, vars, data[i].adRefFieldcolumnId)));
+      }
       if (isListBased && (data[i].template.equals("NOEDIT_TEXTBOX")||data[i].template.equals("URL")||data[i].template.equals("TEXTAREA_EDIT_SIMPLE")||data[i].template.equals("TEXTAREA_EDIT_ADV"))) {
     	  strTableCells=strTableCells.append(ConfigureTextbox.doConfigure(servlet,vars,script,Sqlc.TransformaNombreColumna(data[i].name),Integer.parseInt(data[i].leadingemptycols), Integer.parseInt(data[i].colstotal),Integer.parseInt(data[i].maxlength),required, readonly, onchangeevent ,fieldvalue1,tooltip,textelement, datastyle,isListBased));
       } else {

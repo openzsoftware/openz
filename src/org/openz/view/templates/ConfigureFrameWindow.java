@@ -12,6 +12,7 @@ Contributor(s): ______________________________________.
 */
 
 import org.openbravo.utils.Replace;
+import org.openz.pdc.controller.PdcCommonData;
 import org.openz.util.FileUtils;
 import org.openz.util.LocalizationUtils;
 import org.openz.view.*;
@@ -159,6 +160,11 @@ public class ConfigureFrameWindow {
     }
     Replace.replace(retval, "@BREADCRUMB@", berndthebread );
     Replace.replace(retval, "@FOCUSFIELD@", focusfield );
+    // Auto Logged in APP Mode - Remove Logout and Back, only Refresh is triggered.
+    if ( PdcCommonData.isAutologin(servlet, vars.getUser()).equals("Y") && leftTabsMode.equals("REMOVED") && hideframes.equals("true")) {
+    	Replace.replace(retval, "openNewBrowser('http://www.openbravo.com', 'Openbravo');", "");
+    	Replace.replace(retval, "openNewBrowser('http://openz.de', 'OpenZ');", "");
+    }
     return retval.toString();
   }
 

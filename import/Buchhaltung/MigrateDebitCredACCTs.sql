@@ -7,7 +7,7 @@ debitacct  character varying(250)
 ); 
 
  
-copy zsi_debcredaccts from '/tmp/debitcredidts.csv' CSV DELIMITER as ';' HEADER ;
+copy zsi_debcredaccts from '/tmp/DebCredAccts.csv' CSV DELIMITER as ';' HEADER ;
 
 
 select bpartner_key from zsi_debcredaccts where not exists(select 0 from c_bpartner b where b.value=zsi_debcredaccts.bpartner_key); 
@@ -37,9 +37,9 @@ BEGIN
         if v_bpartnerid is null then
             raise notice '%' ,'Business Partner not exists:'||v_cur.bpartner_key;
         else
-            IF v_cur.creditacct is not null then 
+            IF v_cur.debitacct is not null then 
             --Customer               
-                v_seqno:=v_cur.creditacct;
+                v_seqno:=v_cur.debitacct;
                 v_acc_id:= get_uuid();
                 IF (v_acctschema_id='ACDCA54677ED496D88AC7AAC0BC4C4DF') then
                   if (select count(*) from c_elementvalue where c_element_id='C76385D3874B4775B28CEC5ECBCE1E5B' and value=v_seqno)=0 then
@@ -72,9 +72,9 @@ BEGIN
                                         (v_bpartnerid,v_acctschema_id,v_client_id,p_org_id,'Y',now(),100,now(),100,get_uuid(),v_combid);
                 END IF;
             END IF;
-            IF v_cur.debitacct is not null then 
+            IF v_cur.creditacct is not null then 
             --VENDOR
-                v_seqno:=v_cur.debitacct;
+                v_seqno:=v_cur.creditacct;
                 v_acc_id:= get_uuid();
                 IF (v_acctschema_id='ACDCA54677ED496D88AC7AAC0BC4C4DF')  then
                   if (select count(*) from c_elementvalue where c_element_id='C76385D3874B4775B28CEC5ECBCE1E5B' and value=v_seqno)=0 then

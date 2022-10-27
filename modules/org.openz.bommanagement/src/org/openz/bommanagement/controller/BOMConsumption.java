@@ -86,7 +86,7 @@ public class BOMConsumption  extends HttpSecureAppServlet {
       String strpdcAssemblyProductID="";
       
       
-      try{
+   try{
        // If a barcode was scanned, look at the result
        if (vars.commandIn("SAVE_NEW_NEW") && (!strBarcode.isEmpty() || ! strQty.isEmpty())) {
          if (!strBarcode.isEmpty()) {
@@ -120,7 +120,7 @@ public class BOMConsumption  extends HttpSecureAppServlet {
                vars.setSessionValue(getServletInfo()   + "|" +"locatorid",bcid);
                strLocatorID=bcid;
              } else if (!strLocatorID.isEmpty() && strpdcAssemblyID.isEmpty() && bctype.equals("KOMBI")) {
-               if (BOMManagementData.isAssembly(this, BOMMainDialogueData.getproductidfromserial(this, strSnrID)).equals("Y")) {
+               if (!FormatUtils.isNix(strSnrID) && BOMManagementData.isAssembly(this, BOMMainDialogueData.getproductidfromserial(this, strSnrID)).equals("Y")) {
                  vars.setSessionValue(getServletInfo()   + "|" +"assemblyid",strSnrID);
                  strpdcAssemblyID=strSnrID;
                  strpdcAssemblyProductID=BOMMainDialogueData.getproductidfromserial(this, strSnrID);
@@ -249,7 +249,17 @@ public class BOMConsumption  extends HttpSecureAppServlet {
            throw new Exception(e.getMessage());
          } 
        }
-       
+   // Present Errors on the User Screen
+   } catch (Exception e) { 
+   	e.printStackTrace();
+   	OBError mymess=new OBError();
+   	mymess.setType("ERROR");
+   	mymess.setTitle("Error");
+   	mymess.setMessage(e.getMessage());
+   	script.addMessage(this, vars, mymess);
+   }   
+   try {
+	   // Build the GUI
        // Determing the Status in which the Servlet is.. setting infobar
        vars.setSessionValue(getServletInfo()   + "|" +"showqty","N");
        if (strpdcUserID.isEmpty())
@@ -297,7 +307,7 @@ public class BOMConsumption  extends HttpSecureAppServlet {
        //Configuring the Structure                                                
        // Load UPPER grid structure only when Workstep is set.
        EditableGrid uppergrid = new EditableGrid("PdcMaterialConsumptionUpperGrid", vars, this);  // Load upper grid structure from AD (use AD name)
-       upperGridData = PdcMaterialConsumptionData.selectupper(this, vars.getLanguage(),"1","1",strConsumptionid, strpdcWorkstepID);   // Load upper grid date with language for translation
+       upperGridData = PdcMaterialConsumptionData.selectupper(this, vars.getLanguage(),"1","1","",strConsumptionid, strpdcWorkstepID);   // Load upper grid date with language for translation
        String strUpperGrid = "";
        if (!strpdcWorkstepID.isEmpty())
          strUpperGrid =uppergrid.printGrid(this, vars, script, upperGridData);                    

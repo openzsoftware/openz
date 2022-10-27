@@ -47,7 +47,7 @@
             zssi_getproductnamewithvalue(pdc_workstepbom_v.m_product_id, ?) as pdcmaterialreturnproduct,
                 m_locator.value as pdcmaterialreturnlocator,
                 qtyrequired as pdcmaterialreturnplannedqty,
-                qtyreceived - coalesce((select sum(m_internal_consumptionline.movementqty)), 0) as pdcmaterialreturnreceivedqty,
+                pdc_getReturnQtyBomProduct(pdc_workstepbom_v.zssm_workstep_v_id,pdc_workstepbom_v.m_product_id,?) - coalesce((select sum(m_internal_consumptionline.movementqty)), 0) as pdcmaterialreturnreceivedqty,
                 qty_available as pdcmaterialreturnavailableqty,
                 pdc_workstepbom_v_id,pdc_workstepbom_v.m_product_id,m_locator.m_locator_id, pdc_workstepbom_v.line
         from
@@ -63,6 +63,7 @@
             pdc_workstepbom_v.line,
             pdc_workstepbom_v.value,
             pdc_workstepbom_v.m_product_id,
+            pdc_workstepbom_v.zssm_workstep_v_id,
             m_locator.value,
             m_locator.m_locator_id,
             qtyrequired,
@@ -73,6 +74,7 @@
         order by  pdc_workstepbom_v.value;
     </Sql>
     <Parameter name = "language"/>
+    <Parameter name = "plannedserial"/>
     <Parameter name = "pconsumptionid"/>
     <Parameter name = "workstepid"/>
 </SqlMethod>
@@ -121,11 +123,14 @@
     <Sql>
     Select f.m_internal_consumptionline_id,zssi_getproductnamewithvalue(f.m_product_id,?) AS pdcmaterialreturnproduct,
          l.value as pdcmaterialreturnlocator,f.movementqty as pdcmaterialreturnreceivedqty,
-           snr.serialnumber,snr.lotnumber
+           case when p.isserialtracking='Y' and max(snr.serialnumber) is null then 'X' else string_agg(snr.serialnumber,';') end as serialnumber,
+           case when p.isbatchtracking='Y' and max(snr.lotnumber) is null then 'X' else string_agg(snr.lotnumber||'('||snr.quantity||')',';') end as lotnumber
            from m_product p,m_internal_consumptionline f left join  m_locator l on  f.m_locator_id=l.m_locator_id
                                              left join snr_internal_consumptionline snr on f.m_internal_consumptionline_id=snr.m_internal_consumptionline_id
            where f.m_internal_consumption_id=?
-           and p.m_product_id=f.m_product_id order by p.value
+           and p.m_product_id=f.m_product_id 
+        group by f.m_internal_consumptionline_id,f.m_product_id,l.value,f.movementqty,p.isserialtracking,p.isbatchtracking,p.value
+           order by p.value
     </Sql>
     <Parameter name = "language"/>
     <Parameter name = "pconsumptionid"/>

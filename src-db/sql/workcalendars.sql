@@ -1951,6 +1951,111 @@ CREATE TRIGGER zspm_ptaskResource_trg
   EXECUTE PROCEDURE zspm_ptaskResource_trg();
 
   
+CREATE OR REPLACE FUNCTION c_getworktimeThisdayOvernight(p_fblID varchar, p_norm out numeric,p_over out numeric, p_night out numeric,p_sat out numeric,p_sun out numeric,p_holi out numeric)
+RETURNS record AS 
+$BODY$ 
+DECLARE 
+    v_cur record;
+    v_workdyhours numeric;
+    v_nightendhour timestamp:='0001-01-02 00:00:00 BC'::timestamp;
+    v_nb timestamp;
+    v_nomalhours numeric;
+    v_bpartner varchar;
+BEGIN
+    p_norm:=0;
+    p_over:=0;
+    p_night:=0;
+    p_sat:=0;
+    p_sun:=0;
+    p_holi:=0;
+    for v_cur in (select * from zspm_ptaskfeedbackline where zspm_ptaskfeedbackline_id=p_fblID)
+    LOOP
+        v_workdyhours:=(SELECT ((EXTRACT (EPOCH FROM (v_nightendhour - v_cur.hour_from))) / 3600));
+        select c_bpartner_id into v_bpartner from ad_user where ad_user_id=v_cur.ad_user_id;
+        select c_getemployeeworktimeNormal(v_bpartner,v_cur.workdate) into v_nomalhours;
+        select nightbegin into v_nb from c_additionalfees where ad_org_id in ('0',v_cur.ad_org_id) and 
+           case when v_cur.ma_machine_id IS NOT NULL then 1=0 else 1=1 end and validfrom <=v_cur.workdate and isactive='Y' order by  ad_org_id desc,validfrom desc limit 1; 
+        if v_cur.issaturday='Y' then p_sat:=v_workdyhours; end if;
+        if v_cur.issunday='Y' then p_sun:=v_workdyhours; end if;
+        if v_cur.isholiday='Y' then p_holi:=v_workdyhours;p_sun:=0; p_sat:=0; end if;
+        if v_cur.issaturday='N' and  v_cur.issunday='N' and v_cur.isholiday='N' then
+            p_night:=(SELECT ((EXTRACT (EPOCH FROM (v_nightendhour-greatest(v_nb,v_cur.hour_from)))) / 3600));
+            p_norm:=(SELECT ((EXTRACT (EPOCH FROM (v_nb-v_cur.hour_from))) / 3600));
+            if p_norm<0 then p_norm:=0; end if;
+            if p_norm>v_nomalhours then                
+                p_over:=p_norm-v_nomalhours;
+                p_norm:=v_nomalhours;
+            end if;
+        end if;
+    END LOOP;
+    return;
+END ; $BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+  
+CREATE OR REPLACE FUNCTION c_getworktimeNEXTDayOvernight(p_fblID varchar, p_norm out numeric,p_over out numeric, p_night out numeric,p_sat out numeric,p_sun out numeric,p_holi out numeric,p_ne out timestamp)
+RETURNS record AS 
+$BODY$ 
+DECLARE 
+    v_cur record;
+    v_workdyhours numeric;
+    v_nightbeginhour timestamp:='0001-01-01 00:00:00 BC'::timestamp;    
+    v_nomalhours numeric;
+    v_bpartner varchar;
+    v_hoursdaybefore numeric;
+BEGIN
+    p_norm:=0;
+    p_over:=0;
+    p_night:=0;
+    p_sat:=0;
+    p_sun:=0;
+    p_holi:=0;
+    for v_cur in (select * from zspm_ptaskfeedbackline where zspm_ptaskfeedbackline_id=p_fblID)
+    LOOP
+        v_workdyhours:=(SELECT ((EXTRACT (EPOCH FROM (v_cur.hour_to - v_nightbeginhour))) / 3600));       
+        select c_bpartner_id into v_bpartner from ad_user where ad_user_id=v_cur.ad_user_id;
+        select c_getemployeeworktimeNormal(v_bpartner,v_cur.workdate+1) into v_nomalhours;
+        select nightend into p_ne from c_additionalfees where ad_org_id in ('0',v_cur.ad_org_id) and 
+           case when v_cur.ma_machine_id IS NOT NULL then 1=0 else 1=1 end and validfrom <=v_cur.workdate and isactive='Y' order by  ad_org_id desc,validfrom desc limit 1; 
+           
+        if (select dayname from c_workcalender where trunc(workdate)=trunc(v_cur.workdate+1))='6' then   
+           p_sat:=v_workdyhours;
+        end if;
+        if (select dayname from c_workcalender where trunc(workdate)=trunc(v_cur.workdate+1))='7' then
+           p_sun:=v_workdyhours; 
+        end if;
+        if ((select isholiday from c_workcalender where trunc(workdate)=trunc(v_cur.workdate+1))='Y' or (
+                                      select isholyday from C_CALENDAREVENT,C_WORKCALENDAREVENT where C_CALENDAREVENT.C_CALENDAREVENT_id=C_WORKCALENDAREVENT.C_CALENDAREVENT_ID  and C_WORKCALENDAREVENT.ad_org_id=v_cur.ad_org_id
+                                      and trunc(v_cur.workdate+1) between datefrom and  coalesce(dateto,datefrom) order by isholyday desc limit 1)='Y')
+        then
+           p_holi:=v_workdyhours; 
+           p_sat:=0;
+           p_sun:=0;
+        end if;
+        if p_sat=0 and p_sun=0 and p_holi=0 then
+            p_night:=(SELECT ((EXTRACT (EPOCH FROM (least(p_ne,v_cur.hour_to)-v_nightbeginhour))) / 3600));
+            p_norm:=(SELECT ((EXTRACT (EPOCH FROM (v_cur.hour_to-p_ne))) / 3600));
+            if p_norm<0 then p_norm:=0; end if;
+            select a.p_norm+a.p_over+a.p_night+a.p_sat+a.p_sun+a.p_holi 
+                   into v_hoursdaybefore from c_getworktimethisdayOvernight(p_fblID) a;
+            if v_hoursdaybefore+p_night+p_norm>v_nomalhours then    
+                if v_nomalhours-v_hoursdaybefore-p_night > 0 then
+                    p_norm:=v_nomalhours-v_hoursdaybefore-p_night;
+                    p_over:=(SELECT ((EXTRACT (EPOCH FROM (v_cur.hour_to-p_ne))) / 3600))-p_norm;
+                    if p_over<0 then p_over:=0; end if;
+                else
+                    p_over:=p_norm;
+                    p_norm:=0;
+                end if;                
+            end if;
+        end if;
+    END LOOP;
+    return;
+END ; $BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+  
+  
 select zsse_dropfunction('zssi_getdayset');
 CREATE OR REPLACE FUNCTION zssi_getdayset(p_employee character varying, p_month varchar, p_year varchar,p_lang varchar, OUT mday character varying,OUT wdate timestamp without time zone,OUT mm character varying,OUT my character varying, OUT mnum character varying, OUT dfrom timestamp, OUT dto timestamp, OUT dbreak numeric, OUT dpaidbreak numeric, OUT dspec numeric, OUT dspec2 numeric,OUT dspec3 numeric, OUT dtrigger numeric, OUT dspecial4 numeric,OUT dspecial5 numeric, OUT dtravel numeric, OUT dtotal numeric, OUT dnorm numeric, OUT dnight numeric, OUT dsat numeric, OUT dsun numeric, OUT dholi numeric, OUT dover numeric, OUT dvacanc numeric, OUT dill numeric, OUT dsoll numeric, OUT dworkplace varchar)
 RETURNS setof record AS
@@ -1988,7 +2093,8 @@ v_sm numeric:=to_number(p_month);
 v_sy numeric:=to_number(p_year);
 v_sdate character varying:=v_sy||'-'||v_sm||'-'||1;
 v_edate date := (select last_dayofmonth(to_date(v_sdate, 'YYYY-MM-DD')));
-
+v_bre numeric;
+v_ne timestamp; -- Nifght end
 BEGIN
 SELECT u.ad_user_id,b.ad_org_id into v_userid,v_orgid from ad_user u,c_bpartner b where u.c_bpartner_id=b.c_bpartner_id and b.c_bpartner_id=p_employee;
 
@@ -1996,8 +2102,8 @@ for v_curcal in (select workdate as datenow from c_workcalender where workdate b
 LOOP
 select c_getemployeeworktimeNormal(p_employee,v_curcal.datenow) into v_time;
 dsoll:=v_time;
-for v_cur in (select workdate, to_char(workdate,'DY') as vdd,to_char(workdate,'MONTH') as vm, to_char(workdate,'YYYY') as vy, to_char(workdate,'DD') as vdn,c_project_id,  hour_from, hour_to, hours, issunday, issaturday, isholiday, dayhours, breaktime, paidbreaktime, zspm_ptaskfeedbackline_id, traveltime, specialtime, specialtime2,specialtime3,triggeramt,special4,special5,overtimehours, c_projecttask_id, nighthours, ad_user_id 
-from zspm_ptaskfeedbackline where workdate = v_curcal.datenow and ad_user_id=v_userid order by hour_from)
+for v_cur in (select fbl.zspm_ptaskfeedbackline_id, fbl.workdate, to_char(fbl.workdate,'DY') as vdd,to_char(fbl.workdate,'MONTH') as vm, to_char(fbl.workdate,'YYYY') as vy, to_char(fbl.workdate,'DD') as vdn,p.c_project_id,  fbl.hour_from, fbl.hour_to, fbl.hours, fbl.issunday, fbl.issaturday, fbl.isholiday, fbl.dayhours, fbl.breaktime, fbl.paidbreaktime, fbl.zspm_ptaskfeedbackline_id, fbl.traveltime, fbl.specialtime, fbl.specialtime2,fbl.specialtime3,fbl.triggeramt,fbl.special4,fbl.special5,fbl.overtimehours, fbl.c_projecttask_id, fbl.nighthours, fbl.ad_user_id 
+from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_id and p.timekeeping='Y' and fbl.workdate = v_curcal.datenow and fbl.ad_user_id=v_userid order by fbl.hour_from)
   LOOP
     -- Sollarbeitszeit nur einmal am Tag.
     if v_currdate!=v_curcal.datenow then
@@ -2007,69 +2113,21 @@ from zspm_ptaskfeedbackline where workdate = v_curcal.datenow and ad_user_id=v_u
     end if;
     dnorm:=0;
     dnight:=v_cur.nighthours;
-    if (v_cur.issunday='Y' or v_cur.issaturday='Y' or v_cur.isholiday='Y' or (select dayname from c_workcalender where trunc(workdate)=trunc(v_curcal.datenow))='5') then
-        if (v_cur.issunday='Y') then
-            -- From Sunday to Monday
-            if (extract(hour from v_cur.hour_from)+extract(minute from v_cur.hour_from)/60) > (extract(hour from v_cur.hour_to)+extract(minute from v_cur.hour_to)/60) 
-            then     
-               if coalesce(v_cur.nighthours,0) > 0 then
-                dsun:= v_cur.hours - extract(hour from v_cur.hour_to)- extract(minute from  v_cur.hour_to)/60+coalesce(v_cur.breaktime,0);
-                dnight:=v_cur.nighthours-coalesce(v_cur.breaktime,0);
-                dnorm:=coalesce(v_cur.hours,0)-dnight-dsun-v_cur.overtimehours;
-               else
-                dsun:= v_cur.hours - extract(hour from  v_cur.hour_to) - extract(minute from  v_cur.hour_to)/60;
-                dnorm:=coalesce(v_cur.hours,0)-v_cur.nighthours-dsun-v_cur.overtimehours;
-               end if;
-            else
-               dsun:=v_cur.hours;
-            end if;
+    if v_cur.issunday='Y' or v_cur.issaturday='Y' or v_cur.isholiday='Y' then
+        if (v_cur.issunday='Y') then            
+            dsun:=v_cur.hours;
             dsat:=0;
             dholi:=0;
         end if;
         if (v_cur.issaturday='Y') then
             dsat:=v_cur.hours;   
-            if (extract(hour from v_cur.hour_from)+extract(minute from v_cur.hour_from)/60) > (extract(hour from v_cur.hour_to)+extract(minute from v_cur.hour_to)/60) 
-            then            
-               dsat:= v_cur.hours - extract(hour from  v_cur.hour_to) - extract(minute from  v_cur.hour_to)/60+coalesce(v_cur.breaktime,0)+coalesce(v_cur.paidbreaktime,0);
-               dsun:= extract(hour from v_cur.hour_to)+ extract(minute from v_cur.hour_to)/60-coalesce(v_cur.breaktime,0)-coalesce(v_cur.paidbreaktime,0);
-               -- only if 0:00:00
-               if dsun<0 then
-                dsat:=v_cur.hours;   
-                dsun:=0;
-               end if;
-            else
-               dsun:=0;
-            end if;
+            dsun:=0;
             dholi:=0;
         end if;
         if (v_cur.isholiday='Y')then
             dholi:=v_cur.hours;
             dsat:=0;
             dsun:=0;
-        end if;
-        -- From Friday to Saturday
-        if (select dayname from c_workcalender where trunc(workdate)=trunc(v_curcal.datenow))='5' and v_cur.isholiday='N' then
-          if (extract(hour from v_cur.hour_from)+extract(minute from v_cur.hour_from)/60) > (extract(hour from v_cur.hour_to)+extract(minute from v_cur.hour_to)/60)
-          then  
-               if coalesce(v_cur.nighthours,0) > 0 then
-                dsat:= extract(hour from v_cur.hour_to)+ extract(minute from v_cur.hour_to)/60-coalesce(v_cur.breaktime,0)-coalesce(v_cur.paidbreaktime,0);
-                if dsat>0 then
-                    dnight:=v_cur.nighthours+coalesce(v_cur.breaktime,0)+coalesce(v_cur.paidbreaktime,0);
-                    dnorm:=coalesce(v_cur.hours,0)-dnight-dsat-v_cur.overtimehours;
-                else
-                    dsat:=0;
-                end if;
-               else
-                dsat:= extract(hour from v_cur.hour_to)+ extract(minute from v_cur.hour_to)/60;
-                dnorm:=coalesce(v_cur.hours,0)-v_cur.nighthours-dsat-v_cur.overtimehours;
-               end if;
-          else
-               dsat:=0;
-               dnorm:=0;
-          end if;
-          dsun:=0;
-          dholi:=0;
-          
         end if;
     else
         dsat:=0;
@@ -2096,17 +2154,51 @@ from zspm_ptaskfeedbackline where workdate = v_curcal.datenow and ad_user_id=v_u
         dtotal:=coalesce(dsoll,0);
     end if;
     wdate:=v_cur.workdate;
+    dover:=v_cur.overtimehours;
     if dsun=0 and dsat=0 and dholi=0 then 
         dnorm:=coalesce(v_cur.hours,0)-v_cur.nighthours-v_cur.overtimehours;
-        if dnorm < 0 then dnorm:=0; end if;
     end if;
     
-    dover:=v_cur.overtimehours;
+    if dnorm < 0 then dnorm:=0; end if;
     dvacanc:=0;
     dill:=0;
     mm:=v_cur.vm;
     my:=v_cur.vy;
     select p.value||'-'||p.name into dworkplace from c_project p where p.c_project_id=v_cur.c_project_id;
+    
+    -- Über Nacht gearbeitet..
+    if v_cur.hour_to<v_cur.hour_from then        
+        -- Erster Teil der Nacht
+        select p_norm,p_over,p_night,p_sat,p_sun,p_holi into dnorm,dover,dnight,dsat,dsun,dholi from c_getworktimeThisdayOvernight(v_cur.zspm_ptaskfeedbackline_id);
+        -- Zweiter Teil der Nacht
+        select p_norm+dnorm,p_over+dover,p_night+dnight,p_sat+dsat,p_sun+dsun,p_holi+dholi,p_ne into dnorm,dover,dnight,dsat,dsun,dholi,v_ne from c_getworktimeNEXTDayOvernight(v_cur.zspm_ptaskfeedbackline_id); 
+        select greatest(dnorm,dnight,dsat,dsun,dholi) into v_bre;
+        if dnorm>0 then dnorm:=dnorm-coalesce(v_cur.breaktime,0); elsif dnight=v_bre then dnight:=dnight-coalesce(v_cur.breaktime,0); elsif dsat=v_bre then dsat:=dsat-coalesce(v_cur.breaktime,0); 
+           elsif dsun=v_bre then dsun:=dsun-coalesce(v_cur.breaktime,0); elsif dholi=v_bre then dholi:=dholi-coalesce(v_cur.breaktime,0);
+        end if;
+        -- Nächsten Tag Bez Pause wandert von Nachtschicht auf Überstunden.
+        if dpaidbreak>0 and dnight>0 and dsun=0 and dsat=0 and dholi=0 then
+            if v_ne<v_cur.hour_to then -- Next Day Normal or Over
+                if dover>0 or dnorm=dsoll then
+                    dover:=dover+dpaidbreak;
+                else
+                    dnorm:=dnorm+dpaidbreak;
+                end if;
+                dnight:=dnight-dpaidbreak;
+            end if;
+        end if;
+        -- An so und sa gilt es als Überstunde , nicht aber an Feiertagen       
+        if dpaidbreak>0 and (dsun>0 or dsat>0) then
+            dover:=dover+dpaidbreak;
+            --if dholi>0 then dholi:=dholi-dpaidbreak; els
+            if
+               dsun>0 then dsun:=dsun-dpaidbreak; elsif
+               dsat>0 then dsat:=dsat-dpaidbreak; 
+            end if;            
+        end if;
+    end if;
+    
+    
     -- Halbe Tage Urlaub etc...
     select p_correlation,p_eventname,p_whours into v_Empevent,v_Empevname,v_evtWtime from c_getemployeeeventCorrelation(p_employee,v_curcal.datenow,p_lang);
     if (v_Empevent='2' and coalesce(v_evtWtime,0)>0) then
@@ -2123,39 +2215,50 @@ from zspm_ptaskfeedbackline where workdate = v_curcal.datenow and ad_user_id=v_u
     if (v_Empevent='1') then
             dworkplace:=substr(v_Empevname||'-'||dworkplace,1,60);
             dill:=coalesce(v_time,0);
-            dtotal:=coalesce(v_time,0)+coalesce(v_cur.hours,0);
-            /*
-            if coalesce(v_time,0)-dtotal > 0 then
-                dill:=coalesce(v_time,0)-dtotal;
-                dtotal:=coalesce(v_time,0);
-            else
-                dill=0;
+            dtotal:=coalesce(v_time,0)+coalesce(v_cur.hours,0);        
+    end if;
+    if v_cur.hour_to>=v_cur.hour_from then -- Tagschicht
+        -- Bezahlte Pause einer Kategorie zuordnen
+        if (0 = dholi AND dholi = dsat AND dsat = dsun) then
+            if dnight=0 and dover=0 then
+                dnorm:=dnorm + dpaidbreak;
             end if;
-            */
-    end if;
-
-    -- Bezahlte Pause einer Tag-Kategorie zuordnen
-    --dtotal:=dtotal+dpaidbreak;
-    if (0 = dholi AND dholi = dsat AND dsat = dsun) then
-        if dnight=0 then
-            dover := dover + dpaidbreak;
+            if dover>0 then
+                dover := dover + dpaidbreak;
+            end if;
+            if dnight>0 and dover=0 then
+                dnight:= dnight;
+            end if;
         else
-            dnight:= dnight+ dpaidbreak;
+            if dholi > 0 then 
+                if dnight=0 and dover=0 then
+                    dholi := dholi + dpaidbreak;
+                end if;
+                if dover>0 then
+                    dover := dover + dpaidbreak;
+                end if;
+                if dnight>0 and dover=0 then
+                    dnight:= dnight;
+                end if;
+            elsif dsat > 0 and dsun = 0 then 
+                dsat := dsat + dpaidbreak;
+            elsif dsun > 0 then 
+                if dnight=0 and dover=0  then
+                    dsun := dsun + dpaidbreak;
+                end if;
+                if dover>0 then
+                    dover := dover + dpaidbreak;
+                end if;
+                if dnight>0 and dover=0 then
+                    dnight:= dnight;
+                end if;
+            end if;	
         end if;
-    else
-	    if dholi > 0 then 
-		dholi := dholi + dpaidbreak;
-
-	    elsif dsat > 0 and dsun = 0 then 
-		dsat := dsat + dpaidbreak;
-
-	    elsif dsun > 0 then 
-		dsun := dsun + dpaidbreak;
-	    end if;	
     end if;
-
     return next;
   END LOOP;
+  
+  --- Urlaub, Freizeit, Kalender Events
   select p_correlation,p_eventname,p_whours into v_Empevent,v_Empevname,v_evtWtime from c_getemployeeeventCorrelation(p_employee,v_curcal.datenow,p_lang);
   select p_correlation,p_eventname into v_OrgEvent,v_OrgEvname from c_getOrgeventCorrelation(v_orgid,v_curcal.datenow,p_lang);
   if (select count (*) from zspm_ptaskfeedbackline where workdate = v_curcal.datenow and ad_user_id=v_userid) = 0 then 
@@ -2243,8 +2346,7 @@ $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 
-
-  select zsse_dropfunction('zssi_checkifholiday');
+select zsse_dropfunction('zssi_checkifholiday');
 CREATE or replace FUNCTION zssi_checkifholiday(p_date timestamp with time zone) RETURNS character varying
 AS $_$
 /***************************************************************************************************************************************************
@@ -2704,3 +2806,26 @@ END
 $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;  
+
+  
+CREATE OR REPLACE FUNCTION zssi_closeopentimefeedbacks() RETURNS VARCHAR -- 'SUCCESS'
+AS $body$
+DECLARE
+    v_hours numeric;
+    v_intvl interval;
+    v_cur record;
+BEGIN
+   select to_number(value) into v_hours from ad_preference where attribute='AUTOCLOSETIMEFEEDBACKHOURS';
+   if v_hours is null then v_hours:=16; end if;
+   v_intvl:= INTERVAL '1 hour';
+   for v_cur in (select Zspm_Ptaskfeedbackline_id,ad_user_id,workdate,hour_from,hour_to from Zspm_Ptaskfeedbackline where hour_from is not null and hour_to is null)
+   LOOP
+        if now()-v_cur.hour_from >= v_intvl then
+            update Zspm_Ptaskfeedbackline set hour_to=hour_from+(v_intvl*v_hours),description=coalesce(description,'')||'->AUTOCLOSED' where Zspm_Ptaskfeedbackline_id=v_cur.Zspm_Ptaskfeedbackline_id;
+        end if;
+   END LOOP;
+   RETURN 'OK';
+END;
+$body$
+LANGUAGE 'plpgsql'
+COST 100;

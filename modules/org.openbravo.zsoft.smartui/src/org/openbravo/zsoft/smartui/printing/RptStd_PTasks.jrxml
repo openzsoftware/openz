@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.1.1  -->
+<!-- Created with Jaspersoft Studio version 6.16.0.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Rpt_Productionreport" language="groovy" pageWidth="595" pageHeight="842" columnWidth="591" leftMargin="2" rightMargin="2" topMargin="2" bottomMargin="2" isIgnorePagination="true" uuid="52fa489a-98d6-46c0-adca-97c27caed16e">
 	<property name="ireport.zoom" value="5.706233412220006"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<property name="ireport.scriptlethandling" value="0"/>
 	<property name="ireport.encoding" value="UTF-8"/>
-	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DEMODB"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Localhost"/>
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
 	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
@@ -100,7 +100,8 @@ replace(rpad('X',10,'X'),'X','&nbsp;') as nbsp10,
 'pdc_bc_intern_transport_inbound' as ctrl5,
 'pdc_bc_intern_transport_outbound' as ctrl6,
 'pdc_bc_production' as ctrl9,
- coalesce(pt.value,'') as value,
+zssi_getWorkorderTaskHeader(pt.c_projecttask_id) as value,
+pt.value as qrcode,
   coalesce(pt.name,'') as name,
  coalesce( (select lo.value from m_locator lo where lo.m_locator_id=pt.issuing_locator),'') as ilocator,
    zssi_getproductname(pt.m_product_id, $P{LANGUAGE} ) as productname,
@@ -119,91 +120,123 @@ to_char(pt.startdate,'DD.MM.YYYY') as startdt,
    order by pt.seqno]]>
 	</queryString>
 	<field name="po" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="po"/>
 		<property name="com.jaspersoft.studio.field.label" value="po"/>
 	</field>
 	<field name="ap" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ap"/>
 		<property name="com.jaspersoft.studio.field.label" value="ap"/>
 	</field>
 	<field name="emp" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="emp"/>
 		<property name="com.jaspersoft.studio.field.label" value="emp"/>
 	</field>
 	<field name="prodname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="prodname"/>
 		<property name="com.jaspersoft.studio.field.label" value="prodname"/>
 	</field>
 	<field name="prodno" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="prodno"/>
 		<property name="com.jaspersoft.studio.field.label" value="prodno"/>
 	</field>
 	<field name="start" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="start"/>
 		<property name="com.jaspersoft.studio.field.label" value="start"/>
 	</field>
 	<field name="qty" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="qty"/>
 		<property name="com.jaspersoft.studio.field.label" value="qty"/>
 	</field>
 	<field name="wd" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="wd"/>
 		<property name="com.jaspersoft.studio.field.label" value="wd"/>
 	</field>
 	<field name="treason" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="treason"/>
 		<property name="com.jaspersoft.studio.field.label" value="treason"/>
 	</field>
 	<field name="nbsp10" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="nbsp10"/>
 		<property name="com.jaspersoft.studio.field.label" value="nbsp10"/>
 	</field>
 	<field name="ctrl1" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ctrl1"/>
 		<property name="com.jaspersoft.studio.field.label" value="ctrl1"/>
 	</field>
 	<field name="ctrl2" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ctrl2"/>
 		<property name="com.jaspersoft.studio.field.label" value="ctrl2"/>
 	</field>
 	<field name="ctrl3" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ctrl3"/>
 		<property name="com.jaspersoft.studio.field.label" value="ctrl3"/>
 	</field>
 	<field name="ctrl4" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ctrl4"/>
 		<property name="com.jaspersoft.studio.field.label" value="ctrl4"/>
 	</field>
 	<field name="ctrl5" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ctrl5"/>
 		<property name="com.jaspersoft.studio.field.label" value="ctrl5"/>
 	</field>
 	<field name="ctrl6" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ctrl6"/>
 		<property name="com.jaspersoft.studio.field.label" value="ctrl6"/>
 	</field>
 	<field name="ctrl9" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ctrl9"/>
 		<property name="com.jaspersoft.studio.field.label" value="ctrl9"/>
 	</field>
 	<field name="value" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="value"/>
 		<property name="com.jaspersoft.studio.field.label" value="value"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="c_projecttask"/>
 	</field>
+	<field name="qrcode" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="qrcode"/>
+		<property name="com.jaspersoft.studio.field.label" value="qrcode"/>
+	</field>
 	<field name="name" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="name"/>
 		<property name="com.jaspersoft.studio.field.label" value="name"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="c_projecttask"/>
 	</field>
 	<field name="ilocator" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="ilocator"/>
 		<property name="com.jaspersoft.studio.field.label" value="ilocator"/>
 	</field>
 	<field name="productname" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="productname"/>
 		<property name="com.jaspersoft.studio.field.label" value="productname"/>
 	</field>
 	<field name="productvalue" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="productvalue"/>
 		<property name="com.jaspersoft.studio.field.label" value="productvalue"/>
 	</field>
 	<field name="triggerreason" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="triggerreason"/>
 		<property name="com.jaspersoft.studio.field.label" value="triggerreason"/>
 	</field>
 	<field name="employee" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="employee"/>
 		<property name="com.jaspersoft.studio.field.label" value="employee"/>
 	</field>
 	<field name="startdt" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="startdt"/>
 		<property name="com.jaspersoft.studio.field.label" value="startdt"/>
 	</field>
 	<field name="machine" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="machine"/>
 		<property name="com.jaspersoft.studio.field.label" value="machine"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="ma_machine"/>
 	</field>
 	<field name="qtypo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="qtypo"/>
 		<property name="com.jaspersoft.studio.field.label" value="qtypo"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="c_projecttask"/>
 	</field>
 	<field name="description" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="description"/>
 		<property name="com.jaspersoft.studio.field.label" value="description"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="c_projecttask"/>
 	</field>
@@ -271,7 +304,7 @@ to_char(pt.startdate,'DD.MM.YYYY') as startdt,
 				<reportElement x="505" y="201" width="60" height="60" uuid="d2c51273-a140-462c-b819-793979786daa">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				</reportElement>
-				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{value},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{qrcode},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
 			</image>
 			<image scaleImage="FillFrame" hAlign="Center">
 				<reportElement x="505" y="275" width="60" height="60" uuid="3f80e131-8329-4bfc-a582-0154c74c21a9">
@@ -289,7 +322,7 @@ to_char(pt.startdate,'DD.MM.YYYY') as startdt,
 				<reportElement x="505" y="516" width="60" height="60" uuid="b48d1e7f-8152-461d-87d9-64acbb8da894">
 					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 				</reportElement>
-				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{value},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{qrcode},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
 			</image>
 			<image scaleImage="FillFrame" hAlign="Center">
 				<reportElement x="505" y="590" width="60" height="60" uuid="01adfc1c-233a-480a-9658-18ee68ad5845">

@@ -160,6 +160,9 @@ BEGIN
     UPDATE ad_role SET targetmain = '' WHERE ad_role_id = '32BB190E7B4846E8AA0F1847BD4444BE';
     UPDATE ad_role SET targetmenu = '' WHERE ad_role_id = '32BB190E7B4846E8AA0F1847BD4444BE';
     
+    update c_paymentterm set documentnote=name where documentnote is null;
+    update c_paymentterm_trl set documentnote=name where documentnote is null;
+    
     v_return:='Ersteinrichtung erfolgreich abgeschlossen';
     
 RETURN v_return;

@@ -46,4 +46,13 @@ Contributor(s): ______________________________________.
     </Sql>
     <Parameter name="cOrderId"/>
   </SqlMethod>
+  <SqlMethod name="getMovementtypeFromGoodsMovement" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+         select movementtype from m_inout where m_inout_id= ?
+      ]]>
+    </Sql>
+    <Parameter name="mInoutId"/>
+  </SqlMethod>
   </SqlClass>

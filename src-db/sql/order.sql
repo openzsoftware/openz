@@ -210,17 +210,19 @@ BEGIN
             new.pricelist:=v_pricelist;
         end if;
      end if;
-     -- On PO or SO a valid frame contract schould be used
-     if ad_get_docbasetype(v_doctype) in ('SOO','POO') and v_doctype not in ('5EED1EFB8BDD4C0491ECCFD7395DA446','9D7785AF1F0D4C51A0B1DF45F5DC9EE5') then
-        if (select count(*) from c_orderline ol,c_order o where o.c_order_id=ol.c_order_id and o.contractdate <=now() and o.enddate>=now() and 
-                   case when o.issotrx='Y' then o.c_doctype_id= '559A80F2E27742D4B2C476045F5C834F' else  o.c_doctype_id= '56913A519BA94EB59DAE5BF9A82F5F7D' end
-                   and o.c_bpartner_id=(select c_bpartner_id from c_order where c_order_id=new.c_order_id)
-                   and ol.deliverycomplete='N' and ol.m_product_id=new.m_product_id and o.docstatus='CO' and 
-                   coalesce(ol.m_product_po_id,'')= coalesce(new.m_product_po_id,'') and coalesce(ol.m_product_uom_id,'')= coalesce(new.m_product_uom_id,'')) >0 
-        then
-          if (select docstatus from c_order where c_order_id=new.c_order_id)!='CO' then
-            RAISE EXCEPTION '%', '@FrameContractExists@:'||(select name from m_product where m_product_id=new.m_product_id); 
-          end if;
+     if(c_getconfigoption('framecontractoptional',new.ad_org_id)='N') then
+        -- On PO or SO a valid frame contract schould be used
+        if ad_get_docbasetype(v_doctype) in ('SOO','POO') and v_doctype not in ('5EED1EFB8BDD4C0491ECCFD7395DA446','9D7785AF1F0D4C51A0B1DF45F5DC9EE5') then
+           if (select count(*) from c_orderline ol,c_order o where o.c_order_id=ol.c_order_id and o.contractdate <=now() and o.enddate>=now() and 
+                      case when o.issotrx='Y' then o.c_doctype_id= '559A80F2E27742D4B2C476045F5C834F' else  o.c_doctype_id= '56913A519BA94EB59DAE5BF9A82F5F7D' end
+                      and o.c_bpartner_id=(select c_bpartner_id from c_order where c_order_id=new.c_order_id)
+                      and ol.deliverycomplete='N' and ol.m_product_id=new.m_product_id and o.docstatus='CO' and 
+                      coalesce(ol.m_product_po_id,'')= coalesce(new.m_product_po_id,'') and coalesce(ol.m_product_uom_id,'')= coalesce(new.m_product_uom_id,'')) >0 
+           then
+             if (select docstatus from c_order where c_order_id=new.c_order_id)!='CO' then
+               RAISE EXCEPTION '%', '@FrameContractExists@:'||(select name from m_product where m_product_id=new.m_product_id); 
+             end if;
+           end if;
         end if;
      end if;
   END IF;
@@ -1100,7 +1102,7 @@ Further Checks on AProve, COmplete, PRocess
         UPDATE C_ORDER
           SET DocStatus='CO',
           DocAction='RE',
-          IsDelivered= case v_DocSubTypeSO when 'WI' then 'Y' when 'WR' then 'Y' else 'N' end,
+          IsDelivered= case v_DocSubTypeSO when 'WI' then 'Y' when 'WR' then 'Y' else 'N' end,   --  SZ: isdelivered  is deprecated!! All positions eres set automatically to delivered deliverycomplete='Y' is set by trigger.
           IsInvoiced= case v_DocSubTypeSO when 'WI' then 'Y' when  'WR' then 'Y' when 'WP' then 'Y' else 'N' end,
           Processed='Y',
           Processing='N',
@@ -2986,7 +2988,7 @@ BEGIN
     -- Mark all Variants of this Offer as closed.
     PERFORM c_closeallrelatedoffers(p_Record_ID,p_User);
     -- Mark the Accepted Variant of the Proposal - the link to the ORDER
-     update c_order set proposalstatus='AC' where c_order_id=p_Record_ID;
+     update c_order set proposalstatus='AC',docstatus='CL' where c_order_id=p_Record_ID;
     RETURN v_Message; 
 END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE
@@ -3980,7 +3982,7 @@ BEGIN
   select ol.c_tax_id,ol.isgrossprice,o.c_currency_id,o.c_order_id,o.c_doctype_id,o.dateordered,ol.lineNetAmt,ol.linegrossamt,ol.isonetimeposition 
          into v_tax,v_isgross,v_ordercurr,v_order,v_doctype,v_dateordered,p_ol_lineNetAmt,p_ol_lineGrossAmt,v_onetime
          from c_order o,c_orderline ol where o.c_order_id=ol.c_order_id and ol.c_orderline_id=p_orderline_id 
-         and ol.isoptional='N' and ol.dateordered between p_dateFrom and p_dateUntil;
+         and ol.isoptional='N' and o.dateordered between p_dateFrom and p_dateUntil;
   if coalesce(ad_get_docbasetype(v_doctype),'NIX') in ('SOO','POO','SALESOFFER','POREQUESTOFFER') then
         -- Subscription Proposal
         if v_doctype='7DE8D4B1B8824D36974E8064BBED5095' and v_onetime='N' then
@@ -5244,7 +5246,7 @@ select
 	c_order.c_doctype_id as c_doctype_id,
 	c_order.c_doctypetarget_id as c_doctypetarget_id,
 	c_order.description as description,
-	c_order.isdelivered as isdelivered,
+	c_order.isdelivered as isdelivered, -- SZ:Deprecated!
 	c_order.isinvoiced as isinvoiced,
 	c_order.isprinted as isprinted,
 	c_order.isselected as isselected,
@@ -6981,12 +6983,12 @@ BEGIN
         elsif p_targettype='ORDER' then
             v_doctype:='B342FD5CA1C64E8BA25A0A6F6C98C7DA'; -- Order PO
         else
-            raise exception '%' , 'Selection not implemented';
+           raise exception '%' , 'Selection not implemented';
         end if;
         v_linkWindow:='../PurchaseOrder/Header_Relation.html';
     end if;
     if v_issotrx ='Y' then
-        if p_targettype='PROPOSAL' then
+        if p_targettype='PROPOSAL' or p_targettype='CHANGEORDER' then
                 if v_cur.c_doctype_id in ('ABE2033C7A74499A9750346A83DE3307','7DE8D4B1B8824D36974E8064BBED5095') then -- Subscript. Order / Propos.
                     v_doctype:='7DE8D4B1B8824D36974E8064BBED5095'; -- Subscription Proposal
                 else
@@ -7001,7 +7003,12 @@ BEGIN
         elseif p_targettype='PROFORMA' then
             v_doctype:='CCFE32E992B74157975E675458B844D1';
         else
-            raise exception '%' , 'Selection not implemented';
+             -- Instance spec in Refe: DoctypesFromOrderWithChange and DoctypesFromOrder
+            select li.description into v_doctype from AD_Ref_Listinstance li,ad_ref_list l where l.AD_Ref_List_id=li.AD_Ref_List_id and 
+                   l.ad_reference_id in ('FD2AF07A654C40E085295748F3F253A5','DA2DEEE7274448F7B0252A18EDD377CF') and  li.value=p_targettype;
+            if (select count(*) from c_doctype where c_doctype_id=v_doctype)=0 then
+                raise exception '%' , 'Selection not implemented';
+            end if;
         end if;
         if p_targettype='PROFORMA' then
             v_linkWindow:='../SalesInvoice/Header_Relation.html';
@@ -7020,6 +7027,8 @@ BEGIN
         v_cur.generatetemplate:='N';
         v_cur.processed='N';
         v_cur.dateordered:=trunc(now());
+        v_cur.created:=now();
+        v_cur.updated:=now();
         v_cur.createdby:=p_user;
         v_cur.updatedby:=p_user;
         v_cur.invoicedamt:=0;
@@ -7030,7 +7039,7 @@ BEGIN
         v_cur.totalpaid:=0;
         v_cur.createdbycopy:='Y';
         -- Dokuments in same TRX (SO or PO) schould not have a link to generating Document
-        if p_targettype in ('PROPOSAL','ORDER') then
+        if p_targettype != 'CHANGEORDER' then
             v_cur.orderselfjoin:=null;
         else
             v_cur.orderselfjoin:=p_srcorder_id;
@@ -7042,12 +7051,15 @@ BEGIN
             v_cur_line.c_orderline_id:=get_uuid();
             v_cur_line.createdby:=p_user;
             v_cur_line.updatedby:=p_user;
+            v_cur_line.created:=now();
+            v_cur_line.updated:=now();
             v_cur_line.qtydelivered:=0;
             v_cur_line.qtyinvoiced:=0;
             v_cur_line.ignoreresidue:='N';
             v_cur_line.ignoreresiduedate:=null;
             v_cur_line.deliverycomplete:='N';
             v_cur_line.orderlineselfjoin:=null;
+            v_cur_line.invoicedamt:=0;
             if p_targettype != 'PROPOSAL' or v_issotrx='N' then
                 v_cur_line.isoptional:='N';
             end if;
@@ -7222,7 +7234,12 @@ BEGIN
         elsif p_targettype='ORDERPO' then
             v_doctype:='B342FD5CA1C64E8BA25A0A6F6C98C7DA'; -- Order PO
         else
-            raise exception '%' , 'Selection not implemented';
+            -- Instance spec in Refe: DoctypesFromPOOrder
+            select li.description into v_doctype from AD_Ref_Listinstance li,ad_ref_list l where l.AD_Ref_List_id=li.AD_Ref_List_id and 
+                   l.ad_reference_id='54DAE887EA0E48F0A8DD6C4DADFFF94F' and  li.value=p_targettype;
+            if (select count(*) from c_doctype where c_doctype_id=v_doctype)=0 then
+                raise exception '%' , 'Selection not implemented';
+            end if;
         end if;
         v_linkWindow:='../PurchaseOrder/Header_Relation.html';
     end if;
@@ -7532,13 +7549,17 @@ DECLARE
     v_aux1  varchar;
     v_olc   c_orderline%rowtype;
     v_i     numeric:=1;
+    v_line  numeric;
 BEGIN
    if p_poorderlineid is null then return 'COMPILE'; end if;
    --raise exception '%',coalesce(p_soorderlineid,'NULL')||p_isoptional||p_connectsoline ; 
    if p_soorderlineid is null then
         -- Lost reference...
-        select o.orderselfjoin into v_order from c_order o,c_orderline ol where ol.c_order_id=o.c_order_id and ol.c_orderline_id=p_poorderlineid;
-        select c_orderline_id into p_soorderlineid from c_orderline where c_order_id=v_order and isoptional='N' and m_product_id=(select m_product_id from c_orderline where c_orderline_id=p_poorderlineid) limit 1;
+        select o.orderselfjoin,line into v_order,v_line from c_order o,c_orderline ol where ol.c_order_id=o.c_order_id and ol.c_orderline_id=p_poorderlineid;
+        select c_orderline_id into p_soorderlineid from c_orderline where c_order_id=v_order and isoptional='N' and m_product_id=(select m_product_id from c_orderline where c_orderline_id=p_poorderlineid) and line=v_line  limit 1;
+        if p_soorderlineid is null then
+            select c_orderline_id into p_soorderlineid from c_orderline where c_order_id=v_order and isoptional='N' and m_product_id=(select m_product_id from c_orderline where c_orderline_id=p_poorderlineid) limit 1;
+        end if;
         if p_soorderlineid is not null then
             update c_orderline set orderlineselfjoin=p_soorderlineid where c_orderline_id=p_poorderlineid;
         end if;

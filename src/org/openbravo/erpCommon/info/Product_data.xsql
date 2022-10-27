@@ -32,7 +32,7 @@
         M_BOM_Qty_OnHand(p.M_Product_ID,?, NULL) AS QtyOnHand, 
         m_qty_inflow(p.M_Product_ID,?) AS qtyinflow, 
         m_qty_outflow(p.M_Product_ID,?) AS qtyoutflow,
-        m_qty_avail(p.M_Product_ID,?) AS QtyAvailable, 
+        M_BOM_Qty_Available(p.M_Product_ID,?,null) AS QtyAvailable, 
         p.C_UOM_ID, pl.C_Currency_ID,
         ? as m_pricelist_version_id, 'AUX1' as auxfield1,'AUX2' as auxfield2,'AUX3' as auxfield3,'AUX4' as auxfield4
         FROM M_Product p left join m_product_trl ptrl on ptrl.m_product_id=p.m_product_id and ptrl.ad_language=?,

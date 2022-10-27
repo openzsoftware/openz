@@ -26,9 +26,7 @@
 		<![CDATA[select a.qr,a.scn,a.pname,a.pname2,a.pvalue,a.pvalue2,a.foot,a.line
 from (
 select
-         --CASE WHEN (mils.serialnumber is null) then mp.value||'|'||mils.lotnumber else mp.value||'|'||mils.serialnumber end as qr,
          mp.value||'|'||coalesce(mils.serialnumber,'')||'|'||coalesce(mils.lotnumber,'')||'|'||coalesce(to_char(round(mil.weight/mil.movementqty,4)),'') as qr,
-         --CASE WHEN (mils.serialnumber is null) then substr('ChN:'||mils.lotnumber,1,26) when (mils.serialnumber is not null) then substr('SN:'||mils.serialnumber,1,26) end as scn,
          coalesce(substr('ChN:'||mils.lotnumber,1,26),'')||coalesce(substr('SN:'||mils.serialnumber,1,26),'')||coalesce('Gew:'||zssi_strNumberPrice(mil.weight/mil.movementqty,'de_DE'),'') as scn,
          substr(mp.name,1,20) as pname,
          substr(mp.name,21,20) as pname2,
@@ -36,39 +34,47 @@ select
          substr(mp.value,21,20) as pvalue2,
          mil.line,
          substr(substr(zssi_getbpname(mi.c_bpartner_id),1,15)||'-'||coalesce(mpo.vendorproductno||'-','')||''||to_char(mi.movementdate,'DD.MM.YYYY'),1,43) as foot
-from m_inout mi left join m_inoutline mil on mi.m_inout_id=mil.m_inout_id left join m_product mp on mp.m_product_id=mil.m_product_id left join m_product_po mpo on mp.m_product_id=mpo.m_product_id left join snr_minoutline mils on mil.m_inoutline_id=mils.m_inoutline_id where mi.m_inout_id in ($P{DOCUMENT_ID})  and mpo.c_bpartner_id=mi.c_bpartner_id
-
-
+from m_inout mi left join m_inoutline mil on mi.m_inout_id=mil.m_inout_id 
+                left join m_product mp on mp.m_product_id=mil.m_product_id 
+                left join m_product_po mpo on mp.m_product_id=mpo.m_product_id and mpo.c_bpartner_id=mi.c_bpartner_id
+                left join snr_minoutline mils on mil.m_inoutline_id=mils.m_inoutline_id 
+    where mi.m_inout_id in ($P{DOCUMENT_ID})
+-- Interne Materialbewegung (Entnahme/Rückgabe von Material) 
 union
-
-select
-         --CASE WHEN (snr_internal_consumptionline.serialnumber is null) then m_product.value||'|'||snr_internal_consumptionline.lotnumber else m_product.value||'|'||snr_internal_consumptionline.serialnumber end as qr,
+select         
          m_product.value||'|'||coalesce(snr_internal_consumptionline.serialnumber,'')||'|'||coalesce(snr_internal_consumptionline.lotnumber,'')||'|'||coalesce(to_char(round(m_internal_consumptionline.weight/m_internal_consumptionline.movementqty,4)),'') as qr,
-         --CASE WHEN (snr_internal_consumptionline.serialnumber is null) then substr('ChN:'||snr_internal_consumptionline.lotnumber,1,26) when (snr_internal_consumptionline.serialnumber is not null) then substr('SN:'||snr_internal_consumptionline.serialnumber,1,26) end as scn,
          coalesce(substr('ChN:'||snr_internal_consumptionline.lotnumber,1,26),'')||coalesce(substr('SN:'||snr_internal_consumptionline.serialnumber,1,26),'')||coalesce('Gew:'||zssi_strNumberPrice(m_internal_consumptionline.weight/m_internal_consumptionline.movementqty,'de_DE'),'') as scn,
          substr(m_product.name,1,20) as pname,
          substr(m_product.name,21,20) as pname2,
          substr(m_product.value,1,20) as pvalue,
          substr(m_product.value,21,20) as pvalue2,
          m_internal_consumptionline.line,
- substr(substr(zssi_getbpname(c_project.c_bpartner_id),1,15)||'-'||coalesce(m_product_po.vendorproductno||'-','')||'-'||to_char(m_internal_consumption.created,'DD.MM.YYYY'),1,43) as foot
-from    m_product,
-        m_internal_consumption
-left join c_project
-on c_project.c_project_id=m_internal_consumption.c_project_id
-left join c_bpartner
-on c_bpartner.c_bpartner_id=c_project.c_bpartner_id,
-        m_internal_consumptionline
+         null as foot
+from m_internal_consumption, m_product,m_internal_consumptionline
                         left join snr_internal_consumptionline
                      on snr_internal_consumptionline.m_internal_consumptionline_id=m_internal_consumptionline.m_internal_consumptionline_id
-                        left join m_product_po
-                     on m_product_po.m_product_id=m_internal_consumptionline.m_product_id
-where m_internal_consumptionline.m_product_id=m_product.m_product_id
+where m_internal_consumptionline.m_product_id=m_product.m_product_id and m_internal_consumption.plannedserialnumber is null
 and m_internal_consumption.m_internal_consumption_id=m_internal_consumptionline.m_internal_consumption_id
 and m_internal_consumption.m_internal_consumption_id IN ($P{DOCUMENT_ID})
-
+-- Interne Materialbewegung (Entnahme/Rückgabe--> SNR / Chargen Produktion) 
 union
-
+select         
+         p.value||'|'||case when p.isserialtracking='Y' then c.plannedserialnumber else '' end||'|'||case when p.isbatchtracking='Y' then c.plannedserialnumber else '' end||'|'||coalesce(to_char(p.weight),'') as qr,
+         case when p.isbatchtracking='Y' then substr('ChN:'||c.plannedserialnumber,1,26) else '' end||case when p.isserialtracking='Y' then substr('SN:'||c.plannedserialnumber,1,26) else '' end||coalesce('Gew:'||zssi_strNumberPrice(p.weight,'de_DE'),'') as scn,
+         substr(p.name,1,20) as pname,
+         substr(p.name,21,20) as pname2,
+         substr(p.value,1,20) as pvalue,
+         substr(p.value,21,20) as pvalue2,
+         10 as line,
+         null as foot
+from m_internal_consumption c, m_product p
+where c.plannedserialnumber is not null
+and p.m_product_id = (SELECT  m_product_id as id from zssm_workstep_v  where zssm_workstep_v_id = c.c_projecttask_id and assembly='Y'
+                    union
+                    SELECT  id from (select bom.m_product_id as id from zspm_projecttaskbom bom,zssm_workstep_v w where w.c_projecttask_id=bom.c_projecttask_id and w.zssm_workstep_v_id = c.c_projecttask_id and w.assembly='N' order by bom.line limit 1) a) 
+and c.m_internal_consumption_id IN ($P{DOCUMENT_ID})
+-- Serial Number Masterdata
+union
 select
          mp.value||'|'||mils.serialnumber||'||' as qr,
          substr('SN:'||mils.serialnumber,1,26) as scn,
@@ -79,9 +85,8 @@ select
          10 as line,
          null as foot
 from snr_masterdata mils left join snr_batchmasterdata bm on mils.snr_batchmasterdata_id=bm.snr_batchmasterdata_id,m_product mp where mils.m_product_id=mp.m_product_id and mils.snr_masterdata_id in ($P{DOCUMENT_ID})
-
+-- Batch Masterdata
 union
-
 select
          mp.value||'||'||mils.batchnumber||'|' as qr,
          substr('ChN:'||mils.batchnumber,1,26) as scn,
@@ -92,7 +97,7 @@ select
          10 as line,
          null as foot
 from snr_batchmasterdata mils,m_product mp where mils.m_product_id=mp.m_product_id and mils.snr_batchmasterdata_id in ($P{DOCUMENT_ID})
-
+-- Product Window
 union
 select
          mp.value||'|||' as qr,

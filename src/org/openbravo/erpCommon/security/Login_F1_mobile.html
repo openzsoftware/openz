@@ -17,9 +17,7 @@
 <title>Log in</title>
 <link rel="shortcut icon" href="../../../../../web/images/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" type="text/css" href="../../../../../web/skins/Default/Openbravo_ERP_250.css?v=20201118112638" id="paramCSS"/>
-<!--  <link rel="stylesheet" type="text/css" href="../../../../../web/skins/ltr/OpenZND/OpenZ_Login_350.css?v=20201118112638" />-->
 <script language="JavaScript" src="../../../../../web/js/messages.js?v=20201118112638" type="text/javascript"></script>
-<!-- <link rel="preload" href="../../../../../web/skins/Default/teufelsmoor.png" as="image"  id="paramPreLoadRel"> -->
 <script language="JavaScript" src="../../../../../web/js/shortcuts.js?v=20201118112638" type="text/javascript"></script>
 <script language="JavaScript" src="../../../../../web/js/utils.js?v=20201118112638" type="text/javascript"></script>
 <script language="JavaScript" src="../../../../../web/js/windowKeyboard.js?v=20201118112638" type="text/javascript"></script>
@@ -62,11 +60,13 @@ function redirectWhenPopup() {
 </script>
 <script language="JavaScript" type="text/javascript">
   function onLoadDo() {
-	   top.opener=null;
-	   document.getElementsByName('user').value=('Username');
-	   document.getElementsByName('password').value=('Password');
-	   document.getElementById('ScreenY').value=window.screen.height;
-	   document.getElementById('ScreenX').value=window.screen.width;
+    top.opener=null;
+    document.getElementsByName('user').value=('Username');
+    document.getElementsByName('password').value=('Password');
+    document.getElementById('ScreenY').value=window.screen.height;
+    document.getElementById('ScreenX').value=window.screen.width;
+    if (document.getElementById('permsession').value!="")
+        submitCommandForm('DEFAULT', false, null, '../secureApp/LoginHandler.html', '_top', true);
     redirectWhenPopup();
     this.windowTables = new Array(
       new windowTableId('client', 'buttonOK')
@@ -95,9 +95,9 @@ function redirectWhenPopup() {
   <input type="hidden" name="Command"></input>
   <input type="hidden" value="" name="ScreenX" id="ScreenX"></input>
   <input type="hidden" value="" name="ScreenY" id="ScreenY"></input>
+  <input type="hidden" value="" name="permsession" id="permsession"></input>
 
 <div class="LoginBackground" id="WelcomeID" style="height:100%!important;">
-<!-- <img style="display:none;" src="../../../../../web/skins/Default/teufelsmoor.png" id="paramPreLoad"> -->
   <table  border="0" cellpadding="0" cellspacing="0" id="main">
     <tr>
       <td valign="top">

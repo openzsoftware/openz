@@ -864,6 +864,13 @@ $BODY$ DECLARE
     v_ForcedOrg NUMERIC;
     v_ManualAmt NUMERIC:=0;
     FINISH_PROCESS BOOLEAN:=false;
+    Cur_Debts RECORD;
+    Cur_Lines RECORD;
+    p_CashBook VARCHAR(32) ; 
+    p_Cash VARCHAR(32) ; 
+    p_CashLine VARCHAR(32) ; 
+    p_Line NUMERIC;
+    p_Amount NUMERIC;
   BEGIN
     IF(p_PInstance_ID IS NOT NULL) THEN
       --  Update AD_PInstance
@@ -893,7 +900,6 @@ $BODY$ DECLARE
       RAISE NOTICE '%','--<<C_Settlement_Post>>' ;
       v_Record_ID:=p_Settlement_ID;
     END IF;
-  BEGIN --BODY
     SELECT UpdatedBy, AD_Client_ID, AD_Org_ID, Processed,
           C_Currency_ID, DATETRX, DateAcct, IsGenerated, C_DocType_ID
     INTO v_AD_User_ID, v_AD_Client_ID, v_AD_Org_ID, v_Processed,
@@ -1199,10 +1205,6 @@ $BODY$ DECLARE
       WHERE isActive='Y'
         AND C_Settlement_Generate_ID=v_Record_ID;
       v_ResultStr:='UpdatingSOCreditUsed';
-      DECLARE
-      --TYPE RECORD IS REFCURSOR;
-        Cur_Debts RECORD;
-      BEGIN
         FOR Cur_Debts IN
           (SELECT DISTINCT C_BPartner_ID
           FROM C_DEBT_PAYMENT
@@ -1212,23 +1214,12 @@ $BODY$ DECLARE
         LOOP
           PERFORM C_BP_SOCREDITUSED_REFRESH(Cur_Debts.C_BPartner_ID) ;
         END LOOP;
-      END;
 
        /*
       *  Creating Cash-Lines when Cash is used
       *  
       */
       v_ResultStr:='CreatingCashLines';
-   
-      DECLARE
-      --TYPE RECORD IS REFCURSOR;
-        Cur_Lines RECORD;
-        p_CashBook VARCHAR(32) ; 
-        p_Cash VARCHAR(32) ; 
-        p_CashLine VARCHAR(32) ; 
-        p_Line NUMERIC;
-        p_Amount NUMERIC;
-      BEGIN
         FOR Cur_Lines IN
               (SELECT dp.*,
                 c.ISO_CODE,
@@ -1318,8 +1309,6 @@ $BODY$ DECLARE
                 0, 'Y'
               );
          END LOOP;--Cursor-Lines
-      END; --Cash-Creating
-
       /*
       *  Updating Settlement
       *  
@@ -1341,7 +1330,6 @@ $BODY$ DECLARE
       RAISE NOTICE '%','--<<C_Settlement_Post finished>> ' || v_Message ;
     END IF;
     RETURN;
-  END; --BODY
 EXCEPTION
 WHEN OTHERS THEN
   v_ResultStr:= '@ERROR=' || SQLERRM;
@@ -1356,10 +1344,6 @@ WHEN OTHERS THEN
 END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;
-ALTER FUNCTION c_settlement_post(character varying, character varying) OWNER TO tad;
-
-
-
 
 
 
@@ -1729,26 +1713,26 @@ $BODY$ DECLARE
   v_DPMLineId VARCHAR(32); --OBTG:varchar2--
    --Added by P.SAROBE
     v_C_Debt_Payment_ID VARCHAR(32); 
- v_documentno_Settlement VARCHAR; 
- v_documentno_Dp_Management VARCHAR; 
- v_column_identifier VARCHAR(200); 
- v_dateSettlement TIMESTAMP;
- v_Cancel_Processed VARCHAR(60);
- v_nameBankstatement VARCHAR; 
- v_dateBankstatement TIMESTAMP;
- v_nameCash VARCHAR; 
- v_dateCash TIMESTAMP;
- v_Bankstatementline_ID VARCHAR(32); 
- v_CashLine_ID VARCHAR(32); 
- v_Settlement_Cancel_ID VARCHAR(32); 
- v_ispaid CHAR(1);
- v_is_included NUMERIC:=0;
- v_available_period NUMERIC:=0;
- v_is_ready AD_Org.IsReady%TYPE;
- v_is_tr_allow AD_OrgType.IsTransactionsAllowed%TYPE;
- v_isacctle AD_OrgType.IsAcctLegalEntity%TYPE;
- v_org_bule_id AD_Org.AD_Org_ID%TYPE;
- --Finish added by P.Sarobe
+    v_documentno_Settlement VARCHAR; 
+    v_documentno_Dp_Management VARCHAR; 
+    v_column_identifier VARCHAR(200); 
+    v_dateSettlement TIMESTAMP;
+    v_Cancel_Processed VARCHAR(60);
+    v_nameBankstatement VARCHAR; 
+    v_dateBankstatement TIMESTAMP;
+    v_nameCash VARCHAR; 
+    v_dateCash TIMESTAMP;
+    v_Bankstatementline_ID VARCHAR(32); 
+    v_CashLine_ID VARCHAR(32); 
+    v_Settlement_Cancel_ID VARCHAR(32); 
+    v_ispaid CHAR(1);
+    v_is_included NUMERIC:=0;
+    v_available_period NUMERIC:=0;
+    v_is_ready AD_Org.IsReady%TYPE;
+    v_is_tr_allow AD_OrgType.IsTransactionsAllowed%TYPE;
+    v_isacctle AD_OrgType.IsAcctLegalEntity%TYPE;
+    v_org_bule_id AD_Org.AD_Org_ID%TYPE;
+    --Finish added by P.Sarobe
   -- Parameter
   --TYPE RECORD IS REFCURSOR;
     Cur_Parameter RECORD;
@@ -1772,6 +1756,20 @@ $BODY$ DECLARE
     v_sepastatus varchar; -- 'Y' SEpa verarbeitet, 'R' SEPA Zurücknehmen, 'P' SEPA verarbeiten, 'N' Normaler Bankabgleich, kein SEPA
     v_nopinstance varchar:='N';
     v_invoice varchar;
+    Cur_AutomaticSettlementCancel RECORD;
+    CUR_MANAGEMENTLINES RECORD;
+    v_DP_MANAGEMENT NUMERIC;
+    v_DATEACCT TIMESTAMP;
+    v_DATETRX TIMESTAMP;
+    v_Total NUMERIC:=0;
+    v_Currency_ID VARCHAR(32):=NULL; 
+    -- Lines
+    Cur_Lines RECORD;
+    CUR_BSLINES_DATES RECORD;
+    Cur_ManagementLines1 RECORD;
+    v_cur record;
+    v_cur2 record;
+    v_bstupdated timestamp without time zone;
   BEGIN
     --  Update AD_PInstance
     RAISE NOTICE '%','Updating PInstance - Processing ' || p_PInstance_ID ;
@@ -1784,8 +1782,6 @@ $BODY$ DECLARE
        select updatedby into v_user from c_bankstatement where  c_bankstatement_id=v_Record_ID;
        v_nopinstance:='Y';
     end if;
-  BEGIN --BODY      
-    
     SELECT PROCESSED,sepacollectioniscreated,
       POSTED,PROCESSING,      AD_Client_ID,      AD_Org_ID
     INTO v_Processed,v_sepastatus,
@@ -1819,13 +1815,6 @@ $BODY$ DECLARE
     /*
      *  Functional Body
     */
-    DECLARE
-      Cur_AutomaticSettlementCancel RECORD;
-      CUR_MANAGEMENTLINES RECORD;
-      v_DP_MANAGEMENT NUMERIC;
-      v_DATEACCT TIMESTAMP;
-      v_DATETRX TIMESTAMP;
-    BEGIN
       -- Check if there are lines document does
       if (select count(*) from  C_BANKSTATEMENTLINE where C_BANKSTATEMENT_id=V_Record_ID)=0 then
           RAISE EXCEPTION '%', '@NoLinesInDoc_c_bankstatement_post@';
@@ -1837,6 +1826,18 @@ $BODY$ DECLARE
         -- OR (v_Processed = 'N' and v_sepastatus='R')) THEN
         --settlenment before the real bank transaction is done / Deactivated
         v_ResultStr := 'Reversed';
+        -- Vorherige Bankabgleiche? - Nur der jeweils letzte Bankabgleich kann zurückgenommen werden.
+        for v_cur in (select * from c_bankstatementline where c_bankstatement_id=V_Record_ID)
+        LOOP
+            select updated into v_bstupdated from c_debt_payment where c_bankstatementline_id=v_cur.c_bankstatementline_id;
+            for v_cur2 in (select * from c_debt_payment where c_invoice_id = (select c_invoice_id from c_debt_payment where c_debt_payment_id=v_cur.c_debt_payment_id) and c_bankstatementline_id is not null
+                           and c_bankstatementline_id!=v_cur.c_bankstatementline_id)
+            LOOP                
+                if v_bstupdated<v_cur2.updated then
+                    RAISE EXCEPTION '%', '@bankstatementprocessed@:'||(SELECT b.name FROM C_bankstatement b,c_bankstatementline l WHERE b.C_bankstatement_ID =l.C_bankstatement_ID and l.c_bankstatementline_id = v_cur2.c_bankstatementline_id);
+                end if;
+            END LOOP;
+        END LOOP;
         --Unpost Settlement
         FOR Cur_AutomaticSettlementCancel IN (SELECT DISTINCT S.C_SETTLEMENT_ID
               FROM C_DEBT_PAYMENT DP, C_SETTLEMENT S
@@ -1886,9 +1887,7 @@ $BODY$ DECLARE
                  sepacollectioniscreated ='N'
           WHERE C_BANKSTATEMENT_ID = v_Record_ID;
           FINISH_PROCESS := true;
-       END IF;
-    END; -- Reversing
-   
+       END IF;   
     IF(NOT FINISH_PROCESS) THEN
       /*
       *  Checking Restrictions
@@ -2097,12 +2096,8 @@ $BODY$ DECLARE
       /**
       *  Generate C_Settlement
       */
-      DECLARE
-        CUR_BSLINES_DATES RECORD;
-        Cur_ManagementLines1 RECORD;
        /* Map error NUMERIC returned by raise_application_error to user-defined exception. */
        -- SZ Removed DP-Management
-      BEGIN
         -- Post eventually Created automatic settlements belonging to this bankstatement
         for Cur_ManagementLines1 in (select c_settlement_id from c_settlement where processed='N' and bankstatementline in (select c_bankstatementline_id from c_bankstatementline where c_bankstatement_id=v_Record_ID))
         LOOP
@@ -2165,21 +2160,9 @@ $BODY$ DECLARE
            */
           PERFORM C_SETTLEMENT_POST(NULL, v_settlementID) ;
         END LOOP;
-      EXCEPTION  
-      WHEN OTHERS THEN
-        RAISE NOTICE '%',v_ResultStr ;
-        RAISE EXCEPTION '%', SQLERRM;
-      END; -- Settlement
-   
       /**
       *  Update Balances + De-Activate + Conciliate Debt_Payments
       */
-      DECLARE
-        v_Total NUMERIC:=0;
-        v_Currency_ID VARCHAR(32):=NULL; 
-        -- Lines
-        Cur_Lines RECORD;
-      BEGIN
         -- Calculate Total
         FOR Cur_Lines IN
           (SELECT * FROM C_BANKSTATEMENTLINE WHERE C_BankStatement_ID=v_Record_ID)
@@ -2219,7 +2202,6 @@ $BODY$ DECLARE
         --    Processing='N'
         --   WHERE C_BankStatement_ID=v_Record_ID;
         --end if;
-      END;
     END IF;--FINISH_PROCESS
     -- Call User Exit Function
     select  v_message||c_bankstatement_post_userexit(v_Record_ID) into v_message;
@@ -2227,7 +2209,6 @@ $BODY$ DECLARE
     RAISE NOTICE '%','Updating PInstance - Finished ' || v_Message ;
     PERFORM AD_UPDATE_PINSTANCE(p_PInstance_ID, v_User, 'N', 1, v_Message) ;
     RETURN;
-  END; --BODY
 EXCEPTION
 WHEN OTHERS THEN
   -- ROLLBACK;
@@ -2237,9 +2218,8 @@ WHEN OTHERS THEN
     raise exception '%',v_ResultStr;
   end if;
   PERFORM AD_UPDATE_PINSTANCE(p_PInstance_ID, NULL, 'N', 0, v_ResultStr) ;
-  
   RETURN;
-END ; $BODY$
+END; $BODY$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;
 
@@ -2411,9 +2391,9 @@ BEGIN
     select c_currency_id into v_bankcurrency from c_debt_payment  where c_debt_payment_id=new.c_debt_payment_id;
     select s.c_currency_id into v_glcurrency  from ad_org_acctschema o,c_acctschema s where o.ad_org_id=new.ad_org_id and o.c_acctschema_id=s.c_acctschema_id;
     -- Discount on Foreign Currency is not supported yet.
-    if coalesce(new.discountamt,0)!=0 and (v_glcurrency!=new.c_currency_id or new.c_currency_id!=v_bankcurrency) then
-           raise exception '%','@DiscountonForeignCurrencyNotSupported@'; 
-    end if;
+    -- if coalesce(new.discountamt,0)!=0 and (v_glcurrency!=new.c_currency_id or new.c_currency_id!=v_bankcurrency) then
+        --   raise exception '%','@DiscountonForeignCurrencyNotSupported@'; 
+    -- end if;
     -- Foreign Currency Convert
     -- Due to exiting structure we change the position here: Foreign Currency is in an extra field, Account Currency is the tranaction amt.
     -- in the field foreigncurrencyamt is the Account Currency filled in by the GUI, so the change is nbesessary here.

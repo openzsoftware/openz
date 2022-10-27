@@ -145,11 +145,31 @@ Contributor(s): ______________________________________.
   <SqlMethod name="getQtyByConsumptionLineID" type="preparedStatement" return="string">
     <SqlMethodComment></SqlMethodComment>
     <Sql>
-    Select movementqty from m_internal_consumptionline where m_internal_consumptionline_id = ? 
+    Select movementqty-coalesce((select sum(quantity) from snr_internal_consumptionline where m_internal_consumptionline_id=?),0) from m_internal_consumptionline where m_internal_consumptionline_id = ? 
     </Sql>
+    <Parameter name="consumptionlineid"/>
     <Parameter name="consumptionlineid"/>
   </SqlMethod>
    <SqlMethod name="insertSerialLine" type="preparedStatement"  return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       insert into snr_internal_consumptionline(snr_internal_consumptionline_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY, M_INTERNAL_CONSUMPTIONLINE_ID, 
+                                                  quantity,lotnumber,serialnumber)
+                  values (get_uuid(),?,?,NOW(), ?, NOW(),?,?,
+                          to_number(?),?, ?);
+      ]]>
+    </Sql>
+    <Parameter name="adClientId"/>
+    <Parameter name="adOrgId"/>
+    <Parameter name="user"/>
+    <Parameter name="user"/>
+    <Parameter name="consumptionLineId"/>
+    <Parameter name="qty"/>
+    <Parameter name="batchno"/>
+    <Parameter name="serialno"/>
+  </SqlMethod>
+  <SqlMethod name="insertSerialLine" type="preparedStatement"  return="rowCount" connection="true">
     <SqlMethodComment></SqlMethodComment>
     <Sql>
       <![CDATA[
@@ -225,7 +245,7 @@ Contributor(s): ______________________________________.
    </SqlMethod>
    <SqlMethod name="snrExists" type="preparedStatement" return="string">
       <Sql>
-        SELECT case when count(*)=1 then 'Y' else 'N' end as retval from snr_internal_consumptionline where serialnumber=? and m_internal_consumptionline_id=?
+        SELECT case when count(*)>0 then 'Y' else 'N' end as retval from snr_internal_consumptionline where serialnumber=? and m_internal_consumptionline_id=?
       </Sql>
       <Parameter name="serialno"/>
       <Parameter name="consumptionlineId"/>
@@ -263,6 +283,22 @@ Contributor(s): ______________________________________.
       <Sql>
         SELECT sum(quantity) as retval from snr_internal_consumptionline where  m_internal_consumptionline_id=? 
       </Sql>
+      <Parameter name="consumptionlineId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="getMvMtType" type="preparedStatement" return="string">
+      <Sql>
+        select cc.movementtype from m_internal_consumption cc,m_internal_consumptionline c where cc.m_internal_consumption_id=c.m_internal_consumption_id and c.m_internal_consumptionline_id=?
+      </Sql>
+      <Parameter name="consumptionlineId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="getBtchOnhandQty" type="preparedStatement" return="string">
+      <Sql>
+        select l.qtyonhand from snr_batchlocator l,snr_batchmasterdata b,m_internal_consumptionline c where c.m_locator_id=l.m_locator_id and c.m_product_id=b.m_product_id and b.batchnumber=?
+               and b.snr_batchmasterdata_id=l.snr_batchmasterdata_id and c.m_internal_consumptionline_id=?
+      </Sql>
+      <Parameter name="btchno"/>
       <Parameter name="consumptionlineId"/>
    </SqlMethod>
    

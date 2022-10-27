@@ -13,59 +13,107 @@ Contributor(s): ______________________________________.
 
 <SqlClass name="PdcMaterialConsumptionReturnData" package="org.openz.pdc" accessModifier="public">
 <SqlClassComment></SqlClassComment>
-<!-- MUUH -->
--- Test
-/* TEST */
-<SqlMethod name="initialize" type="preparedStatement" return="multiple">
-<SqlMethodComment></SqlMethodComment>
-	<Sql>
-		select 
-			-- selectupper
-			'' as pdcmaterialconsumptionproduct,
-			'' as pdcmaterialconsumptionlocator,
-			'' as pdcmaterialconsumptionplannedqty,
-			'' as pdcmaterialconsumptionreceivedqty, 
-			'' as pdcmaterialconsumptionavailableqty,
-			'' as pdc_workstepbom_v_id,
-			-- selectlower              
-			'' as m_internal_consumptionline_id,
-			-- selectbarcode
-			'' as barcode,
-			'' as type,
-			'' as id,
-			'' as mess,
-			'' as ad_message_value,
-            '' as serialnumber,
-            '' as lotnumber,
-            '' as m_product_id,
-            '' as m_locator_id,
-            '' as line
-	</Sql>
-</SqlMethod>
   
-<SqlMethod name="selectlower" type="preparedStatement" return="multiple">
+<SqlMethod name="select" type="preparedStatement" return="multiple">
 <SqlMethodComment></SqlMethodComment>
     <Sql>
-         Select f.m_internal_consumptionline_id,zssi_getproductnamewithvalue(f.m_product_id,?) AS pdcmaterialconsumptionproduct,
-         l.value as pdcmaterialconsumptionlocator,zssi_strNumber(f.movementqty,?) as pdcmaterialconsumptionreceivedqty,
-         snr.serialnumber,snr.lotnumber
+    <![CDATA[
+select m_internal_consumptionline_id,pdcproduct,pdclocator,pdcqty, sn,qtynum,qtycountnum,seqno
+ from (
+         Select f.m_internal_consumptionline_id,zssi_getproductnamewithvalue(f.m_product_id,?) AS pdcproduct,p.value,case when f.m_internal_consumptionline_id=? then 1 else 9999 end as seqno,
+         l.value as pdclocator,pdc_numfield(f.movementqty,f.weight,?) AS pdcqty,
+         case when p.isserialtracking='Y' or p.isbatchtracking='Y'  then case when sum(snr.quantity)=0 then '' else pdc_numfield(sum(snr.quantity),null,?) end else '' end as sn,
+         f.movementqty as qtynum,0::numeric as qtycountnum
            from m_product p,m_internal_consumptionline f left join  m_locator l on  f.m_locator_id=l.m_locator_id
                                              left join snr_internal_consumptionline snr on f.m_internal_consumptionline_id=snr.m_internal_consumptionline_id
            where f.m_internal_consumption_id=?
-           and p.m_product_id=f.m_product_id order by p.value
+           and p.m_product_id=f.m_product_id 
+           group by f.m_internal_consumptionline_id,f.m_product_id,l.value,f.movementqty,p.isserialtracking,p.isbatchtracking,p.value,seqno
+     union all      
+         select max(f.pdc_tempitems_id) as m_internal_consumptionline_id,  zssi_getproductnamewithvalue(f.m_product_id,?)||'(New)' AS pdcproduct,p.value,9999 as seqno,
+         l.value as pdclocator,pdc_numfield(sum(1),sum(f.weight),?) as pdcqty,
+         to_char(sum(1)) as sn,
+         sum(1) as qtynum,0 as qtycountnum
+         from m_product p,pdc_tempitems f  left join  m_locator l on  f.m_locator_id=l.m_locator_id
+         where f.m_internal_consumption_id=?
+         and p.m_product_id=f.m_product_id 
+         group by f.m_product_id,l.value,p.value,seqno
+     ) a  order by a.seqno,a.value
+     ]]> 
     </Sql>
+    <Parameter name = "language"/>
+    <Parameter name = "actualLineid"/>
+    <Parameter name = "language"/>
+    <Parameter name = "language"/>
+    <Parameter name = "consumptionid"/>
     <Parameter name = "language"/>
     <Parameter name = "language"/>
     <Parameter name = "consumptionid"/>
 </SqlMethod>
 
+<SqlMethod name="selectrelocate" type="preparedStatement" return="multiple">
+<SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+select m_internal_consumptionline_id,zssi_getproductnamewithvalue(a.m_product_id,?) as pdcproduct,pdclocator,
+       pdc_inoutqtys(qtynum,null,qtycountnum,null, ?) as pdcqty, sn,qtynum,qtycountnum
+ from (
+         Select f.m_internal_consumptionline_id,p.m_product_id,p.value,case when f.m_internal_consumptionline_id=? then 1 else 9999 end as seqno,
+         case when ?='' then l.value else '' end as pdclocator,
+         case when p.isserialtracking='Y' or p.isbatchtracking='Y'  then case when sum(snr.quantity)=0 then '' else pdc_numfield(sum(snr.quantity),null,?) end else '' end as sn,
+         f.movementqty as qtynum,0::numeric as qtycountnum
+           from m_product p,m_internal_consumptionline f  left join  m_locator l on  f.m_locator_id=l.m_locator_id
+                                                          left join snr_internal_consumptionline snr on f.m_internal_consumptionline_id=snr.m_internal_consumptionline_id
+           where f.m_internal_consumption_id=?
+           and p.m_product_id=f.m_product_id
+           and not exists(select 0 from  m_internal_consumptionline where m_internal_consumption_id=? and m_product_id=p.m_product_id)
+           group by f.m_internal_consumptionline_id,f.m_product_id,l.value,f.movementqty,p.isserialtracking,p.isbatchtracking,p.m_product_id ,p.value   
+     union all      
+         Select f.m_internal_consumptionline_id,p.m_product_id,p.value,case when f.m_internal_consumptionline_id=? then 1 else 9999 end as seqno,
+         l.value as pdclocator,
+         case when p.isserialtracking='Y' or p.isbatchtracking='Y'  then case when coalesce(sum(snr.quantity),0)+coalesce(count(tmp.pdc_tempitems_id),0)=0 then '' else pdc_numfield(coalesce(sum(snr.quantity),0)+coalesce(count(tmp.pdc_tempitems_id),0),null,?) end else '' end as sn,
+         (select sum(movementqty) from m_internal_consumptionline where m_internal_consumption_id=? and m_product_id=p.m_product_id) as qtynum,f.movementqty as qtycountnum
+           from m_product p,m_internal_consumptionline f left join  m_locator l on  f.m_locator_id=l.m_locator_id
+                                             left join snr_internal_consumptionline snr on f.m_internal_consumptionline_id=snr.m_internal_consumptionline_id
+                                             left join pdc_tempitems tmp on f.m_internal_consumptionline_id=tmp.m_internal_consumptionline_id
+           where f.m_internal_consumption_id=?
+           and p.m_product_id=f.m_product_id 
+           group by f.m_internal_consumptionline_id,f.m_product_id,l.value,f.movementqty,p.isserialtracking,p.isbatchtracking,p.m_product_id ,p.value
+     ) a  order by a.seqno, a.value
+     ]]> 
+    </Sql>
+    <Parameter name = "language"/>
+    <Parameter name = "language"/>
+    <Parameter name = "returnid"/>
+    <Parameter name = "actualLineid"/>
+    <Parameter name = "language"/>
+    <Parameter name = "consumptionid"/>
+    <Parameter name = "returnid"/>
+    <Parameter name = "actualLineid"/>
+    <Parameter name = "language"/>
+    <Parameter name = "consumptionid"/>
+    <Parameter name = "returnid"/>
+</SqlMethod>
+
 <SqlMethod name="countlower" type="preparedStatement" return="String">
 <SqlMethodComment></SqlMethodComment>
     <Sql>
-        select count(*)
-           from m_internal_consumptionline f left join  m_locator l on  f.m_locator_id=l.m_locator_id
-                                             left join snr_internal_consumptionline snr on f.m_internal_consumptionline_id=snr.m_internal_consumptionline_id
-           where f.m_internal_consumption_id=?
+        select count(*) from (
+           select m_internal_consumptionline_id from m_internal_consumptionline 
+           where m_internal_consumption_id=?
+           union all
+           select pdc_tempitems_id as m_internal_consumptionline_id
+           from pdc_tempitems where m_internal_consumption_id=?) a
+    </Sql>
+    <Parameter name = "consumptionid"/>
+    <Parameter name = "consumptionid"/>
+</SqlMethod>
+
+<SqlMethod name="countlines" type="preparedStatement" return="String">
+<SqlMethodComment></SqlMethodComment>
+    <Sql>
+           select count(*) from m_internal_consumptionline 
+           where m_internal_consumption_id=?
     </Sql>
     <Parameter name = "consumptionid"/>
 </SqlMethod>
@@ -88,7 +136,7 @@ Contributor(s): ______________________________________.
             C_PROJECTTASK_ID,
             MOVEMENTTYPE,
             DOCUMENTNO,
-            DATEACCT)
+            DATEACCT,relocationtrx)
         values(
             ?,
             ?,
@@ -103,8 +151,8 @@ Contributor(s): ______________________________________.
             ?,
             ?,
             ?,
-            ad_sequence_doc('Production',?,'Y'),
-            trunc(now()))
+            case when coalesce(?,'')!='' then ? else ad_sequence_doc('Production',?,'Y') end,
+            trunc(now()),?)
     </Sql>
 	<Parameter name="uuId"/>
 	<Parameter name="adClientId"/>
@@ -115,7 +163,10 @@ Contributor(s): ______________________________________.
 	<Parameter name="cProjectId"/>
 	<Parameter name="cProjecttaskId"/>
 	<Parameter name="direction"/>
+	<Parameter name="rDocNo"/>
+	<Parameter name="rDocNo"/>
 	<Parameter name="adOrgId"/>
+	<Parameter name="relocate"/>
 </SqlMethod>
 
 <SqlMethod name="updateConsumption" type="preparedStatement"  return="rowCount">
@@ -127,7 +178,15 @@ Contributor(s): ______________________________________.
 	<Parameter name="mInternalConsId"/>
 </SqlMethod>
 
-<SqlMethod name="copyConsumption2Return" type="preparedStatement"  return="String">
+<SqlMethod name="deleteConsumption" type="preparedStatement"  connection="true" return="rowCount">
+<SqlMethodComment>Initializes a  Transaction</SqlMethodComment>
+    <Sql>
+       delete from M_INTERNAL_CONSUMPTION  where M_INTERNAL_CONSUMPTION_id=?
+    </Sql>
+	<Parameter name="mInternalConsId"/>
+</SqlMethod>
+
+<SqlMethod name="copyConsumption2Return" type="preparedStatement"  connection="true" return="String">
 <SqlMethodComment>Initializes Relocation  Transaction</SqlMethodComment>
     <Sql>
        select m_createReturnFromInternalConsumption(?,?,?) from dual
@@ -137,15 +196,26 @@ Contributor(s): ______________________________________.
 	<Parameter name="userId"/>
 </SqlMethod>
 
+<SqlMethod name="isTrxOnStock" type="preparedStatement"  return="String">
+    <Sql>
+       select pdc_isTrxPossible(?,?,?,to_number(?),?) from dual
+    </Sql>
+	<Parameter name="consumptionId"/>
+	<Parameter name="locatorId"/>
+	<Parameter name="mProductId"/>
+	<Parameter name="qty"/>
+	<Parameter name="lang"/>
+</SqlMethod>
+
 
  <SqlMethod name="insertMaterialLine" type="preparedStatement"  return="rowCount">
     <SqlMethodComment></SqlMethodComment>
     <Sql>
       <![CDATA[
        insert into M_INTERNAL_CONSUMPTIONLINE(M_INTERNAL_CONSUMPTIONLINE_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY, M_INTERNAL_CONSUMPTION_ID, 
-                                                  M_LOCATOR_ID, M_PRODUCT_ID, LINE, MOVEMENTQTY, DESCRIPTION, C_UOM_ID, C_PROJECT_ID, C_PROJECTTASK_ID,weight)
+                                                  M_LOCATOR_ID, M_PRODUCT_ID, LINE, MOVEMENTQTY, DESCRIPTION, C_UOM_ID, C_PROJECT_ID, C_PROJECTTASK_ID)
                   values (?,?,?,NOW(), ?, NOW(),?,?,
-                          ?,?,to_number(?),to_number(?),'Generated by PDC',?,?, ?,to_number(?));
+                          ?,?,to_number(?),to_number(?),'Generated by PDC',?,?, ?);
       ]]>
     </Sql>
     <Parameter name="uuID"/>
@@ -161,27 +231,170 @@ Contributor(s): ______________________________________.
     <Parameter name="uomId"/>
     <Parameter name="cProjectId"/>
     <Parameter name="cProjecttaskId"/>
-    <Parameter name="mWeight"/>
   </SqlMethod>
+
   
-    <SqlMethod name="insertSerialLine" type="preparedStatement"   return="rowCount">
+ <SqlMethod name="lineSNRBNRUpdate" type="preparedStatement"   return="string">
     <SqlMethodComment></SqlMethodComment>
     <Sql>
       <![CDATA[
-       insert into snr_internal_consumptionline(snr_internal_consumptionline_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY, M_INTERNAL_CONSUMPTIONLINE_ID, 
-                                                  quantity,lotnumber,serialnumber)
-                  values (get_uuid(),?,?,NOW(), ?, NOW(),?,?,
-                          to_number(?),?, ?);
+       select pdc_InternalConsumptionlineSNRBNRUpdate(?,?,to_number(?),?,?,?,to_number(?))
+      ]]>
+    </Sql>
+    <Parameter name="consumptionLineId"/>
+    <Parameter name="user"/>
+    <Parameter name="qty"/>
+    <Parameter name="serialno"/>
+    <Parameter name="batchno"/>
+    <Parameter name="lang"/>
+    <Parameter name="weight"/>
+  </SqlMethod> 
+  
+<SqlMethod name="insertSerialTempItem" type="preparedStatement"   return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       insert into pdc_tempitems ( pdc_tempitems_id, ad_client_id, ad_org_id, createdby, updatedby, m_internal_consumption_id, m_product_id,serialnumber,weight,m_locator_id,m_internal_consumptionline_id)
+       values (get_uuid(),?,?,?,?,?,?,?,to_number(?),?,?)      
       ]]>
     </Sql>
     <Parameter name="adClientId"/>
     <Parameter name="adOrgId"/>
-    <Parameter name="user"/>
-    <Parameter name="user"/>
-    <Parameter name="consumptionLineId"/>
-    <Parameter name="qty"/>
-    <Parameter name="batchno"/>
+    <Parameter name="UserId"/>
+    <Parameter name="UserId"/>
+    <Parameter name="consumptionId"/>
+    <Parameter name="mProductId"/>
     <Parameter name="serialno"/>
-  </SqlMethod>
- 
+    <Parameter name="weight"/>
+    <Parameter name="locator"/>
+    <Parameter name="lindID"/>
+</SqlMethod>
+
+<SqlMethod name="updateMaterialLine" type="preparedStatement"   return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       UPDATE M_INTERNAL_CONSUMPTIONLINE SET  MOVEMENTQTY=case when to_number(?)=1 then MOVEMENTQTY+1 else to_number(?) end  where M_INTERNAL_CONSUMPTIONLINE_ID=?
+      ]]>
+    </Sql>
+    <Parameter name="qty"/>   
+    <Parameter name="qty"/>    
+    <Parameter name="consumptionlineId"/>
+</SqlMethod>
+
+<SqlMethod name="getProductQTY" type="preparedStatement"   return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       select pdc_numfield(sum(movementqty) ,sum(weight),?) as retv from  M_INTERNAL_CONSUMPTIONline where M_INTERNAL_CONSUMPTION_ID=? and m_product_id=?
+      ]]>
+    </Sql>
+    <Parameter name="lang"/>   
+    <Parameter name="consumptionId"/>
+     <Parameter name="mProductId"/>
+</SqlMethod>
+
+<SqlMethod name="executeConsumptionPost" type="preparedStatement"   return="string" connection="true">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       select  m_internal_consumption_post(?) from dual 
+      ]]>
+    </Sql>
+    <Parameter name="consumptionId"/>
+</SqlMethod>
+
+<SqlMethod name="TempItemExists" type="preparedStatement"  return="String">
+<SqlMethodComment>Initializes Relocation  Transaction</SqlMethodComment>
+    <Sql>
+       select case when count(*)>0 then 'Y' else 'N' end as re from pdc_tempitems where m_internal_consumption_id = ? and m_product_id=? and serialnumber = ?
+    </Sql>
+	<Parameter name="consumptionId"/>
+	<Parameter name="mProductID"/>
+	<Parameter name="sNr"/>
+</SqlMethod>
+
+<SqlMethod name="runningConsumption" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select m.m_internal_consumption_id from m_internal_consumption m where m.processed='N' and coalesce(m.processing,'N')='N' and updatedby=? order by m.created limit 1
+    </Sql>
+    <Parameter name="user"/>
+</SqlMethod>
+
+<SqlMethod name="runningRelocationReturn" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select m.m_internal_consumption_id from m_internal_consumption m where m.movementtype='D+' and m.relocationtrx='R' and m.processed='N' and coalesce(m.processing,'N')='N' and updatedby=? order by m.created limit 1
+    </Sql>
+    <Parameter name="user"/>
+</SqlMethod>
+
+<SqlMethod name="getLocatorFromrunningConsumption" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select m_locator_id from m_internal_consumptionline l where l.m_internal_consumption_id=? order by updated desc limit 1
+    </Sql>
+    <Parameter name="consId"/>
+</SqlMethod>
+
+<SqlMethod name="TrxRelocationType" type="preparedStatement" return="string">
+    <SqlMethodComment>S=Serial-Relocation, R=Relocation, N=Other</SqlMethodComment>
+    <Sql>
+        select relocationtrx from m_internal_consumption l where l.m_internal_consumption_id=?
+    </Sql>
+    <Parameter name="consId"/>
+</SqlMethod>
+
+<SqlMethod name="IsRelocationCorrect" type="preparedStatement" return="string">
+    <SqlMethodComment>S=Serial-Relocation, R=Relocation, N=Other</SqlMethodComment>
+    <Sql>
+        select pdc_relocationCorrect(?,?,?,to_number(?),?,?) as retv from dual
+    </Sql>
+    <Parameter name="consId"/>
+    <Parameter name="returnId"/>
+    <Parameter name="productId"/>
+    <Parameter name="qty"/>
+    <Parameter name="snr"/>
+    <Parameter name="bnr"/>
+</SqlMethod>
+
+<SqlMethod name="pdc_isRelocationPossible" type="preparedStatement"  return="String">
+    <Sql>
+       select pdc_isRelocationPossible(?,?) from dual
+    </Sql>
+	<Parameter name="consumptionId"/>
+	<Parameter name="returnId"/>
+</SqlMethod>
+
+<SqlMethod name="pdc_tempItems2Relocation" type="preparedStatement" connection="true" return="String">
+    <Sql>
+       select pdc_tempItems2Relocation(?) from dual
+    </Sql>
+	<Parameter name="consumptionId"/>
+</SqlMethod>
+
+<SqlMethod name="getRDocNum" type="preparedStatement"  return="String">
+    <Sql>
+       select documentno||'R' from m_internal_consumption where m_internal_consumption_id=?
+    </Sql>
+	<Parameter name="consumptionId"/>
+</SqlMethod>
+
+<SqlMethod name="TrxType" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select movementtype from m_internal_consumption l where l.m_internal_consumption_id=?
+    </Sql>
+    <Parameter name="consId"/>
+</SqlMethod>
+<SqlMethod name="isSNRBNRequired" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select pdc_InternalConsumptionSNRBNRRequired(?,?,?) as retval from dual;
+    </Sql>
+    <Parameter name="consId"/>
+    <Parameter name="ProdId"/>
+    <Parameter name="LocId"/>
+</SqlMethod>
 </SqlClass>

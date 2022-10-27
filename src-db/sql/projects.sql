@@ -831,6 +831,7 @@ v_IMatCost      numeric;
 v_IMachCost      numeric;
 v_IVendCost      numeric;
 v_IExtSrVCost      numeric;
+v_IRevenueCost      numeric;
 v_projectamt     numeric;
 v_cur            RECORD;
 v_cdate timestamp without time zone:=now();
@@ -860,6 +861,7 @@ v_percent numeric;
 v_percent1 numeric;
 v_percent2 numeric;
 v_percent3 numeric;
+v_percent4 numeric;
 v_bomamt2 numeric;
 v_maamt2 numeric;
 v_taskdate timestamp;
@@ -1005,7 +1007,7 @@ BEGIN
      
 */
       IF  new.isactive='Y' THEN
-        select coalesce(coalesce(pt.startdate,p.startdate),trunc(now()))  into v_taskdate from c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and pt.c_projecttask_id=new.c_projecttask_id;
+        select coalesce(coalesce(p.startdate,pt.startdate),trunc(now()))  into v_taskdate from c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and pt.c_projecttask_id=new.c_projecttask_id;
         -- HR COST : In case of per Item Costs multiply with items..
         select sum(plannedamt) into v_hramt from zspm_ptaskhrplan where c_projecttask_id=new.c_projecttask_id and isactive='Y';
         -- Machine Cost In case of per Item Costs multiply with items..
@@ -1022,10 +1024,11 @@ BEGIN
         -- Indirect Cost (Only %-Costtypes at the moment..)
         for v_cur in (select * from zspm_ptaskindcostplan where c_projecttask_id=new.c_projecttask_id)
         LOOP
-           select p_empcost,p_machinecost,p_matcost,p_vendorcost,p_extservicecost into v_IEmpCost,v_IMachCost,v_IMatCost,v_IVendCost,v_IExtSrVCost from
+           select p_empcost,p_machinecost,p_matcost,p_vendorcost,p_extservicecost,p_revenuecost into v_IEmpCost,v_IMachCost,v_IMatCost,v_IVendCost,v_IExtSrVCost,v_IRevenueCost from
                   zsco_get_indirect_cost(v_cur.ma_indirect_cost_id,v_taskdate,'P',new.c_projecttask_id,'plan',null);
            v_indamt:= v_indamt + round(coalesce(v_hramt,0)*v_IEmpCost/100,2) + v_IMatCost + 
-                                 round(coalesce(v_maamt,0)*v_IMachCost/100,2) + v_IVendCost + coalesce(v_IExtSrVCost,0); 
+                                 round(coalesce(v_maamt,0)*v_IMachCost/100,2) + v_IVendCost + coalesce(v_IExtSrVCost,0)+
+                                 round(coalesce(new.committedamt,0)*v_IRevenueCost/100,2); 
            -- Material Costs (flat)
            /*
            select cv.materialcost,appliesonlytomachineandemployees into v_percent,v_onlymatemp
@@ -1037,27 +1040,29 @@ BEGIN
            end if;
            */
             -- Material Costs (flat)
-            select cv.machinecost,cv.vendorcost,cv.empcost,cv.extservicecost into v_percent,v_percent1,v_percent2,v_percent3 from ma_indirect_cost_value cv, ma_indirect_cost c 
+            select cv.machinecost,cv.vendorcost,cv.empcost,cv.extservicecost,cv.revenue into v_percent,v_percent1,v_percent2,v_percent3,v_percent4 from ma_indirect_cost_value cv, ma_indirect_cost c 
             where cv.ma_indirect_cost_id=c.ma_indirect_cost_id
                     and c.ma_indirect_cost_id=v_cur.ma_indirect_cost_id and cv.datefrom<=v_taskdate and cv.cost_uom='P' and cv.isactive='Y'
                     and c.isactive='Y' and c.cost_type='M' order by datefrom desc LIMIT 1;
-            if coalesce(v_percent,0)>0 or coalesce(v_percent1,0)>0 or coalesce(v_percent2,0)>0 or coalesce(v_percent3,0)>0  then
-                v_bomamt2:=coalesce(v_bomamt2,0)+round((coalesce(v_maamt,0)*coalesce(v_percent,0)/100) + (coalesce(v_expenseamt,0)*coalesce(v_percent1,0)/100) + (coalesce(v_extserviceamt,0)*coalesce(v_percent3,0)/100) + (coalesce(v_hramt,0)*coalesce(v_percent2,0)/100),2);
+            if coalesce(v_percent,0)>0 or coalesce(v_percent1,0)>0 or coalesce(v_percent2,0)>0 or coalesce(v_percent3,0)>0 or coalesce(v_percent4,0)>0  then
+                v_bomamt2:=coalesce(v_bomamt2,0)+round((coalesce(v_maamt,0)*coalesce(v_percent,0)/100) + (coalesce(v_expenseamt,0)*coalesce(v_percent1,0)/100) + (coalesce(v_extserviceamt,0)*coalesce(v_percent3,0)/100) + (coalesce(v_hramt,0)*coalesce(v_percent2,0)/100) + (coalesce(new.committedamt,0)*coalesce(v_percent4,0)/100),2);
                 --raise notice '%',coalesce(v_percent1,0)||'#'||coalesce(v_bomamt,0)||'#'||(coalesce(v_expenseamt,0)*coalesce(v_percent1,0)/100)||'#'||(coalesce(v_extserviceamt,0)*coalesce(v_percent3,0)/100) ;
             end if;
            
            -- Machine Costs (flat)
-           select cv.materialcost,cv.vendorcost,cv.empcost,cv.extservicecost into v_percent,v_percent1,v_percent2,v_percent3
+           select cv.materialcost,cv.vendorcost,cv.empcost,cv.extservicecost,cv.revenue into v_percent,v_percent1,v_percent2,v_percent3,v_percent4
            from ma_indirect_cost_value cv, ma_indirect_cost c where cv.ma_indirect_cost_id=c.ma_indirect_cost_id
                        and c.ma_indirect_cost_id=v_cur.ma_indirect_cost_id and cv.datefrom<=v_taskdate and cv.cost_uom='P' and cv.isactive='Y'
                        and c.isactive='Y' and c.cost_type='MA' and cv.cost_uom='P' order by datefrom desc LIMIT 1;
-           if coalesce(v_percent,0)>0 or coalesce(v_percent1,0)>0 or coalesce(v_percent2,0)>0  or coalesce(v_percent3,0)>0  then
-              v_maamt2:=coalesce(v_maamt2,0)+round((coalesce(v_bomamt,0)*coalesce(v_percent,0)/100) + (coalesce(v_expenseamt,0)*coalesce(v_percent1,0)/100) + (coalesce(v_extserviceamt,0)*coalesce(v_percent3,0)/100) + (coalesce(v_hramt,0)*coalesce(v_percent2,0)/100),2);
+           if coalesce(v_percent,0)>0 or coalesce(v_percent1,0)>0 or coalesce(v_percent2,0)>0  or coalesce(v_percent3,0)>0  or coalesce(v_percent4,0)>0 then
+              v_maamt2:=coalesce(v_maamt2,0)+round((coalesce(v_bomamt,0)*coalesce(v_percent,0)/100) + (coalesce(v_expenseamt,0)*coalesce(v_percent1,0)/100) + (coalesce(v_extserviceamt,0)*coalesce(v_percent3,0)/100) + (coalesce(v_hramt,0)*coalesce(v_percent2,0)/100) + (coalesce(new.committedamt,0)*coalesce(v_percent4,0)/100),2);
               --raise notice '%',coalesce(v_percent,0)||'#'||coalesce(v_bomamt,0)||'#'||(coalesce(v_expenseamt,0)*coalesce(v_percent1,0)/100)||'#'||(coalesce(v_extserviceamt,0)*coalesce(v_percent3,0)/100) ;
            end if;
         END LOOP;
-        v_bomamt:=coalesce(v_bomamt,0)+coalesce(v_bomamt2,0);
-        v_maamt:=coalesce(v_maamt,0)+coalesce(v_maamt2,0);
+        v_bomamt:=coalesce(v_bomamt,0);
+        if v_bomamt=0 then v_bomamt:=coalesce(v_bomamt2,0); end if;
+        v_maamt:=coalesce(v_maamt,0);
+        if v_maamt=0 then v_maamt:=coalesce(v_maamt2,0); end if;
         -- Sum on Task so far
         v_planamt:=coalesce(v_maamt,0)+coalesce(v_hramt,0)+coalesce(v_bomamt,0)+coalesce(v_expenseamt,0)+coalesce(v_extserviceamt,0);
         
@@ -1354,9 +1359,9 @@ BEGIN
         end if;
       end if;
       
-      if v_type!='S' then 
-        raise exception '%', '@zspm_OnlyServiceProductToPLanSercvice@';
-      end if;
+      --if v_type!='S' then 
+      --  raise exception '%', '@zspm_OnlyServiceProductToPLanSercvice@';
+      --end if;
       RETURN NEW;
   END IF;
 END;
@@ -1860,7 +1865,7 @@ BEGIN
             update zspm_ptaskfeedbackline set updated=now(),updatedby=v_User where c_projecttask_id in (select c_projecttask_id from c_projecttask where c_project_id=v_cur.c_project_id);
             update zspm_ptaskhrplan set updated=now(),updatedby=v_User where c_projecttask_id in (select c_projecttask_id from c_projecttask where c_project_id=v_cur.c_project_id);
             update zspm_ptaskindcostplan set updated=now(),updatedby=v_User where c_projecttask_id in (select c_projecttask_id from c_projecttask where c_project_id=v_cur.c_project_id);
-            perform zspm_updateprojectstatus(null,v_cur.c_project_id);
+            perform zspm_updateprojectstatus('Y',v_cur.c_project_id);
             v_i:=v_i+1;
         END LOOP;
         v_message :=v_i||' Projekte neu kalkuliert.';
@@ -1922,6 +1927,7 @@ v_percent numeric;
 v_percent1 numeric;
 v_percent2 numeric;
 v_percent3 numeric;
+v_percent4 numeric;
 v_percenttimeyet numeric;
 
 v_invoicecost numeric;
@@ -1953,10 +1959,16 @@ v_IMatCost numeric;
 v_IMachCost numeric;
 v_IVendCost numeric;
 v_IExtSrVCost      numeric;
+v_IRevenueCost     numeric;
+v_IRevenueCostP     numeric;
 v_extservicecost numeric;
 v_extservicecostplan numeric;
 v_curr varchar;
 v_onlymatemp varchar;
+v_taskcommitedamt numeric;
+v_taskrevenue numeric;
+v_tc numeric;
+v_ptc numeric;
 BEGIN 
     -- Project Requests
     if v_project is not null then
@@ -2058,8 +2070,8 @@ BEGIN
         end loop;       
         --  3 Loops
         -- TASK-COSTS:
-        for v_cur in (select pp.ad_org_id,pt.c_projecttask_id,pp.projectcategory,pp.projectstatus,coalesce(coalesce(pt.enddate,pp.datefinish),trunc(now())) as datefinish  ,
-                            coalesce(coalesce(pt.startdate,pp.startdate),trunc(now())) as startdate  
+        for v_cur in (select pp.ad_org_id,pt.c_projecttask_id,pp.projectcategory,pp.projectstatus,coalesce(coalesce(pp.datefinish,pt.enddate),trunc(now())) as datefinish  ,
+                            coalesce(coalesce(pp.startdate,pt.startdate),trunc(now())) as startdate  
                             from c_projecttask pt,c_project pp left join c_project_calcrequeted on c_project_calcrequeted.c_project_id=pp.c_project_id
                             where pt.c_project_id=pp.c_project_id
                             and case when coalesce(p_isexplicit,'N')='FORCE' then 1=1 else c_project_calcrequeted.c_project_id is not null end
@@ -2092,7 +2104,7 @@ BEGIN
                                     c_invoiceline.c_invoice_id=c_invoice.c_invoice_id and c_invoice.docstatus = 'CO' and c_invoice.c_doctype_id!='CCFE32E992B74157975E675458B844D1' and
                                     c_invoice.issotrx='Y';
             -- Purchase - invoice-lines on tasks (AP Credit Memo's count negative)
-            -- Do NOT Count Items that are Stocked.
+            -- Do NOT Count Items that are in BOM List
             -- Without external services
             select sum(case when ad_get_docbasetype(c_invoice.c_doctype_id)='APC' then 
                                     case when c_invoice.isgrossinvoice='Y' and t.rate>0 then round(c_currency_convert(linegrossamt,c_currency_id,v_curr,dateacct)-c_currency_convert(linegrossamt,c_currency_id,v_curr,dateacct)/(1+100/t.rate),2)*-1 else case when c_invoice.isgrossinvoice='Y' and t.rate=0 then coalesce(c_currency_convert(linegrossamt,c_currency_id,v_curr,dateacct),0)*-1 else coalesce(c_currency_convert(linenetamt,c_currency_id,v_curr,dateacct),0)*-1 end end else 
@@ -2101,7 +2113,7 @@ BEGIN
                                     from c_invoice ,c_invoiceline
                                     left join m_product on c_invoiceline.m_product_id=m_product.m_product_id , c_tax t
                                     where c_invoice.c_invoice_id=c_invoiceline.c_invoice_id and   c_invoiceline.c_projecttask_id=v_cur.c_projecttask_id and t.c_tax_id=c_invoiceline.c_tax_id and
-                                    case  coalesce(c_invoiceline.m_product_id,'') when '' then 1=1 else (m_product.producttype='S' or (m_product.producttype='I' and m_product.isstocked='N')) end 
+                                    not exists (select 0 from zspm_projecttaskbom bom where bom.c_projecttask_id=v_cur.c_projecttask_id and bom.m_product_id=c_invoiceline.m_product_id) 
                                     and c_invoice.docstatus = 'CO' and
                                     c_invoice.issotrx='N' and
                                     (select isexternalservice from m_product_category pc,m_product p where pc.m_product_category_id=p.m_product_category_id and p.m_product_id=c_invoiceline.m_product_id) = 'N';
@@ -2115,7 +2127,7 @@ BEGIN
                                     from c_invoice ,c_invoiceline
                                     left join m_product on c_invoiceline.m_product_id=m_product.m_product_id ,c_tax t
                                     where c_invoice.c_invoice_id=c_invoiceline.c_invoice_id and   c_invoiceline.c_projecttask_id=v_cur.c_projecttask_id and t.c_tax_id=c_invoiceline.c_tax_id and
-                                    case  coalesce(c_invoiceline.m_product_id,'') when '' then 1=1 else (m_product.producttype='S' or (m_product.producttype='I' and m_product.isstocked='N')) end 
+                                    not exists (select 0 from zspm_projecttaskbom bom where bom.c_projecttask_id=v_cur.c_projecttask_id and bom.m_product_id=c_invoiceline.m_product_id) 
                                     and c_invoice.docstatus = 'CO' and
                                     c_invoice.issotrx='N' and
                                     (select isexternalservice from m_product_category pc,m_product p where pc.m_product_category_id=p.m_product_category_id and p.m_product_id=c_invoiceline.m_product_id) = 'Y';
@@ -2160,41 +2172,32 @@ BEGIN
             for v_cur2 in (select ma_indirect_cost_id from zspm_ptaskindcostplan where c_projecttask_id=v_cur.c_projecttask_id)
             loop
                 --v_indirectcost:=v_indirectcost+(((v_invoicecost+v_workcost+v_machinecost+v_materialcost+v_glcost)*v_cur2.cost)/100);
-                select p_empcost,p_machinecost,p_matcost,p_vendorcost,p_extservicecost into v_IEmpCost ,v_IMachCost,v_IMatCost,v_IVendCost,v_IExtSrVCost from
-                    zsco_get_indirect_cost(v_cur2.ma_indirect_cost_id,v_cur.startdate,'P',v_cur.c_projecttask_id,'fact',null);
+                select p_empcost,p_machinecost,p_matcost,p_vendorcost,p_extservicecost,p_revenuecost into v_IEmpCost ,v_IMachCost,v_IMatCost,v_IVendCost,v_IExtSrVCost,v_IRevenueCost from
+                    zsco_get_indirect_cost(v_cur2.ma_indirect_cost_id,v_cur.datefinish,'P',v_cur.c_projecttask_id,'fact',null);
                     
                 v_indirectcost:=v_indirectcost + round(v_workcost*v_IEmpCost/100,2) + v_IMatCost  +
-                                                round(v_machinecost*v_IMachCost/100,2) + v_IVendCost + coalesce(v_IExtSrVCost,0);
+                                                round(v_machinecost*v_IMachCost/100,2) + v_IVendCost + coalesce(v_IExtSrVCost,0)+
+                                                round(v_invoicerevenue*v_IRevenueCost/100,2);  
                 -- Material Costs (flat)
-                /*
-                select cv.materialcost,appliesonlytomachineandemployees into v_percent,v_onlymatemp from ma_indirect_cost_value cv, ma_indirect_cost c 
+                select cv.machinecost,cv.vendorcost,cv.empcost,cv.extservicecost,cv.revenue into v_percent,v_percent1,v_percent2,v_percent3,v_percent4 from ma_indirect_cost_value cv, ma_indirect_cost c 
                 where cv.ma_indirect_cost_id=c.ma_indirect_cost_id
-                       and c.ma_indirect_cost_id=v_cur2.ma_indirect_cost_id and cv.datefrom<=v_cur.startdate and cv.cost_uom='P' and cv.isactive='Y'
+                       and c.ma_indirect_cost_id=v_cur2.ma_indirect_cost_id and cv.datefrom<=v_cur.datefinish and cv.cost_uom='P' and cv.isactive='Y'
                        and c.isactive='Y' and c.cost_type='M' order by datefrom desc LIMIT 1;
-                if coalesce(v_percent,0)>0 then
-                    v_materialcost:=round((v_workcost+v_machinecost+ (case when v_onlymatemp='N' then (v_extservicecost+v_glcost+v_glextservice+v_invoicecost) else 0 end))*v_percent/100,2);
-                end if;
-                */
-                -- Material Costs (flat)
-                select cv.machinecost,cv.vendorcost,cv.empcost,cv.extservicecost into v_percent,v_percent1,v_percent2,v_percent3 from ma_indirect_cost_value cv, ma_indirect_cost c 
-                where cv.ma_indirect_cost_id=c.ma_indirect_cost_id
-                       and c.ma_indirect_cost_id=v_cur2.ma_indirect_cost_id and cv.datefrom<=v_cur.startdate and cv.cost_uom='P' and cv.isactive='Y'
-                       and c.isactive='Y' and c.cost_type='M' order by datefrom desc LIMIT 1;
-                if coalesce(v_percent,0)>0 or coalesce(v_percent1,0)>0 or coalesce(v_percent2,0)>0  or coalesce(v_percent3,0)>0 then
-                    v_materialcost2:=coalesce(v_materialcost2,0)+round((v_machinecost*coalesce(v_percent,0)/100) + ((v_invoicecost+v_glcost)*coalesce(v_percent1,0)/100) + ((v_extservicecost+v_glextservice)*coalesce(v_percent3,0)/100) + (v_workcost*coalesce(v_percent2,0)/100),2);
+                if coalesce(v_percent,0)>0 or coalesce(v_percent1,0)>0 or coalesce(v_percent2,0)>0  or coalesce(v_percent3,0)>0 or coalesce(v_percent4,0)>0 then
+                    v_materialcost2:=coalesce(v_materialcost2,0) + round((v_invoicerevenue*coalesce(v_percent4,0)/100) + (v_machinecost*coalesce(v_percent,0)/100) + ((v_invoicecost+v_glcost)*coalesce(v_percent1,0)/100) + ((v_extservicecost+v_glextservice)*coalesce(v_percent3,0)/100) + (v_workcost*coalesce(v_percent2,0)/100),2);
                 end if;
                 
                 -- Machine Costs (flat)
-                select cv.materialcost,cv.vendorcost,cv.empcost,cv.extservicecost into v_percent,v_percent1,v_percent2,v_percent3 from ma_indirect_cost_value cv, ma_indirect_cost c 
+                select cv.materialcost,cv.vendorcost,cv.empcost,cv.extservicecost,cv.revenue  into v_percent,v_percent1,v_percent2,v_percent3,v_percent4 from ma_indirect_cost_value cv, ma_indirect_cost c 
                 where cv.ma_indirect_cost_id=c.ma_indirect_cost_id
-                       and c.ma_indirect_cost_id=v_cur2.ma_indirect_cost_id and cv.datefrom<=v_cur.startdate and cv.cost_uom='P' and cv.isactive='Y'
+                       and c.ma_indirect_cost_id=v_cur2.ma_indirect_cost_id and cv.datefrom<=v_cur.datefinish and cv.cost_uom='P' and cv.isactive='Y'
                        and c.isactive='Y' and c.cost_type='MA' order by datefrom desc LIMIT 1;
-                if coalesce(v_percent,0)>0 or coalesce(v_percent1,0)>0 or coalesce(v_percent2,0)>0  or coalesce(v_percent3,0)>0 then
-                    v_machinecost2:=coalesce(v_machinecost2,0)+round((v_materialcost*coalesce(v_percent,0)/100)  + ((v_invoicecost+v_glcost)*coalesce(v_percent1,0)/100) + ((v_extservicecost+v_glextservice)*coalesce(v_percent3,0)/100) + (v_workcost*coalesce(v_percent2,0)/100),2);
+                if coalesce(v_percent,0)>0 or coalesce(v_percent1,0)>0 or coalesce(v_percent2,0)>0  or coalesce(v_percent3,0)>0  or coalesce(v_percent4,0)>0 then
+                    v_machinecost2:=coalesce(v_machinecost2,0) + round((v_invoicerevenue*coalesce(v_percent4,0)/100) + (v_materialcost*coalesce(v_percent,0)/100)  + ((v_invoicecost+v_glcost)*coalesce(v_percent1,0)/100) + ((v_extservicecost+v_glextservice)*coalesce(v_percent3,0)/100) + (v_workcost*coalesce(v_percent2,0)/100),2);
                 end if;
             end loop;
-            v_materialcost:=v_materialcost+coalesce(v_materialcost2,0);
-            v_machinecost:=v_machinecost+coalesce(v_machinecost2,0);
+            if v_materialcost=0 then v_materialcost:=coalesce(v_materialcost2,0); end if;
+            if v_machinecost=0 then v_machinecost:=coalesce(v_machinecost2,0); end if;
             v_materialcost2:=null;
             v_machinecost2:=null;
             if (select count(*) from c_projecttask where c_projecttask_id=v_cur.c_projecttask_id and 
@@ -2217,7 +2220,8 @@ BEGIN
             end if;
         end loop;
         -- Project-Costs
-        for v_cur in (select c_project.ad_org_id,c_project.c_project_id,c_project.projectstatus from c_project  left join c_project_calcrequeted on c_project_calcrequeted.c_project_id=c_project.c_project_id 
+        for v_cur in (select c_project.ad_org_id,c_project.c_project_id,c_project.projectstatus,coalesce(c_project.startdate,trunc(now())) as startdate,coalesce(c_project.datefinish,trunc(now())) as datefinish  
+                      from c_project  left join c_project_calcrequeted on c_project_calcrequeted.c_project_id=c_project.c_project_id 
                       where projectstatus in ('OR','OP') and projectcategory in ('CS','S','I','M','P','PRO')
                       and case when coalesce(p_isexplicit,'N')='FORCE' then 1=1 else c_project_calcrequeted.c_project_id is not null end
                       )
@@ -2251,7 +2255,7 @@ BEGIN
                                     c_invoiceline.c_invoice_id=c_invoice.c_invoice_id and c_invoice.docstatus = 'CO' and
                                     c_invoice.issotrx='Y';
             -- Purchase - invoice-lines on Project (AP Credit Memo's count negative)
-            -- Do NOT Count Items that are Stocked.
+            -- Do NOT Count Items that are in BOM List
             -- Without external services
             select sum(case when ad_get_docbasetype(c_invoice.c_doctype_id)='APC' then 
                                     case when c_invoice.isgrossinvoice='Y' and t.rate>0 then round(c_currency_convert(linegrossamt,c_currency_id,v_curr,dateacct)-c_currency_convert(linegrossamt,c_currency_id,v_curr,dateacct)/(1+100/t.rate),2)*-1 else case when c_invoice.isgrossinvoice='Y' and t.rate=0 then coalesce(c_currency_convert(linegrossamt,c_currency_id,v_curr,dateacct),0)*-1 else coalesce(c_currency_convert(linenetamt,c_currency_id,v_curr,dateacct),0)*-1 end end else 
@@ -2260,7 +2264,7 @@ BEGIN
                                     from c_invoice ,c_invoiceline
                                     left join m_product on c_invoiceline.m_product_id=m_product.m_product_id ,c_tax t
                                     where c_invoice.c_invoice_id=c_invoiceline.c_invoice_id and   c_invoiceline.c_project_id=v_cur.c_project_id and t.c_tax_id=c_invoiceline.c_tax_id and
-                                    case  coalesce(c_invoiceline.m_product_id,'') when '' then 1=1 else (m_product.producttype='S' or (m_product.producttype='I' and m_product.isstocked='N')) end 
+                                    not exists (select 0 from zspm_projecttaskbom bom where bom.c_projecttask_id in (select c_projecttask_id from c_projecttask where c_project_id=v_cur.c_project_id) and bom.m_product_id=c_invoiceline.m_product_id) 
                                     and c_invoice.docstatus = 'CO' and
                                     c_invoice.issotrx='N' and
                                     (select isexternalservice from m_product_category pc,m_product p where pc.m_product_category_id=p.m_product_category_id and p.m_product_id=c_invoiceline.m_product_id) = 'N';
@@ -2274,7 +2278,7 @@ BEGIN
                                     from c_invoice ,c_invoiceline
                                     left join m_product on c_invoiceline.m_product_id=m_product.m_product_id ,c_tax t
                                     where c_invoice.c_invoice_id=c_invoiceline.c_invoice_id and   c_invoiceline.c_project_id=v_cur.c_project_id and t.c_tax_id=c_invoiceline.c_tax_id and
-                                    case  coalesce(c_invoiceline.m_product_id,'') when '' then 1=1 else (m_product.producttype='S' or (m_product.producttype='I' and m_product.isstocked='N')) end 
+                                    not exists (select 0 from zspm_projecttaskbom bom where bom.c_projecttask_id in (select c_projecttask_id from c_projecttask where c_project_id=v_cur.c_project_id) and bom.m_product_id=c_invoiceline.m_product_id) 
                                     and c_invoice.docstatus = 'CO' and
                                     c_invoice.issotrx='N' and
                                     (select isexternalservice from m_product_category pc,m_product p where pc.m_product_category_id=p.m_product_category_id and p.m_product_id=c_invoiceline.m_product_id) = 'Y';                                
@@ -2326,7 +2330,29 @@ BEGIN
             if v_indirectcostplan is null then v_indirectcostplan:=0; end if;
             if v_expensesplan is null then v_expensesplan:=0; end if;
             if v_extservicecostplan is null then v_extservicecostplan:=0; end if;
-        
+            --
+            -- Load Internal Costs on Revenue (Plan and Fact) on Project Level..
+            select sum(coalesce(committedamt,0)),sum(coalesce(invoicedamt,0)) into v_taskcommitedamt,v_taskrevenue from c_projecttask where c_project_id=v_cur.c_project_id;
+            if v_taskcommitedamt is null then v_taskcommitedamt:=0; end if;
+            if v_taskrevenue is null then v_taskrevenue:=0; end if;
+            for v_cur2 in (select * from zssi_internalCosts4projectcalculation (v_cur.c_project_id,'de_DE')) 
+            LOOP
+                if v_cur2.p_costtype='S' then
+                    v_indirectcost:=v_cur2.p_amt;
+                    v_indirectcostplan:=v_cur2.p_plannedamt;
+                end if;
+                if v_cur2.p_costtype='M' then
+                    select sum(b.plannedamt),sum( b.actualcosamount) into v_ptc,v_tc from zspm_projecttaskbom b,c_projecttask p where p.c_project_id= v_cur.c_project_id and p.c_projecttask_id=b.c_projecttask_id;
+                    if coalesce(v_tc,0)=0 then v_materialcost:=v_cur2.p_amt; else v_materialcost:=v_tc; end if;
+                    if coalesce(v_ptc,0)=0 then v_materialcostplan:=v_cur2.p_plannedamt; else v_materialcostplan:=v_ptc; end if;
+                end if;
+                if v_cur2.p_costtype='MA' then
+                    select sum(b.plannedamt) into v_ptc from zspm_ptaskmachineplan b,c_projecttask p where p.c_project_id= v_cur.c_project_id and p.c_projecttask_id=b.c_projecttask_id;
+                    select sum(b.actualcostamount) into v_tc from zspm_ptaskfeedbackline b,c_projecttask p where p.c_project_id= v_cur.c_project_id and p.c_projecttask_id=b.c_projecttask_id and b.ma_machine_id is not null;
+                    if coalesce(v_tc,0)=0 then v_machinecost:=v_cur2.p_amt; else v_machinecost:=v_tc; end if;
+                    if coalesce(v_ptc,0)=0 then v_machinecostplan:=v_cur2.p_plannedamt; else v_machinecostplan:=v_ptc; end if;
+                end if;
+            END LOOP;
             -- Margine
             if v_orderedamt<=0 then 
                 v_marginplan:=0; 
@@ -2368,7 +2394,7 @@ BEGIN
                                     else 0 end;
                  */
             end if;
-            --
+            -- 
             if (select count(*) from c_project where c_project_id=v_cur.c_project_id and 
                        (coalesce(materialcost,0)!=v_materialcost or coalesce(machinecost,0)!=v_machinecost or coalesce(expenses,0)!=v_invoicecost+v_glcost or coalesce(externalservice,0)!=v_extservicecost+v_glextservice or
                         coalesce(servcost,0)!=v_workcost or coalesce(indirectcost,0)!=v_indirectcost or coalesce(invoicedamt,0)!=v_invoicerevenue or coalesce(committedamt,0)!=v_orderedamt or coalesce(materialcostplan,0)!=v_materialcostplan or
@@ -2606,7 +2632,7 @@ BEGIN
         v_guid_task := get_uuid();
         if v_cur_ol.production='Y' then
             update C_PROJECT set PROJECTCATEGORY='P' where C_PROJECT_id=v_uuid;
-            if v_cur_ol.c_projecttask_id is not null and (select m_product_id from c_projecttask where c_projecttask_id=v_cur_ol.c_projecttask_id) then
+            if v_cur_ol.c_projecttask_id is not null and (select m_product_id from c_projecttask where c_projecttask_id=v_cur_ol.c_projecttask_id)=v_cur_ol.m_product_id then
                 v_guid_task:=v_cur_ol.c_projecttask_id;
             else
                 i := i + 10;
@@ -3228,7 +3254,7 @@ BEGIN
     -- 3. BANF vorhanden, EK Auftrag vorhanden. Menge BOM < Menge BANF (gelb)
     if (select count(*) from zspm_projecttaskbom where zspm_projecttaskbom_id=p_projecttaskbom_id and planrequisition='Y' and m_requisitionline_id is not null and v_orderline>0) then
         select b.qtyreceived,b.quantity,r.qty into v_qtyrec,v_qty1,v_qty2 from zspm_projecttaskbom b, m_requisitionline r where r.m_requisitionline_id=b.m_requisitionline_id and b.zspm_projecttaskbom_id=p_projecttaskbom_id;
-        if v_qty1<v_qty2 and v_qtyrec<v_qty1 then
+        if v_qty1<v_qty2 and v_qtyrec<(case when v_qty1=0 then 1 else v_qty1 end) then
             RETURN 'FF8081816D63610B016D638145YELLOW';
         end if;
     end if;
@@ -3240,6 +3266,11 @@ BEGIN
             RETURN 'FF8081816D63610B016D63812D330RED';
         end if;
     end if;
+    -- 5. Bereits mehr Material erhalten als benötigt (Lila)
+    select qtyreceived,quantity into v_qty1,v_qty2 from zspm_projecttaskbom b where  b.zspm_projecttaskbom_id=p_projecttaskbom_id;
+    if coalesce(v_qty1,1)>coalesce(v_qty2,0) then
+        RETURN 'FF8081816D63610B016D63816APINK';
+    end if;    
     RETURN NULL;
 END;
 $body$ LANGUAGE 'plpgsql';
@@ -3791,16 +3822,18 @@ v_production numeric;
 v_qty numeric;
 v_seq numeric;
 v_cur RECORD;
+v_calcdate  timestamp without time zone;
 BEGIN
   IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
   END IF;
   IF (TG_OP <> 'DELETE') THEN
-     select p_cost, p_specialtime1, p_specialtime2,p_specialtime3 into v_cost, v_sp1, v_sp2, v_sp3 from zsco_get_salary_cost(new.c_salary_category_id,now(),new.Costuom,new.ad_org_id);
+     select coalesce(coalesce(p.startdate,pt.startdate),trunc(now()))  into v_calcdate from c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and pt.c_projecttask_id=new.c_projecttask_id;
+     select p_cost, p_specialtime1, p_specialtime2,p_specialtime3 into v_cost, v_sp1, v_sp2, v_sp3 from zsco_get_salary_cost(new.c_salary_category_id,v_calcdate,new.Costuom,new.ad_org_id);
      
      --select p_cost, p_specialtime1, p_specialtime2, p_triggeramt from zsco_get_salary_cost(new.c_salary_category_id,now(),new.Costuom);
       -- Additional Fees (Only for Humans...)
     select c_additionalfees_id into v_addfeeId from c_additionalfees where ad_org_id in ('0',new.ad_org_id) 
-           and validfrom <=now() order by  ad_org_id desc,validfrom desc limit 1; 
+           and validfrom <=v_calcdate order by  ad_org_id desc,validfrom desc limit 1; 
     for v_cur in (select  saturday as fee, 'saturday' as ident,nightbegin,nightend,overtimebegin from  c_additionalfees where c_additionalfees_id=v_addfeeId and saturday is not null
                   UNION
                   select  sunday as fee, 'sunday' as ident,nightbegin,nightend,overtimebegin from  c_additionalfees  where c_additionalfees_id=v_addfeeId and sunday is not null
@@ -3847,7 +3880,7 @@ BEGIN
     -- QTY Correction END
     if new.isactive='Y' then
     raise notice '%',v_cost||'Q'||new.quantity||'h'||v_hours||'#'||new.triggeramt;
-        new.plannedamt:=round(v_cost * (new.quantity - v_hours) + v_addcost,2)+(new.specialtime1*v_sp1)+(new.specialtime2*v_sp2)+(new.specialtime2*v_sp3)+new.triggeramt;
+        new.plannedamt:=coalesce(round(v_cost * (new.quantity - v_hours) + v_addcost,2)+(new.specialtime1*v_sp1)+(new.specialtime2*v_sp2)+(new.specialtime2*v_sp3),0)+coalesce(new.triggeramt,0);
     else
         new.plannedamt:=0;
     end if;
@@ -3897,11 +3930,13 @@ Contributor(s): ______________________________________.
 v_cost numeric:=0;
 v_production numeric;
 v_qty numeric;
+v_calcdate  timestamp without time zone;
 BEGIN
   IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
   END IF;
 
   IF (TG_OP <> 'DELETE') THEN
+     select coalesce(coalesce(p.startdate,pt.startdate),trunc(now()))  into v_calcdate from c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and pt.c_projecttask_id=new.c_projecttask_id;
      -- Set correct QTY in PRODUCTION (Moved from qty-trigger to here)
      select count(*) into v_production from c_projecttask where c_projecttask_id=new.c_projecttask_id and c_project_id is null;
      if v_production=0 then
@@ -3921,7 +3956,7 @@ BEGIN
         new.quantity:=new.machine_qty*new.calculated_qty;
      end if;   
      -- QTY Correction END
-     v_cost:=zsco_get_machine_cost(new.ma_machine_id,now(),new.Costuom,new.ad_org_id); 
+     v_cost:=zsco_get_machine_cost(new.ma_machine_id,v_calcdate,new.Costuom,new.ad_org_id); 
      if new.isactive='Y' then
         new.plannedamt:=v_cost * (new.quantity);
      else
@@ -4063,8 +4098,8 @@ CREATE TRIGGER zspm_projecttask_postupd_trg
   
   
   
-  
-CREATE OR REPLACE FUNCTION zssi_internalCosts4projectcalculation(p_project_id varchar, p_lang varchar,OUT p_plannedamt numeric, OUT p_amt NUMERIC, OUT p_product_id VARCHAR, OUT p_desrciption VARCHAR) RETURNS SETOF RECORD 
+select zsse_dropfunction('zssi_internalCosts4projectcalculation');  
+CREATE OR REPLACE FUNCTION zssi_internalCosts4projectcalculation(p_project_id varchar, p_lang varchar,OUT p_plannedamt numeric, OUT p_amt NUMERIC, OUT p_product_id VARCHAR, OUT p_desrciption VARCHAR, OUT p_costtype varchar) RETURNS SETOF RECORD 
 AS $_$
 /***************************************************************************************************************************************************
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
@@ -4085,6 +4120,8 @@ v_IEmpCost numeric;
 v_IMachCost numeric; 
 v_IMatCost numeric;
 v_IVendCost numeric;
+v_IRevCostplan numeric;
+v_IRevCostfact numeric;
 
 v_IPEmpCost numeric:=0;
 v_IPMachCost numeric:=0;
@@ -4095,38 +4132,102 @@ v_IREmpCost numeric:=0;
 v_IRMachCost numeric:=0;
 v_IRMatCost numeric:=0;
 v_IRVendCost numeric:=0;
-
+v_IRRevCost numeric:=0;
+v_IPRevCost numeric:=0;
+v_revenue  numeric;
+v_commited  numeric;
 v_product varchar:='';
-
-
+v_inc4mat varchar:='';
+v_inc4masch varchar:='';
 BEGIN
-      for v_cur in (select p.ma_indirect_cost_id,t.c_projecttask_id,t.machinecostplan,t.machinecost,t.servcostplan,t.servcost
-                    from zspm_ptaskindcostplan p, c_projecttask t 
-                    where t.c_projecttask_id=p.c_projecttask_id 
+-- @Todo Abgrenzung Zeiträume , Ausweisen ind. Kostzen MAT und MITarb. über Umsatz
+      -- Interne Kosten von Echten Kosten IST
+      for v_cur in (select p.ma_indirect_cost_id,t.c_projecttask_id,t.machinecostplan,t.machinecost,t.servcostplan,t.servcost,pr.committedamt,pr.invoicedamt,
+                    coalesce(coalesce(pr.datefinish,t.enddate),now()) as calcdate
+                    from zspm_ptaskindcostplan p, c_projecttask t , c_project pr 
+                    where t.c_projecttask_id=p.c_projecttask_id and t.c_project_id=pr.c_project_id
                     and t.c_project_id in (p_project_id))
       loop
             --v_indirectcost:=v_indirectcost+(((v_invoicecost+v_workcost+v_machinecost+v_materialcost+v_glcost)*v_cur2.cost)/100);
             select p_empcost,p_machinecost,p_matcost,p_vendorcost into v_IEmpCost ,v_IMachCost,v_IMatCost,v_IVendCost from
-                  zsco_get_indirect_cost(v_cur.ma_indirect_cost_id,now(),'P',v_cur.c_projecttask_id,'fact','NOPRODUCTS');
+                  zsco_get_indirect_cost(v_cur.ma_indirect_cost_id,v_cur.calcdate,'P',v_cur.c_projecttask_id,'fact','NOPRODUCTS');
                   
              v_IREmpCost:=v_IREmpCost + round(coalesce(v_cur.servcost,0)*v_IEmpCost/100,2);
              v_IRMatCost:=v_IRMatCost + v_IMatCost;
              v_IRMachCost:=v_IRMachCost + round(coalesce(v_cur.machinecost,0)*v_IMachCost/100,2);
-             v_IRVendCost:=v_IRVendCost + v_IVendCost ;
+             v_IRVendCost:=v_IRVendCost + v_IVendCost;
+             
       end loop;
-      for v_cur in (select p.ma_indirect_cost_id,t.c_projecttask_id,t.machinecostplan,t.machinecost,t.servcostplan,t.servcost
-                    from zspm_ptaskindcostplan p, c_projecttask t 
-                    where t.c_projecttask_id=p.c_projecttask_id  and t.istaskcancelled='N'
+      --Interne Kosten von Echten Kosten-PLAN
+      for v_cur in (select p.ma_indirect_cost_id,t.c_projecttask_id,t.machinecostplan,t.machinecost,t.servcostplan,t.servcost,pr.committedamt,pr.invoicedamt,
+                    coalesce(coalesce(pr.startdate,t.startdate),now()) as calcdate
+                    from zspm_ptaskindcostplan p, c_projecttask t , c_project pr 
+                    where t.c_projecttask_id=p.c_projecttask_id and t.c_project_id=pr.c_project_id  
                     and t.c_project_id in (p_project_id))
       loop
            select p_empcost,p_machinecost,p_matcost,p_vendorcost into v_IEmpCost,v_IMachCost,v_IMatCost,v_IVendCost from
-                  zsco_get_indirect_cost(v_cur.ma_indirect_cost_id,now(),'P',v_cur.c_projecttask_id,'plan','NOPRODUCTS');
+                  zsco_get_indirect_cost(v_cur.ma_indirect_cost_id,v_cur.calcdate,'P',v_cur.c_projecttask_id,'plan','NOPRODUCTS');
                   
            v_IPEmpCost:=v_IPEmpCost + round(coalesce(v_cur.servcostplan,0)*v_IEmpCost/100,2);
            v_IPMatCost:=v_IPMatCost + v_IMatCost;
            v_IPMachCost:=v_IPMachCost + round(coalesce(v_cur.machinecostplan,0)*v_IMachCost/100,2);
            v_IPVendCost:=v_IPVendCost + v_IVendCost ;
-      END LOOP;
+      END LOOP;      
+      -- Indir. Kosten
+      -- Ermittlung Zahlen aus Umsatz. 
+      -- Prinzip: 
+      -- Kostensatz in Aufgabe: Aufgaben Umsatz zählt,  Kostensatz nicht in Aufgabe: Aufgaben Umsatz zählt nicht.
+      -- Kostensatz in irgendeiner Aufgabe: Umsatz, der nur auf Projekt kontiert (ohne Aufgabe) zählt immer mit.
+      for v_cur in (select distinct p.ma_indirect_cost_id,pr.committedamt,pr.invoicedamt,c.cost_type,
+                    coalesce(pr.startdate,now()) as calcdateplan,
+                    coalesce(pr.datefinish,now()) as calcdatefact
+                    from zspm_ptaskindcostplan p, c_projecttask t , c_project pr , ma_indirect_cost c
+                    where t.c_projecttask_id=p.c_projecttask_id and t.c_project_id=pr.c_project_id  and c.ma_indirect_cost_id=p.ma_indirect_cost_id
+                    and t.c_project_id in (p_project_id))
+      loop        
+        select cv.revenue  into v_IRevCostplan from ma_indirect_cost_value cv, ma_indirect_cost c 
+                where cv.ma_indirect_cost_id=c.ma_indirect_cost_id
+                       and c.ma_indirect_cost_id=v_cur.ma_indirect_cost_id and cv.datefrom<=v_cur.calcdateplan and cv.cost_uom='P' and cv.isactive='Y'
+                       and c.isactive='Y' order by datefrom desc LIMIT 1;
+        select cv.revenue  into v_IRevCostfact from ma_indirect_cost_value cv, ma_indirect_cost c 
+                where cv.ma_indirect_cost_id=c.ma_indirect_cost_id
+                       and c.ma_indirect_cost_id=v_cur.ma_indirect_cost_id and cv.datefrom<=v_cur.calcdatefact and cv.cost_uom='P' and cv.isactive='Y'
+                       and c.isactive='Y' order by datefrom desc LIMIT 1;
+        if v_IRevCostplan>0 then
+            -- Umsatz aufgaben ohne diesen Kostensatz abziehen von Gesamt-Umsatz
+            select v_cur.committedamt-sum(pt.committedamt),v_cur.invoicedamt-sum(pt.invoicedamt) into v_commited,v_revenue  from c_projecttask pt
+                   where pt.c_project_id in (p_project_id) and
+                         not exists(select 0 from zspm_ptaskindcostplan p where p.c_projecttask_id=pt.c_projecttask_id and p.ma_indirect_cost_id=v_cur.ma_indirect_cost_id);
+            if v_revenue is null then v_revenue:=v_cur.invoicedamt; end if;
+            if v_commited is null then v_commited:=v_cur.committedamt; end if;
+            if v_cur.cost_type='S' then
+                v_IRRevCost:=round(coalesce(v_revenue,0)*v_IRevCostfact/100,2);
+                v_IPRevCost:=round(coalesce(v_commited,0)*v_IRevCostplan/100,2);
+                --raise notice '%','S'||v_IPRevCost;
+            end if;
+            if v_cur.cost_type='M' then
+                v_IRMatCost:= round(coalesce(v_revenue,0)*v_IRevCostfact/100,2);
+                v_IPMatCost:= round(coalesce(v_commited,0)*v_IRevCostplan/100,2);
+                v_inc4mat:='Y';
+                --raise notice '%','M'||v_IPMatCost;
+            end if;
+            if v_cur.cost_type='MA' then
+                v_IRMachCost:= round(coalesce(v_revenue,0)*v_IRevCostfact/100,2); 
+                v_IPMachCost:= round(coalesce(v_commited,0)*v_IRevCostplan/100,2); 
+                v_inc4masch:='Y';
+                --raise notice '%','MA'||v_IPMachCost;
+            end if;
+        end if;
+      end loop;
+      -- Allgemeiner Teil -Umsatz/Auftrag
+      p_plannedamt:=v_IPRevCost;
+      p_amt:=v_IRRevCost;
+      p_desrciption:=zssi_getElementTextByColumname('Revenuecost',p_lang);
+      p_costtype:='S';
+      if p_plannedamt>0 or p_amt>0 then
+        RETURN NEXT;
+      end if;
+      p_costtype:=null;
       -- Allgemeiner Teil -Arbeitskosten
       p_plannedamt:=v_IPEmpCost;
       p_amt:=v_IREmpCost;
@@ -4139,15 +4240,19 @@ BEGIN
       p_amt:=v_IRMatCost;
       p_desrciption:=zssi_getElementTextByColumname('Materialcost',p_lang);
       if p_plannedamt>0 or p_amt>0 then
+        if v_inc4mat='Y' then p_costtype:='M'; end if;
         RETURN NEXT;
       end if;
+      p_costtype:=null;
       -- Allgemeiner Teil -Maschinen
       p_plannedamt:=v_IPMachCost;
       p_amt:=v_IRMachCost;
       p_desrciption:=zssi_getElementTextByColumname('Machinecost',p_lang);
       if p_plannedamt>0 or p_amt>0 then
+        if v_inc4mat='Y' then p_costtype:='MA'; end if;
         RETURN NEXT;
       end if;
+      p_costtype:=null;
        -- Allgemeiner Teil -Lieferanten
       p_plannedamt:=v_IPVendCost;
       p_amt:=v_IRVendCost;
@@ -4224,6 +4329,7 @@ DECLARE
 v_cur RECORD;
 v_curr varchar;
 BEGIN
+-- @Todo Abgrenzung Zeiträume , Ausweisen ind. Kostzen MAT und MITarb. über Umsatz
       p_amt:=0;
       p_plannedamt:= 0;
       select a.c_currency_id into v_curr from ad_org_acctschema oa,c_acctschema a,c_project p where oa.c_acctschema_id=a.c_acctschema_id and oa.ad_org_id=p.ad_org_id and p.c_project_id=p_project_id;
@@ -4236,8 +4342,7 @@ BEGIN
                              from c_invoiceline il,c_invoice i ,c_tax t
                              where il.c_invoice_id=i.c_invoice_id and i.docstatus = 'CO' and ad_get_docbasetype(i.c_doctype_id) in ('API','APC') and t.c_tax_id=il.c_tax_id
                                    and il.c_project_id in (p_project_id) 
-                                   and (select count(*)  from m_product where m_product_id=il.m_product_id
-                                                          and (m_product.producttype='S' or (m_product.producttype='I' and m_product.isstocked='N')))=1 
+                                   and not exists (select 0 from zspm_projecttaskbom bom where bom.c_projecttask_id in (select c_projecttask_id from c_projecttask where c_project_id in (p_project_id)) and bom.m_product_id=il.m_product_id)
                                    and (select isexternalservice from m_product_category pc,m_product p where pc.m_product_category_id=p.m_product_category_id and p.m_product_id=il.m_product_id) = 'N'
                                    group by il.m_product_id
                     union
@@ -4291,6 +4396,7 @@ DECLARE
 v_cur RECORD;
 v_curr varchar;
 BEGIN
+-- @Todo Abgrenzung Zeiträume , Ausweisen ind. Kostzen MAT und MITarb. über Umsatz
       p_amt:=0;
       p_plannedamt:= 0;
       select a.c_currency_id into v_curr from ad_org_acctschema oa,c_acctschema a,c_project p where oa.c_acctschema_id=a.c_acctschema_id and oa.ad_org_id=p.ad_org_id and p.c_project_id=p_project_id;
@@ -4303,8 +4409,7 @@ BEGIN
                              from c_invoiceline il,c_invoice i ,c_tax t
                              where il.c_invoice_id=i.c_invoice_id and i.docstatus = 'CO' and ad_get_docbasetype(i.c_doctype_id) in ('API','APC') and t.c_tax_id=il.c_tax_id
                                    and il.c_project_id in (p_project_id) 
-                                   and (select count(*)  from m_product where m_product_id=il.m_product_id
-                                                          and (m_product.producttype='S' or (m_product.producttype='I' and m_product.isstocked='N')))=1 
+                                   and not exists (select 0 from zspm_projecttaskbom bom where bom.c_projecttask_id in (select c_projecttask_id from c_projecttask where c_project_id in (p_project_id)) and bom.m_product_id=il.m_product_id)
                                    and (select isexternalservice from m_product_category pc,m_product p where pc.m_product_category_id=p.m_product_category_id and p.m_product_id=il.m_product_id) = 'Y'
                                    group by il.m_product_id
                     union

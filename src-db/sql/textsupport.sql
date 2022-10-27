@@ -2352,7 +2352,7 @@ BEGIN
         from c_invoiceline, c_invoice
         where p_docline_id=c_invoiceline.c_invoiceline_id and c_invoice.c_invoice_id=c_invoiceline.c_invoice_id
         union
-        select 'shipment' as c_doctype, m_inoutline.ad_org_id, m_inout.c_bpartner_id, m_inoutline.m_product_id, m_inoutline.c_orderline_id, null as c_invoiceline_id, p_docline_id as m_inoutline_id,null as m_product_po_id,m_product_uom_id,m_inoutline.m_attributesetinstance_id,m_inout.c_bpartner_location_id as bplocation,length(m_inoutline.description) as dsclen
+        select 'shipment' as c_doctype, m_inoutline.ad_org_id, m_inout.c_bpartner_id, coalesce(m_inoutline.m_setproductid,m_inoutline.m_product_id) as m_product_id, m_inoutline.c_orderline_id, null as c_invoiceline_id, p_docline_id as m_inoutline_id,null as m_product_po_id,m_product_uom_id,m_inoutline.m_attributesetinstance_id,m_inout.c_bpartner_location_id as bplocation,length(m_inoutline.description) as dsclen
         from m_inoutline, m_inout
         where p_docline_id=m_inoutline.m_inoutline_id and m_inout.m_inout_id=m_inoutline.m_inout_id) a;
         select c_uom_id into v_uom from m_product_uom where m_product_uom_id=v_uom;
@@ -2925,13 +2925,20 @@ v_posttext character varying:=' ';
 v_posttext2 character varying:=' ';
 v_pretext character varying;
 v_pretext2 character varying;
+v_orderline varchar;
+v_iolines varchar;
 v_cur RECORD;
 BEGIN
       select ad_message_get2('zssi_serialnumbers', p_language) into v_pretext;
       select zssi_getElementTextByColumname('lotnumber/s',p_language) into v_pretext2;
       -- select zssi_getElementTextByColumname('lotnumber',p_language) into v_pretext2;
-
-      for v_cur in (select serialnumber,lotnumber,quantity from snr_minoutline where m_inoutline_id=p_inoutline_id)
+      select c_orderline_id into v_orderline from m_inoutline where m_inoutline_id=p_inoutline_id;
+      if v_orderline is null then
+        v_iolines:=p_inoutline_id;
+      else
+        select string_agg(m_inoutline_id,',') into v_iolines from m_inoutline where c_orderline_id=v_orderline;
+      end if;
+      for v_cur in (select serialnumber,lotnumber,quantity from snr_minoutline where m_inoutline_id = ANY(string_to_array(v_iolines,',')))
       LOOP
         if v_posttext!=' ' then
            v_posttext:=v_posttext||', ';
@@ -4140,8 +4147,24 @@ $_$
   LANGUAGE plpgsql VOLATILE
   COST 100
   ROWS 1000;
-ALTER FUNCTION zspr_getorderlinesfromshipment(character varying) OWNER TO tad;
-
+  
+  
+CREATE OR REPLACE FUNCTION zspr_getlocatorsfromshipline(p_inout_id varchar,p_orderline_id character varying) RETURNS varchar  LANGUAGE plpgsql AS $_$ 
+DECLARE
+    retval varchar;
+    v_org  varchar;
+BEGIN
+    select ad_org_id into v_org from m_inout where m_inout_id=p_inout_id;
+    if (select printlocatoronshipment from zspr_printinfo where ad_org_id in ('0',v_org) order by ad_org_id desc limit 1)='N' then    
+        return '';
+    else
+       select string_agg(a.value||'('||a.movementqty||')',chr(13)) into retval from 
+        ( select l.value,m.movementqty from m_locator l,m_inoutline m where m.m_inout_id=p_inout_id and m.c_orderline_id=p_orderline_id and
+           m.m_locator_id=l.m_locator_id order by l.priorityno,l.x,l.y,l.z
+        ) a;
+       return retval;
+    end if;
+END ; $_$;
 
 
 CREATE OR REPLACE FUNCTION zssi_textmodulemod_trg() RETURNS trigger LANGUAGE plpgsql AS $_$ 
@@ -6279,6 +6302,50 @@ BEGIN
       -- Testen (select string_agg(name,'<br/>') from m_product)
       v_return:=v_desc||v_bom;
       
+RETURN coalesce(v_return,'');
+END;
+$_$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
+  
+CREATE or replace FUNCTION zssi_getWorkorderTaskHeader(v_ptask_id character varying) RETURNS character varying
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 OpenZ Software GmbH All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************/
+DECLARE
+v_return character varying;
+v_first character varying:='';  
+v_i numeric:=1;
+v_num numeric;
+v_cur record;
+BEGIN
+      select count(*) into v_num from c_projecttask where c_project_id=(select c_project_id from c_projecttask where c_projecttask_id=v_ptask_id);
+      for v_cur in (select value,seqno,c_projecttask_id from c_projecttask where c_project_id=(select c_project_id from c_projecttask where c_projecttask_id=v_ptask_id) order by seqno)
+      LOOP
+        if v_first='' then
+            if v_cur.c_projecttask_id=v_ptask_id then
+                if v_num=1 then
+                    v_return:=v_cur.value;
+                else
+                    v_return:=v_cur.value||' (1/'||v_num||')';
+                end if;
+            end if;
+            v_first:=v_cur.value;
+        else
+            v_i:=v_i+1;
+            if v_cur.c_projecttask_id=v_ptask_id then
+                v_return:=v_first||' ('||v_i||'/'||v_num||' - '||v_cur.value||')';
+            end if;
+        end if;
+      end LOOP;
 RETURN coalesce(v_return,'');
 END;
 $_$

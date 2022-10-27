@@ -182,6 +182,26 @@
      <Parameter name="mProductUOMId"/>  
   </SqlMethod>
  
+  <SqlMethod name="getFrameContractDescription" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+        select identdescription from c_framecontractoverview where
+            docstatus='CO'
+            and c_bpartner_id = ?
+            and m_product_id = ?
+            and c_uom_id = ?
+            and contractdate <= now()
+            and enddate >= now()
+         order by updated desc
+         limit 1
+         ]]>
+    </Sql>
+    <Parameter name="cBPartnerId"/>
+    <Parameter name="mProductId"/>
+    <Parameter name="cUOMId"/>
+  </SqlMethod>
+
   <!--
   <SqlMethod name="getSheddeliveryDate4vendorProduct" type="preparedStatement" return="String" default="">
     <SqlMethodComment></SqlMethodComment>
@@ -192,4 +212,5 @@
      <Parameter name="mProductId"/>  
   </SqlMethod>
   -->
+
 </SqlClass>

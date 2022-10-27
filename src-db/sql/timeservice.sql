@@ -182,6 +182,7 @@ BEGIN
             v_fbl.workdate_to:=new.workdate_to;
             v_fbl.special4:=new.special4;
             v_fbl.special5:=new.special5;
+            v_fbl.createdbytimefeedbackapp:='N';
             insert into zspm_ptaskfeedbackline select v_fbl.*;
             select * into v_fbl from zspm_ptaskfeedbackline where zspm_ptaskfeedbackline_id=v_uid;
     END LOOP;
@@ -258,9 +259,9 @@ DECLARE
   v_Hours       NUMERIC;
   v_c_projecttask c_projecttask%ROWTYPE;
   v_sp1 numeric:=0;
-v_sp2 numeric:=0;
-v_sp3 numeric:=0;
-v_tr numeric:=0;
+  v_sp2 numeric:=0;
+  v_sp3 numeric:=0;
+  v_tr numeric:=0;
   v_cur record;
   v_bpartner varchar;
   v_nomalhours numeric;
@@ -279,6 +280,20 @@ BEGIN
     if old.c_orderline_id is not null then
             raise exception '@nodeletepossible@';
     end if;
+    -- for project opened via the timefeeedback app the line can only be deleted if there are no open projects left behind (except the timefeedback project)
+    IF (
+        OLD.createdbytimefeedbackapp = 'Y'
+        AND OLD.hour_to IS NULL -- not closed
+        AND OLD.c_project_id = (SELECT c_project_id FROM c_bpartner WHERE c_bpartner_id = (SELECT c_bpartner_id FROM ad_user WHERE ad_user_id = OLD.ad_user_id)) -- timefeedback project
+        AND (SELECT COUNT(*) FROM zspm_ptaskfeedbackline WHERE ad_user_id = OLD.ad_user_id AND createdbytimefeedbackapp = 'Y' AND c_project_id != OLD.c_project_id AND hour_to IS NULL) != 0
+        ) THEN
+        RAISE EXCEPTION '%', '@zspm_CloseOtherWorkstepFirst@'
+                              || (SELECT TO_CHAR(hour_from,'DD.MM.YYYY') FROM zspm_ptaskfeedbackline WHERE ad_user_id = OLD.ad_user_id AND createdbytimefeedbackapp = 'Y' AND c_project_id != OLD.c_project_id AND hour_to IS NULL)
+                              || ' - '
+                              || (SELECT name FROM c_project WHERE c_project_id = (SELECT c_project_id FROM zspm_ptaskfeedbackline WHERE ad_user_id = OLD.ad_user_id AND createdbytimefeedbackapp = 'Y' AND c_project_id != OLD.c_project_id AND hour_to IS NULL))
+                              || ' - '
+                              || (SELECT name FROM c_projecttask WHERE c_projecttask_id = (SELECT c_projecttask_id FROM zspm_ptaskfeedbackline WHERE ad_user_id = OLD.ad_user_id AND createdbytimefeedbackapp = 'Y' AND c_project_id != OLD.c_project_id AND hour_to IS NULL));
+    END IF;
     perform zspm_updateprojectstatus(null,old.c_project_id);
     RETURN OLD;
   end if;
@@ -334,6 +349,30 @@ BEGIN
         RAISE EXCEPTION '%', '@zspm_NotCostApplies@';
      end if;  
   END IF;
+  -- for project opened via the timefeeedback app the contact person and project may not be changed
+  IF(
+    NEW.createdbytimefeedbackapp = 'Y'
+    AND (OLD.ad_user_id != NEW.ad_user_id OR OLD.c_project_id != NEW.c_project_id)
+  ) THEN
+      RAISE EXCEPTION '%', '@zspm_ChangeOfInformationForbiddenTimefeedbackapp@';
+  END IF;
+  -- manually close an open project which was created by the timefeedback app
+  -- timefeedback project needs to be closed last
+  IF(
+    NEW.createdbytimefeedbackapp = 'Y'
+    AND OLD.hour_to IS NULL
+    AND NEW.hour_to IS NOT NULL
+    AND NEW.c_project_id = (SELECT c_project_id FROM c_bpartner WHERE c_bpartner_id = (SELECT c_bpartner_id FROM ad_user WHERE ad_user_id = NEW.ad_user_id)) -- timefeedback project
+    AND (SELECT COUNT(*) FROM zspm_ptaskfeedbackline WHERE ad_user_id = NEW.ad_user_id AND createdbytimefeedbackapp = 'Y' AND c_project_id != NEW.c_project_id AND hour_to IS NULL) != 0
+  ) THEN
+      RAISE EXCEPTION '%', '@zspm_CloseOtherWorkstepFirst@ '
+                           || (SELECT TO_CHAR(hour_from,'DD.MM.YYYY') FROM zspm_ptaskfeedbackline WHERE ad_user_id = NEW.ad_user_id AND createdbytimefeedbackapp = 'Y' AND c_project_id != NEW.c_project_id AND hour_to IS NULL)
+                           || ' - '
+                           || (SELECT name FROM c_project WHERE c_project_id = (SELECT c_project_id FROM zspm_ptaskfeedbackline WHERE ad_user_id = NEW.ad_user_id AND createdbytimefeedbackapp = 'Y' AND c_project_id != NEW.c_project_id AND hour_to IS NULL))
+                           || ' - '
+                           || (SELECT name FROM c_projecttask WHERE c_projecttask_id = (SELECT c_projecttask_id FROM zspm_ptaskfeedbackline WHERE ad_user_id = NEW.ad_user_id AND createdbytimefeedbackapp = 'Y' AND c_project_id != NEW.c_project_id AND hour_to IS NULL));
+  END IF;
+  
   v_hourfrom:=NEW.hour_from;
   v_hourto:=NEW.hour_to;
   IF (v_hourfrom IS NOT NULL) AND (v_hourto IS NOT NULL) THEN
@@ -391,6 +430,8 @@ BEGIN
             if v_hourto>=v_cur.nightbegin then 
                 if v_hourto>=v_cur.nightend then 
                     new.nighthours:=extract(hour from v_cur.nightend)+extract(minute from v_cur.nightend)/60;
+                    new.overtimehours:=v_Hours-c_getemployeeworktimeNormal(v_bpartner,NEW.workdate+1); 
+                    if new.overtimehours <0 then new.overtimehours:=0; end if;
                 else
                    -- Worked in next day?
                    if v_overnight='Y' then
@@ -428,12 +469,13 @@ BEGIN
                 elsif v_hourfrom<=v_cur.nightbegin and v_nightendhour>=v_cur.nightend then
                     new.nighthours:=(SELECT ((EXTRACT (EPOCH FROM (v_cur.nightbegin - v_cur.nightend))) / 3600)) *(-1);
                 -- within the night 
-                elsif v_hourfrom>=v_cur.nightbegin and v_nightendhour<=v_cur.nightend then
+                elsif v_hourfrom>=v_cur.nightbegin and v_nightendhour<v_cur.nightend then
                     new.nighthours:=(SELECT ((EXTRACT (EPOCH FROM (v_nightendhour - v_hourfrom))) / 3600));
                 -- from evening to night
                 else
                     new.nighthours:=(SELECT ((EXTRACT (EPOCH FROM (v_nightendhour - v_cur.nightbegin))) / 3600));
                 end if;
+                RAISE NOTICE 'nighthours (%)', new.nighthours;
             else -- Monday till Do.
                 -- From night to morning
                 if v_hourfrom>v_cur.nightbegin and v_hourto>=v_cur.nightend then
@@ -455,13 +497,16 @@ BEGIN
             if new.nighthours-coalesce(new.breaktime,0)-coalesce(new.paidbreaktime,0) > 0 then
                 v_midwork:=(SELECT ((EXTRACT (EPOCH FROM (v_hourto - v_hourfrom))) / (3600*2)));
                 if v_hourfrom+ INTERVAL '1 hours' * v_midwork between v_cur.nightbegin and v_cur.nightend then
-                    new.nighthours:=new.nighthours-coalesce(new.breaktime,0)-coalesce(new.paidbreaktime,0);
+               --     new.nighthours:=new.nighthours-coalesce(new.breaktime,0)-coalesce(new.paidbreaktime,0);
                 end if;
             end if;
             v_nightcost:=round((((v_cost*v_cur.fee/100)+v_cost)*new.nighthours),2);
             --EXIT;
         elsif v_cur.ident='overtime' and (v_Hours>v_nomalhours) and v_fridytosatday='N' then
             new.overtimehours:=v_Hours-v_nomalhours-new.nighthours;
+            if v_hourfrom>v_cur.nightbegin and v_hourto>=v_cur.nightend  then -- From Night to Morning
+                new.overtimehours:=v_Hours-v_nomalhours; 
+            end if;
             if new.overtimehours <0 then new.overtimehours:=0; end if;
             v_overtimecost:=round((((v_cost*v_cur.fee/100)+v_cost)*new.overtimehours),2);
             EXIT;

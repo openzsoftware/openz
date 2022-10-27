@@ -52,7 +52,7 @@
             zssi_getproductnamewithvalue(pdc_workstepbom_v.m_product_id, ?) as pdcmaterialconsumptionproduct,
                 m_locator.value||m_product_locatordescription_userexit(pdc_workstepbom_v.m_product_id) as pdcmaterialconsumptionlocator,
                 case when ?!=? then qtyforone*to_number(?) else qtyrequired end as pdcmaterialconsumptionplannedqty,
-                qtyreceived + coalesce((select sum(m_internal_consumptionline.movementqty)), 0) as pdcmaterialconsumptionreceivedqty,
+                pdc_getReturnQtyBomProduct(pdc_workstepbom_v.zssm_workstep_v_id,pdc_workstepbom_v.m_product_id,?) + coalesce((select sum(m_internal_consumptionline.movementqty)), 0) as pdcmaterialconsumptionreceivedqty,
                 qty_available as pdcmaterialconsumptionavailableqty,
                 pdc_workstepbom_v_id,pdc_workstepbom_v.m_product_id,m_locator.m_locator_id, pdc_workstepbom_v.line,
                 p.isserialtracking as snr,p.isbatchtracking as cnr
@@ -70,6 +70,7 @@
             pdc_workstepbom_v.line,
             pdc_workstepbom_v.value,
             pdc_workstepbom_v.m_product_id,
+            pdc_workstepbom_v.zssm_workstep_v_id,
             m_locator.value,
             m_locator.m_locator_id,
             qtyrequired,
@@ -77,12 +78,13 @@
             qty_available,qtyforone,
             pdc_workstepbom_v_id,p.isserialtracking ,p.isbatchtracking 
         having case when ?!=? then qtyforone*to_number(?) else qtyrequired - qtyreceived end - coalesce((select sum(m_internal_consumptionline.movementqty)), 0) > 0
-        order by  pdc_workstepbom_v.value
+        order by  pdc_workstepbom_v.line,pdc_workstepbom_v.value
 	</Sql>
 	<Parameter name = "language"/>
 	<Parameter name = "partlyproductionqty"/>
 	<Parameter name = "qtyleft"/>
 	<Parameter name = "partlyproductionqty"/>
+	<Parameter name = "plannedserial"/>
     <Parameter name = "pconsumptionid"/>
     <Parameter name = "workstepid"/>
     <Parameter name = "partlyproductionqty"/>
@@ -134,7 +136,7 @@
            where f.m_internal_consumption_id=?
            and p.m_product_id=f.m_product_id 
            group by f.m_internal_consumptionline_id,f.m_product_id,l.value,f.movementqty,p.isserialtracking,p.isbatchtracking,p.value
-           order by p.value
+           order by f.line
     </Sql>
     <Parameter name = "language"/>
     <Parameter name = "language"/>
@@ -158,7 +160,9 @@
         select 
             barcode, 
             type, 
-            id,weight
+            id,weight,
+            serialnumber,
+            lotnumber
         from 
             pdc_getDataIdfromScan(?)
     </Sql>
@@ -213,6 +217,15 @@
 	<Parameter name="plannedserialno"/>
 </SqlMethod>
     
+<SqlMethod name="isSerielProduced" type="preparedStatement" return="string">
+      <Sql>
+        select snrIsSerialOrBtchProduced(?,?) 
+      </Sql>
+      <Parameter name = "plannedserial"/>
+      <Parameter name="workstepid"/>
+</SqlMethod>
+ 
+ 
 <SqlMethod name="getQty" type="preparedStatement" return="string">
       <Sql>
         SELECT case when sum(qty_available - qtyrequired -(qtyreceived + coalesce((movementqty), 0))) >=0 then
@@ -283,5 +296,11 @@
       <Parameter name = "pconsumptionid"/>
       <Parameter name="productid"/>
   </SqlMethod>
-  
+   <SqlMethod name="isPlannedSerialInThisWorkstepOK" type="preparedStatement" return="string">
+      <Sql>
+        select snrCheckPlannedSNROK(?,?) as retval from dual
+      </Sql>
+      <Parameter name = "workstep"/>
+      <Parameter name="palnnedsnr"/>
+  </SqlMethod>
 </SqlClass>

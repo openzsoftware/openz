@@ -98,10 +98,6 @@ public class PdcStoreMainDialogue  extends HttpSecureAppServlet {
         //script.addOnload("setTimeout(function(){document.getElementById(\"barcode\").focus();fieldReadonlySettings('barcode', false);},50);");
         //Navigation Fieldgroup
         strPdcNavigationFG=fh.prepareFieldgroup(this, vars, script, "PdcStoreNavigationFG", null,false);
-        strPdcNavigationFG=Replace.replace(strPdcNavigationFG,"id=\"barcode\" title=\"\" readonly=\"true\" onfocus=\"isGridFocused = false;\" onkeydown=\"changeToEditingMode('onkeydown');\"","id=\"barcode\" title=\"\" readonly=\"true\" onfocus=\"isGridFocused = false;\" onkeydown=\"crAction(event);\"");
-        // Settings for dummy focus...
-        strPdcNavigationFG=MobileHelper.addDummyFocus(strPdcNavigationFG);
-
         //Status Fieldgroup
         strStatusFG=PdcStatusBar.getStatusBar(this, vars, script);//fh.prepareFieldgroup(this, vars, script, "PdcStatusFG", null,false);
         

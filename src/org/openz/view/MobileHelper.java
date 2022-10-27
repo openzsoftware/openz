@@ -1,5 +1,7 @@
 package org.openz.view;
 
+import java.util.Enumeration;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.openbravo.base.secureApp.VariablesSecureApp;
@@ -20,7 +22,9 @@ public class MobileHelper {
 	}
 	
 	public static boolean isMobile(HttpServletRequest request) {
-		if (request.getHeader("User-Agent").toLowerCase().contains("android")) {
+		String ua=request.getHeader("User-Agent");
+		//Enumeration<java.lang.String> ha=request.getHeaderNames();
+		if (ua.toLowerCase().contains("android")) {
         	return true;
         }
 		return false;
@@ -69,5 +73,24 @@ public class MobileHelper {
 		retval=Replace.replace(retval,"input style=\"\" class=\"dojoValidateValid cellreadonly inputWidth\"  type=\"text\" maxlength=\"1000\" name=\"inppdcmaterialconsumptionbarcode\"","input style=\"position:absolute;top:-250px;width:40px\" class=\"dojoValidateValid cellreadonly inputWidth\"  type=\"text\" maxlength=\"1000\" name=\"inppdcmaterialconsumptionbarcode\"");
 		return retval;
 	}
-	
+	/*
+	 * Sets all the necessary Responsive Settings for Scanner
+	 * Needs a fieldgroup with field pdcmaterialconsumptionbarcode and dummyfocusfield
+	 */
+	public static String setMobileModeAndScanActionBarcode(HttpServletRequest request,VariablesSecureApp vars,Scripthelper script, String fieldgroup) {
+		String retval=fieldgroup;
+		// GUI Settings Responsive for Mobile Devises
+	    // Prevent Softkeys on Mobile Devices (Field is Readonly and programmatically set). Field dummyfocusfield must exist (see MobileHelper.addDummyFocus)
+		script.addOnload("setTimeout(function(){document.getElementById(\"pdcmaterialconsumptionbarcode\").focus();fieldReadonlySettings('pdcmaterialconsumptionbarcode', false);},50);");
+	    script.addHiddenfieldWithID("forcefocusfield", "pdcmaterialconsumptionbarcode"); // Force Focus after Numpad to given Field
+	    if (MobileHelper.isMobile(request)) {
+	    	  MobileHelper.setMobileMode(request, vars, script);
+	    	  retval=MobileHelper.addcrActionBarcode(retval);
+	    	  if (MobileHelper.isScreenUpright(vars))
+	  	    	retval=MobileHelper.hideActionBarcode(retval);
+	    }	
+	    // Settings for dummy focus...
+	    retval=MobileHelper.addDummyFocus(retval);
+	    return retval;	    
+	}
 }

@@ -422,3 +422,5 @@ BEGIN
 END ; $_$;
 
 select ad_activatehistorytriggers();
+
+update ad_preference set value='N' where attribute='SUSPENDHISTORY';

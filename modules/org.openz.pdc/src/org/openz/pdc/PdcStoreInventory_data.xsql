@@ -1,0 +1,106 @@
+<SqlClass name="PdcStoreInventoryData" package="org.openz.pdc"  accessModifier="public">
+  <SqlClassComment></SqlClassComment>
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+    Select m_inventoryline_id,qtycount,qtybook,product,
+    sn,seqno from
+    (
+	    Select f.m_inventoryline_id,pdc_numfield(f.qtycount,f.weight,?) as qtycount,pdc_numfield(f.qtybook,f.weightbook,?) as qtybook,zssi_getproductnamewithvalue(f.m_product_id,?) as product,
+	    case when p.isserialtracking='Y' or p.isbatchtracking='Y'  then case when sum(snr.quantity)=0 then '' else pdc_numfield(sum(snr.quantity),null,?) end else '' end as sn,
+	    case when f.m_product_id=? then 1 else 9999 end as seqno,f.updated
+	    from m_product p,m_inventoryline f left join snr_inventoryline snr on f.m_inventoryline_id=snr.m_inventoryline_id
+	    where p.m_product_id=f.m_product_id and f.m_inventory_id=?
+	    group by f.m_inventoryline_id,f.qtycount,f.weight,f.qtybook,f.weightbook,f.m_product_id,p.isserialtracking,p.isbatchtracking,f.updated
+	) a order by seqno,updated   
+    ]]> </Sql>
+    <Parameter name="language"/>
+    <Parameter name="language"/>
+    <Parameter name="language"/>
+    <Parameter name="language"/>
+    <Parameter name="firstProductId"/>
+    <Parameter name="mInventoryId"/>
+  </SqlMethod>  
+  <SqlMethod name="getSumUp" type="preparedStatement" return="string">
+      <Sql>
+        SELECT pdc_numfield(sum(qtycount),sum(weight),?)  from m_inventoryline where m_inventory_id= ?
+      </Sql>
+      <Parameter name="Lang"/>
+      <Parameter name="invId"/>
+   </SqlMethod>
+   <SqlMethod name="runningInventory" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select m.m_inventory_id from m_inventory m where  m.processed='N' and coalesce(m.processing,'N')='N' and exists 
+        (select 0 from m_inventoryline l where l.m_inventory_id=m.m_inventory_id and l.m_locator_id=? and updatedby=?) limit 1
+    </Sql>
+    <Parameter name="locator"/>
+    <Parameter name="user"/>
+  </SqlMethod>
+  <SqlMethod name="init" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select pdc_InventoryCreate(?,?,?)  from dual
+    </Sql>
+    <Parameter name="locator"/>
+    <Parameter name="user"/>
+    <Parameter name="org"/>
+  </SqlMethod>
+  <SqlMethod name="updateoninit" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select pdc_InventoryUpdate(?,?) from dual 
+    </Sql>
+    <Parameter name="mInventoryId"/>
+    <Parameter name="UserId"/>
+  </SqlMethod>
+  <SqlMethod name="delete" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select pdc_InventoryDelete(?) from dual 
+    </Sql>
+    <Parameter name="mInventoryId"/>
+  </SqlMethod>
+  <SqlMethod name="updateline" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select pdc_InventoryUpdateLine(?,?,?,null,to_number(?)) from dual 
+    </Sql>
+    <Parameter name="mInventoryId"/>
+    <Parameter name="mLocatorId"/>
+    <Parameter name="mProductId"/>
+    <Parameter name="qtyCount"/>
+  </SqlMethod>
+ 
+   <SqlMethod name="lineSNRBNRUpdate" type="preparedStatement"   return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       select pdc_InventorylineSNRBNRUpdate(?,?,to_number(?),to_number(?),?,?)
+      ]]>
+    </Sql>
+    <Parameter name="mInventoryId"/>
+    <Parameter name="productId"/>
+    <Parameter name="qty"/>
+    <Parameter name="weight"/>
+    <Parameter name="serialno"/>
+    <Parameter name="batchno"/>
+  </SqlMethod> 
+  
+  <SqlMethod name="getQtyCount" type="preparedStatement"   return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       select coalesce(sum(coalesce(s.quantity,l.qtycount)),0) as retv from m_inventoryline l left join snr_inventoryline s on s.m_inventoryline_id=l.m_inventoryline_id  where 
+              case when ? is null then 1=1 else s.lotnumber=? end and m_inventory_id=? and m_product_id=? and m_locator_id=?
+      ]]>
+    </Sql>
+    <Parameter name="BtchNo"/>
+    <Parameter name="BtchNo"/>
+    <Parameter name="mInventoryId"/>
+    <Parameter name="productId"/> 
+    <Parameter name="locatorId"/>   
+  </SqlMethod> 
+  
+</SqlClass>
+ 

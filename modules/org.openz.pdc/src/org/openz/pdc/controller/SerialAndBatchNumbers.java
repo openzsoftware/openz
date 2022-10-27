@@ -19,6 +19,7 @@ import org.openbravo.erpCommon.utility.ComboTableDataWrapper;
 import org.openbravo.erpCommon.utility.OBError;
 import org.openbravo.erpCommon.utility.Utility;
 import org.openbravo.utils.Replace;
+import org.openz.util.FormatUtils;
 import org.openz.view.DataGrid;
 import org.openz.view.Formhelper;
 import org.openz.view.FormhelperData;
@@ -85,11 +86,10 @@ public class SerialAndBatchNumbers  extends HttpSecureAppServlet {
             bcid=data[i].id;  
             bctype=data[i].type;
             if (bctype.equals("KOMBI")) {
-        		String[] kombi=strBarcode.split("\\|");  
-        		String snrbnr=kombi[1];
-        		if (kombi.length>2 && snrbnr.isEmpty())
-        			snrbnr=kombi[2];
-        		if (!snrbnr.isEmpty())
+            	String snrbnr=data[0].serialnumber;
+                if (FormatUtils.isNix(snrbnr))
+              	  snrbnr=data[0].lotnumber;
+        		if (!FormatUtils.isNix(snrbnr))
         			strBarcode=snrbnr;
         	}
             break;
@@ -145,6 +145,11 @@ public class SerialAndBatchNumbers  extends HttpSecureAppServlet {
               consumptionlineID=SerialNumberData.getLineIDByProduct(this, strConsumptionid, strProductID);
               if (strQty.isEmpty())
                 strQty=SerialNumberData.getQtyByConsumptionLineID(this, consumptionlineID);
+              if (SerialNumberData.getMvMtType(this, consumptionlineID).equals("D-")) {
+            	  String qtyavail= SerialNumberData.getBtchOnhandQty(this, actBatchNumber, consumptionlineID);
+            	  if (Float.parseFloat(qtyavail)<Float.parseFloat(strQty))
+            		  strQty=qtyavail;
+              }
               vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_batchnumberscanned",vars.getLanguage())+"\r\n"+vars.getStringParameter("inppdcmaterialconsumptionbarcode"));
            }
            vars.setSessionValue("PDCSTATUS","OK");
@@ -187,16 +192,6 @@ public class SerialAndBatchNumbers  extends HttpSecureAppServlet {
           bcCommand="BATCH";
         }
       }
-    } catch (Exception e) { 
-        log4j.error("Error in : " + this.getClass().getName() +"\n" + e.getMessage());
-        e.printStackTrace();
-        vars.setSessionValue("PDCSTATUS","ERROR");
-        //vars.setSessionValue("PDCSTATUSTEXT","Error in Serial Number Screen");
-        vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_ErrorOnPage"+getServletInfo(),vars.getLanguage()));
-         throw new ServletException(e);
- 
-   }
-   try {
    // Evaluation Barcode Field - END
     
       // Save Data (Serial or Batch No)
@@ -253,17 +248,11 @@ public class SerialAndBatchNumbers  extends HttpSecureAppServlet {
         return;
       }
     } catch (Exception e) { 
-        log4j.error("Error in : " + this.getClass().getName() +"\n" + e.getMessage());
-        e.printStackTrace();
-        vars.setSessionValue("PDCSTATUS","ERROR"); 
-        if (e.getMessage().contains("@snr_")){
-          OBError temp=Utility.translateError(this, vars, vars.getLanguage(), e.getMessage());
-          vars.setSessionValue("PDCSTATUSTEXT",temp.getMessage());
-        }else {
-          //vars.setSessionValue("PDCSTATUSTEXT","Error in Serial Number Screen");
-          vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_ErrorOnPage"+"\r\n"+getServletInfo(),vars.getLanguage())+"\r\n"+vars.getStringParameter("inppdcmaterialconsumptionbarcode"));
-          throw new ServletException(e);
-        }
+    	e.printStackTrace();
+    	vars.setSessionValue("PDCSTATUS","ERROR");    	
+    	OBError s=new OBError();
+    	s=Utility.translateError(this, vars, vars.getLanguage(),e.getMessage());
+    	vars.setSessionValue("PDCSTATUSTEXT",s.getMessage());
         bcCommand="DEFAULT";
    }
    try {
@@ -386,9 +375,11 @@ public class SerialAndBatchNumbers  extends HttpSecureAppServlet {
         if (upperGridData.length==0) {
           strPdcInfobar=Utility.messageBD(this, "pdc_NothingToDo",vars.getLanguage());
           upperGridData = SerialNumberData.set();
-          // Return to Calling Servlet (Nothing to do)
-          response.sendRedirect(strDireccion + strpdcFormerDialogue);
-          vars.removeSessionValue(getServletInfo() + "|serialServletState");
+          // Return to Calling Servlet (Nothing to do) / Except Package Receipt (Returns Explicit with Button DONE)
+          if (! strpdcFormerDialogue.contains("org.openz.internallogistic.PackageReceipt/Receipt62314289EB0A4FFBA4ACDB985018C68B_Edition.html")) {
+        	response.sendRedirect(strDireccion + strpdcFormerDialogue);
+          	vars.removeSessionValue(getServletInfo() + "|serialServletState");
+          }
         }
         if (lowerGridData.length==0) 
           lowerGridData = DoProductionData.set();

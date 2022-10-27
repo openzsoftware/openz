@@ -116,12 +116,15 @@ CREATE OR REPLACE FUNCTION mrp_purchase_run(p_pinstance_id character varying) RE
     --RAISE NOTICE '%','MRP_PURCHASE_INIT done.: ';
     PERFORM MRP_PURCHASEPLAN(v_User_ID, v_Org_ID, v_Client_ID, v_Record_ID, v_Planner_ID, v_Vendor_ID, v_TimeHorizon,
                     v_PlanningDate, v_SecurityMargin,v_warehouse);
-    for v_cur in (select distinct m_product_id from MRP_RUN_PURCHASELINE where inouttrxtype='PP' and c_bpartner_id is null)
+    for v_cur in (select distinct m_product_id from MRP_RUN_PURCHASELINE where inouttrxtype='PP' and c_bpartner_id is null and MRP_RUN_PURCHASE_id=v_Record_ID)
     LOOP
-        v_Message:=v_Message||'-'||zssi_getproductname(v_cur.m_product_id,'de_DE');
+        if v_message!='' then v_Message:=v_Message||','; end if;
+        v_Message:=v_Message||(select value from m_product where m_product_id=v_cur.m_product_id);        
     END LOOP;
     if v_message!='' then
-        v_message:='Artikel ohne Einkaufsdaten vorhanden '||v_Message;
+        v_message:='@productwithoutpurchase@'||': '||v_Message;
+    else 
+        v_Message:='@purchaselistcreated@';
     end if;
     PERFORM AD_UPDATE_PINSTANCE(p_PInstance_ID, NULL, 'N', v_Result, v_Message) ;
   END; --BODY

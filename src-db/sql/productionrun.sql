@@ -1102,6 +1102,7 @@ select zsse_DropFunction ('zssm_calcBOMAttributions');
 CREATE OR REPLACE FUNCTION zssm_calcBOMAttributions(p_porder_id varchar,p_product_id varchar,p_attrsetinstance_id varchar) RETURNS void AS
 $BODY$ 
 DECLARE 
+    v_line numeric;
     v_cur record;
     v_cur2 record;
     v_i numeric;
@@ -1110,7 +1111,7 @@ DECLARE
     v_locator varchar;
     v_task               c_projecttask%ROWTYPE;
 BEGIN
-    if p_attrsetinstance_id is null then 
+    if p_product_id is null then 
         return;
     end if;
     select * into v_task from c_projecttask where c_project_id=p_porder_id and assembly='Y' and m_product_id=p_product_id limit 1;
@@ -1144,5 +1145,39 @@ BEGIN
                 end if;
             end if;
         END LOOP;
+    END LOOP;
+    -- AG mit Dyn. Stückliste
+    -- Dyn. Stücklistenteile werden dem AG über Namensgleichheit zugewiesen
+    for v_cur in (select * from c_projecttask where c_project_id=p_porder_id)
+    LOOP
+        -- Dyn. Durchreichen (Erste Pos. Stkl. ist zu produzierendes Gut) 
+        -- @ToDo
+        /*
+        if v_cur.assembly='N' and (select count(*) from  zspm_projecttaskbom where c_projecttask_id=v_cur.c_projecttask_id)=0 then
+            insert into zspm_projecttaskbom( zspm_projecttaskbom_id, c_projecttask_id, ad_client_id, ad_org_id, createdby, updatedby, m_product_id, quantity, date_plan, line,
+                                issuing_locator,receiving_locator)
+                    values (get_uuid(),v_cur.c_projecttask_id,v_task.ad_client_id, v_cur.ad_org_id, v_task.createdby, v_task.updatedby,
+                            p_product_id,v_task.qty,v_cur.startdate,10,v_cur.issuing_locator,v_cur.receiving_locator);
+        end if;
+        */
+        for v_cur2 in (select * from m_product_bom where m_product_id=p_product_id)
+        LOOP
+            if v_cur2.workstepname=v_cur.name then
+                select max(line) into v_line from zspm_projecttaskbom where c_projecttask_id=v_cur.c_projecttask_id;
+                v_line:=coalesce(v_line,0)+10;
+                select m_locator_id into v_locator from m_product_org where m_product_id=v_cur2.m_productbom_id and ad_org_id=v_cur.ad_org_id and (isvendorreceiptlocator='Y' or isproduction='Y') and isactive='Y';
+                if v_locator is null then
+                    select m_locator_id into v_locator from m_product where m_product_id=v_cur2.m_productbom_id;
+                end if;
+                if (select count(*) from zspm_projecttaskbom where c_projecttask_id=v_cur.c_projecttask_id and m_product_id=v_cur2.m_productbom_id)>0 then
+                    update zspm_projecttaskbom set quantity=quantity + v_task.qty*v_cur2.bomqty  where c_projecttask_id=v_cur.c_projecttask_id and m_product_id=v_cur2.m_productbom_id;
+                else
+                    insert into zspm_projecttaskbom( zspm_projecttaskbom_id, c_projecttask_id, ad_client_id, ad_org_id, createdby, updatedby, m_product_id, quantity, date_plan, line,
+                                issuing_locator,receiving_locator)
+                    values (get_uuid(),v_cur.c_projecttask_id,v_task.ad_client_id, v_cur.ad_org_id, v_task.createdby, v_task.updatedby,
+                            v_cur2.m_productbom_id,v_cur2.bomqty*v_task.qty,v_cur.startdate,v_line,v_locator,v_locator);
+                end if;
+            end if;
+        END LOOP;        
     END LOOP;
 END ; $BODY$ LANGUAGE 'plpgsql' VOLATILE  COST 100;

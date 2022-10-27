@@ -145,12 +145,25 @@ public class DocActionWorkflowOptions {
         data1 = new SQLReturnObject();
         data1.setData("ID", "CO");
         v.addElement(data1);
+        if(DocActionWorkflowData.getMovementtypeFromGoodsMovement(conn, key).equals("C-")){ // goods movement customer
+           data1 = new SQLReturnObject();
+           data1.setData("ID", "RS");
+           v.addElement(data1);
+        }
       }
       if (strDocStatus.equals("CO")) {
         data1 = new SQLReturnObject();
         data1.setData("ID", "RC");
         v.addElement(data1);
       }
+      if (strDocStatus.equals("RS")) {
+          data1 = new SQLReturnObject();
+          data1.setData("ID", "CO");
+          v.addElement(data1);
+          data1 = new SQLReturnObject();
+          data1.setData("ID", "RE");
+          v.addElement(data1);
+        }
     //Requisition  Document Workflow
     //
     } else if (strTable.equals("800212")) { // M_Requisition

@@ -79,16 +79,32 @@ public class PdcMainDialogue  extends HttpSecureAppServlet {
         String strOutput ="" ; //The html-code as Output
         //CommandIn Decisions
     	 vars.setSessionValue("PDCFORMERDIALOGUE","/org.openz.pdc.ad_forms/PdcMainDialogue.html");
+    	 if (vars.commandIn("PRINT")){    		  
+	    	  // Printing with Popup
+	    	  HashMap<String, Object> parameters = new HashMap<String, Object>();
+	    	  parameters.put("DOCUMENT_ID", vars.getSessionValue("pdcLASTConsumptionID"));
+	    	  String strReportName = "@basedesign@/org/openbravo/zsoft/smartui/printing/Rpt_ShipmentLabel_71x71.jrxml";
+	    	  renderJR(vars, response, strReportName, "pdf", parameters, null, null);	
+	    	  return;
+	    	  // Just for Info: Print direct to File (for Auto-Print queue..)
+	    	  //renderJR(vars, response, strReportName, "pdfFILE", parameters, data, null);	
+	    	  //String repfile=this.getCreatedFile();
+     	}
     	if (vars.commandIn("RESET")){
     		response.sendRedirect(strDireccion + "/security/Menu.html");
     	}
         if (vars.commandIn("SAVE_NEW_NEW")){          
-          PdcMainDialogueData data[] = PdcMainDialogueData.selectbarcode(this, strbarcode);
+        	PdcCommonData[] data  = PdcCommonData.selectbarcode(this, strbarcode);
         if (data.length==1){
-          PdcMainDialogueData mydatarow =data[0];
+        	PdcCommonData mydatarow =data[0];
           
           String bctype=mydatarow.type;
           String bcid=mydatarow.id;     
+          String snrbnr=mydatarow.serialnumber;
+          if (FormatUtils.isNix(snrbnr))
+        	  snrbnr=mydatarow.lotnumber;
+          if (FormatUtils.isNix(snrbnr))
+    	  snrbnr="";
           //Workstep --> MaterialReturn
           if (bctype.equals("WORKSTEP")){
         	  PdcCommons.setWorkstepVars(bcid,null,null, vars,this); 
@@ -156,38 +172,31 @@ public class PdcMainDialogue  extends HttpSecureAppServlet {
         } else if (bctype.equals("PRODUCT")){
           vars.setSessionValue("pdcStatus",  "OK");
           vars.setSessionValue("pdcStatustext", "Barcode: "+ LocalizationUtils.getElementTextByElementName(this,bctype,vars.getLanguage())+"\r\n"+strbarcode);
-          String workstep=PdcCommonData.getWorkstepFromProduct(this, bcid);
+          String workstep=PdcCommonData.getWorkstepFromProduct4Consumption(this, bcid);
           if ( ! FormatUtils.isNix(workstep)) {
         	  vars.setSessionValue("pdcWorkstepFromMain",workstep);    
         	  PdcCommons.setWorkstepVars(workstep,null,null, vars,this); 
         	  response.sendRedirect(strDireccion + "/org.openz.pdc.ad_forms/PdcMaterialConsumption.html");
-          }	  
-          myMessage.setType("Warning");
-          myMessage.setMessage(Utility.messageBD(this, "pdc_bcnotapplicable",vars.getLanguage())+"\r\n"+strbarcode);       
-          vars.setMessage(this.getClass().getName(), myMessage);
+          }	            
+          vars.setSessionValue("pdcStatus",  "ERROR");
+          vars.setSessionValue("pdcStatustext", Utility.messageBD(this, "pdc_bcnotapplicable",vars.getLanguage())+"\r\n"+strbarcode);
           
         } else if (bctype.equals("KOMBI")) {
           vars.setSessionValue("pdcStatus",  "OK");
           vars.setSessionValue("pdcStatustext", "Barcode: "+ LocalizationUtils.getElementTextByElementName(this,bctype,vars.getLanguage())+"\r\n"+strbarcode);
-          String[] kombi=strbarcode.split("\\|");
-          String snrbnr= kombi[1];
-          String workstep=PdcCommonData.getWorkstepFromKombi(this, bcid, snrbnr);
+          String workstep=PdcCommonData.getWorkstepFromKombi4Consumption(this, bcid, snrbnr);
           if ( ! FormatUtils.isNix(workstep)) {
         	  vars.setSessionValue("pdcWorkstepFromMain",workstep);    
               PdcCommons.setWorkstepVars(null,bcid,snrbnr, vars,this); 
         	  response.sendRedirect(strDireccion + "/org.openz.pdc.ad_forms/PdcMaterialConsumption.html");
           }	  
-            myMessage.setType("Warning");
-            myMessage.setMessage(Utility.messageBD(this, "pdc_bcnotapplicable",vars.getLanguage())+"\r\n"+strbarcode);       
-            vars.setMessage(this.getClass().getName(), myMessage);
+            vars.setSessionValue("pdcStatus",  "ERROR");
+            vars.setSessionValue("pdcStatustext", Utility.messageBD(this, "pdc_bcnotapplicable",vars.getLanguage())+"\r\n"+strbarcode);
           }
         
-        else{
-          vars.setSessionValue("pdcStatus", "OK");
-          vars.setSessionValue("pdcStatustext",Utility.messageBD(this, "pdc_bcunknown",vars.getLanguage())+"\r\n"+strbarcode);       
-          myMessage.setType("Warning");
-          myMessage.setMessage(Utility.messageBD(this, "pdc_bcunknown",vars.getLanguage()));       
-          vars.setMessage(this.getClass().getName(), myMessage);
+        else{        
+          vars.setSessionValue("pdcStatus",  "ERROR");
+          vars.setSessionValue("pdcStatustext", Utility.messageBD(this, "pdc_bcunknown",vars.getLanguage())+"\r\n"+strbarcode);
       } }  
       } 
         
@@ -256,10 +265,16 @@ public class PdcMainDialogue  extends HttpSecureAppServlet {
       vars.removeSessionValue("pdcAssemblySimplyfied");
       vars.removeSessionValue("pdcAssemblyProductID");
       vars.removeSessionValue("pdcTimestamp");
-      if (! vars.getSessionValue("pdcConsumptionID").isEmpty())
+      if (! vars.getSessionValue("pdcConsumptionID").isEmpty() && vars.getSessionValue("pdcProductionID").isEmpty())
         vars.setSessionValue("pdcLASTConsumptionID", vars.getSessionValue("pdcConsumptionID"));
+      else
+    	vars.removeSessionValue("pdcConsumptionID");
       vars.removeSessionValue("pdcConsumptionID");
       vars.removeSessionValue("pdcInOutID");
+      if (! vars.getSessionValue("pdcProductionID").isEmpty())
+          vars.setSessionValue("pdcLASTConsumptionID", vars.getSessionValue("pdcProductionID"));
+      else
+      	vars.removeSessionValue("pdcConsumptionID");
       vars.removeSessionValue("pdcProductionID");
       vars.removeSessionValue("pdcUserID");
       vars.removeSessionValue("pdcLocatorID");

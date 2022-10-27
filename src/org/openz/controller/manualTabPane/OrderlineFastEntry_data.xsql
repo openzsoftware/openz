@@ -12,7 +12,7 @@
       select ol.c_orderline_ID,ol.C_Projecttask_ID,case when ol.linegrossamt=0 then ol.linenetamt else ol.linegrossamt end as amount,ol.Line,ol.M_Product_ID,
              ol.pricelist,ol.priceactual,ol.qtyordered,ol.qtydelivered,ol.qtyinvoiced,ol.discount,ol.description,
              'N' as preselected,c.name as productcategory,zssi_getuom(p.c_uom_id,?) as uom,
-             ol.ignoreresidue,ol.deliverycomplete,ol.line as seqno
+             ol.ignoreresidue,ol.deliverycomplete,ol.line as seqno,ol.auxfield1
              from c_orderline ol,m_product p , m_product_category c
              where ol.c_order_ID = ? 
              and p.m_product_id=ol.m_product_id and c.m_product_category_id=p.m_product_category_id 
@@ -44,7 +44,7 @@
    <SqlMethod name="update" connection="true" type="preparedStatement" return="rowCount">
     <SqlMethodComment></SqlMethodComment>
     <Sql>
-      UPDATE c_orderline  set m_product_id=?,QTYORDERED=to_number(?),description=?,updatedby=?,updated=now(),pricelist=to_number(?),priceactual=to_number(?),discount=to_number(?)
+      UPDATE c_orderline  set m_product_id=?,QTYORDERED=to_number(?),description=?,updatedby=?,updated=now(),pricelist=to_number(?),priceactual=to_number(?),discount=to_number(?),auxfield1=?
       WHERE c_orderline_id = ?
       </Sql>
        <Parameter name="productId"/>
@@ -54,6 +54,7 @@
       <Parameter name="pricelist"/>
       <Parameter name="priceactual"/>
       <Parameter name="discount"/>
+      <Parameter name="auxfield1"/>
        <Parameter name="corderlineId"/>
   </SqlMethod>
   <SqlMethod name="isExisting" type="preparedStatement" return="string">

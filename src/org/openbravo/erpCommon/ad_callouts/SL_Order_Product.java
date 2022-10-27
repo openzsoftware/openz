@@ -74,7 +74,11 @@ public class SL_Order_Product extends ProductTextHelper {
       String cancelPriceAd = vars.getStringParameter("inpcancelpricead");
       String strLang = vars.getLanguage();
       
-
+      vars.removeSessionValue("MESSAGE_PROD");
+      vars.removeSessionValue("MESSAGE_PROD_TEXT");
+      vars.removeSessionValue("MESSAGE_AMT");
+      vars.removeSessionValue("MESSAGE_AMT_TEXT");
+      
       try {
         printPage(response, vars, strChanged, 
             strUOM, strPriceList, strPriceStd, strPriceLimit, strCurrency,
@@ -101,6 +105,7 @@ public class SL_Order_Product extends ProductTextHelper {
     XmlDocument xmlDocument = xmlEngine.readXmlTemplate(
         "org/openbravo/erpCommon/ad_callouts/CallOut").createXmlDocument();
 
+    String messageBuffer = "";
     String strPriceActual = "";
     String strPositionText = "";
     String actualqty;
@@ -128,28 +133,25 @@ public class SL_Order_Product extends ProductTextHelper {
       // Standard- bzw. Mindest-Bestellmenge aus Einkauf (m_product_po) beruecksichtigen, wenn hinterlegt         
       if (strChanged.equals("inpmProductId")) { // ("inpqtyordered")) {
         BigDecimal qtyPurchase = new BigDecimal(SLOrderAmtData.mrp_getpo_qty(this, strMProductID, dataOrder[0].cBpartnerId, actualqty,str2ndUom,strMProductPOID));
+        vars.setSessionValue("QTYPURCHASE_PROD", qtyPurchase.toString());
         if (!actualqty.equals(qtyPurchase.toString())) {
 
           BigDecimal qtyPurchaseStd = new BigDecimal(SLOrderAmtData.mrp_getpo_qtystd(this, strMProductID, dataOrder[0].cBpartnerId,str2ndUom,strMProductPOID));
+          vars.setSessionValue("QTYPURCHASESTD_PROD", qtyPurchaseStd.toString());
           BigDecimal qtyPurchaseMin = new BigDecimal(SLOrderAmtData.mrp_getpo_qtymin(this, strMProductID, dataOrder[0].cBpartnerId,str2ndUom,strMProductPOID));
+          vars.setSessionValue("QTYPURCHASEMIN_PROD", qtyPurchaseMin.toString());
           String qtyPurchaseIsMultiple = new String(SLOrderAmtData.mrp_getpo_ismultipleofminimumqty(this, strMProductID, dataOrder[0].cBpartnerId,str2ndUom,strMProductPOID));
-          resultado.append("new Array('MESSAGE', \"" + FormatUtilities.replaceJS
-          (
-            Utility.messageBD(this, "ZSMP_PurchaseDefault",        vars.getLanguage()) + ":" +  "</br></br>" + 
-            Utility.messageBD(this, "ZSMP_PurchaseDefault_QtyStd", vars.getLanguage()) + " = " + qtyPurchaseStd.toString() + "</br>" + 
-            Utility.messageBD(this, "ZSMP_PurchaseDefault_QtyMin", vars.getLanguage()) + " = " + qtyPurchaseMin.toString() + "</br>" +
-            Utility.messageBD(this, "ZSMP_PurchaseDefault_IsMult", vars.getLanguage()) + " = " + qtyPurchaseIsMultiple.toString() + "</br></br>" +
-            Utility.messageBD(this, "ZSMP_PurchaseDefault_Qty",    vars.getLanguage()) + " = " + qtyPurchase.toString() + "  "  + // "</br>" +
-            "<input type=\"button\" value=\"Anpassen\" href=\"#\"  style=\"cursor:pointer;\" onclick=\"submitCommandFormParameter('DEFAULT', frmMain.inpLastFieldChanged, 'QtyOrdered', false, null, '../ad_callouts/SL_Order_Amt.html', 'hiddenFrame', null, null, true); return false;\" class=\"LabelLink\">"
-          ) + "\"),");
+          vars.setSessionValue("QTYPURCHASEISMULTIPLE_PROD", qtyPurchaseIsMultiple);
+          
+          messageBuffer = "ZSMP_PurchaseDefault_PLACEHOLDER,";
         }
       } 
       
       // perform link (used as button)
       if (strChanged.equals("QtyOrdered")) {
         BigDecimal qtyPurchase = new BigDecimal(SLOrderAmtData.mrp_getpo_qty(this, strMProductID, dataOrder[0].cBpartnerId, actualqty,str2ndUom,strMProductPOID));
-        resultado.append("new Array('MESSAGE', \"" + "\"),"); // reset Message, reset MessageBox
-        resultado.append("new Array('MESSAGE', \"" + FormatUtilities.replaceJS(Utility.messageBD(this, "ZSMP_PurchaseDefault_Excec", vars.getLanguage()) ) + "\"),");
+        vars.setSessionValue("QTYPURCHASE_PROD", qtyPurchase.toString());
+        messageBuffer = messageBuffer + "ZSMP_PurchaseDefault_Excec_PLACEHOLDER,";
         
         int stdPrecision = strPrecision.equals("") ? 0 : Integer.valueOf(strPrecision).intValue();
         String strInitUOM = SLInvoiceConversionData.initUOMId(this, str2ndUom);
@@ -299,10 +301,9 @@ public class SL_Order_Product extends ProductTextHelper {
     if (!strCTaxID.equals(""))
       resultado.append("new Array(\"inpcTaxId\", \"" + strCTaxID + "\"),\n");
     else
-      if (!strMProductID.equals("")) 
-	      resultado.append("new Array('MESSAGE', \""
-	          + FormatUtilities.replaceJS(Utility.messageBD(this, "NoLocationNoTaxCalculated", vars
-	              .getLanguage())) + "\"),\n");
+      if (!strMProductID.equals("")) { 
+	      messageBuffer = messageBuffer + "NoLocationNoTaxCalculated_PLACEHOLDER,";
+      }
     FieldProvider[] tld = null;
     if (strIsSOTrx.equals("N")) {
       try {
@@ -327,6 +328,12 @@ public class SL_Order_Product extends ProductTextHelper {
       } catch (Exception ex) {
         throw new ServletException(ex);
       }
+    }
+    
+    String frameContractDescription = SLOrderProductData.getFrameContractDescription(this, strCBpartnerID, strMProductID, strUOM);
+    if(!frameContractDescription.isEmpty()) {
+        vars.setSessionValue("FRAMECONTRACTDESCRIPTION_PROD", frameContractDescription);
+        messageBuffer = messageBuffer + "ZSMP_FrameContractExists_PLACEHOLDER,";
     }
     
     
@@ -364,8 +371,46 @@ public class SL_Order_Product extends ProductTextHelper {
       } else
         resultado.append("null");
       resultado.append("\n),");
-    
 
+    if(vars.getSessionValue("MESSAGE_PROD", "").isEmpty()) {
+        vars.setSessionValue("MESSAGE_PROD", messageBuffer);
+    } else if (messageBuffer.isEmpty()){
+        messageBuffer = vars.getSessionValue("MESSAGE_PROD", "");
+    } else {
+        String[] sBL = vars.getSessionValue("MESSAGE_PROD", "").split(",");
+        String newMessageBuffer = messageBuffer;
+        
+        for(String s : sBL) {
+            if(!newMessageBuffer.contains(s)) {
+                newMessageBuffer = newMessageBuffer + s + ",";
+            }
+        }
+        
+        messageBuffer = newMessageBuffer;
+        vars.setSessionValue("MESSAGE_PROD", messageBuffer);
+    }
+    
+    messageBuffer = messageBuffer
+            .replace(",", "")
+            .replace("ZSMP_PurchaseDefault_PLACEHOLDER", FormatUtilities.replaceJS
+                        (
+                          Utility.messageBD(this, "ZSMP_PurchaseDefault",        vars.getLanguage()) + ":" +  "</br></br>" + 
+                          Utility.messageBD(this, "ZSMP_PurchaseDefault_QtyStd", vars.getLanguage()) + " = " + vars.getSessionValue("QTYPURCHASESTD_PROD", "") + "</br>" + 
+                          Utility.messageBD(this, "ZSMP_PurchaseDefault_QtyMin", vars.getLanguage()) + " = " + vars.getSessionValue("QTYPURCHASEMIN_PROD", "") + "</br>" +
+                          Utility.messageBD(this, "ZSMP_PurchaseDefault_IsMult", vars.getLanguage()) + " = " + vars.getSessionValue("QTYPURCHASEISMULTIPLE_PROD", "") + "</br></br>" +
+                          Utility.messageBD(this, "ZSMP_PurchaseDefault_Qty",    vars.getLanguage()) + " = " + vars.getSessionValue("QTYPURCHASE_PROD", "") + "  "  + // "</br>" +
+                          "<input type=\"button\" value=\""
+                          + Utility.messageBD(this, "ZSMP_ButtonReset",        vars.getLanguage())
+                          + "\" href=\"#\"  style=\"cursor:pointer;\" onclick=\"submitCommandFormParameter('DEFAULT', frmMain.inpLastFieldChanged, 'QtyOrdered', false, null, '../ad_callouts/SL_Order_Amt.html', 'hiddenFrame', null, null, true); return false;\" class=\"LabelLink\">"
+                        ) + "<br>")
+            .replace("ZSMP_PurchaseDefault_Excec_PLACEHOLDER", FormatUtilities.replaceJS(Utility.messageBD(this, "ZSMP_PurchaseDefault_Excec", vars.getLanguage())) + "<br>")
+            .replace("NoLocationNoTaxCalculated_PLACEHOLDER", FormatUtilities.replaceJS(Utility.messageBD(this, "NoLocationNoTaxCalculated", vars.getLanguage())) + "<br>")
+            .replace("ZSMP_FrameContractExists_PLACEHOLDER", FormatUtilities.replaceJS(Utility.messageBD(this, "ZSMP_FrameContractExists", vars.getLanguage())) + " " + vars.getSessionValue("FRAMECONTRACTDESCRIPTION_PROD", "") + "<br>");
+
+    vars.setSessionValue("MESSAGE_PROD_TEXT", messageBuffer);
+    resultado.append("new Array('MESSAGE', \"" + "\"),"); // reset Message, reset MessageBox
+    resultado.append("new Array('MESSAGE', \"" + messageBuffer + "\"),");
+    
     resultado.append("new Array(\"EXECUTE\", \"displayLogic();\")\n");
     // Commented to keep knowledge
     //resultado.append("new Array(\"TINYDESCRIPTION\", \"tinyMCE.get('description').setContent('"+strPositionText+"');\")\n");

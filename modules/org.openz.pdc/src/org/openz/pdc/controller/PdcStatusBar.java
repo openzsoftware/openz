@@ -36,30 +36,24 @@ public class PdcStatusBar {
     }
   }
   
-  public static String getStatusBar(HttpServletRequest request,HttpSecureAppServlet servlet,VariablesSecureApp vars,Scripthelper script) {
+  public static String getStatusBarAPP(HttpServletRequest request,HttpSecureAppServlet servlet,VariablesSecureApp vars,Scripthelper script) {
 	    String color,text="";
-	    Formhelper fh= new Formhelper();
 	    if (! vars.getSessionValue("PDCSTATUS").equals("OK") && ! vars.getSessionValue("PDCSTATUS").isEmpty()) {
 	      color = "#B40404;";
-	      try {
-	        
-	        text=LocalizationUtils.getElementTextByElementName(servlet, vars.getSessionValue("PDCSTATUS") , vars.getLanguage());
-	      } catch (Exception e) {
-	        // TODO Auto-generated catch block
-	        e.printStackTrace();
-	      }
-	      text= text + " - " +  vars.getSessionValue("PDCSTATUSTEXT");
 	    }
 	    else {
 	      color="#000000;";
-	      text=vars.getSessionValue("PDCSTATUSTEXT");
 	    }
+	    text=vars.getSessionValue("PDCSTATUSTEXT");
 	    try {
-	    	String infobar;
-	      if (MobileHelper.isMobile(request))	
-	        infobar=ConfigureInfobar.doConfigureNoIcon(servlet,vars,script, text, "font-size: 20pt; color: " + color);
-	      else
-	    	infobar=ConfigureInfobar.doConfigure(servlet,vars,script, text, "font-size: 24pt; color: " + color);
+	      String infobar;	
+	      infobar=ConfigureInfobar.doConfigureNoIcon(servlet,vars,script, text, "font-size: 18pt; color: " + color);	     
+	      if (MobileHelper.isMobile(request) && MobileHelper.isScreenUpright(vars) &&
+	    		   vars.getSessionValue("PDCSTATUS").equals("OK")) {
+		      for (int i=0;i<50;i++) {
+		    	  infobar=infobar+"</br>";
+		      }
+	      }
 	      return infobar;
 	    } catch (Exception e) { 
 	      return "";

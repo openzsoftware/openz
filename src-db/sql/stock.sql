@@ -31,6 +31,12 @@ BEGIN
                values (get_uuid(),v_cur.zssi_textmodule_id,new.m_inout_id,new.ad_client_id,new.ad_org_id,new.createdby,new.updatedby,v_cur.position,v_cur.islower,v_cur.text);
      END LOOP;
   end if; --Inserting 
+  IF TG_OP = 'UPDATE' THEN 
+    if new.pdcpickinprogress='N' and old.pdcpickinprogress='Y' and new.docstatus='DR' and new.processed='N' then
+        delete from snr_minoutline where m_inoutline_id in (select m_inoutline_id from m_inoutline where m_inout_id=new.m_inout_id);
+        update m_inoutline set qtycontrolcount=0,whtcontrol=0 where m_inout_id=new.m_inout_id;
+    end if;
+  END IF;
   IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
 END ; $_$;
 
@@ -38,7 +44,7 @@ END ; $_$;
 drop trigger m_inout_trg2 on  m_inout;
 
 CREATE TRIGGER m_inout_trg2
-  AFTER INSERT
+  AFTER INSERT OR UPDATE
   ON m_inout
   FOR EACH ROW
   EXECUTE PROCEDURE m_inout_trg2();
@@ -61,37 +67,84 @@ CREATE OR REPLACE FUNCTION m_inout_trg_prov() RETURNS trigger
 ****************************************************************************************************************************************************/
 
   v_movementType VARCHAR(60) ;
-    
+  v_cur record;  
 BEGIN
     
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
     END IF;
-
-  SELECT(
-    CASE isSOTrx
-      WHEN 'N'
-      THEN 'V+'
-      ELSE 'C-'
-    END
-    )
-  INTO v_movementType
-  FROM C_DOCTYPE
-  WHERE C_DocType_ID=NEW.C_DocType_ID;
-  -- On Customer-Returns:
-  If NEW.C_DocType_ID='2317023F9771481696461C5EAF9A0915' then
-     v_movementType:='C+';
-  end if;
-  -- Vendor Returns
-  If NEW.C_DocType_ID='2E1E735AA91A49F8BC7181D31B09B370' then
-   v_movementType:='V-';
-  end if;  
-  NEW.MOVEMENTTYPE:=v_movementType;
+  IF TG_OP = 'INSERT' THEN
+    SELECT(
+        CASE isSOTrx
+        WHEN 'N'
+        THEN 'V+'
+        ELSE 'C-'
+        END
+        )
+    INTO v_movementType
+    FROM C_DOCTYPE
+    WHERE C_DocType_ID=NEW.C_DocType_ID;
+    -- On Customer-Returns:
+    If NEW.C_DocType_ID='2317023F9771481696461C5EAF9A0915' then
+        v_movementType:='C+';
+    end if;
+    -- Vendor Returns
+    If NEW.C_DocType_ID='2E1E735AA91A49F8BC7181D31B09B370' then
+    v_movementType:='V-';
+    end if;  
+    NEW.MOVEMENTTYPE:=v_movementType;
+  END IF;
+  IF TG_OP = 'UPDATE' THEN 
+    if new.docstatus != 'DR' then new.pdcpickinprogress:='N'; end if;
+  END IF;
 IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
 
 END ; $_$;
 
+select zsse_dropfunction('m_qty_reserved');
+CREATE OR REPLACE FUNCTION m_qty_reserved(p_product_id character varying, p_locator_id character varying, p_attributesetinstance_id character varying)
+  RETURNS numeric AS
+$BODY$ DECLARE
+  v_qty numeric;
+BEGIN
+  SELECT COALESCE(SUM(movementqty), 0) INTO v_qty FROM m_inoutline WHERE m_product_id = p_product_id AND m_locator_id = p_locator_id
+                                          AND COALESCE(p_attributesetinstance_id, '0') = COALESCE(m_attributesetinstance_id, '0')
+                                          AND (SELECT docstatus FROM m_inout WHERE m_inout_id=m_inoutline.m_inout_id) = 'RS';
+  return v_qty;
+END; $BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
 
 
+-- get reserved movements documentnumbers as string
+select zsse_dropfunction('m_inout_get_reserved_movements');
+CREATE OR REPLACE FUNCTION m_inout_get_reserved_movements(p_product_id character varying, p_locator_id character varying, p_attributesetinstance_id character varying, p_documentno character varying)
+  RETURNS VARCHAR AS
+$BODY$ DECLARE
+  v_reservedmovements_cur RECORD;
+  v_reservedmovements VARCHAR = '';
+  v_reserved_product_name VARCHAR = '';
+BEGIN
+  SELECT name INTO v_reserved_product_name FROM m_product WHERE m_product_id = p_product_id;
+  FOR v_reservedmovements_cur IN SELECT * FROM m_inout WHERE docstatus = 'RS'
+                                AND (SELECT count(*) FROM m_inoutline WHERE m_inoutline.m_inout_id = m_inout_id
+                                   AND m_inoutline.m_product_id = p_product_id
+                                   AND m_inoutline.m_locator_id = p_locator_id
+                                   AND COALESCE(m_inoutline.m_attributesetinstance_id, '0') = COALESCE(p_attributesetinstance_id, '0')
+                                   ) > 0
+  LOOP
+    IF(v_reservedmovements = '') THEN
+      v_reservedmovements = v_reserved_product_name || ': ' || v_reservedmovements_cur.documentno;
+    ELSE
+      v_reservedmovements := v_reservedmovements || ', ' || v_reservedmovements_cur.documentno;
+    END IF;
+  END LOOP;
+  IF(v_reservedmovements = '') THEN
+  v_reservedmovements := v_reserved_product_name || ': ' || p_documentno;
+  END IF;
+  return v_reservedmovements;
+END; $BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
 
 --
 -- Name: m_inout_post(character varying, character varying); Type: FUNCTION; Schema: public; Owner: tad
@@ -159,6 +212,7 @@ CREATE OR REPLACE FUNCTION m_inout_post(p_pinstance_id character varying, p_inou
     --
     Cur_InOut RECORD;
     Cur_InOutLine RECORD;
+    v_inoutline_cur RECORD;
     Cur_Order RECORD;
     v_Cur_Set   RECORD;
     --
@@ -357,9 +411,49 @@ CREATE OR REPLACE FUNCTION m_inout_post(p_pinstance_id character varying, p_inou
           RAISE NOTICE '%','Shipment_ID=' || Cur_InOut.M_InOut_ID || ', Doc=' || Cur_InOut.DocumentNo || ', Status=' || Cur_InOut.DocStatus || ', Action=' || Cur_InOut.DocAction ;
           v_ResultStr:='HeaderLoop';
 /**
+* Processing Reservations
+*/
+    IF(Cur_InOut.Processed='N' AND Cur_InOut.DocStatus='DR' AND Cur_InOut.DocAction='RS') THEN
+        -- check for reserved movements
+        FOR v_inoutline_cur IN SELECT * FROM m_inoutline WHERE m_inoutline.m_inout_id = Cur_InOut.m_inout_id
+        LOOP
+          IF(Cur_InOut.movementtype ='C-' AND (m_bom_qty_onhand(v_inoutline_cur.m_product_id, NULL, v_inoutline_cur.m_locator_id, v_inoutline_cur.m_attributesetinstance_id)
+                                                    - m_qty_reserved(v_inoutline_cur.m_product_id, v_inoutline_cur.m_locator_id, v_inoutline_cur.m_attributesetinstance_id)
+                                                    < v_inoutline_cur.movementqty)) THEN
+            raise exception '%', '@reservedGoodsCannotBeDelivered@' || ' ' || m_inout_get_reserved_movements(v_inoutline_cur.m_product_id, v_inoutline_cur.m_locator_id, v_inoutline_cur.m_attributesetinstance_id, Cur_InOut.documentno);
+          END IF;
+        END LOOP;
+        UPDATE M_INOUT SET
+            Processed='Y',
+            DocStatus='RS',
+            DocAction='CO',
+            Updated=TO_DATE(NOW()),
+            UpdatedBy=v_User
+          WHERE M_INOUT.M_INOUT_ID=Cur_InOut.M_INOUT_ID;
+
+    ELSIF(Cur_InOut.Processed='Y' AND Cur_InOut.DocStatus='RS' AND Cur_InOut.DocAction='RE') THEN
+        UPDATE M_INOUT SET
+            Processed='N',
+            DocStatus='DR',
+            DocAction='CO',
+            Updated=TO_DATE(NOW()),
+            UpdatedBy=v_User
+          WHERE M_INOUT.M_INOUT_ID=Cur_InOut.M_INOUT_ID;
+/**
 * Processing Shipment not processed
 */
-    IF(Cur_InOut.Processed='N' AND Cur_InOut.DocStatus='DR' AND Cur_InOut.DocAction='CO') THEN
+    ELSIF((Cur_InOut.Processed='N' AND Cur_InOut.DocStatus='DR') OR (Cur_InOut.Processed='Y' AND Cur_InOut.DocStatus='RS') AND Cur_InOut.DocAction='CO') THEN
+        -- check for reserved movements
+        IF(Cur_InOut.Processed='N' AND Cur_InOut.DocStatus='DR') THEN
+          FOR v_inoutline_cur IN SELECT * FROM m_inoutline WHERE m_inoutline.m_inout_id = Cur_InOut.m_inout_id
+          LOOP
+            IF(Cur_InOut.movementtype = 'C-' AND (m_bom_qty_onhand(v_inoutline_cur.m_product_id, NULL, v_inoutline_cur.m_locator_id, v_inoutline_cur.m_attributesetinstance_id)
+                                                      - m_qty_reserved(v_inoutline_cur.m_product_id, v_inoutline_cur.m_locator_id, v_inoutline_cur.m_attributesetinstance_id)
+                                                      < v_inoutline_cur.movementqty) and m_qty_reserved(v_inoutline_cur.m_product_id, v_inoutline_cur.m_locator_id, v_inoutline_cur.m_attributesetinstance_id)>0 ) THEN
+              raise exception '%', '@reservedGoodsCannotBeDelivered@' || ' ' || m_inout_get_reserved_movements(v_inoutline_cur.m_product_id, v_inoutline_cur.m_locator_id, v_inoutline_cur.m_attributesetinstance_id, Cur_InOut.documentno);
+            END IF;
+          END LOOP;
+        END IF;
             -- For all active shipment lines
             v_ResultStr:='HeaderLoop-1';
         SELECT COUNT(*) INTO v_Aux
@@ -1098,6 +1192,7 @@ select
         o.c_order_id, 
         o.documentno, 
         o.dateordered, 
+        o.priorityrule,
         o.c_doctype_id, 
         l.c_project_id,
         l.c_projecttask_id,
@@ -1133,6 +1228,7 @@ from
 	c_order o left join m_shipper ms on ms.m_shipper_id=o.m_shipper_id left join Zspr_Printinfo pc on pc.ad_org_id=o.ad_org_id,c_orderline l,c_bpartner bp,m_product p
 where 
 	o.c_order_id = l.c_order_id 
+	and o.deliverycomplete='N'
         and o.c_bpartner_id=bp.c_bpartner_id
         and l.m_product_id=p.m_product_id
         and m_isinoutcandidate(l.c_orderline_id)='Y'
@@ -1179,7 +1275,7 @@ join
         c_orderline l on o.c_order_id = l.c_order_id
 where 
         o.docstatus = 'CO' and 
-        o.isdelivered = 'N' and 
+        o.deliverycomplete = 'N' and 
         (o.c_doctype_id in ( select c_doctype.c_doctype_id from c_doctype where c_doctype.docbasetype in ('SOO','POO') )) and 
         l.qtyordered <> l.qtydelivered and l.directship = 'N'::bpchar and l.m_product_id is not null and 
         l.deliverycomplete='N' and
@@ -1219,10 +1315,19 @@ BEGIN
             select weight*new.qtycount  into new.weight from m_product where m_product_id=new.m_product_id;
         end if;
     end if;
-  
     IF (TG_OP = 'UPDATE' OR TG_OP = 'INSERT') then
         if (select m_warehouse_id from m_locator where m_locator_id=new.m_locator_id)!=(select m_warehouse_id from m_inventory where m_inventory_id=new.m_inventory_id) then
             RAISE EXCEPTION '%', '@orgOfLocatorDifferentStockthenTransaction@' ;
+        end if;
+        select count(*) into v_count from m_inventoryline il,m_inventory i where i.m_inventory_id=il.m_inventory_id and i.m_inventory_id!=new.m_inventory_id and i.processed='N' and il.m_locator_id=new.m_locator_id;
+        if v_count>0 then
+            RAISE EXCEPTION '%', '@RunningInventory@ (' ||(select value from m_locator where m_locator_id=new.m_locator_id)||')';
+        end if;
+        if (select count(*) from m_locator where m_locator_id=new.m_locator_id and isactive='Y')=0 then
+            RAISE EXCEPTION '%', 'Locator is not active';
+        end if;
+        if (select count(*) from m_product where m_product_id=new.m_product_id and isactive='Y')=0 then
+            RAISE EXCEPTION '%', 'Product is not active';
         end if;
     end if;
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; END IF;
@@ -1480,10 +1585,8 @@ CREATE OR REPLACE FUNCTION m_inventory_listcreate(pinstance_id character varying
         s.C_UOM_ID,
         s.M_Product_UOM_ID,
         s.M_AttributeSetInstance_ID
-      FROM M_Product p
-      INNER JOIN M_Storage_Detail s
-        ON(s.M_Product_ID=p.M_Product_ID) --SZ: Bugfix: Do not join in Product-Org - avoid duplicate lines
-      WHERE p.AD_Client_ID=v_Client_ID  --    only ..
+      FROM M_Product p,M_Storage_Detail s, m_locator m
+      WHERE s.M_Product_ID=p.M_Product_ID  and s.m_locator_id=m.m_locator_id
         AND(v_ProductValue IS NULL
         OR UPPER(p.Value) LIKE v_ProductValue)
         AND(v_Locator_ID IS NULL
@@ -1494,8 +1597,11 @@ CREATE OR REPLACE FUNCTION m_inventory_listcreate(pinstance_id character varying
         AND(v_Product_Category_ID IS NULL
         OR p.M_Product_Category_ID=v_Product_Category_ID)
         AND p.ISACTIVE='Y'
+        AND p.IsStocked='Y'
+        AND p.producttype='I'
+        AND m.isactive='Y'
         AND NOT EXISTS
-        (SELECT *
+        (SELECT 0
         FROM M_InventoryLine l
         WHERE l.M_Inventory_ID=v_Record_ID
           AND l.M_Product_ID=s.M_Product_ID
@@ -1747,6 +1853,8 @@ AS $_$ DECLARE
   counti numeric;
   v_tempin varchar;
   v_tempppp numeric;
+  full_lotnumber varchar;
+  number_movement numeric;
 /******************************************************************************
  * The contents of this file are subject to the   Compiere License  Version 1.1
  * ("License"); You may not use this file except in compliance with the License
@@ -1878,6 +1986,7 @@ BEGIN
  -- Fill serial or Batch Numbers fully automatically, if configured. 
  IF (TG_OP = 'INSERT') OR (TG_OP = 'UPDATE' and (new.m_locator_id!=old.m_locator_id or new.m_product_id!=old.m_product_id or old.movementqty!=new.movementqty)) THEN
     select isserialtracking,isbatchtracking into v_serial,v_batch from m_product where m_product_id=new.m_product_id;
+    number_movement = (select movementqty from M_InOutLine where m_inoutline_id=new.m_inoutline_id);
     if c_getconfigoption('autoselectlotnumber',new.ad_org_id)='Y'  and  v_movementtype = ('V+') and v_batch='Y' and v_serial='N' and
         (select coalesce(description,'') from m_inout where m_inout_id=new.m_inout_id) not like '(*R*: %' then
 	delete from  snr_minoutline where m_inoutline_id=new.m_inoutline_id; 	    
@@ -1887,20 +1996,45 @@ BEGIN
             loop
                  if counti < new.quantityorder then 
                     insert into snr_minoutline(snr_minoutline_id,AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY, UPDATEDBY,m_inoutline_id,quantity,lotnumber )
-                    values (get_uuid(),new.AD_CLIENT_ID, new.AD_ORG_ID,  new.CREATEDBY, new.UPDATEDBY,new.m_inoutline_id,round(new.movementqty/new.quantityorder,0),getAutoLotNo(new.ad_org_id, 'N' ,v_tempin)); 
+                    values (get_uuid(),new.AD_CLIENT_ID, new.AD_ORG_ID,  new.CREATEDBY, new.UPDATEDBY,new.m_inoutline_id,round(new.movementqty/new.quantityorder,0),getAutoLotNo(new.ad_org_id, 'N' ,v_tempin, 'batch')); 
                  else
                     v_batchqty:=new.movementqty-(select coalesce(sum(quantity),0) from snr_minoutline where m_inoutline_id=new.m_inoutline_id);
                     insert into snr_minoutline(snr_minoutline_id,AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY, UPDATEDBY,m_inoutline_id,quantity,lotnumber )
-                    values (get_uuid(),new.AD_CLIENT_ID, new.AD_ORG_ID,  new.CREATEDBY, new.UPDATEDBY,new.m_inoutline_id,v_batchqty,getAutoLotNo(new.ad_org_id, 'N' ,v_tempin)); 
+                    values (get_uuid(),new.AD_CLIENT_ID, new.AD_ORG_ID,  new.CREATEDBY, new.UPDATEDBY,new.m_inoutline_id,v_batchqty,getAutoLotNo(new.ad_org_id, 'N' ,v_tempin, 'batch')); 
                  end if;
                  counti:=counti+1;
             end loop;
         else
             insert into snr_minoutline(snr_minoutline_id,AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY, UPDATEDBY,m_inoutline_id,quantity,lotnumber )
-                    values (get_uuid(),new.AD_CLIENT_ID, new.AD_ORG_ID,  new.CREATEDBY, new.UPDATEDBY,new.m_inoutline_id,new.movementqty,getAutoLotNo(new.ad_org_id, 'N' ,v_tempin)); 
+                    values (get_uuid(),new.AD_CLIENT_ID, new.AD_ORG_ID,  new.CREATEDBY, new.UPDATEDBY,new.m_inoutline_id,new.movementqty,getAutoLotNo(new.ad_org_id, 'N' ,v_tempin, 'batch')); 
                     counti:=counti+1;
         end if; 
+    elsif c_getconfigoption('autoselectserialnumber',new.ad_org_id)='Y'  and v_batch='N' and v_serial='Y'  and v_movementtype = ('V+') and
+        (select coalesce(description,'') from m_inout where m_inout_id=new.m_inout_id) not like '(*R*: %' then
+	delete from  snr_minoutline where m_inoutline_id=new.m_inoutline_id; 	    
+	v_tempin:= new.m_inoutline_id;
+        FOR counti IN 1..number_movement
+            loop
+            insert into snr_minoutline(snr_minoutline_id,AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY, UPDATEDBY,m_inoutline_id,quantity,serialnumber )
+                    values (get_uuid(),new.AD_CLIENT_ID, new.AD_ORG_ID,  new.CREATEDBY, new.UPDATEDBY,new.m_inoutline_id,1,getAutoLotNo(new.ad_org_id, 'N' ,v_tempin, 'serial')); 
+                    counti:=counti+1;
+            end loop;
+        
+    elsif c_getconfigoption('autoselectserialnumber',new.ad_org_id)='Y' and c_getconfigoption('autoselectlotnumber',new.ad_org_id)='Y' and  v_movementtype = ('V+') and v_batch='Y' and v_serial='Y' and
+        (select coalesce(description,'') from m_inout where m_inout_id=new.m_inout_id) not like '(*R*: %' then
+	delete from  snr_minoutline where m_inoutline_id=new.m_inoutline_id; 	    
+	v_tempin:= new.m_inoutline_id;
+            full_lotnumber = getAutoLotNo(new.ad_org_id, 'N' ,v_tempin, 'batch');
+            FOR counti IN 1..number_movement
+            loop
+            insert into snr_minoutline(snr_minoutline_id,AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY, UPDATEDBY,m_inoutline_id,quantity, lotnumber, serialnumber )
+                    values (get_uuid(),new.AD_CLIENT_ID, new.AD_ORG_ID,  new.CREATEDBY, new.UPDATEDBY,new.m_inoutline_id,1,full_lotnumber, getAutoLotNo(new.ad_org_id, 'N' ,v_tempin, 'serial')); 
+                    counti:=counti+1;
+            end loop;
+        
     end if;
+    
+    ----
 	       
     if c_getconfigoption('autoaddbatchandserial2delivery',new.ad_org_id)='Y'  and  v_movementtype = 'C-' and 
        (select coalesce(description,'') from m_inout where m_inout_id=new.m_inout_id) not like '(*R*: %' then
@@ -1955,7 +2089,6 @@ IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
 END; $_$;
 
 
-ALTER FUNCTION public.m_inoutline_trg() OWNER TO tad;
 
 CREATE OR REPLACE FUNCTION m_inout_create(p_pinstance_id character varying, OUT p_inout_id character varying, p_order_id character varying, p_invoice_id character varying, p_forcedelivery character, p_locator_id character varying) RETURNS character varying
     LANGUAGE plpgsql
@@ -2044,6 +2177,11 @@ For Manual Shipments a new Function was Created - This one is tooo chaotic.
     v_lineid varchar;
     v_isserial boolean:=false;
     v_batch   varchar;
+    v_option varchar;
+    v_sortord numeric;
+    v_combined varchar:='N';
+    v_cur record;
+    v_setqty numeric;
   BEGIN
     -- Process Parameters
     IF(p_PInstance_ID IS NOT NULL) THEN
@@ -2071,6 +2209,12 @@ For Manual Shipments a new Function was Created - This one is tooo chaotic.
         ORDER BY p.SeqNo) LOOP
         v_allownegativestock := cur_parameter.allownegativestock;
         v_Record_ID:=Cur_Parameter.Record_ID;
+        if Cur_Parameter.parametername='Selection' then
+            v_option:=Cur_Parameter.p_string;
+        end if;
+        if Cur_Parameter.parametername='Combined' then
+            v_combined:=Cur_Parameter.p_string;
+        end if;
       END LOOP; -- Get Parameter
       RAISE NOTICE '%','  v_Record_ID=' || v_Record_ID ;
     ELSIF(p_Invoice_ID IS NOT NULL) THEN
@@ -2098,14 +2242,62 @@ For Manual Shipments a new Function was Created - This one is tooo chaotic.
       select count(*) into v_count from c_generateminoutmanual where m_inoutline_id is null and pinstance_id=p_pinstance_id;
       
       IF(v_count>0) THEN
+        /******************************************************************************************************************************************
+        * Sequence for Sorting by Locator: Keep Orders together (Combined: One Shipment per Business Partner, not Combined: One Shipment per Order) 
+        ******************************************************************************************************************************************/
+        if v_option='DELBYLOCATOR' then
+            perform zsse_droptable ('mOrdersProcessed');
+            create temporary table mOrdersProcessed(
+                c_order_id character varying(32)  not null
+            )  ON COMMIT DROP;
+            v_sortord:=1; 
+            if v_combined='Y' then -- Sort By Business Partner and Locator
+                update c_generateminoutmanual set deliverycomplete='C' where pinstance_id=p_pinstance_id; 
+                for Cur_Lines in (select  gm.c_order_id,o.c_bpartner_id from  c_generateminoutmanual gm,c_order o,m_locator l
+                                        where l.m_locator_id=gm.m_locator_id and pinstance_id=p_pinstance_id and o.c_order_id=gm.c_order_id
+                                        order by o.c_bpartner_id,l.priorityno,l.x,l.y,l.z)
+                LOOP
+                    if (select count(*) from mOrdersProcessed where c_order_id=Cur_Lines.c_order_id)=0 then
+                        for v_cur in (select gm.c_generateminoutmanual_id from  c_generateminoutmanual gm,c_order o,m_locator l
+                                            where o.c_bpartner_id=Cur_Lines.c_bpartner_id and l.m_locator_id=gm.m_locator_id and o.c_order_id=gm.c_order_id
+                                            order by l.priorityno,l.x,l.y,l.z)
+                        LOOP
+                            update c_generateminoutmanual set oderedseq=v_sortord where c_generateminoutmanual_id=v_cur.c_generateminoutmanual_id;
+                            v_sortord:=v_sortord+1;
+                        END LOOP;
+                        insert into mOrdersProcessed(c_order_id) values (Cur_Lines.c_order_id);
+                    end if;
+                END LOOP;
+            else -- Not Combined : Sort By Locator and keep orders together       
+                for Cur_Lines in (select  gm.c_order_id from  c_generateminoutmanual gm,m_locator l
+                                        where l.m_locator_id=gm.m_locator_id and pinstance_id=p_pinstance_id
+                                        order by l.priorityno,l.x,l.y,l.z)
+                LOOP
+                    if (select count(*) from mOrdersProcessed where c_order_id=Cur_Lines.c_order_id)=0 then
+                        for v_cur in (select gm.c_generateminoutmanual_id from  c_generateminoutmanual gm,m_locator l
+                                            where gm.c_order_id=Cur_Lines.c_order_id and l.m_locator_id=gm.m_locator_id
+                                            order by l.priorityno,l.x,l.y,l.z)
+                        LOOP
+                            update c_generateminoutmanual set oderedseq=v_sortord where c_generateminoutmanual_id=v_cur.c_generateminoutmanual_id;
+                            v_sortord:=v_sortord+1;
+                        END LOOP;
+                        insert into mOrdersProcessed(c_order_id) values (Cur_Lines.c_order_id);
+                    end if;
+                END LOOP;
+            end if;
+        end if;
         /**************************************************************************
         * Reimplemented with Generate shipmentsmanual
         *************************************************************************/
-        FOR Cur_lines in (SELECT ol.*,  gm.Qty AS pendingqty, gm.deliverycomplete as pendingdeliverycomplete,o.c_bpartner_id,
-                                 gm.m_locator_id pendinglocator,gm.c_generateminoutmanual_id,trunc(coalesce(gm.movementdate,now())) as MovementDate
-                             FROM c_orderline ol, c_generateminoutmanual gm,c_order o where o.c_order_id=ol.c_order_id and
-                                  ol.c_orderline_id=gm.c_orderline_id and gm.m_inoutline_id is null and pinstance_id=p_pinstance_id
-                             ORDER By o.c_bpartner_id,gm.c_order_id,ol.line for update)
+        FOR Cur_lines in (SELECT ol.*,  gm.Qty AS pendingqty, gm.deliverycomplete as pendingdeliverycomplete,o.c_bpartner_id,b.name,p.issetitem,gm.m_product_id as M_gmProduct_ID,
+                                 gm.m_locator_id as pendinglocator,gm.c_generateminoutmanual_id,trunc(coalesce(gm.movementdate,now())) as MovementDate
+                             FROM c_orderline ol, m_product p, c_generateminoutmanual gm left join m_locator l on l.m_locator_id=gm.m_locator_id,c_order o,c_bpartner b 
+                                  where o.c_order_id=ol.c_order_id and b.c_bpartner_id=o.c_bpartner_id and
+                                  ol.c_orderline_id=gm.c_orderline_id and gm.m_inoutline_id is null and pinstance_id=p_pinstance_id and p.m_product_id=ol.m_product_id
+                             ORDER By 
+                                 case when v_option='DELBYPRIORITY' then (o.priorityrule,o.dateordered,o.documentno,l.priorityno,l.x,l.y,l.z,p.value)
+                                      when v_option='DELBYLOCATOR'  then (gm.oderedseq,o.priorityrule)
+                                      else (b.name,o.documentno,ol.line) end)
         LOOP
               -- New shipment
               If (v_OrderId!=Cur_lines.c_order_id and (Cur_lines.pendingdeliverycomplete!='C' or v_OrderId='')) 
@@ -2178,13 +2370,13 @@ For Manual Shipments a new Function was Created - This one is tooo chaotic.
                  v_lines:=0;
                 end if; -- New schipment
                 -- Create a Line
-                 select isserialtracking,isbatchtracking into v_serial,v_batch from m_product where m_product_id=Cur_lines.m_product_id;
+                 select isserialtracking,isbatchtracking into v_serial,v_batch from m_product where m_product_id=Cur_lines.M_gmProduct_ID;
                 -- check availability.
                 if v_issotrx='Y' then
-                      v_LocatorQty:=m_bom_qty_onhand(Cur_lines.m_product_id, null,Cur_lines.pendinglocator);
+                      v_LocatorQty:=m_bom_qty_onhand(Cur_lines.M_gmProduct_ID, null,Cur_lines.pendinglocator);
                       if v_LocatorQty < Cur_lines.pendingqty and v_allownegativestock='N' and p_ForceDelivery='N' then
                          select documentno into v_orderdoc from c_order where c_order_id=Cur_lines.c_order_id;
-                         v_Message:=v_Message|| '@Order@: ' ||v_orderdoc||',  @OrderLine@: ' || Cur_lines.Line || ', @ForProduct@ ' || zssi_getproductname(Cur_lines.m_product_id,'de_DE') || ': @notEnoughStock@<br />';
+                         v_Message:=v_Message|| '@Order@: ' ||v_orderdoc||',  @OrderLine@: ' || Cur_lines.Line || ', @ForProduct@ ' || zssi_getproductname(Cur_lines.M_gmProduct_ID,'de_DE') || ': @notEnoughStock@<br />';
                          Next_Line:=true;
                       end if;
                 end if;
@@ -2196,6 +2388,12 @@ For Manual Shipments a new Function was Created - This one is tooo chaotic.
                    end if;
                    v_lines:=v_lines + 10;
                    select get_uuid() into v_lineid;
+                   if Cur_lines.issetitem='Y' then
+                     select floor(sum(gm.Qty)/coalesce((select bomqty from m_product_bom where m_product_id=Cur_lines.M_Product_ID and m_productbom_id=Cur_lines.M_gmProduct_ID),1)) into  v_setqty
+                            from c_generateminoutmanual gm where gm.c_orderline_id=Cur_lines.c_orderline_id and gm.pinstance_id=p_pinstance_id and gm.m_product_id=Cur_lines.M_gmProduct_ID;
+                   else
+                     v_setqty:=null;
+                   end if;
                    INSERT INTO M_INOUTLINE
                               (M_InOutLine_ID, Line, M_InOut_ID, C_OrderLine_ID,
                               AD_Client_ID, AD_Org_ID, CreatedBy, UpdatedBy, M_Product_ID,
@@ -2203,15 +2401,17 @@ For Manual Shipments a new Function was Created - This one is tooo chaotic.
                               IsInvoiced,QuantityOrder, M_Product_Uom_ID,
                                                           a_asset_id,
                                                           c_project_id,
-                                                          c_projecttask_id, m_attributesetinstance_id)
+                                                          c_projecttask_id, m_attributesetinstance_id,m_setproductid,setqty)
                             VALUES
                               (v_lineid, v_lines, p_InOut_ID, Cur_lines.C_OrderLine_ID,
-                              Cur_lines.AD_Client_ID, Cur_lines.AD_Org_ID,  v_user,v_user, Cur_lines.M_Product_ID,
+                              Cur_lines.AD_Client_ID, Cur_lines.AD_Org_ID,  v_user,v_user, Cur_lines.M_gmProduct_ID,
                               Cur_lines.C_UOM_ID, Cur_lines.pendinglocator, Cur_lines.pendingqty, Cur_lines.Description,
                               'N',v_2ndUOMQty,Cur_lines.m_product_uom_id,
                                                           Cur_lines.a_asset_id,
                                                           Cur_lines.c_project_id,
-                                                          Cur_lines.c_projecttask_id, cur_lines.m_attributesetinstance_id);
+                                                          Cur_lines.c_projecttask_id, cur_lines.m_attributesetinstance_id,
+                                                          case when Cur_lines.issetitem='Y' then Cur_lines.M_Product_ID else null end,v_setqty
+                                                          );
                    update c_generateminoutmanual set m_inoutline_id=v_lineid  where c_generateminoutmanual_id=Cur_lines.c_generateminoutmanual_id;
                    if v_serial='Y'  or v_batch='Y' then
                        v_isserial:=true;
@@ -2285,8 +2485,6 @@ WHEN OTHERS THEN
   RETURN;
 END ; $_$;
 
-
-ALTER FUNCTION public.m_inout_create(p_pinstance_id character varying, OUT p_inout_id character varying, p_order_id character varying, p_invoice_id character varying, p_forcedelivery character, p_locator_id character varying) OWNER TO tad;
 
 -- Function: m_internal_consumption_post(character varying)
 
@@ -2396,6 +2594,18 @@ $BODY$ DECLARE
        RAISE EXCEPTION '%', '@Inline@ '||v_line||' '||'@productWithoutAttributeSet@' ; --OBTG:-20000--
       END IF;
     END IF;--END_PROCESS
+    --
+    -- check for reserved movements
+    FOR Cur_MoveLine IN 
+        (SELECT l.*,c.documentno FROM m_internal_consumptionline l,m_internal_consumption c WHERE l.m_internal_consumption_id=c.m_internal_consumption_id and c.m_internal_consumption_id = Record_ID 
+                and c.movementtype='D-')
+    LOOP
+          IF((m_bom_qty_onhand(Cur_MoveLine.m_product_id, NULL, Cur_MoveLine.m_locator_id, Cur_MoveLine.m_attributesetinstance_id)
+                                                    - m_qty_reserved(Cur_MoveLine.m_product_id, Cur_MoveLine.m_locator_id, Cur_MoveLine.m_attributesetinstance_id)
+                                                    < Cur_MoveLine.movementqty) and m_qty_reserved(Cur_MoveLine.m_product_id, Cur_MoveLine.m_locator_id, Cur_MoveLine.m_attributesetinstance_id)>0) THEN
+            raise exception '%', '@reservedGoodsCannotBeDelivered@' || ' ' || m_inout_get_reserved_movements(Cur_MoveLine.m_product_id, Cur_MoveLine.m_locator_id, Cur_MoveLine.m_attributesetinstance_id, Cur_MoveLine.documentno);
+          END IF;
+    END LOOP;
     IF(NOT END_PROCESS) THEN
       -- Start Processing ------------------------------------------------------
       v_ResultStr:='LockingInternal_Consumption';
@@ -2729,6 +2939,8 @@ CREATE OR REPLACE FUNCTION m_inventory_post(pinstance_id character varying) RETU
     NextNo VARCHAR(32); 
     v_stockedattribute varchar;
     v_weight numeric;
+    v_consumption_id varchar;
+    v_consumptionline_id varchar;
   BEGIN
     --  Update AD_PInstance
     RAISE NOTICE '%','Updating PInstance - Processing' ;
@@ -2865,6 +3077,39 @@ CREATE OR REPLACE FUNCTION m_inventory_post(pinstance_id character varying) RETU
 
     v_ResultStr:='LockingInventory';
     UPDATE M_Inventory  SET Processing='Y'  WHERE M_Inventory_ID=v_Record_ID;
+    /**
+    * Serial-Number Transaction - Maybe a given Serial is stocked on another Locator.
+    */
+    for Cur_Lines in (select sm.m_locator_id,sm.m_product_id,snr.serialnumber,snr.ad_client_id,snr.ad_org_id,snr.createdby,sm.weight from m_inventoryline il,snr_inventoryline snr,snr_masterdata sm 
+                             where il.m_inventory_id=v_Record_ID and il.m_inventoryline_id=snr.m_inventoryline_id and sm.m_product_id=il.m_product_id  and sm.serialnumber=snr.serialnumber
+                             and sm.m_locator_id is not null and il.m_locator_id!=sm.m_locator_id)
+    LOOP
+        if v_consumption_id is null then
+            v_consumption_id:=get_uuid();
+            insert into M_INTERNAL_CONSUMPTION(M_INTERNAL_CONSUMPTION_ID, AD_CLIENT_ID, AD_ORG_ID, CREATEDBY, UPDATEDBY, NAME,  MOVEMENTDATE, MOVEMENTTYPE, DOCUMENTNO,DATEACCT)
+            values(v_consumption_id,Cur_Lines.ad_client_id,Cur_Lines.ad_org_id,Cur_Lines.createdby,Cur_Lines.createdby,
+                substr('Generated by Inventory Count:'||(select name from m_inventory where m_inventory_id=v_Record_ID),1,60),
+                (select movementdate from m_inventory where m_inventory_id=v_Record_ID),
+                'D-',ad_sequence_doc('Production',Cur_Lines.ad_org_id,'Y'),trunc(now()));
+                v_line:=0;
+        end if;
+        select M_INTERNAL_CONSUMPTIONLINE_ID into v_consumptionline_id from M_INTERNAL_CONSUMPTIONLINE where M_INTERNAL_CONSUMPTION_id=v_consumption_id and m_product_id=Cur_Lines.m_product_id and m_locator_id=Cur_Lines.m_locator_id;
+        if v_consumptionline_id is null then
+            v_consumptionline_id:=get_uuid();
+            insert into M_INTERNAL_CONSUMPTIONLINE(M_INTERNAL_CONSUMPTIONLINE_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY,  UPDATEDBY, M_INTERNAL_CONSUMPTION_ID, 
+                                                    M_LOCATOR_ID, M_PRODUCT_ID, LINE, MOVEMENTQTY,  C_UOM_ID, weight)
+            values (v_consumptionline_id,Cur_Lines.ad_client_id,Cur_Lines.ad_org_id,Cur_Lines.createdby,Cur_Lines.createdby,v_consumption_id,
+                    Cur_Lines.m_locator_id,Cur_Lines.m_product_id,v_line+10,1,(select c_uom_id from m_product where m_product_id=Cur_Lines.m_product_id),Cur_Lines.weight);
+        else
+            update m_internal_consumptionline set MOVEMENTQTY=MOVEMENTQTY+1, weight=weight+Cur_Lines.weight  where m_internal_consumptionline_id=v_consumptionline_id;
+        end if;
+        insert into snr_internal_consumptionline(snr_internal_consumptionline_ID, AD_CLIENT_ID, AD_ORG_ID, CREATEDBY, UPDATEDBY, M_INTERNAL_CONSUMPTIONLINE_ID, 
+                                                  quantity,serialnumber)
+        values(get_uuid(),Cur_Lines.ad_client_id,Cur_Lines.ad_org_id,Cur_Lines.createdby,Cur_Lines.createdby,v_consumptionline_id,1,Cur_Lines.serialnumber);
+    END LOOP;
+    if v_consumption_id is not null then
+      PERFORM m_internal_consumption_post(v_consumption_id);
+    end if;
     -- Commented by cromero 19102006 -- COMMIT;
     /**
     * Create Transaction
@@ -3015,7 +3260,7 @@ $BODY$ DECLARE
                 v_Quantity:=v_ProductQty;
              end if;
           END LOOP;
-          RETURN round(coalesce(v_Quantity,0),v_uomprec);
+          RETURN floor(coalesce(v_Quantity,0));
   
     else
           IF(p_locator_id IS NULL) THEN
@@ -3116,7 +3361,7 @@ DECLARE
 ******************************************************************************************************************************/
   v_Processed VARCHAR(60) ;
   v_M_INOUT_ID VARCHAR(32) ; 
-    
+  v_count numeric;  
 BEGIN
     
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
@@ -3131,8 +3376,7 @@ BEGIN
   
   SELECT processed  INTO v_Processed FROM M_INOUT WHERE M_INOUT_ID=v_M_INOUT_ID;
   IF TG_OP = 'UPDATE' THEN
-    IF(v_Processed='Y' AND ((COALESCE(old.LINE, 0) <> COALESCE(new.LINE, 0))
-   OR (COALESCE(old.M_PRODUCT_ID, '0') <> COALESCE(new.M_PRODUCT_ID, '0'))
+    IF(v_Processed='Y' AND ((COALESCE(old.M_PRODUCT_ID, '0') <> COALESCE(new.M_PRODUCT_ID, '0'))
    OR(COALESCE(old.QUANTITYORDER, 0) <> COALESCE(new.QUANTITYORDER, 0))
    OR(COALESCE(old.M_ATTRIBUTESETINSTANCE_ID, '0') <> COALESCE(new.M_ATTRIBUTESETINSTANCE_ID, '0'))
    OR(COALESCE(old.MOVEMENTQTY, 0) <> COALESCE(new.MOVEMENTQTY, 0))
@@ -3157,6 +3401,16 @@ BEGIN
     if new.m_product_id is null then
         RAISE EXCEPTION '%', '@Need2SupplyProductAndQty@' ;
     end if;
+    select count(*) into v_count from m_inventoryline il,m_inventory i where i.m_inventory_id=il.m_inventory_id and i.processed='N' and il.m_locator_id=new.m_locator_id;
+    if v_count>0 then
+        RAISE EXCEPTION '%', '@RunningInventory@ (' ||(select value from m_locator where m_locator_id=new.m_locator_id)||')';
+    end if;
+    if (select count(*) from m_locator where m_locator_id=new.m_locator_id and isactive='Y')=0 then
+        RAISE EXCEPTION '%', 'Locator is not active';
+    end if;
+    if (select count(*) from m_product where m_product_id=new.m_product_id and isactive='Y')=0 then
+        RAISE EXCEPTION '%', 'Product is not active';
+    end if;
   end if;
 IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
 
@@ -3164,16 +3418,65 @@ END;
 $BODY$  LANGUAGE 'plpgsql' VOLATILE  COST 100;
 
 
+-- Sets
+CREATE OR REPLACE FUNCTION M_set_Qty_outflow(p_product_id character varying, p_warehouse_id character varying)
+  RETURNS numeric AS
+$BODY$ DECLARE 
+ v_qty numeric;
+BEGIN
+  select
+       sum(case when  ol.deliverycomplete='N' then ol.qtyordered-ol.qtydelivered else 0 end) into v_qty
+       from c_order o,c_orderline ol,m_product p  ,c_doctype d
+       where o.c_doctype_id=d.c_doctype_id 
+       and o.c_order_id=ol.c_order_id and ol.m_product_id=p.m_product_id  
+       and ol.deliverycomplete='N' and p.issetitem='Y' and p.producttype='I' 
+       and d.docbasetype ='SOO' and o.docstatus='CO'
+       and o.m_warehouse_id in (select m_warehouse_id from m_warehouse where isactive='Y' and isblocked='N')
+       and o.deliverycomplete='N'
+       and (ol.qtyordered-ol.qtydelivered) > 0 
+       and o.m_warehouse_id=p_warehouse_id and ol.m_product_id=p_product_id;
+  RETURN coalesce(v_qty,0);
+END ; $BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100; 
+  
+  
+CREATE OR REPLACE FUNCTION M_FromSets_Qty_outflow(p_product_id character varying, p_warehouse_id character varying)
+  RETURNS numeric AS
+$BODY$ DECLARE 
+ v_qty numeric;
+ v_resultqty numeric:=0;
+ v_cur record;
+BEGIN
+  for v_cur in (select b.m_product_id,b.bomqty from m_product_bom b,m_product p where p.isactive='Y' and p.m_product_id=b.m_product_id and p.issetitem='Y' and b.m_productbom_id=p_product_id)
+  LOOP
+    select
+       sum(case when  ol.deliverycomplete='N' then (ol.qtyordered-ol.qtydelivered)*v_cur.bomqty else 0 end) into v_qty
+       from c_order o,c_orderline ol,m_product p  ,c_doctype d
+       where o.c_doctype_id=d.c_doctype_id 
+       and o.c_order_id=ol.c_order_id and ol.m_product_id=p.m_product_id  
+       and ol.deliverycomplete='N' and p.issetitem='Y' and p.producttype='I' 
+       and d.docbasetype ='SOO' and o.docstatus='CO'
+       and o.m_warehouse_id in (select m_warehouse_id from m_warehouse where isactive='Y' and isblocked='N')
+       and o.deliverycomplete='N'
+       and (ol.qtyordered-ol.qtydelivered) > 0 
+       and o.m_warehouse_id=p_warehouse_id and ol.m_product_id=v_cur.m_product_id;
+       v_resultqty:=v_resultqty+coalesce(v_qty,0);
+  END LOOP;
+  RETURN v_resultqty;
+END ; $BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100; 
 
-
+  -- Onhand QTY View
 select zsse_DropView ('zssi_onhanqty');
 CREATE  VIEW zssi_onhanqty AS 
-SELECT a.m_product_id,
-       a.m_warehouse_id,
+SELECT b.m_product_id,
+       case when b.issetitem='Y' and m_bom_qty_onhand(b.m_product_id,(select m_warehouse_id from m_locator where m_locator_id=b.m_locator_id),null)>0 then (select m_warehouse_id from m_locator where m_locator_id=b.m_locator_id) else a.m_warehouse_id end as m_warehouse_id,
        a.m_locator_id,
        a.m_attributesetinstance_id,
        a.c_uom_id,
-       sum(a.qtyonhand) as qtyonhand,
+       case when b.issetitem='Y' then m_bom_qty_onhand(b.m_product_id,(select m_warehouse_id from m_locator where m_locator_id=b.m_locator_id),null) else sum(a.qtyonhand) end as qtyonhand,
        sum(a.weight) as weight,
        sum(a.qtyreserved) as qtyreserved,
        sum(a.qtyincomming) as qtyincomming,
@@ -3182,19 +3485,24 @@ SELECT a.m_product_id,
        sum(a.qtyinsale) as qtyinsale,
        sum(a.qtyinsaleframe) as qtyinsaleframe,
        sum(a.qtyincomming)+sum(a.qtyordered) as qtyinflow,
-       sum(a.qtyreserved)+sum(a.qtyinsale) as qtyoutflow,
+       case when b.issetitem='Y' then  M_set_Qty_outflow(b.m_product_id,(select m_warehouse_id from m_locator where m_locator_id=b.m_locator_id)) else 
+            case when sum(a.qtyreserved)+sum(a.qtyinsale)=0 then M_FromSets_Qty_outflow(b.m_product_id,(select m_warehouse_id from m_locator where m_locator_id=b.m_locator_id)) else 
+            sum(a.qtyreserved)+sum(a.qtyinsale) end end as qtyoutflow,
        sum(a.stockmin) as stockmin,
-       a.m_product_id||coalesce(a.m_attributesetinstance_id,'')||coalesce(a.m_locator_id,'')||coalesce(a.m_warehouse_id,'') as zssi_onhanqty_id,
-       a.ad_client_id,
-       (select ad_org_id from m_warehouse where m_warehouse_ID=a.m_warehouse_id) as ad_org_id,
+       b.m_product_id||coalesce(a.m_attributesetinstance_id,'')||coalesce(a.m_locator_id,'')||coalesce(a.m_warehouse_id,'') as zssi_onhanqty_id,
+       b.ad_client_id,
+       coalesce((select ad_org_id from m_warehouse where m_warehouse_ID=a.m_warehouse_id),b.ad_org_id) as ad_org_id,
        'Y'::text as isactive,
        now() as created,
        now() as updated,
        '0'::text as createdby,
        '0'::text as updatedby,
        a.m_product_id||coalesce(a.m_attributesetinstance_id,'')||coalesce(a.m_warehouse_id,'') AS zssi_onhanqty_overview_id,
-       b.m_product_category_id
-FROM (     
+       b.m_product_category_id,
+       b.value,
+       b.name,
+       m_qty_reserved(b.m_product_id,a.m_locator_id,a.m_attributesetinstance_id) as reserved
+FROM m_product b left join (     
         -- On Hand QTY's
         SELECT sd.m_product_id,
                 ml.m_warehouse_id,
@@ -3214,7 +3522,7 @@ FROM (
                 sd.m_storage_detail_id AS zssi_onhanqty_id
         FROM m_storage_detail sd, m_locator ml
         WHERE ml.m_locator_id = sd.m_locator_id and ml.isactive='Y' 
-                   and case when coalesce(sd.m_attributesetinstance_id,'0')!='0' then sd.qtyonhand!=0 else 1=1 end
+                   and sd.qtyonhand!=0
 UNION 
         -- Orders,Frame Contracts,Production,Consumption
         SELECT b.m_product_id,
@@ -3254,19 +3562,20 @@ UNION   -- Stock Planning
                 pl.m_product_org_id AS zssi_onhanqty_id
         FROM m_product_org pl, m_product p, m_locator w 
         WHERE p.m_product_id=pl.m_product_id and  w.m_locator_id=pl.m_locator_id and pl.isactive='Y' 
-) A,
- m_product b
-WHERE  a.m_product_id=b.m_product_id
-       and b.isstocked='Y' and b.producttype='I' and b.isactive='Y'
+) A on a.m_product_id=b.m_product_id
+       where  (b.isstocked='Y' or b.issetitem='Y') and b.producttype='I' and b.isactive='Y'
 GROUP BY 
+       b.m_product_id,
        a.m_product_id,
        a.m_warehouse_id,
        a.m_locator_id,
        a.m_attributesetinstance_id,
        a.c_uom_id,
-       a.ad_client_id,
+       b.ad_client_id,
        ad_org_id,
-       b.m_product_category_id;
+       b.m_product_category_id,
+       b.value,
+       b.name;
 
 
 select zsse_DropView ('zssi_onhanqty_overview');
@@ -3296,15 +3605,18 @@ CREATE  VIEW zssi_onhanqty_overview AS
                 p.value as pvalue,c.value pcatvalue,
                 p.description,p.documentnote,
                 p.issold,
-                oh.m_product_id||coalesce(oh.m_attributesetinstance_id,'')||oh.m_warehouse_id AS zssi_onhanqty_overview_id
-        FROM zssi_onhanqty oh, m_product p, m_product_category c where c.m_product_category_id=p.m_product_category_id and p.m_product_id=oh.m_product_id
+                oh.reserved,
+                oh.m_product_id||coalesce(oh.m_attributesetinstance_id,'')||oh.m_warehouse_id AS zssi_onhanqty_overview_id,
+                p.name
+        FROM zssi_onhanqty oh, m_product p, m_product_category c where c.m_product_category_id=p.m_product_category_id and p.m_product_id=oh.m_product_id and oh.zssi_onhanqty_overview_id is not null
 group by oh.m_product_id,oh.m_product_category_id,
                 oh.m_warehouse_id,
                 oh.m_attributesetinstance_id,
                 oh.c_uom_id,
                 oh.ad_client_id,
                 oh.ad_org_id, 
-                oh.isactive,p.value,c.value,p.description,p.documentnote,p.issold;
+                oh.reserved,
+                oh.isactive,p.value,p.name,c.value,p.description,p.documentnote,p.issold;
 
  -- View to show all quantities ordered, but not needed anymore
  -- Movet to here because of cross-script dependencies.
@@ -3439,11 +3751,33 @@ $BODY$ DECLARE
 ****************************************************************************************************************************************************/
     --
     v_ProductQty numeric:=0;
+    v_ohq numeric;
+    v_out numeric;
+    v_bomqty numeric;
+    CUR_BOM record;
   BEGIN
     IF(p_locator_id IS NULL and p_warehouse_id is not null) THEN
             SELECT SUM(qtyonhand)-SUM(qtyoutflow)
                 INTO v_ProductQty
                 FROM zssi_onhanqty where m_warehouse_id=p_warehouse_id and m_product_id=p_product_id;
+            If (select issetitem from m_product where m_product_id=p_product_id)='Y' then
+                -- Calculate Aval. for Set-Items
+                for CUR_BOM in (select * from m_product_bom where m_product_id=p_Product_ID)
+                LOOP
+                    --select  SUM(qtyonhand) INTO v_ohq FROM zssi_onhanqty where m_warehouse_id=p_warehouse_id and m_product_id=CUR_BOM.m_productbom_id;
+                    --select  SUM(qtyoutflow) INTO v_out FROM zssi_onhanqty where m_warehouse_id=p_warehouse_id and m_product_id=CUR_BOM.m_productbom_id and m_locator_id is null; -- Sales
+                    --v_bomqty:=(coalesce(v_ohq,0)-coalesce(v_out,0))/CUR_BOM.bomqty;
+                    SELECT SUM(qtyonhand)-SUM(qtyoutflow)
+                        INTO v_ohq
+                    FROM zssi_onhanqty where m_warehouse_id=p_warehouse_id and m_product_id=CUR_BOM.m_productbom_id;
+                    v_bomqty:=coalesce(v_ohq,0)/CUR_BOM.bomqty;
+                    if v_bomqty<0 then v_bomqty:=0; end if;
+                    --raise notice '%','Component:'||zssi_getproductname(CUR_BOM.m_productbom_id,null)||'#'||CUR_BOM.bomqty||'#'||v_ProductQty;
+                    if v_bomqty<v_ProductQty then
+                        v_ProductQty:=floor(v_bomqty);
+                    end if;
+                END LOOP;
+            end if;
             RETURN coalesce(v_ProductQty,0);
     end if;
     -- This may be only Production (has locator)
@@ -3997,10 +4331,6 @@ IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
 END; $_$;
 
 select zsse_droptrigger('m_internal_consumptionlinechkrestictions_trg','m_internal_consumptionline');
-
-
-
-
 CREATE OR REPLACE FUNCTION m_internal_consumptionlinechkrestictions_trg()
   RETURNS trigger AS
 $BODY$ DECLARE 
@@ -4021,6 +4351,8 @@ v_qtyreceived numeric;
 v_bomplan numeric;
 v_qtyproduced numeric;
 v_qtyplan numeric;
+v_count  numeric;
+v_plannedsnr varchar;
 BEGIN
   IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; END IF;
   
@@ -4038,8 +4370,9 @@ BEGIN
   
   IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
     
-    select movementtype into v_movementtype from M_Internal_Consumption where M_Internal_Consumption_id=new.M_Internal_Consumption_ID;
-    if (new.c_projecttask_id is not null and v_movementtype='D+') then
+    select movementtype,plannedserialnumber into v_movementtype,v_plannedsnr from M_Internal_Consumption where M_Internal_Consumption_id=new.M_Internal_Consumption_ID;
+    -- Calc Consumptions on NON Serial
+    if (new.c_projecttask_id is not null and v_movementtype='D+' and v_plannedsnr is null) then
        select sum(qtyreceived),sum(quantity) into v_qtyreceived,v_bomplan from zspm_projecttaskbom where c_projecttask_id=new.c_projecttask_id and m_product_id=new.m_product_id;
        if (v_qtyreceived is null) then v_qtyreceived=0; end if;
        select qty,qtyproduced into v_qtyplan,v_qtyproduced from c_projecttask where c_projecttask_id=new.c_projecttask_id;
@@ -4054,7 +4387,27 @@ BEGIN
         end if;
        end if;
     end if;
-    if new.movementqty<0 then
+     -- Calc Consumptions on Serial 1:1
+    if (new.c_projecttask_id is not null and v_movementtype='D+' and v_plannedsnr is not null) then
+        select qty into v_qtyplan from c_projecttask where c_projecttask_id=new.c_projecttask_id;
+        select sum(quantity) into v_bomplan from zspm_projecttaskbom where c_projecttask_id=new.c_projecttask_id and m_product_id=new.m_product_id;
+        select case when c.movementtype='D+' then (-1) else (1) end * sum(l.movementqty)  into v_qtyreceived from m_internal_consumption c,m_internal_consumptionline l 
+               where l.m_internal_consumption_id=c.m_internal_consumption_id and c.c_projecttask_id=new.c_projecttask_id and c.m_internal_consumption_id!=new.m_internal_consumption_id 
+               and m_product_id=new.m_product_id and c.plannedserialnumber=v_plannedsnr and c.processed='Y' and c.movementtype in ('D+','D-')
+               group by c.movementtype;
+        if (v_qtyreceived is null) then v_qtyreceived=0; end if;       
+        -- SNR Produced? -> Nur Rst-Mat.
+        select sum(l.movementqty) into v_qtyproduced from m_internal_consumption c,m_internal_consumptionline l 
+               where l.m_internal_consumption_id=c.m_internal_consumption_id and c.c_projecttask_id=new.c_projecttask_id and c.m_internal_consumption_id!=new.m_internal_consumption_id 
+               and c.plannedserialnumber=v_plannedsnr and c.processed='Y' and c.movementtype ='P+';
+        if v_qtyproduced>0 then
+            v_qtyreceived:=round(v_qtyreceived-v_bomplan*(v_qtyproduced/v_qtyplan),3);            
+        end if;
+        if new.c_projecttask_id is not null and v_qtyreceived<round(new.movementqty,3) and c_getconfigoption('bringbackmorematerialthanreceived',new.ad_org_id)='N' then
+            RAISE EXCEPTION '%', 'SNR:'||v_plannedsnr||' @zsmf_cannotbringbackmorethanreceived@' ||v_qtyreceived||', R: '||new.movementqty||'#'||(select value from m_product where M_Product_ID=new.m_product_id); 
+        end if;
+    end if;
+   if new.movementqty<0 then
            RAISE EXCEPTION '%', '@noNegativeQtyInTransaction@'; 
    end if;
    IF (TG_OP = 'UPDATE' OR TG_OP = 'INSERT') then
@@ -4062,6 +4415,16 @@ BEGIN
         if (select ad_org_id from m_locator where m_locator_id=new.m_locator_id)!=(select ad_org_id from m_internal_consumption where m_internal_consumption_id=new.m_internal_consumption_id) then
             RAISE EXCEPTION '%', '@orgOfLocatorDifferentOrgthenTransaction@' ;
         end if;
+    end if;
+    if (select count(*) from m_locator where m_locator_id=new.m_locator_id and isactive='Y')=0 then
+        RAISE EXCEPTION '%', 'Locator is not active';
+    end if;
+    if (select count(*) from m_product where m_product_id=new.m_product_id and isactive='Y')=0 then
+        RAISE EXCEPTION '%', 'Product is not active';
+    end if;
+    select count(*) into v_count from m_inventoryline il,m_inventory i where i.m_inventory_id=il.m_inventory_id and i.processed='N' and il.m_locator_id=new.m_locator_id;
+    if v_count>0 then
+        RAISE EXCEPTION '%', '@RunningInventory@ (' ||(select value from m_locator where m_locator_id=new.m_locator_id)||')';
     end if;
   end if;
     RETURN NEW;
@@ -4305,6 +4668,8 @@ CREATE OR REPLACE FUNCTION m_transaction_trg() RETURNS trigger
   v_attrmandat VARCHAR;
   v_ATTRIBUTESETINSTANCE_ID VARCHAR;
   v_Name VARCHAR;
+  v_reservedmovements VARCHAR = '';
+  v_reservedmovements_cur RECORD;
     
 BEGIN
     
@@ -4318,10 +4683,10 @@ BEGIN
     FROM M_PRODUCT left join M_ATTRIBUTESET on M_ATTRIBUTESET.M_ATTRIBUTESET_ID=M_PRODUCT.M_ATTRIBUTESET_ID
     WHERE M_PRODUCT.M_PRODUCT_ID=NEW.M_PRODUCT_ID;
     IF(COALESCE(v_UOM_ID, '0') <> COALESCE(NEW.C_UOM_ID, '0')) THEN
-      RAISE EXCEPTION '%', 'Unit of Measure mismatch (product/transaction)' ; --OBTG:-20111--
+      RAISE EXCEPTION '%', '@unitOfMeasurementMismatch@' ; --OBTG:-20111--
     END IF;
     IF(coalesce(v_attrstocked,'N')='Y' and coalesce(v_attrmandat,'N')='Y'  AND COALESCE(NEW.M_ATTRIBUTESETINSTANCE_ID, '0') = '0') THEN
-      RAISE EXCEPTION '%', 'There are some products without attribute: ' || v_Name ; --OBTG:-20112--
+      RAISE EXCEPTION '%', '@linesWithoutAttributeSet@' || ' ' || v_Name ; --OBTG:-20112--
     END IF;
     SELECT MAX(MOVEMENTDATE)
     INTO v_DATEINVENTORY
@@ -4435,11 +4800,16 @@ This is Used for relocation of Goods
     v_uid2  varchar;
     v_cur RECORD; 
     v_cur2 RECORD;
+    v_lineid varchar;
       v_header m_internal_consumption%ROWTYPE;
       v_line m_internal_consumptionline%ROWTYPE;
       v_snr snr_internal_consumptionline%ROWTYPE;
 BEGIN
+     -- Umlagern mit Seriennummern auf genau einem Ziel-Lagerort
      if p_internalconsumption_id is null then return 'COMPILE'; end if;
+     if (select value from m_locator where m_locator_id=p_locato)='STORNO' then
+        RETURN 'STORNO';
+     end if;
      select * into v_header  from   m_internal_consumption where m_internal_consumption_id=p_internalconsumption_id;
      select get_uuid() into v_uid;
      v_header.m_internal_consumption_id:=v_uid;
@@ -4478,6 +4848,25 @@ BEGIN
                      insert into snr_internal_consumptionline select v_snr.*;
              END LOOP;
      END LOOP;
+     for v_cur in (select * from pdc_tempitems where m_internal_consumption_id=p_internalconsumption_id)
+     LOOP
+        select m_internal_consumptionline_id into v_lineid  from m_internal_consumptionline where m_internal_consumption_id=v_uid and m_product_id=v_cur.m_product_id limit 1;
+          if v_lineid is not null then
+              update m_internal_consumptionline set movementqty=movementqty+1,weight=weight+v_cur.weight where m_internal_consumptionline_id=v_lineid;
+              v_uid2:=v_lineid;
+          else            
+             select get_uuid() into v_uid2;
+             insert into m_internal_consumptionline(m_internal_consumptionline_id,ad_client_id,ad_org_id,createdby,updatedby,m_locator_id,m_product_id,movementqty,weight,c_uom_id,m_internal_consumption_id,description,line)
+             values(v_uid2,v_cur.ad_client_id,v_cur.ad_org_id,p_user,p_user,p_locato,v_cur.m_product_id,1,v_cur.weight,
+                           (select c_uom_id from m_product where m_product_id=v_cur.m_product_id),v_uid,'Generated by PDC - newitem',
+                           coalesce((select max(line)+10 from m_internal_consumptionline where m_internal_consumption_id=v_uid),10));
+          end if;
+          insert into snr_internal_consumptionline(snr_internal_consumptionline_id,ad_client_id,ad_org_id,createdby,updatedby,m_internal_consumptionline_id,serialnumber)
+          values(get_uuid(),v_cur.ad_client_id,v_cur.ad_org_id,p_user,p_user,v_uid2,v_cur.serialnumber);
+     END LOOP;
+     if (select count(*) from m_internal_consumptionline where m_internal_consumption_id=p_internalconsumption_id)=0 then
+        delete from m_internal_consumption where m_internal_consumption_id=p_internalconsumption_id;
+     end if;
      RETURN v_uid;
 END ; $_$;
 
@@ -4804,6 +5193,7 @@ License for the specific language governing rights and limitations under the Lic
 The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)
 Copyright (C) 2020 OpenZ Software GmbH  All Rights Reserved.
 *****************************************************************************************************************************************/
+    v_count numeric;
 BEGIN
   new.c_uom_id := (select c_uom_id from m_product where m_product_id=new.m_product_id);
   
@@ -4817,6 +5207,12 @@ BEGIN
         if coalesce(new.weight,0)=coalesce(old.weight,0) and (new.m_product_id!=old.m_product_id or new.movementqty!=old.movementqty) then
             select weight*new.movementqty  into new.weight from m_product where m_product_id=new.m_product_id;
         end if;
+  end if;
+  IF (TG_OP = 'UPDATE' OR TG_OP = 'INSERT') then
+    select count(*) into v_count from m_inventoryline il,m_inventory i where i.m_inventory_id=il.m_inventory_id and i.processed='N' and (il.m_locator_id=new.m_locator_id or il.m_locator_id=new.m_locatorto_id);
+    if v_count>0 then
+            RAISE EXCEPTION '%', '@RunningInventory@' ;
+    end if;
   end if;
   IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
 END ; $_$;
@@ -5082,3 +5478,145 @@ WHEN OTHERS THEN
   RETURN;
 END ; $_$;
 
+CREATE OR REPLACE FUNCTION m_move_locator(pinstance_id character varying) RETURNS void
+    LANGUAGE plpgsql
+    AS $_$ DECLARE 
+/*************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License
+* Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this
+* file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html
+* Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+* License for the specific  language  governing  rights  and  limitations
+* under the License.
+* The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL
+* All portions are Copyright (C) 2001-2006 Openbravo SL
+* All Rights Reserved.
+* Contributor(s):  OpenZ Software GmbH 2021.
+************************************************************************/
+  -- Logistice
+  v_ResultStr VARCHAR(2000):=''; --OBTG:VARCHAR2--
+  v_Message VARCHAR(2000):=''; --OBTG:VARCHAR2--
+  v_Record_ID VARCHAR(32); --OBTG:VARCHAR2--
+  -- Parameter
+  --TYPE RECORD IS REFCURSOR;
+    Cur_Parameter RECORD;
+    -- Lines to create
+    Cur_MovementLine RECORD;
+    -- Parameter Variables
+    v_AD_User_ID VARCHAR(32) ; --OBTG:VARCHAR2--
+    v_LocatorFrom  VARCHAR(32); --OBTG:VARCHAR2--
+    v_LocatorTo VARCHAR(32) ; --OBTG:VARCHAR2--
+    v_ClientID VARCHAR(32) ; --OBTG:varchar2--
+    v_OrgID VARCHAR(32) ; --OBTG:varchar2--
+    v_Processed VARCHAR(60) ; --OBTG:VARCHAR2--
+    v_MovementLine_ID VARCHAR(32) ; --OBTG:VARCHAR2--
+    v_LineNo NUMERIC(10) ;
+    END_PROCESS BOOLEAN:=false;
+  BEGIN
+    --  Update AD_PInstance
+    RAISE NOTICE '%','Updating PInstance - Processing ' || PInstance_ID ;
+    v_ResultStr:='PInstanceNotFound';
+    PERFORM AD_UPDATE_PINSTANCE(PInstance_ID, NULL, 'Y', NULL, NULL) ;
+  BEGIN --BODY
+    -- Get Parameters
+    v_ResultStr:='ReadingParameters';
+    FOR Cur_Parameter IN
+      (SELECT i.Record_ID,
+        p.ParameterName,
+        p.P_String,
+        p.P_Number,
+        p.P_Date,
+        i.CreatedBy AS AD_User_ID
+      FROM AD_PInstance i
+      LEFT JOIN AD_PInstance_Para p
+        ON i.AD_PInstance_ID=p.AD_PInstance_ID
+      WHERE i.AD_PInstance_ID=PInstance_ID
+      ORDER BY p.SeqNo
+      )
+    LOOP
+      v_Record_ID:=Cur_Parameter.Record_ID;
+      v_AD_User_ID:=Cur_Parameter.AD_User_ID;
+      IF(Cur_Parameter.ParameterName='M_LocatorFrom') THEN
+        v_LocatorFrom:=Cur_Parameter.P_String;
+        RAISE NOTICE '%',' M_LocatorFrom=' || v_LocatorFrom ;
+      ELSIF(Cur_Parameter.ParameterName='M_LocatorTo') THEN
+        v_LocatorTo:=Cur_Parameter.P_String;
+        RAISE NOTICE '%',' M_LocatorTo=' || v_LocatorTo ;
+      ELSE
+        RAISE NOTICE '%','*** Unknown Parameter=' || Cur_Parameter.ParameterName ;
+      END IF;
+    END LOOP; -- Get Parameter
+    RAISE NOTICE '%','  Record_ID=' || v_Record_ID ;
+    -- Reading Movement
+    SELECT AD_Client_ID,
+      AD_Org_ID,
+      Processed
+    INTO v_ClientID,
+      v_OrgID,
+      v_Processed
+    FROM M_Movement
+    WHERE M_Movement_ID=v_Record_ID  FOR UPDATE;
+    IF(v_Processed='Y') THEN
+      v_Message:='@AlreadyPosted@';
+      END_PROCESS:=true;
+    END IF;
+    IF(NOT END_PROCESS) THEN
+      SELECT COALESCE(MAX(Line), 0)
+      INTO v_LineNo
+      FROM M_MovementLine
+      WHERE M_Movement_ID=v_Record_ID;
+      FOR Cur_MovementLine IN
+        (SELECT T.M_PRODUCT_ID,
+          T.C_UOM_ID,
+          T.M_PRODUCT_UOM_ID,
+          T.M_LOCATOR_ID,
+          T.M_ATTRIBUTESETINSTANCE_ID,
+          T.QTYONHAND AS QTY,
+          T.QTYORDERONHAND AS QTYORDER,
+          T.WEIGHT
+        FROM M_STORAGE_DETAIL T
+        WHERE M_LOCATOR_ID=v_LocatorFrom
+          AND(T.QTYONHAND<>0
+          OR COALESCE(T.QTYORDERONHAND, 0)<>0)
+        ORDER BY QTY DESC
+        )
+      LOOP
+        SELECT * INTO  v_MovementLine_ID FROM Ad_Sequence_Next('M_MovementLine', v_ClientID) ;
+        v_LineNo:=v_LineNo + 10;
+        INSERT
+        INTO M_MOVEMENTLINE
+          (
+            M_MOVEMENTLINE_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE,
+            CREATED, CREATEDBY, UPDATED, UPDATEDBY,
+            M_MOVEMENT_ID, M_LOCATOR_ID, M_LOCATORTO_ID, M_PRODUCT_ID,
+            LINE, MOVEMENTQTY, DESCRIPTION, M_ATTRIBUTESETINSTANCE_ID,
+            M_PRODUCT_UOM_ID, QUANTITYORDER, C_UOM_ID,weight
+          )
+          VALUES
+          (
+            v_MovementLine_ID, v_ClientID, v_OrgID, 'Y',
+            TO_DATE(NOW()), v_AD_User_ID, TO_DATE(NOW()), v_AD_User_ID,
+            v_Record_ID, v_LocatorFrom, v_LocatorTo, Cur_MovementLine.M_Product_ID,
+            v_LineNo, Cur_MovementLine.QTY, NULL, Cur_MovementLine.M_ATTRIBUTESETINSTANCE_ID,
+            Cur_MovementLine.M_PRODUCT_UOM_ID, Cur_MovementLine.QTYORDER, Cur_MovementLine.C_UOM_ID,Cur_MovementLine.weight
+          )
+          ;
+      END LOOP;
+    END IF;--END_PROCESS
+    ---- <<END_PROCESS>>
+    --  Update AD_PInstance
+    RAISE NOTICE '%','Updating PInstance - Finished ' || v_Message ;
+    PERFORM AD_UPDATE_PINSTANCE(PInstance_ID, NULL, 'N', 1, v_Message) ;
+    RETURN;
+  END; --BODY
+EXCEPTION
+WHEN OTHERS THEN
+  v_ResultStr:= '@ERROR=' || SQLERRM;
+  RAISE NOTICE '%',v_ResultStr ;
+  PERFORM AD_UPDATE_PINSTANCE(PInstance_ID, NULL, 'N', 0, v_ResultStr) ;
+  RETURN;
+END ; $_$;

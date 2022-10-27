@@ -126,7 +126,8 @@ public class BusinessPartner extends HttpSecureAppServlet {
    	   grid.initGridByAD("Business PartnerSearch", vars, this);
        if (vars.commandIn("DEFAULT")||isKeyMultipleOrNone) {
 	      // Set Windows TRxs Selection
-	      if(windowId.equals("ReportSalesDimensionalAnalyzeJR") || windowId.equals("ReportInvoiceCustomerDimensionalAnalysesJR")) 
+	      if(windowId.equals("ReportSalesDimensionalAnalyzeJR") || windowId.equals("ReportInvoiceCustomerDimensionalAnalysesJR") ||
+	              windowId.equals("org.openz.controller.form.GenerateMinoutmanual") || windowId.equals("org.openz.controller.form.GenerateInvoices")) 
 	    	  strbpartnerradio = "customers";
 	      else if (windowId.equals("ReportPurchaseDimensionalAnalysesFilterJR") || windowId.equals("ReportInvoiceVendorDimensionalAnalysesJR") ||
 	    		  windowId.equals("ReportMaterialDimensionalAnalysesJR")) 

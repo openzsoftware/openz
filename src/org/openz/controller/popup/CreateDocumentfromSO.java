@@ -17,6 +17,7 @@ import org.openbravo.erpCommon.info.SelectorUtility;
 import org.openbravo.erpCommon.utility.OBError;
 import org.openbravo.erpCommon.utility.Utility;
 import org.openbravo.utils.Replace;
+import org.openz.util.FormatUtils;
 import org.openz.util.LocalizationUtils;
 import org.openz.util.SessionUtils;
 import org.openz.view.EditableGrid;
@@ -71,7 +72,7 @@ public class CreateDocumentfromSO extends HttpSecureAppServlet {
     	 String targetDType = vars.getStringParameter("inpdoctype");
     	 OBError msg = new OBError();
     	 // Create from Purchase
-    	 if (targetDType.equals("QUOTATION")||targetDType.equals("ORDERPO")) {
+    	 if (targetDType.equals("QUOTATION")||targetDType.equals("ORDERPO")|| !FormatUtils.isNix(CreateDocumentfromSOData.isIndividualPartOfPOList(this, targetDType))) {
     		 String mess=CreateDocumentfromSOData.CreateDocumentFromOrderPO(this,  targetDType, strSODocumentID, vars.getUser()); 
     		 msg=Utility.translateError(this, vars,vars.getLanguage(),mess);
     		 msg.setTitle("OK");
@@ -79,7 +80,8 @@ public class CreateDocumentfromSO extends HttpSecureAppServlet {
     		 vars.setMessage("294", msg);
     	 } 
     	 // Create from Sale
-    	 if (targetDType.equals("PROPOSAL")||targetDType.equals("ORDER")||targetDType.equals("PROFORMA")) {
+    	 if (targetDType.equals("PROPOSAL")||targetDType.equals("ORDER")||targetDType.equals("PROFORMA")||targetDType.equals("CHANGEORDER")||
+    			 !FormatUtils.isNix(CreateDocumentfromSOData.isIndividualPartOfSOLists(this, targetDType))) {
     		 String mess=CreateDocumentfromSOData.CreateDocumentFromOrder0(this,  targetDType, strSODocumentID, vars.getUser()); 
     		 msg=Utility.translateError(this, vars,vars.getLanguage(),mess);
     		 msg.setTitle("OK");
@@ -149,7 +151,10 @@ public class CreateDocumentfromSO extends HttpSecureAppServlet {
         strSODocumentID=vars.getSessionValue(getServletInfo() + "|c_order_id");
         grid = new EditableGrid("CreateDocumentfromSOGrid", vars, this);
         if (CreateDocumentfromSOData.issotrx(this, strSODocumentID).equals("Y")) {
-        	strHeaderFG=fh.prepareFieldgroup(this, vars, script, "CreateDocumentfromSOHeaderFG", null,false);
+        	if (! CreateDocumentfromSOData.getdoctype(this, strSODocumentID).equals("ABE2033C7A74499A9750346A83DE3307")) // ! ABO Auftrag
+        		strHeaderFG=fh.prepareFieldgroup(this, vars, script, "CreateDocumentfromSOHeaderFG", null,false);
+        	else
+        		strHeaderFG=fh.prepareFieldgroup(this, vars, script, "CreateDocumentfromSOHeaderFGWithChange", null,false); // Mit Änderungs-Angebot
         	// Select Data from SO Document
             GridData=CreateDocumentfromSOData.select(this, strSODocumentID);
             strGrid=grid.printGrid(this, vars, script, GridData);

@@ -1,6 +1,7 @@
 package org.openz.pdc;
 
 import java.io.IOException;
+import java.sql.Connection;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -71,7 +72,17 @@ public static void setWorkstepVars(String newWorkstepID,String newProductID,Stri
           vars.setSessionValue("pdcAssemblySerialOrBatchNO",snrbnr);
           vars.setSessionValue("PDCWORKSTEPID",workstep);  
           vars.setSessionValue("ISSNRBNR","Y");
-          vars.setSessionValue( con.getServletInfo() + "|plannedserialorbatch",snrbnr);
+          // Given Serial as PalinText or snr_planedserials_v_id
+          // snrbnr is always plain and setr as var
+    	  vars.setSessionValue( con.getServletInfo() + "|plannedserialorbatch",snrbnr);
+    	  // For Dropdowns (not Consumption) The view ID is set    	  
+          if (!con.getClass().getName().contains("PdcMaterialConsumption")) {
+        	  String vId=PdcCommonData.getPlannedSerialVIdfromsnr(con, snrbnr, workstep);
+        	  if (FormatUtils.isNix(vId))
+        		  vars.removeSessionValue( con.getServletInfo() + "|plannedserialorbatch");
+        	  else
+        		  vars.setSessionValue( con.getServletInfo() + "|plannedserialorbatchno",vId);
+          }  
         }
 	}
 	  
@@ -232,8 +243,11 @@ public void setInternalConsumptionDone(String GlobalConsumptionID,String GlobalW
             }
             // Set serisnumber
             String snrbnr=con.getLocalSessionVariable(vars,"plannedserialorbatch");
-            if (!FormatUtils.isNix(snrbnr))
+            if (!FormatUtils.isNix(snrbnr)) {
             	PdcCommonData.updateSnrBnr(con, snrbnr, GlobalConsumptionID);
+            	if (PdcMaterialConsumptionData.isSerielProduced(con, snrbnr, GlobalWorkstepID).equals("Y"))
+            		  throw new ServletException("@plannedserialisproduced@");
+            }
             // Start internal Consumption Post Process directly - Process Internal Consumption
             ProcessUtils.startProcessDirectly(GlobalConsumptionID, "800131", vars, con); 
             // PdcCommonData.doConsumptionPost(con, strConsumptionid);
@@ -269,7 +283,7 @@ public void setInternalConsumptionDone(String GlobalConsumptionID,String GlobalW
         }
 }
 
-public String prepareProduction(VariablesSecureApp vars,String qty, String strpdcWorkstepID, String strProductionid,String strpdcUserID,String strProductID,String strLocatorID,HttpSecureAppServlet con) throws ServletException{
+public String prepareProduction(VariablesSecureApp vars,String qty, String strpdcWorkstepID, String strProductionid,String strpdcUserID,String strProductID,String strLocatorID,HttpSecureAppServlet con,Connection conn) throws ServletException{
     if (FormatUtils.isNix(strpdcWorkstepID))
         strpdcWorkstepID=vars.getSessionValue("PDCWORKSTEPID");
     if (!FormatUtils.isNix(strpdcWorkstepID))
@@ -291,16 +305,31 @@ public String prepareProduction(VariablesSecureApp vars,String qty, String strpd
     }
     if (FormatUtils.isNix(strLocatorID))
         strLocatorID=DoProductionData.getLocator(con, strpdcWorkstepID);
-    String possibQty=DoProductionData.getQty(con, strpdcWorkstepID, strProductionid, "", assproduct,strLocatorID);
+    String possibQty=DoProductionData.getQty(conn,con, strpdcWorkstepID, strProductionid, "", assproduct,strLocatorID);
     String strQty;
+    if (FormatUtils.isNix(possibQty))
+    	possibQty="0";
     if (!FormatUtils.isNix(qty))
         strQty=qty;
     else
         strQty=vars.getNumericParameter("inppdcproductionquantity");
-    if (FormatUtils.isNix(strQty))
+    if (FormatUtils.isNix(strQty)||Float.parseFloat(strQty)>Float.parseFloat(possibQty))
     	strQty=possibQty;
     if (PdcCommonData.isserialtracking(con, assproduct).equals("Y") && UtilsData.getOrgConfigOption(con, "serialbomstrict", vars.getOrg()).equals("Y")) { 
     	strQty="1";    	
+    }
+    if (PdcCommonData.isbatchtracking(con, assproduct).equals("Y") && UtilsData.getOrgConfigOption(con, "serialbomstrict", vars.getOrg()).equals("Y")) {
+    	String snrbnr=con.getLocalSessionVariable(vars,"plannedserialorbatch");
+    	if (!FormatUtils.isNix(snrbnr)) {
+    		String strPQty=DoProductionData.getStrictBATCHPossibleQty(conn,con, strpdcWorkstepID, snrbnr); 
+    		if (!FormatUtils.isNix(strPQty)) {
+	    		Float pq=Float.parseFloat(strPQty);
+	            Float qq=Float.parseFloat(strQty);
+	            if (pq<qq) 
+	            	strQty=strPQty;  
+    		}
+    	} else
+    		strQty="";
     }
     if (!FormatUtils.isNix(possibQty) && !strQty.isEmpty()) {
         Float pq=Float.parseFloat(possibQty);
@@ -315,18 +344,18 @@ public String prepareProduction(VariablesSecureApp vars,String qty, String strpd
     if (! (FormatUtils.isNix(strpdcWorkstepID)||FormatUtils.isNix(strpdcUserID)|| FormatUtils.isNix(strQty)  || FormatUtils.isNix(strLocatorID))) {
     if (strProductionid.isEmpty()) {
         strProductionid=UtilsData.getUUID(con);
-        PdcCommonData.insertProduction( con, strProductionid, vars.getClient(), vars.getOrg(), 
+        PdcCommonData.insertProduction(conn, con, strProductionid, vars.getClient(), vars.getOrg(), 
                 strpdcUserID, PdcCommonData.getProductionOrderFromWorkstep(con,strpdcWorkstepID ),strpdcWorkstepID,vars.getSessionValue("pdcAssemblySerialOrBatchNO"));
         vars.setSessionValue("pdcProductionID", strProductionid);
     }
-    PdcCommonData.insertMaterialLine( con, vars.getClient(), vars.getOrg(), 
+    PdcCommonData.insertMaterialLine(conn, con, vars.getClient(), vars.getOrg(), 
             strpdcUserID,strProductionid,strLocatorID,assproduct,
-            PdcCommonData.getNextLineFromConsumption(con, strProductionid),
+            PdcCommonData.getNextLineFromConsumption(conn,con, strProductionid),
             strQty,PdcCommonData.getProductStdUOM(con, assproduct),PdcCommonData.getProductionOrderFromWorkstep(con,strpdcWorkstepID ),
             strpdcWorkstepID);
     } else {
-        PdcCommonData.deleteAllMaterialLines(con,strProductionid);
-        PdcCommonData.deleteMaterialTransaction(con,strProductionid);
+        PdcCommonData.deleteAllMaterialLines(conn,con,strProductionid);
+        PdcCommonData.deleteMaterialTransaction(conn,con,strProductionid);
         vars.removeSessionValue("pdcProductionID");
     }
     }
@@ -356,7 +385,7 @@ public String prepareProduction(VariablesSecureApp vars,String qty, String strpd
 
 
 
-public void finishProduction(HttpServletResponse response, String ptrxID,String strpdcWorkstepID,String bcCommand,String strpdcUserID,VariablesSecureApp vars,HttpSecureAppServlet con) throws ServletException, IOException{
+public void finishProduction(HttpServletResponse response, String ptrxID,String strpdcWorkstepID,String bcCommand,String strpdcUserID,VariablesSecureApp vars,HttpSecureAppServlet con,Connection conn) throws ServletException, IOException{
     String strpdcFormerDialogue=vars.getSessionValue("PDCFORMERDIALOGUE");
     if (FormatUtils.isNix(strpdcWorkstepID))
         strpdcWorkstepID=vars.getSessionValue("PDCWORKSTEPID");
@@ -365,65 +394,59 @@ public void finishProduction(HttpServletResponse response, String ptrxID,String 
  // Set serisnumber
     String snrbnr=con.getLocalSessionVariable(vars,"plannedserialorbatch");
     if (!FormatUtils.isNix(snrbnr)) {
-    	PdcCommonData.updateSnrBnr(con, snrbnr, ptrxID);
+    	PdcCommonData.updateSnrBnr(conn,con, snrbnr, ptrxID);
     	String prod=PdcCommonData.getProductFromWorkstep(con, strpdcWorkstepID);
     	String stype=SerialNumberData.pdc_getSerialBatchType4product(con, prod);
     	if (!FormatUtils.isNix(stype)) {
-    		String consumptionLineId=PdcCommonData.getIDWhenScannedSameLineWoLocator(con, ptrxID, prod);
-    		String qty=PdcCommonData.getlineQtyByProduct(con, ptrxID, prod);
+    		String consumptionLineId=PdcCommonData.getIDWhenScannedSameLineWoLocator(conn,con, ptrxID, prod);
+    		String qty=PdcCommonData.getlineQtyByProduct(conn,con, ptrxID, prod);
     		String batchno=null;
     		String serialno=null;
     		if (stype.equals("SERIAL"))
     			serialno=snrbnr;
     		if (stype.equals("BATCH"))
     			batchno=snrbnr;
-    		SerialNumberData.insertSerialLine(con, vars.getClient(), vars.getOrg(), vars.getUser(), consumptionLineId, qty, batchno, serialno);
+    		SerialNumberData.insertSerialLine(conn,con, vars.getClient(), vars.getOrg(), vars.getUser(), consumptionLineId, qty, batchno, serialno);
     		// Fit qtys to planned serial ?
-	    	if (serialno!=null && UtilsData.getOrgConfigOption(con, "serialbomstrict", vars.getOrg()).equals("Y")) { 
-	        	if (DoProductionData.isProductionPlannedSerialPossible(con, strpdcWorkstepID, serialno)
+	    	if (UtilsData.getOrgConfigOption(con, "serialbomstrict", vars.getOrg()).equals("Y")) { 
+	        	if (DoProductionData.isProductionPlannedSerialPossible(conn,con, strpdcWorkstepID, snrbnr,qty)
 	        			.equals("N")) {
+	        		String mxqty=DoProductionData.getProductionPlannedSerialQty(conn,con, strpdcWorkstepID, snrbnr);
 	        		vars.setSessionValue("PDCSTATUS","ERROR");
-	                vars.setSessionValue("PDCSTATUSTEXT","Entnahme-Menge reicht für Produktion der geplanten Seriennummer nicht aus:"+serialno);
+	                vars.setSessionValue("PDCSTATUSTEXT","Entnahme-Menge reicht für Produktion der geplanten SNR/CNR nicht aus:"+snrbnr + "(max. " + mxqty + ")");
 	                return;
 	        	}		
 	        }
+	    	if (PdcMaterialConsumptionData.isSerielProduced(con, snrbnr, strpdcWorkstepID).equals("Y"))
+      		  throw new ServletException("@plannedserialisproduced@");
 	    }
     }
-    if (PdcCommonData.isbatchorserialnumber(con, ptrxID).equals("N")){
+    if (PdcCommonData.isbatchorserialnumber(conn,con, ptrxID).equals("N")){
         String message="";
         OBError mymess=null;
-        boolean iserror=false;
-        DoProductionData upperGridData[] = DoProductionData.selectupper(con,vars.getLanguage(),strpdcWorkstepID,ptrxID,"");
+        DoProductionData upperGridData[] = DoProductionData.selectupper(conn,con,vars.getLanguage(),strpdcWorkstepID,ptrxID,"");
         int matleft=upperGridData.length;
         if (!ptrxID.equals("")) {
         //PdcCommonData.doConsumptionPost(con, ptrxID);
-        String qtyp=DoProductionData.getQtyProduced(con,vars.getLanguage(), ptrxID);
-        String qadj=DoProductionData.adjustPassingworkstepQtys(con, strpdcWorkstepID, qtyp,ptrxID);
-        ProcessUtils.startProcessDirectly(ptrxID, "800131", vars, con);  //  M_Internal_Consumption_Post
-        String locato=DoProductionData.getLocatorProduced(con, ptrxID);
-        message=message + qtyp + " " + Utility.messageBD(con, "pdc_ProductionTransactionSucessful",vars.getLanguage())+ " In " + locato ;
-        }
+        String qtyp=DoProductionData.getQtyProduced(conn,con,vars.getLanguage(), ptrxID);
+        String qadj=DoProductionData.adjustPassingworkstepQtys(conn,con, strpdcWorkstepID, qtyp,ptrxID);
+        //ProcessUtils.startProcessDirectly(ptrxID, "800131", vars, con);  //  M_Internal_Consumption_Post
+        PdcCommonData.doConsumptionPost(conn,con,ptrxID);
+        message=UtilsData.getProcessResultWC(conn,con, ptrxID);
         // If the Process brings an error, stay in con servlet and diplay the message to the user
-        mymess=vars.getMessage(con.getServletInfo());
-        if (mymess!=null && mymess.getType().equals("Error")) {
-            bcCommand="DEFAULT";
-            message=mymess.getMessage();
-            iserror=true;
-            vars.setMessage(con.getServletInfo(), null);
-        }
+		if (message.startsWith("ERROR")) 
+			throw new ServletException(message.replaceFirst("ERROR@", ""));
+        String locato=DoProductionData.getLocatorProduced(conn,con, ptrxID);
+        message=qtyp + " " + Utility.messageBD(con, "pdc_ProductionTransactionSucessful",vars.getLanguage())+ " In " + locato ;
         if (bcCommand.equals("CLOSEWS")){
-        if (DoProductionData.isWorkstepProduced(con, strpdcWorkstepID).equals("Y")) {
-            message=message + PdcCommonData.closeWorkstep( con, strpdcWorkstepID,strpdcUserID,vars.getLanguage());
+            message=message + PdcCommonData.closeWorkstep(conn, con, strpdcWorkstepID,strpdcUserID,vars.getLanguage());
             if (matleft>0)
-            message=message + Utility.messageBD(con, "pdc_MaterialLeftInWokstep",vars.getLanguage());
+            	message=message + Utility.messageBD(con, "pdc_MaterialLeftInWokstep",vars.getLanguage());
             else
-            message=message + Utility.messageBD(con, "pdc_NoMaterialLeftInWokstep",vars.getLanguage());
-        } else
-            message=message + Utility.messageBD(con, "pdc_WokstepCannotBeClosedNoProduction",vars.getLanguage());
+            	message=message + Utility.messageBD(con, "pdc_NoMaterialLeftInWokstep",vars.getLanguage());
         } else { // DONE
-            if ((DoProductionData.isWorkstepProduced(con, strpdcWorkstepID).equals("Y")||PdcCommonData.getProductFromWorkstep(con, strpdcWorkstepID)==null) &&
-                    DoProductionData.IsWSFinishedProd(con, strpdcWorkstepID).equals("Y")) 
-                    message=message + " " +PdcCommonData.closeWorkstep( con, strpdcWorkstepID,strpdcUserID,vars.getLanguage());
+            if (DoProductionData.IsWSFinishedProd(conn,con, strpdcWorkstepID).equals("Y")) 
+                    message=message + " " +PdcCommonData.closeWorkstep(conn, con, strpdcWorkstepID,strpdcUserID,vars.getLanguage());
         }
         /*
         if (bcCommand.equals("DONE") && matleft==0 && ! (strConsumptionid.isEmpty() && ptrxID.isEmpty())){
@@ -436,9 +459,6 @@ public void finishProduction(HttpServletResponse response, String ptrxID,String 
         vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(con, "pdc_NoData",vars.getLanguage()));
         else 
         vars.setSessionValue("PDCSTATUSTEXT",message);
-        if (iserror)
-        vars.setSessionValue("PDCSTATUS","ERROR");
-        else {
         vars.setSessionValue("PDCSTATUS","OK");
         response.sendRedirect(con.strDireccion + strpdcFormerDialogue);
         }
@@ -454,6 +474,17 @@ public void finishProduction(HttpServletResponse response, String ptrxID,String 
         response.sendRedirect(con.strDireccion + "/org.openz.pdc.ad_forms/SerialAndBatchNumbers.html");
     }
 }
-
+public static PdcCommonData getBarcode(HttpSecureAppServlet con, VariablesSecureApp vars) throws ServletException, IOException {
+	PdcCommonData[] data;
+	String barcode=vars.getStringParameter("inppdcmaterialconsumptionbarcode");
+    data = PdcCommonData.selectbarcode(con, barcode);
+    String qty=vars.getNumericParameter("inppdcmaterialconsumptionquantity");
+    if (! FormatUtils.isNix(data[0].serialnumber) && ! qty.equals("0"))
+      qty="1";
+    data[0].qty=qty;
+    if (FormatUtils.isNix(data[0].barcode) )
+    	data[0].barcode=barcode;    		
+	return data[0];
+}
 
 }

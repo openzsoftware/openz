@@ -561,6 +561,12 @@ function depurar_validate_wrapper(action, form, value) {
   } 
 }
 
+function submitCommandFormWithConfirm(action, bolValidation, form, newAction, newTarget, bolOneFormSubmission, bolCheckChanges, isCallOut, controlEvt, evt) {
+    if (window.confirm("Wirklich Sicher?")) {
+       submitCommandForm(action, bolValidation, form, newAction, newTarget, bolOneFormSubmission, bolCheckChanges, isCallOut, controlEvt, evt);
+    }
+}
+
 /**
 * Submit a form after setting a value to the Command field. The Command field is a string to define the type of operation that the servlet will execute. Also allows to debug previous the submition. This function execution requires a hidden field with name Command in the form.
 * @param {String} action Identify the operation that the servlet will execute.

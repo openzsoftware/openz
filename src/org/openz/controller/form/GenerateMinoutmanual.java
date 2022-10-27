@@ -42,7 +42,6 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
       VariablesSecureApp vars = new VariablesSecureApp(request);
       Connection conn = null;
       Vector <String> retval;
-      Integer line=0;
             
       
       Scripthelper script= new Scripthelper();
@@ -50,10 +49,10 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
       script.addHiddenfieldWithID("enabledautosave", "N");
       response.setContentType("text/html; charset=UTF-8");
       String strOutput ="" ;
-      String stradorgid = vars.getGlobalVariable("inpadOrgId",this.getClass().getName() +"|AD_ORG_ID",vars.getOrg());    
-      OBError myMessage = new OBError();
-      
       String strIsSOtrx=vars.getSessionValue("issotrx");
+      String stradorgid = vars.getGlobalVariable("inpadOrgId",this.getClass().getName() +"|AD_ORG_ID",vars.getOrg());  
+      String stroptions =strIsSOtrx.equals("Y")?vars.getSessionValue(this.getClass().getName() + "|options"):"";
+      OBError myMessage = new OBError();
       
       // INIT by AD
       try{
@@ -81,11 +80,10 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
         	  strDatenow=GenerateMinoutmanualData.adddate(this, vars.getSessionValue("P|INOUTMANUALOUTGOINGDATEOFFSET"));
           String strDateFrom = vars.getDateParameterGlobalVariableAndFetchFromSessionIfEmpty("inpdatefrom", this.getClass().getName() + "|datefrom", this);
           String strDateTo = vars.getDateParameterGlobalVariableAndFetchFromSessionIfEmpty("inpdateto", this.getClass().getName() + "|dateto",  strDatenow,this);
-          String strBusinesspartnerId = vars.getGlobalVariable("inpcBpartnerId", this.getClass().getName() + "|C_Bpartner_ID","");
-          String strOnlydeliverable = vars.getGlobalVariable("inponlydeliverablelines", this.getClass().getName() + "|onlydeliverablelines", "");
-          if (strOnlydeliverable.equals(""))
-            strOnlydeliverable="1";
-          else 
+          String strBusinesspartnerId = vars.getGlobalVariable("inpcBpartnerId", this.getClass().getName() + "|C_Bpartner_ID","");    
+          stroptions=strIsSOtrx.equals("Y")?vars.getGlobalVariable("inpoptions", this.getClass().getName() + "|options",vars.getSessionValue("P|INOUTMANUALOUTGOINGOPTIONDEFAULT")):"";
+          String strOnlydeliverable="1";
+          if (stroptions.equals("DELONLY")) // Alle Lieferbaren Pos.
             strOnlydeliverable="2";
           String strTypeOfProduct = vars.getGlobalVariable("inpproductclassification", this.getClass().getName() + "|productclassification", "");
           String strPartlydeliverable = vars.getGlobalVariable("inppartlydelivery", this.getClass().getName() + "|partlydelivery", "");
@@ -136,12 +134,17 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
           String strDateFormat = vars.getSessionValue("#AD_SqlDateFormat");
           if (!(vars.commandIn("DEFAULT") && UtilsData.getOrgConfigOption(this, "alwaysfilterocreatetrxs", vars.getOrg()).equals("Y"))) {
         	  GenerateMinoutmanualData datalines[];
-        	  if (strCombineddelivery.equals("N"))
-        		  datalines=GenerateMinoutmanualData.select(this,strDateFormat,vars.getLanguage(),strPartlydeliverable, strdocno,strcProjectId, strDateFrom, strDateTo, strBusinesspartnerId,
-        				  strTypeOfProduct,strProductCategoryId,strwh, orglist, strUserOrg, strIsSOtrx, strProductId,strOnlydeliverable);
-        	  else
-        		  datalines=GenerateMinoutmanualData.selectCombined(this,strDateFormat,strPartlydeliverable, vars.getLanguage(),strdocno,strcProjectId, strDateFrom, strDateTo, strBusinesspartnerId,
-        				  strTypeOfProduct,strProductCategoryId,strwh, orglist, strUserOrg, strIsSOtrx, strProductId,strOnlydeliverable);
+        	  if (stroptions.equals("DELBYPRIORITY") || stroptions.equals("DELBYLOCATOR")) {
+        		  datalines=GenerateMinoutmanualData.selectOptions(this, strBusinesspartnerId, strDateFrom, strDateTo,strdocno,strcProjectId,strwh,orglist, strUserOrg,strProductId, strTypeOfProduct,strProductCategoryId,
+        				  stroptions,strCombineddelivery,strPartlydeliverable,strDateFormat,vars.getLanguage());
+        	  } else {
+	        	  if (strCombineddelivery.equals("N"))
+	        		  datalines=GenerateMinoutmanualData.select(this,strDateFormat,vars.getLanguage(),strPartlydeliverable, strdocno,strcProjectId, strDateFrom, strDateTo, strBusinesspartnerId,
+	        				  strTypeOfProduct,strProductCategoryId,strwh, orglist, strUserOrg, strIsSOtrx, strProductId,strOnlydeliverable);
+	        	  else
+	        		  datalines=GenerateMinoutmanualData.selectCombined(this,strDateFormat,strPartlydeliverable, vars.getLanguage(),strdocno,strcProjectId, strDateFrom, strDateTo, strBusinesspartnerId,
+	        				  strTypeOfProduct,strProductCategoryId,strwh, orglist, strUserOrg, strIsSOtrx, strProductId,strOnlydeliverable);
+        	  }
               strGrid1=grid.printGrid(this, vars, script, datalines);
           }
           strOutput=Replace.replace(strOutput, "@CONTENT@",  filterStructure + strGrid1 + strTableStructure + buttonprocess);
@@ -167,7 +170,7 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
          };
 
          retval=grid.getSelectedIds(null, vars, "c_orderline_id");
-         String ordline,strOrderId,ordlineQty,ordlineLocatorId,ordlineAttributesetId,ordlineComplete;
+         String ordline,strOrderId,ordlineQty,ordlineLocatorId,ordlineAttributesetId,ordlineComplete,mProductID;
          String pinstance = SequenceIdData.getUUID();
          // Filters
          String strCombineddelivery = vars.getSessionValue( this.getClass().getName() + "|combineddelivery");
@@ -178,26 +181,26 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
          String strDateTo = vars.getSessionValue(this.getClass().getName() + "|DateTo");
          String strUserOrg=Utility.getContext(this, vars,"#User_Org", "GenerateInoutmanual");
          for (int i = 0; i < retval.size(); i++) {
-            if (strCombineddelivery.equals("N")||strCombineddelivery.equals("")) {
-	           ordline=retval.elementAt(i);
+            if (strCombineddelivery.equals("N")||strCombineddelivery.equals("")||stroptions.equals("DELBYLOCATOR")) {
+	           ordline=retval.elementAt(i).substring(0,32);
 	           strOrderId=GenerateMinoutmanualData.getOrder(myPool, ordline);
 	           //grid.getValue(this, vars, retval.elementAt(i), "C_Order_ID");
 	           ordlineQty=grid.getValue(this, vars, retval.elementAt(i), "qty2deliver");
 	           ordlineLocatorId=grid.getValue(this, vars, retval.elementAt(i), "m_locator_id");
 	           ordlineAttributesetId=grid.getValue(this, vars, retval.elementAt(i), "m_attributesetinstance_id");
 	           ordlineComplete=grid.getValue(this, vars, retval.elementAt(i), "completed");
-	
-	                         
-	                         GenerateMinoutmanualData.insert(conn,this, 
-	                          ordline,
-	                          strOrderId,
-	                          vars.getClient(), vars.getOrg(), vars.getUser(), vars.getUser(),
-	                          ordlineQty,
-	                          ordlineLocatorId,
-	                          ordlineAttributesetId,
-	                          ordlineComplete,
-	                          pinstance); 
-            } else { // Combined Delivery
+	           // In SEts Relevant BOM Product while Order is SET product... Product ID is only Filled by Option DELBYLOCATOR or DELBYPRIORITY
+	           mProductID=grid.getValue(this, vars, retval.elementAt(i), "m_product_id"); 
+               GenerateMinoutmanualData.insert(conn,this, 
+                  ordline,
+                  strOrderId,
+                  vars.getClient(), vars.getOrg(), vars.getUser(), vars.getUser(),
+                  ordlineQty,
+                  ordlineLocatorId,
+                  ordlineAttributesetId,
+                  ordlineComplete,
+                  pinstance,mProductID.equals("null")?null:mProductID); 
+            } else { // Combined Delivery - is determined by Order in GRID / Exception DELBYLOCATOR: Combined is done with m_inout_create
             	ordline=retval.elementAt(i);
             	String strDateFormat = vars.getSessionValue("#AD_SqlDateFormat");
             	String bpartner = ordline.substring(0,32);
@@ -206,6 +209,7 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
             	ordlineQty=grid.getValue(this, vars, retval.elementAt(i), "qty2deliver");
             	ordlineLocatorId=grid.getValue(this, vars, retval.elementAt(i), "m_locator_id");
             	ordlineAttributesetId=grid.getValue(this, vars, retval.elementAt(i), "m_attributesetinstance_id");
+            	mProductID=grid.getValue(this, vars, retval.elementAt(i), "m_product_id");
             	GenerateMinoutmanualData datalines[]=GenerateMinoutmanualData.select(this,strDateFormat,vars.getLanguage(),"N", strdocno,strcProjectId, strDateFrom, strDateTo, bpartner,
       				  "","",strwh, strUserOrg, strUserOrg, strIsSOtrx, product,"1");
             	for (int ii=0;ii<datalines.length;ii++) {
@@ -222,7 +226,7 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
   	                          ordlineLocatorId,
   	                          ordlineAttributesetId,
   	                          "C",
-  	                          pinstance); 
+  	                          pinstance,mProductID.equals("null")?null:mProductID); 
             		}
             	}
             }
@@ -232,8 +236,11 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
          // m_inout_create
          PInstanceProcessData.insertPInstance(this, pinstance, "199", "0", "N", vars.getUser(), vars
              .getClient(), vars.getOrg());
-         PInstanceProcessData.insertPInstanceParam(this, pinstance, "1", "Selection", "Y", vars
+         PInstanceProcessData.insertPInstanceParam(this, pinstance, "1", "Selection", stroptions.isEmpty()?"Y":stroptions, vars
              .getClient(), vars.getOrg(), vars.getUser());
+         if (strCombineddelivery.equals("Y")&&stroptions.equals("DELBYLOCATOR"))
+        	 PInstanceProcessData.insertPInstanceParam(this, pinstance, "2", "Combined", "Y", vars
+                     .getClient(), vars.getOrg(), vars.getUser());
          ActionButtonData.process199(this, pinstance);
 
          try {
@@ -278,6 +285,7 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
       vars.removeSessionValue(this.getClass().getName() + "|partlydelivery");
       vars.removeSessionValue(this.getClass().getName() + "|combineddelivery");
       vars.removeSessionValue(this.getClass().getName() + "|productclassification");
+      vars.removeSessionValue(this.getClass().getName() + "|options");
       
     }
     public String getServletInfo() {

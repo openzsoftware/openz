@@ -16,6 +16,7 @@ import java.io.PrintWriter;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -28,6 +29,7 @@ import org.openbravo.model.ad.module.Module;
 import org.openbravo.model.ad.system.Client;
 import org.openbravo.model.ad.system.SystemInformation;
 import org.openbravo.xmlEngine.XmlDocument;
+import org.openz.util.FormatUtils;
 
 public class LoginHandler extends HttpBaseServlet {
   private static final long serialVersionUID = 1L;
@@ -50,40 +52,76 @@ public class LoginHandler extends HttpBaseServlet {
 
     // Empty session
     req.getSession(true).setAttribute("#Authenticated_user", null);
-
-    if (vars.getStringParameter("user").equals("")) {
-      res.sendRedirect(res.encodeRedirectURL(strDireccion + "/security/Login_F1.html"));
-    } else {
-      final String strUser = vars.getRequiredStringParameter("user");
-      final String strPass = vars.getStringParameter("password");
-      final String strUserAuth = LoginUtils.getValidUserId(myPool, strUser, strPass);
-      final String userNotBanned = SeguridadData.checkBanSecure(myPool, strUserAuth);
-      String failureMessage;
-      if (strUserAuth != null && userNotBanned.equals("OK")) {
-        req.getSession(true).setAttribute("#Authenticated_user", strUserAuth);
-        req.getSession(true).setAttribute("#ScreenY", vars.getStringParameter("ScreenY"));
-        req.getSession(true).setAttribute("#ScreenX", vars.getStringParameter("ScreenX"));
-        checkLicenseAndGo(res, vars, strUserAuth);
-      } else {
-        Client systemClient = OBDal.getInstance().get(Client.class, "0");
-        // SZ implemented BANs on failed Logins 
-        String struser = SeguridadData.getuserID(myPool, strUser);
-        if (struser != null && !struser.equals("-1")) 
-          SeguridadData.recordFailedLogin(myPool, struser);
-        String lang;
-        try {
-          lang=systemClient.getLanguage().getLanguage();
-        } catch (Exception e) {
-          lang="en_US";         
-        }
-        String failureTitle = Utility.messageBD(this, "IDENTIFICATION_FAILURE_TITLE", lang);
-        if (SeguridadData.checkBanSecure(myPool, struser).equals("BANNED"))
-          failureMessage = Utility.messageBD(this, "IDENTIFICATION_USERBAN_MSG", lang);
-        else
-          failureMessage = Utility.messageBD(this, "IDENTIFICATION_FAILURE_MSG", lang);
-        goToRetry(res, vars, failureMessage, failureTitle, "Error", "../security/Login_FS.html");
-      }
-    }
+    // Permanent Login
+    if (!vars.getStringParameter("permsession").equals("")) {
+    	String stpermsession=vars.getStringParameter("permsession");
+    	String userid=SeguridadData.getPermsessinUser(myPool, stpermsession);
+    	// Kein Eintrag mehr: Cook Löschen
+    	if (FormatUtils.isNix(userid) || SeguridadData.checkBanSecure(myPool, userid).equals("BANNED")) {
+    		Cookie[] cooks=req.getCookies();
+    	    if (cooks!=null) {
+    		    for (int i=0;i<cooks.length;i++) {
+    		    	if (cooks[i].getName().equals("permsession")) {
+    		    		cooks[i].setMaxAge(0);
+    		    		cooks[i].setPath(req.getContextPath());
+    		            res.addCookie(cooks[i]);
+    		    	}
+    		    }
+    	    }
+    	    res.sendRedirect(strDireccion + "/security/Login_F1.html");
+    	} else {
+    		req.getSession(true).setAttribute("#Authenticated_user", userid);
+	        req.getSession(true).setAttribute("#ScreenY", vars.getStringParameter("ScreenY"));
+	        req.getSession(true).setAttribute("#ScreenX", vars.getStringParameter("ScreenX"));
+	        checkLicenseAndGo(res, vars, userid);
+    	}
+    		
+    } else { // Normal Login
+	    if (vars.getStringParameter("user").equals("")) {
+	      res.sendRedirect(res.encodeRedirectURL(strDireccion + "/security/Login_F1.html"));
+	    } else {
+	      final String strUser = vars.getRequiredStringParameter("user");
+	      final String strPass = vars.getStringParameter("password");
+	      final String strUserAuth = LoginUtils.getValidUserId(myPool, strUser, strPass);
+	      final String userNotBanned = SeguridadData.checkBanSecure(myPool, strUserAuth);
+	      String failureMessage;
+	      if (strUserAuth != null && userNotBanned.equals("OK")) {
+	        req.getSession(true).setAttribute("#Authenticated_user", strUserAuth);
+	        req.getSession(true).setAttribute("#ScreenY", vars.getStringParameter("ScreenY"));
+	        req.getSession(true).setAttribute("#ScreenX", vars.getStringParameter("ScreenX"));
+	        String t=vars.getStringParameter("ScreenX");
+	        String b=vars.getStringParameter("permsession");
+	        // If Prmsession: Set Cokkie
+	        if (! FormatUtils.isNix(SeguridadData.getUserPermsessin(myPool, strUserAuth))) {
+	        	String prmsession=SeguridadData.getUserPermsessin(myPool, strUserAuth);
+	        	Cookie kk=new Cookie("permsession", prmsession);
+	        	kk.setMaxAge(2147483647); //permanent
+	        	String strcon=req.getContextPath();
+	        	kk.setPath(strcon);
+	        	res.addCookie(kk);
+	        }
+	        checkLicenseAndGo(res, vars, strUserAuth);
+	      } else {
+	        Client systemClient = OBDal.getInstance().get(Client.class, "0");
+	        // SZ implemented BANs on failed Logins 
+	        String struser = SeguridadData.getuserID(myPool, strUser);
+	        if (struser != null && !struser.equals("-1")) 
+	          SeguridadData.recordFailedLogin(myPool, struser);
+	        String lang;
+	        try {
+	          lang=systemClient.getLanguage().getLanguage();
+	        } catch (Exception e) {
+	          lang="en_US";         
+	        }
+	        String failureTitle = Utility.messageBD(this, "IDENTIFICATION_FAILURE_TITLE", lang);
+	        if (SeguridadData.checkBanSecure(myPool, struser).equals("BANNED"))
+	          failureMessage = Utility.messageBD(this, "IDENTIFICATION_USERBAN_MSG", lang);
+	        else
+	          failureMessage = Utility.messageBD(this, "IDENTIFICATION_FAILURE_MSG", lang);
+	        goToRetry(res, vars, failureMessage, failureTitle, "Error", "../security/Login_FS.html");
+	      }
+	    }
+  	} 
   }
 
   private void checkLicenseAndGo(HttpServletResponse res, VariablesSecureApp vars,
@@ -106,41 +144,6 @@ public class LoginHandler extends HttpBaseServlet {
         msgType = "Error";
         action = "../security/Login_FS.html";
       }
-
-      // We check if there is a Openbravo Professional Subscription restriction in the license,
-      // or if the last rebuild didn't go well. If any of these are true, then the user is
-      // allowed to login only as system administrator
-      /*switch (ak.checkOPSLimitations(vars.getDBSession())) {
-      case NUMBER_OF_CONCURRENT_USERS_REACHED:
-        String msg = Utility.messageBD(myPool, "NUMBER_OF_CONCURRENT_USERS_REACHED", vars
-            .getLanguage());
-        String title = Utility.messageBD(myPool, "NUMBER_OF_CONCURRENT_USERS_REACHED_TITLE", vars
-            .getLanguage());
-        goToRetry(res, vars, msg, title, msgType, action);
-        break;
-      case NUMBER_OF_SOFT_USERS_REACHED:
-        msg = Utility.messageBD(myPool, "NUMBER_OF_SOFT_USERS_REACHED", vars.getLanguage());
-        title = Utility.messageBD(myPool, "NUMBER_OF_SOFT_USERS_REACHED_TITLE", vars.getLanguage());
-        action = "../security/Menu.html";
-        msgType = "Warning";
-        goToRetry(res, vars, msg, title, msgType, action);
-        break;
-      case OPS_INSTANCE_NOT_ACTIVE:
-        msg = Utility.messageBD(myPool, "OPS_INSTANCE_NOT_ACTIVE", vars.getLanguage());
-        title = Utility.messageBD(myPool, "OPS_INSTANCE_NOT_ACTIVE_TITLE", vars.getLanguage());
-        goToRetry(res, vars, msg, title, msgType, action);
-        break;
-      case MODULE_EXPIRED:
-        msg = Utility.messageBD(myPool, "OPS_MODULE_EXPIRED", vars.getLanguage());
-        title = Utility.messageBD(myPool, "OPS_MODULE_EXPIRED_TITLE", vars.getLanguage());
-        StringBuffer expiredMoudules = new StringBuffer();
-        for (Module module : ak.getExpiredInstalledModules()) {
-          expiredMoudules.append("<br/>").append(module.getName());
-        }
-        msg += expiredMoudules.toString();
-        goToRetry(res, vars, msg, title, msgType, action);
-        break;
-      }*/
 
       SystemInformation sysInfo = OBDal.getInstance().get(SystemInformation.class, "0");
       if (sysInfo.getSystemStatus() == null || sysInfo.getSystemStatus().equals("RB70")

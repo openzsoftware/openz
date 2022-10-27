@@ -25,63 +25,44 @@
     <SqlMethodComment></SqlMethodComment>
         <Sql>
             Select 
-            -- selectupper
                 '' as c_projecttask_id, 
-                '' as zspm_ptaskfeedbackline_id, 
                 '' as ad_user_id, 
+                '' as decription,
                 '' as hour_from, 
                 '' as hour_to, 
                 '' as out_messagetext, 
                 '' as out_createdId,
-                -- selectlower, same as selectupper
-
-            -- selectbarcode
+                '' as comming,
+                '' as leaving,
                 '' as barcode,
                 '' as type,
                 '' as id,
                 '' as mess,
-                '' as ad_message_value
+                '' as ad_message_value from dual
         </Sql>
     </SqlMethod>
   
-    <SqlMethod name="selectupper" type="preparedStatement" return="multiple">
-    <SqlMethodComment></SqlMethodComment>
-        <Sql>
-            select 
-                a.zspm_ptaskfeedbackline_id, 
-                b.name as c_projecttask_id,
-                a.ad_user_id, 
-                to_char(a.hour_from,'dd.mm.yy hh24:mi') as hour_from,
-                a.hour_to
-            from 
-                zspm_ptaskfeedbackline a,c_projecttask b
-                where a.c_projecttask_id=b.c_projecttask_id and
-                a.hour_to is null and
-                a.ad_user_id = ? order by workdate desc
-        </Sql>
-        <Parameter name="user"/>
-    </SqlMethod>
   
-    <SqlMethod name="selectlower" type="preparedStatement" return="multiple">
-    <SqlMethodComment></SqlMethodComment>
-        <Sql>
-           select 
-                a.zspm_ptaskfeedbackline_id, 
-                b.name as c_projecttask_id,
-                a.ad_user_id, 
-                to_char(a.workdate,'dd.mm.yy')||' '||to_char(a.hour_from,'hh24:mi') as hour_from,
-                to_char(a.hour_to,'hh24:mi') as hour_to
-            from 
-                zspm_ptaskfeedbackline a,c_projecttask b
-                where a.c_projecttask_id=b.c_projecttask_id and
-                coalesce(a.workdate,now()-30)>now()-20 and
-                a.ad_user_id = ?
-            order by a.workdate desc,a.hour_from desc
-        </Sql>
-        <Parameter name="user"/>
-        
-    </SqlMethod>
-
+   <SqlMethod name="getEmployee" type="preparedStatement" return="string">
+      <Sql>
+        SELECT name from ad_user where ad_user_id=?
+      </Sql>
+      <Parameter name="userid"/>
+   </SqlMethod>
+   <SqlMethod name="getEmployeeStatusLeaving" type="preparedStatement" return="string">
+      <Sql>
+        SELECT case when count(*)>0 then 'Y' else 'N' end as retv from zspm_ptaskfeedbackline where ad_user_id=? and hour_from is not null and hour_to is null and createdbytimefeedbackapp = 'Y'
+      </Sql>
+      <Parameter name="userid"/>
+   </SqlMethod>
+   
+   <SqlMethod name="getWorkstep" type="preparedStatement" return="string">
+      <Sql>
+        SELECT coalesce(value,name) as result from c_projecttask where c_projecttask_id=?
+      </Sql>
+      <Parameter name="workstepid"/>
+   </SqlMethod>
+   
    <SqlMethod name="getOpenWorkstep" type="preparedStatement" return="string">
       <Sql>
         SELECT pdc_getopenworkstep(?)
@@ -97,13 +78,16 @@
   
    <SqlMethod name="setTimeFeedback" type="preparedStatement" return="string">
       <Sql>
-        SELECT pdc_settimefeedback(?,?,?,to_timestamp(?,?)::timestamp without time zone)
+        SELECT pdc_settimefeedback(?,?,?,to_timestamp(?,?)::timestamp without time zone,?,?,?)
       </Sql>
       <Parameter name="orgid"/>
       <Parameter name="workstepid"/>
       <Parameter name="userid"/>
       <Parameter name="timestamp"/>
       <Parameter name="format"/>
+      <Parameter name="command"/>
+      <Parameter name="descr"/>
+      <Parameter name="lang"/>
    </SqlMethod>
   <SqlMethod name="beginWorkstepWithMat" type="preparedStatement" return="multiple">
     <SqlMethodComment></SqlMethodComment>
@@ -122,5 +106,14 @@
     <Parameter name="workstepId"/>
     <Parameter name="userId"/>
     <Parameter name="adOrgId"/>
-    </SqlMethod>
+   </SqlMethod>
+   <SqlMethod name="beginWorkstepNoMat" type="preparedStatement" return="multiple" connection="true">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select out_createdId,out_messagetext from zssm_beginworkstep(?, ?, ?,'N')
+    </Sql>
+    <Parameter name="workstepId"/>
+    <Parameter name="userId"/>
+    <Parameter name="adOrgId"/>
+   </SqlMethod>
   </SqlClass>

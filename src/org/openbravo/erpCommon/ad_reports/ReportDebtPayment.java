@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.openbravo.base.filter.IsIDFilter; 
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
+import org.openbravo.base.secureApp.SeguridadData;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.erpCommon.businessUtility.Tree;
 import org.openbravo.erpCommon.businessUtility.WindowTabs;
@@ -36,7 +37,6 @@ import org.openbravo.erpCommon.utility.OBError;
 import org.openbravo.erpCommon.utility.ToolBar;
 import org.openbravo.erpCommon.utility.Utility;
 import org.openbravo.xmlEngine.XmlDocument;
-import org.openz.view.templates.*;
 import org.openz.controller.businessprocess.BprocessCommonData;
 import org.openz.util.UtilsData;
 
@@ -215,7 +215,6 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
       String strGroup = vars.getRequestGlobalVariable("inpGroup", "ReportDebtPayment|Group");
       String strGroupBA = vars.getRequestGlobalVariable("inpGroupBA", "ReportDebtPayment|Group");
       String strStatus = vars.getRequestGlobalVariable("inpStatus", "ReportDebtPayment|Status");
-      String strTreeOrg = ReportDebtPaymentData.treeOrg(this, vars.getClient());
       // String strReceipt = vars.getRequestGlobalVariable("inpReceipt",
       // "ReportDebtPayment|Receipt");
       String strReceipt = vars.getStringParameter("inpReceipt").equals("") ? "N" : vars
@@ -246,9 +245,12 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
     String strTreeOrg = ReportDebtPaymentData.treeOrg(this, vars.getClient());
     ReportDebtPaymentData[] data = null;
     String strReportName = null;
-    if (strAD_Org_ID.equals("0"))
-      strAD_Org_ID=Tree.getMembers(this, strTreeOrg, strAD_Org_ID);
-    else
+    if (strAD_Org_ID.equals("0")){   
+    	if (SeguridadData.isLoginRoleOrg(this, vars.getRole(), "0"))
+    		strAD_Org_ID=Tree.getMembers(this, strTreeOrg, strAD_Org_ID);
+    	else
+    		strAD_Org_ID="''";
+    } else
       strAD_Org_ID="'"+ strAD_Org_ID+"'";
     if (!strGroup.equals("")) {
 
@@ -319,9 +321,12 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
     ReportDebtPaymentData[] data = null;
     String strTreeOrg = ReportDebtPaymentData.treeOrg(this, vars.getClient());
     String  strAD_Org_Sel=strAD_Org_ID;
-    if (strAD_Org_ID.equals("0"))
-      strAD_Org_Sel=Tree.getMembers(this, strTreeOrg, strAD_Org_ID);
-    else
+    if (strAD_Org_ID.equals("0")) {   
+      if (SeguridadData.isLoginRoleOrg(this, vars.getRole(), "0"))
+    	  strAD_Org_Sel=Tree.getMembers(this, strTreeOrg, strAD_Org_ID);
+      else
+    	  strAD_Org_Sel="''";
+    } else
       strAD_Org_Sel="'"+ strAD_Org_ID+"'";
     if (!strGroup.equals(""))
       data = ReportDebtPaymentData.select(this, vars.getLanguage(), Utility.getContext(this, vars,

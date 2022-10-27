@@ -66,7 +66,6 @@ public class SL_Order_Amt  extends ProductTextHelper  {
       String cancelPriceAd = vars.getStringParameter("inpcancelpricead");
       String strMPricelistId = vars.getSessionValue(strWindowId + "|m_Pricelist_Id");
       String strOptional = vars.getStringParameter("isoptional");
-      
 
       try {
         
@@ -110,6 +109,8 @@ public class SL_Order_Amt  extends ProductTextHelper  {
     String Issotrx = SLOrderStockData.isSotrx(this, strCOrderId);
     String strStockNoAttribute;
     String strStockAttribute;
+    String messageBuffer = "";
+
     if (data1 != null && data1.length > 0) {
       strStockSecurity = data1[0].stock;
       strEnforceAttribute = data1[0].enforceAttribute;
@@ -152,7 +153,7 @@ public class SL_Order_Amt  extends ProductTextHelper  {
 
 
     SLOrderProductData[] dataOrder = SLOrderProductData.select(this, strCOrderId);
-   
+    
     // FW: Use discount?
 	if (strChanged.equals("inpcancelpricead")) {
 		if ("Y".equals(cancelPriceAd)) {
@@ -177,9 +178,9 @@ public class SL_Order_Amt  extends ProductTextHelper  {
     // perform link (used as button from Product CXallout)
     if (strChanged.equals("QtyOrdered")) {
       BigDecimal qtyPurchase = new BigDecimal(SLOrderAmtData.mrp_getpo_qty(this, strProduct, dataOrder[0].cBpartnerId, OrderQTY.compareTo(BigDecimal.ZERO)==0?qtyOrdered.toString():OrderQTY.toString(),strOrderUOM,strMProductPOID));
-      
-      resultado.append("new Array('MESSAGE', \"" + "\"),"); // reset Message, reset MessageBox
-      resultado.append("new Array('MESSAGE', \"" + FormatUtilities.replaceJS(Utility.messageBD(this, "ZSMP_PurchaseDefault_Excec", vars.getLanguage()) ) + "\"),");
+      vars.setSessionValue("QTYPURCHASE_AMT", qtyPurchase.toString());
+
+      messageBuffer = messageBuffer + "ZSMP_PurchaseDefault_Excec_PLACEHOLDER,";
       
       int stdPrecision = strPrecision.equals("") ? 0 : Integer.valueOf(strPrecision).intValue();
       String strInitUOM = SLInvoiceConversionData.initUOMId(this, strOrderUOM);
@@ -247,35 +248,37 @@ public class SL_Order_Amt  extends ProductTextHelper  {
        // Standard- bzw. Mindest-Bestellmenge aus Einkauf (m_product_po) beruecksichtigen, wenn hinterlegt     
         if (strChanged.equals("inpqtyordered")||strChanged.equals("inpmProductPoId")) {
           BigDecimal qtyPurchase = new BigDecimal(SLOrderAmtData.mrp_getpo_qty(this, strProduct, dataOrder[0].cBpartnerId, OrderQTY.compareTo(BigDecimal.ZERO)==0?qtyOrdered.toString():OrderQTY.toString(),strOrderUOM,strMProductPOID));
+          vars.setSessionValue("QTYPURCHASE_AMT", qtyPurchase.toString());
           if (!qtyPurchase.equals(OrderQTY.compareTo(BigDecimal.ZERO)==0?qtyOrdered:OrderQTY)) {
             priomes=true;
             BigDecimal qtyPurchaseStd = new BigDecimal(SLOrderAmtData.mrp_getpo_qtystd(this, strProduct, dataOrder[0].cBpartnerId,strOrderUOM,strMProductPOID));
+            vars.setSessionValue("QTYPURCHASESTD_AMT", qtyPurchaseStd.toString());
             BigDecimal qtyPurchaseMin = new BigDecimal(SLOrderAmtData.mrp_getpo_qtymin(this, strProduct, dataOrder[0].cBpartnerId,strOrderUOM,strMProductPOID));
+            vars.setSessionValue("QTYPURCHASEMIN_AMT", qtyPurchaseMin.toString());
             String qtyPurchaseIsMultiple = new String(SLOrderAmtData.mrp_getpo_ismultipleofminimumqty(this, strProduct, dataOrder[0].cBpartnerId,strOrderUOM,strMProductPOID));
-            resultado.append("new Array('MESSAGE', \"" + FormatUtilities.replaceJS
-            (
-              Utility.messageBD(this, "ZSMP_PurchaseDefault",        vars.getLanguage()) + ":" +  "</br></br>" + 
-              Utility.messageBD(this, "ZSMP_PurchaseDefault_QtyStd", vars.getLanguage()) + " = " + qtyPurchaseStd.toString() + "</br>" + 
-              Utility.messageBD(this, "ZSMP_PurchaseDefault_QtyMin", vars.getLanguage()) + " = " + qtyPurchaseMin.toString() + "</br>" +
-              Utility.messageBD(this, "ZSMP_PurchaseDefault_IsMult", vars.getLanguage()) + " = " + qtyPurchaseIsMultiple.toString() + "</br></br>" +
-              Utility.messageBD(this, "ZSMP_PurchaseDefault_Qty",    vars.getLanguage()) + " = " + qtyPurchase.toString() + "  "  + // "</br>" +
-              "<input type=\"button\" value=\"Anpassen\" href=\"#\"  style=\"cursor:pointer;\" onclick=\"submitCommandFormParameter('DEFAULT', frmMain.inpLastFieldChanged, 'QtyOrdered', false, null, '../ad_callouts/SL_Order_Amt.html', 'hiddenFrame', null, null, true); return false;\" class=\"LabelLink\">"
-            ) + "\"),");
-          } else {
-            resultado.append("new Array('MESSAGE', \"" + "\"),"); // reset Message, reset MessageBox
+            vars.setSessionValue("QTYPURCHASEISMULTIPLE_AMT", qtyPurchaseIsMultiple);
+
+            messageBuffer = messageBuffer + "ZSMP_PurchaseDefault_PLACEHOLDER,";
           }
         } 
         if (priceActual.compareTo(ZERO)!=0 || Issotrx.equals("N")) {
           if(priceActual.compareTo(new BigDecimal(strPriceActual))!=0 && priomes==false){
               String strPJS=strPriceActual.replace('.',',');
+              vars.setSessionValue("STRPJS_AMT", strPJS);
+              vars.setSessionValue("PRICEACTUAL_AMT", strPriceActual);
               //Here are the Changes for Notifying Price Changes
-              resultado.append("new Array('MESSAGE', \"" + "\"),"); // reset Message, reset MessageBox
-              resultado.append("new Array('MESSAGE', \"" + FormatUtilities.replaceJS
-                (
-                  Utility.messageBD(this, "ZSPM_PriceActual_changed",    vars.getLanguage()) + " = " + strPJS + "  "  + // "</br>" +
-                  "<input type=\"button\" value=\"Anpassen\" href=\"#\"  style=\"cursor:pointer;\" onclick=\"PunktKomma("+strPriceActual+");\" class=\"LabelLink\">"
-                ) + "\"),");  }
-        resultado.append("new Array(\"inppriceactual\", " + priceActual.toString()  + "),");
+              messageBuffer = messageBuffer + "ZSPM_PriceActual_changed_PLACEHOLDER,";
+          } else if (strQtyOrdered.equals("1") && priceActual.compareTo(new BigDecimal(strPriceStd))!=0) {
+              // price adjustment in product
+              // product selected and price changed immediately
+              // workaround, does not work if qtyOrdered is changed before product
+              String strPJS=strPriceStd.replace('.',',');
+              vars.setSessionValue("STRPJS_AMT", strPJS);
+              vars.setSessionValue("PRICEACTUAL_AMT", strPriceStd);
+              //Here are the Changes for Notifying Price Changes
+              messageBuffer = messageBuffer + "ZSPM_PriceActual_changed_PLACEHOLDER,";
+          }
+          resultado.append("new Array(\"inppriceactual\", " + priceActual.toString()  + "),");
         }
         
         if (priceStd.compareTo(ZERO)!=0) {
@@ -309,9 +312,7 @@ public class SL_Order_Amt  extends ProductTextHelper  {
             stockNoAttribute = new BigDecimal(strStockNoAttribute);
             resultStock = stockNoAttribute.subtract(qtyOrdered);
             if (stockSecurity.compareTo(resultStock) > 0) {
-              resultado.append("new Array('MESSAGE', \""
-                  + FormatUtilities.replaceJS(Utility.messageBD(this, "StockLimit", vars
-                      .getLanguage())) + "\"),");
+                messageBuffer = messageBuffer + "StockLimit_PLACEHOLDER,";
             }
           } else {
             if (!strAttribute.equals("") && strAttribute != null) {
@@ -320,9 +321,7 @@ public class SL_Order_Amt  extends ProductTextHelper  {
               stockAttribute = new BigDecimal(strStockAttribute);
               resultStock = stockAttribute.subtract(qtyOrdered);
               if (stockSecurity.compareTo(resultStock) > 0) {
-                resultado.append("new Array('MESSAGE', \""
-                    + FormatUtilities.replaceJS(Utility.messageBD(this, "StockLimit", vars
-                        .getLanguage())) + "\"),");
+                  messageBuffer = messageBuffer + "StockLimit_PLACEHOLDER,";
               }
             }
           }
@@ -335,9 +334,9 @@ public class SL_Order_Amt  extends ProductTextHelper  {
       boolean enforced = SLOrderAmtData.listPriceType(this, strMPricelistId);
       // Check Price Limit?
       if (enforced && priceLimit.compareTo(BigDecimal.ZERO) != 0
-          && priceActual.compareTo(priceLimit) < 0)
-        resultado.append("new Array('MESSAGE', \""
-            + Utility.messageBD(this, "UnderLimitPrice", vars.getLanguage()) + "\"),");
+          && priceActual.compareTo(priceLimit) < 0) {
+          messageBuffer = messageBuffer + "UnderLimitPrice_PLACEHOLDER,";
+      }
     }
 
 
@@ -350,14 +349,63 @@ public class SL_Order_Amt  extends ProductTextHelper  {
     // MIn Purchase Val.
     if ((Issotrx.equals("N")&& priomes==false) && (strChanged.equals("QtyOrdered")|| strChanged.equals("inpqtyordered")||strChanged.equals("inpmProductPoId")||strChanged.equals("inpdiscount")|| strChanged.equals("inppriceactual"))) {
     	int minPurchaseval = Integer.valueOf(SLOrderAmtData.mrp_getpo_minimpositionvalue(this, strProduct, dataOrder[0].cBpartnerId,strOrderUOM,strMProductPOID));
+    	vars.setSessionValue("MINPURCHASEVAL_AMT", "" + minPurchaseval);
     	if (new BigDecimal(minPurchaseval).compareTo(lineNetAmt)>0) {
-    		resultado.append("new Array('MESSAGE', \"" + "\"),"); // reset Message, reset MessageBox
-    		String mess= Utility.messageBD(this, "MinimumPositionValueUnderrun", vars.getLanguage()) + " " + minPurchaseval +
-    				     ",-" + SLOrderPriceListData.select(this, strMPricelistId)[0].cursymbol;
-    		resultado.append("new Array('MESSAGE', \"" +  mess + "\"),");
+    		messageBuffer = messageBuffer + "MinimumPositionValueUnderrun_PLACEHOLDER,";
     	}	
     }
     
+    if(vars.getSessionValue("MESSAGE_AMT", "").isEmpty()) {
+        vars.setSessionValue("MESSAGE_AMT", messageBuffer);
+    } else if(messageBuffer.isEmpty()){
+        messageBuffer = vars.getSessionValue("MESSAGE_AMT", "");
+    } else {
+        String[] sBL = vars.getSessionValue("MESSAGE_AMT", "").split(",");
+        String newMessageBuffer = messageBuffer;
+        
+        for(String s : sBL) {
+            if(!newMessageBuffer.contains(s)) {
+                newMessageBuffer = newMessageBuffer + s + ",";
+            }
+        }
+        
+        messageBuffer = newMessageBuffer;
+        vars.setSessionValue("MESSAGE_AMT", messageBuffer);
+    }
+
+    messageBuffer = messageBuffer.replace(",", "")
+                                 .replace("ZSMP_PurchaseDefault_Excec_PLACEHOLDER", FormatUtilities.replaceJS(Utility.messageBD(this, "ZSMP_PurchaseDefault_Excec", vars.getLanguage())) + "<br>")
+                                 .replace("ZSMP_PurchaseDefault_PLACEHOLDER", FormatUtilities.replaceJS
+                                               (
+                                                 Utility.messageBD(this, "ZSMP_PurchaseDefault",        vars.getLanguage()) + ":" +  "</br></br>" + 
+                                                 Utility.messageBD(this, "ZSMP_PurchaseDefault_QtyStd", vars.getLanguage()) + " = " + vars.getSessionValue("QTYPURCHASESTD_AMT", "") + "</br>" + 
+                                                 Utility.messageBD(this, "ZSMP_PurchaseDefault_QtyMin", vars.getLanguage()) + " = " + vars.getSessionValue("QTYPURCHASEMIN_AMT", "") + "</br>" +
+                                                 Utility.messageBD(this, "ZSMP_PurchaseDefault_IsMult", vars.getLanguage()) + " = " + vars.getSessionValue("QTYPURCHASEISMULTIPLE_AMT", "") + "</br></br>" +
+                                                 Utility.messageBD(this, "ZSMP_PurchaseDefault_Qty",    vars.getLanguage()) + " = " + vars.getSessionValue("QTYPURCHASE_AMT", "") + "  "  + // "</br>" +
+                                                 "<input type=\"button\" value=\""
+                                                 + Utility.messageBD(this, "ZSMP_ButtonReset",        vars.getLanguage())
+                                                 + "\" href=\"#\"  style=\"cursor:pointer;\" onclick=\"submitCommandFormParameter('DEFAULT', frmMain.inpLastFieldChanged, 'QtyOrdered', false, null, '../ad_callouts/SL_Order_Amt.html', 'hiddenFrame', null, null, true); return false;\" class=\"LabelLink\">"
+                                               ) + "<br>")
+                                 .replace("ZSPM_PriceActual_changed_PLACEHOLDER", FormatUtilities.replaceJS
+                                               (
+                                                 Utility.messageBD(this, "ZSPM_PriceActual_changed",    vars.getLanguage()) + " = " + vars.getSessionValue("STRPJS_AMT", "") + "  "  + // "</br>" +
+                                                 "<input type=\"button\" value=\""
+                                                 + Utility.messageBD(this, "ZSMP_ButtonReset",        vars.getLanguage())
+                                                 + "\" href=\"#\"  style=\"cursor:pointer;\" onclick=\"PunktKomma("+ vars.getSessionValue("PRICEACTUAL_AMT", strPriceActual) +");\" class=\"LabelLink\">"
+                                               ) + "<br>")
+                                 .replace("StockLimit_PLACEHOLDER", FormatUtilities.replaceJS(Utility.messageBD(this, "StockLimit", vars.getLanguage())) + "<br>")
+                                 .replace("UnderLimitPrice_PLACEHOLDER", Utility.messageBD(this, "UnderLimitPrice", vars.getLanguage()) + "<br>")
+                                 .replace("MinimumPositionValueUnderrun_PLACEHOLDER", Utility.messageBD(this, "MinimumPositionValueUnderrun", vars.getLanguage()) + " " + vars.getSessionValue("MINPURCHASEVAL_AMT", "") +
+                                         ",-" + SLOrderPriceListData.select(this, strMPricelistId)[0].cursymbol + "<br>");
+    
+    vars.setSessionValue("MESSAGE_AMT_TEXT", messageBuffer);
+    String messageComplete = vars.getSessionValue("MESSAGE_PROD_TEXT", "") + messageBuffer;
+    resultado.append("new Array('MESSAGE', \"" + "\"),"); // reset Message, reset MessageBox
+    resultado.append("new Array('MESSAGE', \"" +  messageComplete + "\"),");
+    
+    
+    
+
     resultado.append("new Array(\"inplinenetamt\", " + lineNetAmt.toString() + ")");
     
     resultado.append(");");

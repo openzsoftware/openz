@@ -57,12 +57,13 @@ public class OrderlineFastEntry extends ProductTextHelper implements ManualTabPa
         Vector <String> retval;
         conn= servlet.getTransactionConnection();
         retval=grid.getSelectedIds(servlet, vars, "c_orderline_id");
-        String strOrderlineId,strLine,strProduct,strQty,strDescription,strPrice;
+        String strOrderlineId,strLine,strProduct,strQty,strDescription,strPrice,strAux;
         for (int i = 0; i < retval.size(); i++) {
           strOrderlineId=retval.elementAt(i);
           strLine=grid.getValue(servlet, vars, strOrderlineId, "Line");
           strProduct=grid.getValue(servlet, vars, strOrderlineId, "M_Product_ID");
           strQty=grid.getValue(servlet, vars, strOrderlineId, "qtyordered");
+          strAux=grid.getValue(servlet, vars, strOrderlineId, "auxfield1");
           strDescription=grid.getValue(servlet, vars, strOrderlineId, "description");
           //OrderlineFastEntryData.getOffersPrice(servlet, strProduct, strQty, strOrderid);
           String priceoffer=grid.getValue(servlet, vars, strOrderlineId, "priceactual");
@@ -75,7 +76,7 @@ public class OrderlineFastEntry extends ProductTextHelper implements ManualTabPa
             OrderlineFastEntryData.insert(conn, servlet, strOrderid,strProduct, strQty,priceoffer, pricelist,pricestd,discount,"");          
 
           
-          OrderlineFastEntryData.update(conn, servlet,strProduct,strQty,strDescription,vars.getUser(), pricelist,priceoffer,discount,strOrderlineId);
+          OrderlineFastEntryData.update(conn, servlet,strProduct,strQty,strDescription,vars.getUser(), pricelist,priceoffer,discount,strAux,strOrderlineId);
           if (msg.isEmpty())
             msg=Utility.messageBD(servlet, "OrderlineUpdatedSucessfully",vars.getLanguage());
         }   

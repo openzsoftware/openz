@@ -11,7 +11,25 @@
       ]]></Sql>
     <Parameter name="parSODocumentID"/> 
   </SqlMethod>
- 
+                 
+  <SqlMethod name="isIndividualPartOfPOList" type="preparedStatement"  return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select li.description  from AD_Ref_Listinstance li,ad_ref_list l where l.AD_Ref_List_id=li.AD_Ref_List_id and 
+                   l.ad_reference_id='54DAE887EA0E48F0A8DD6C4DADFFF94F' and  li.value=?
+    </Sql>
+    <Parameter name="p_targettype"/>  
+  </SqlMethod>
+  
+  <SqlMethod name="isIndividualPartOfSOLists" type="preparedStatement"  return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select li.description  from AD_Ref_Listinstance li,ad_ref_list l where l.AD_Ref_List_id=li.AD_Ref_List_id and 
+                   l.ad_reference_id  in ('FD2AF07A654C40E085295748F3F253A5','DA2DEEE7274448F7B0252A18EDD377CF')  and  li.value=?
+    </Sql>
+    <Parameter name="p_targettype"/>  
+  </SqlMethod>
+                    
   <SqlMethod name="set" type="constant" return="multiple">
       <SqlMethodComment></SqlMethodComment>
       <Sql></Sql>
@@ -73,6 +91,14 @@
     <SqlMethodComment></SqlMethodComment>
     <Sql>
        select issotrx 
+       from c_order where c_order_id=?
+    </Sql>
+    <Parameter name="parDocumentID"/>  
+  </SqlMethod>
+  <SqlMethod name="getdoctype" type="preparedStatement"   return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select c_doctype_id
        from c_order where c_order_id=?
     </Sql>
     <Parameter name="parDocumentID"/>  

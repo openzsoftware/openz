@@ -3686,6 +3686,20 @@ BEGIN
 END ; $_$;
 
 
+CREATE OR REPLACE FUNCTION ad_get_pinstance_result(p_pinstance_id character varying) RETURNS varchar
+LANGUAGE plpgsql AS $_$ 
+DECLARE 
+    v_count numeric;
+    v_return varchar:='OK';
+BEGIN
+  select RESULT into v_count from AD_PINSTANCE WHERE AD_PInstance_ID=p_PInstance_ID;
+  if v_count!=1 then
+    select 'ERROR'||coalesce(ERRORMSG,'') into v_return from AD_PINSTANCE WHERE AD_PInstance_ID=p_PInstance_ID;
+  end if;
+  return v_return;
+END ; $_$;
+
+
 CREATE OR REPLACE FUNCTION ad_column_identifier_ref_sql(p_tableref character varying, p_tablename character varying, p_columnname character varying, p_reference_id character varying, p_reference_value_id character varying) RETURNS character varying
     LANGUAGE plpgsql
     AS $_$ DECLARE 

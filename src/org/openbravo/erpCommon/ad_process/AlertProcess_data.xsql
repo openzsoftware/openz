@@ -149,7 +149,7 @@
    
    <SqlMethod name="prepareMails" type="preparedStatement" return="multiple">
      <Sql><![CDATA[
-          SELECT C.SMTPHOST,
+          SELECT distinct C.SMTPHOST,
                  REQUESTUSER,
                  REQUESTUSERPW,
                  C.REQUESTEMAIL AS MAILFROM,

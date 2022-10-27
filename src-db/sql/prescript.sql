@@ -1,3 +1,4 @@
+update ad_preference set value='Y' where attribute='SUSPENDHISTORY';
 
 
 CREATE OR REPLACE FUNCTION zsse_DropFunction (p_function VARCHAR)

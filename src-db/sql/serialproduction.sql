@@ -176,6 +176,7 @@ SELECT
   prt.isautocloseworkstep,
   prt.m_attributesetinstance_id,
   prj.isapproved,
+  prt.simplyfiedmanufacturing,
   (select string_agg(m.name,',') from ma_machine m,zspm_ptaskmachineplan mp where mp.ma_machine_id=m.ma_machine_id and mp.c_projecttask_id=prt.c_projecttask_id) as workplace
 FROM c_projecttask prt, c_project prj
 WHERE 1=1
@@ -257,7 +258,8 @@ insert into c_projecttask (
   triggerreason,
   c_color_id,
   isautocloseworkstep,
-  m_attributesetinstance_id
+  m_attributesetinstance_id,
+  simplyfiedmanufacturing
 )
 values (
   NEW.zssm_workstep_v_id,
@@ -328,7 +330,8 @@ values (
   NEW.triggerreason,
   NEW.c_color_id,
   NEW.isautocloseworkstep,
-  NEW.m_attributesetinstance_id
+  NEW.m_attributesetinstance_id,
+  NEW.simplyfiedmanufacturing
 );
 
 create or replace rule zssm_workstep_v_update as
@@ -402,7 +405,8 @@ update c_projecttask set
   triggerreason=NEW.triggerreason,
   c_color_id=NEW.c_color_id,
   isautocloseworkstep=NEW.isautocloseworkstep,
-  m_attributesetinstance_id=NEW.m_attributesetinstance_id
+  m_attributesetinstance_id=NEW.m_attributesetinstance_id,
+  simplyfiedmanufacturing=NEW.simplyfiedmanufacturing
 where
   c_projecttask.c_projecttask_id = NEW.c_projecttask_id;
 
@@ -488,8 +492,6 @@ SELECT
 	c_project.actualcostamount AS actualcostamount,
 	c_project.percentdoneyet AS percentdoneyet,
 	c_project.estimatedamt AS estimatedamt,
-	c_project.qtyofproduct AS qtyofproduct,
-	c_project.m_product_id AS m_product_id,
 	c_project.closeproject AS closeproject,
 	c_project.materialcost AS materialcost,
 	c_project.indirectcost AS indirectcost,
@@ -499,7 +501,8 @@ SELECT
 	c_project.isdefault,
 	c_project.timeperpiece,
 	c_project.setuptime,
-	c_project.isautotriggered  
+	c_project.isautotriggered,
+	'' as m_product_id
 FROM c_project
 WHERE c_project.projectcategory = 'PRP';
 
@@ -578,8 +581,6 @@ INSERT INTO c_project (
 	actualcostamount,
 	percentdoneyet,
 	estimatedamt,
-	qtyofproduct,
-	m_product_id,
 	closeproject,
 	materialcost,
 	indirectcost,
@@ -661,8 +662,6 @@ INSERT INTO c_project (
 	NEW.actualcostamount,
 	NEW.percentdoneyet,
 	NEW.estimatedamt,
-	NEW.qtyofproduct,
-	NEW.m_product_id,
 	COALESCE(NEW.closeproject, 'N'),
 	NEW.materialcost,
 	NEW.indirectcost,
@@ -748,8 +747,6 @@ UPDATE c_project SET
 	actualcostamount = NEW.actualcostamount,
 	percentdoneyet = NEW.percentdoneyet,
 	estimatedamt = NEW.estimatedamt,
-	qtyofproduct = NEW.qtyofproduct,
-	m_product_id = NEW.m_product_id,
 	closeproject = NEW.closeproject,
 	materialcost = NEW.materialcost,
 	indirectcost = NEW.indirectcost,
@@ -901,16 +898,13 @@ BEGIN
   IF c_getconfigoption('prefedineserials',new.ad_org_id)='Y' and (select count(*) from c_project where c_project_id=new.c_project_id and projectcategory='PRO')=1 then
     select value,qty into v_value,v_qty from c_projecttask where c_projecttask_id=new.c_projecttask_id;
     delete from zsmf_prefedineserials where zssm_workstep_v_id=new.c_projecttask_id;
-    if (select count(*) from m_product where m_product_id=new.m_product_id and new.assembly='Y' and isserialtracking='Y')=1 then
+    if (select count(*) from m_product where m_product_id=new.m_product_id and new.assembly='Y' and (isserialtracking='Y' or isbatchtracking='Y'))=1 then
         for v_i in 1..v_qty
         LOOP
             insert into zsmf_prefedineserials(zsmf_prefedineserials_id,zssm_workstep_v_id,AD_CLIENT_ID, AD_ORG_ID, CREATEDBY, UPDATEDBY,serialnumber)
                    values(get_uuid(),new.c_projecttask_id,'C726FEC915A54A0995C568555DA5BB3C',new.ad_org_id,new.CREATEDBY, new.UPDATEDBY,v_value||'-'||v_i);
         END LOOP;
-    end if;
-    if (select count(*) from m_product where m_product_id=new.m_product_id and new.assembly='Y' and isbatchtracking='Y')=1 then
-        -- ToDo
-    end if;
+    end if;    
   end if;
   IF (TG_OP = 'DELETE') THEN RETURN OLD; ELSE RETURN NEW;
   END IF;
@@ -923,6 +917,58 @@ CREATE TRIGGER zssm_productionplan_generate_trg
   AFTER INSERT OR UPDATE 
   ON c_projecttask FOR EACH ROW
   EXECUTE PROCEDURE zssm_productionplan_generate_trg();
+  
+CREATE OR REPLACE FUNCTION zssm_getopendurchreicher (p_projecttask_id OUT varchar,zssm_workstep_v_id OUT VARCHAR)
+RETURNS SETOF RECORD AS
+$body$
+DECLARE
+    v_cur record;
+    v_prd varchar;
+    v_ptask varchar;
+BEGIN
+  for v_cur in (select p.c_project_id,t.c_projecttask_id from c_projecttask t,c_project p where p.c_project_id=t.c_project_id and p.projectcategory='PRO' and  t.iscomplete='N' and t.assembly='N')
+  LOOP
+    select m_product_id into v_prd from zspm_projecttaskbom where c_projecttask_id=v_cur.c_projecttask_id order by line limit 1;
+    select c_projecttask_id into v_ptask from c_projecttask where c_project_id=v_cur.c_project_id and m_product_id=v_prd and assembly='Y' limit 1;
+    if v_ptask is not null then
+        zssm_workstep_v_id:=v_cur.c_projecttask_id;
+        p_projecttask_id:=v_ptask;
+        return next;
+    end if;
+  END LOOP;
+END;
+$body$
+LANGUAGE 'plpgsql';
+  
+  
+SELECT zsse_DropView ('zssm_predefinedserials_v');
+CREATE OR REPLACE VIEW zssm_predefinedserials_v AS
+SELECT
+    p.serialnumber as zssm_predefinedserials_v_id,
+    p.serialnumber as name,
+    p.zssm_workstep_v_id,
+    p.created,
+    p.updated,
+    p.createdby,
+    p.updatedby,
+    p.isactive,p.ad_client_id,p.ad_org_id,
+    (select case when count(*)>0 then 'Y' else 'N' end from m_internal_consumption l where l.c_projecttask_id=p.zssm_workstep_v_id and l.plannedserialnumber=p.serialnumber) as hastrx 
+from Zsmf_Prefedineserials p,c_projecttask t
+where t.c_projecttask_id=p.zssm_workstep_v_id and t.iscomplete='N'
+UNION
+SELECT 
+    p.serialnumber as zssm_predefinedserials_v_id,
+    p.serialnumber as name,
+    o.zssm_workstep_v_id,
+    p.created,
+    p.updated,
+    p.createdby,
+    p.updatedby,
+    p.isactive,p.ad_client_id,p.ad_org_id,
+    (select case when count(*)>0 then 'Y' else 'N' end from m_internal_consumption l where l.c_projecttask_id=o.zssm_workstep_v_id and l.plannedserialnumber=p.serialnumber) as hastrx 
+from zssm_getopendurchreicher() o, Zsmf_Prefedineserials p where o.p_projecttask_id=p.zssm_workstep_v_id;
+
+
 
 
 
@@ -1153,8 +1199,6 @@ SELECT
 	c_project.actualcostamount AS actualcostamount,
 	c_project.percentdoneyet AS percentdoneyet,
 	c_project.estimatedamt AS estimatedamt,
-	c_project.qtyofproduct AS qtyofproduct,
-	c_project.m_product_id AS m_product_id,
 	c_project.closeproject AS closeproject,
 	c_project.materialcost AS materialcost,
 	c_project.indirectcost AS indirectcost,
@@ -1241,8 +1285,6 @@ INSERT INTO c_project (
 	actualcostamount,
 	percentdoneyet,
 	estimatedamt,
-	qtyofproduct,
-	m_product_id,
 	closeproject,
 	materialcost,
 	indirectcost,
@@ -1324,8 +1366,6 @@ INSERT INTO c_project (
 	NEW.actualcostamount,
 	NEW.percentdoneyet,
 	NEW.estimatedamt,
-	NEW.qtyofproduct,
-	NEW.m_product_id,
 	COALESCE(NEW.closeproject, 'N'),
 	NEW.materialcost,
 	NEW.indirectcost,
@@ -1409,8 +1449,6 @@ UPDATE c_project SET
 	actualcostamount = NEW.actualcostamount,
 	percentdoneyet = NEW.percentdoneyet,
 	estimatedamt = NEW.estimatedamt,
-	qtyofproduct = NEW.qtyofproduct,
-	m_product_id = NEW.m_product_id,
 	closeproject = NEW.closeproject,
 	materialcost = NEW.materialcost,
 	indirectcost = NEW.indirectcost,
@@ -2515,6 +2553,7 @@ BEGIN
       v_zssm_productionOrder_v.projectcategory := 'PRO';
       v_zssm_productionOrder_v.projectstatus := 'OP'; -- Draft
       v_zssm_productionOrder_v.prpreference := p_ProductionPlan_ID; -- caused by
+      v_zssm_productionOrder_v.timekeeping='N';
       v_org:=v_zssm_productionOrder_v.ad_org_id;
     --RAISE NOTICE ' INSERT INTO c_project: v_zssm_productionOrder_v.c_project_id=%, v_zssm_productionOrder_v.value=%, v_zssm_productionOrder_v.name=%', v_zssm_productionOrder_v.c_project_id, v_zssm_productionOrder_v.value, v_zssm_productionOrder_v.name;
       INSERT INTO c_project SELECT v_zssm_productionOrder_v.*; -- ROWTYPE  
@@ -3076,6 +3115,51 @@ BEGIN
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE;
+  
+select zsse_DropFunction ('zssm_getproductofproductionplan');
+CREATE OR REPLACE FUNCTION zssm_getproductofproductionplan(p_productionplan character varying)
+  RETURNS varchar AS
+$BODY$
+DECLARE
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+
+Artikel des Plans
+
+
+*****************************************************/
+v_cur record;
+v_count numeric;
+v_return varchar:='';
+v_planexit_id varchar;
+BEGIN
+  -- 1. select all tasks with product AS output
+  for v_cur in (select * from zssm_productionplan_task_v where zssm_productionplan_v_id=p_productionplan and assembly='Y' and isactive='Y' 
+                                                               and exists (select 0 from c_project where isactive='Y' and projectstatus='OR' and c_project_id=zssm_productionplan_task_v.zssm_productionplan_v_id))
+  LOOP
+    select count(*) into v_count from zssm_productionplan_taskdep where c_project_id=v_cur.zssm_productionplan_v_id and dependsontask=v_cur.zssm_productionplan_task_id;
+    if v_count>0 then -- There are following steps - Get the exit of plan and see if the desired Product is a Result of this Plan.
+     select t.c_projecttask_id into v_planexit_id from zssm_productionplan_task t
+                where t.c_project_id=v_cur.zssm_productionplan_v_id and not exists
+                       (select 0 from zssm_productionplan_taskdep d where d.dependsontask=t.zssm_productionplan_task_id);
+     select count(*)-1 into v_count from zspm_projecttaskbom b,c_projecttask t where t.c_projecttask_id=b.c_projecttask_id and t.assembly='N' and t.c_projecttask_id=v_planexit_id and b.m_product_id=v_cur.m_product_id;
+    end if;
+    if v_count=0 then -- no other task depends on this one : it is an exit of the plan
+       v_planexit_id:=v_cur.zssm_productionplan_task_v_id;
+    end if;
+  END LOOP;
+  select m_product_id into v_return from zssm_productionplan_task_v where zssm_productionplan_task_v_id =v_planexit_id;
+  return v_return;
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE;
  
 
 select zsse_DropFunction ('zssm_getworkstepandwarehouse');
@@ -3488,7 +3572,8 @@ SELECT
   multipleofmimimumqty,
   c_color_id,
   isautocloseworkstep,
-  createbom
+  createbom,
+  simplyfiedmanufacturing
 FROM c_projecttask
 WHERE c_project_id IS NULL;
 
@@ -3546,7 +3631,8 @@ INSERT INTO c_projecttask (
   mimimumqty,
   multipleofmimimumqty,
   c_color_id,
-  isautocloseworkstep
+  isautocloseworkstep,
+  simplyfiedmanufacturing
 ) VALUES (
 	coalesce(NEW.zssm_workstep_v_id,NEW.zssm_workstep_prp_v_id),
 	NEW.ad_client_id,
@@ -3599,7 +3685,8 @@ INSERT INTO c_projecttask (
    NEW.mimimumqty,
    coalesce(NEW.multipleofmimimumqty,'N'),
    NEW.c_color_id,
-   coalesce(NEW.isautocloseworkstep,'N')
+   coalesce(NEW.isautocloseworkstep,'N'),
+   NEW.simplyfiedmanufacturing
   );
 
 CREATE OR REPLACE RULE zssm_workstep_prp_v_update AS
@@ -3656,7 +3743,8 @@ UPDATE c_projecttask SET
   mimimumqty=NEW.mimimumqty,
   multipleofmimimumqty=new.multipleofmimimumqty,
   c_color_id = NEW.c_color_id,
-  isautocloseworkstep=coalesce(NEW.isautocloseworkstep,'N')
+  isautocloseworkstep=coalesce(NEW.isautocloseworkstep,'N'),
+  simplyfiedmanufacturing=NEW.simplyfiedmanufacturing
 WHERE
 	c_projecttask_id = NEW.c_projecttask_id;
 
@@ -3765,9 +3853,45 @@ END;
 $BODY$ LANGUAGE 'plpgsql' VOLATILE COST 100;
 
 
+
+CREATE OR REPLACE FUNCTION zssm_getprodorderoutput (p_project_id character varying, p_product_id OUT varchar,p_qty OUT numeric,p_qtydone OUT numeric,p_qtyonhand out numeric)
+RETURNS RECORD AS $BODY$
+DECLARE
+    v_task varchar;
+    v_qty numeric;
+    v_qtydone numeric;
+    v_wh varchar;
+    v_loc varchar;
+    v_cur record;
+BEGIN
+    for v_cur in (select * from zssm_getendingworksteps(p_project_id) limit 1)
+    LOOP
+        v_loc:=v_cur.issuing_locator;
+        p_qty:=v_cur.qty;
+        p_qtydone:=v_cur.qtyproduced;
+        if v_cur.m_product_id is not null and v_cur.assembly='Y' then
+            p_product_id:=v_cur.m_product_id;
+        else
+            if (select count(*) from c_projecttask where c_project_id=p_project_id and m_product_id is not null and assembly='Y')>0 then
+                select m_product_id,issuing_locator into p_product_id,v_loc from zspm_projecttaskbom where c_projecttask_id=v_cur.c_projecttask_id order by line limit 1;
+            else -- Non Production
+                p_qty:=null;
+                p_qtydone:=null;
+            end if;
+        end if;
+    END LOOP;
+    select m_warehouse_id into v_wh from m_locator where m_locator_id=v_loc;
+    p_qtyonhand:=m_bom_qty_onhand(p_product_id,v_wh,null); 
+    return;
+END;
+$BODY$ LANGUAGE 'plpgsql' VOLATILE COST 100;
+
+
 SELECT zsse_DropView ('zssm_productionorderstatus_v');
 CREATE OR REPLACE VIEW zssm_productionorderstatus_v AS
-SELECT v.*,zssm_checkmatampel (v.zssm_productionorder_v_id) as image,v.zssm_productionorder_v_id as zssm_productionorderstatus_v_id from    zssm_productionorder_v  v where v.isactive = 'Y' AND v.projectstatus <> 'CL';
+SELECT v.*,zssm_checkmatampel (v.zssm_productionorder_v_id) as image,v.zssm_productionorder_v_id as zssm_productionorderstatus_v_id,o.p_product_id as m_product_id,
+           o.p_qty as qty,o.p_qtydone as qtydone,o.p_qtyonhand as qtyonhand
+       from    zssm_productionorder_v  v,zssm_getprodorderoutput(v.c_project_id) o where v.isactive = 'Y' AND v.projectstatus <> 'CL';
 
 SELECT zsse_DropView ('zssm_workstepstatusplan_v');
 CREATE OR REPLACE VIEW zssm_workstepstatusplan_v AS

@@ -200,8 +200,13 @@ var numpad = {
 
     // Put selected value to target field + close numpad
     numpad.target.value = value;
-     numpad.display.value=null;
+    numpad.display.value=null;
     numpad.hide();
+    // Executing Onchange Evt. programmatically
+    if (numpad.target.onchange!=null && numpad.target.onchange!="") {
+        var fun = numpad.target.onchange;
+        window.setTimeout(fun,50);
+    }
     // SZ: Try to set Focus to another Fieled if Configured.
     try {
         fieldReadonlySettings(document.getElementById("forcefocusfield").value, true);

@@ -1489,6 +1489,10 @@ public class Utility {
       String strLanguage, String message) {
     final OBError myError = new OBError();
     myError.setType("Error");
+    if (message == null) {
+    	myError.setMessage("Error: Null value Exception");
+    	return myError;
+    }
     myError.setMessage(message);
     if (message.startsWith("javax.servlet.ServletException: @CODE="))
       message = message.substring(32);

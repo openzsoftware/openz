@@ -127,11 +127,12 @@ v_return character varying;
 BEGIN
 
    IF TG_OP = 'DELETE' and c_getconfigoption('gobnodelteindocuments',old.ad_org_id)='Y' THEN 
+    if old.c_doctype_id not in ('52C79B0ABF04413DA133B71A3C6157A9','6C8EA6FFBB2B4ACBA0542BA4F833C499') then
         raise exception '%','@NoDeletePossibleHere@';
+    end if;
    END IF;
    IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
 END;
-
   $BODY$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;

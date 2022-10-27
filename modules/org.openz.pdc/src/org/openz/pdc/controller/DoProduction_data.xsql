@@ -29,6 +29,17 @@ Contributor(s): ______________________________________.
     <Parameter name="pconsumptionid"/>
     <Parameter name="dconsumptionid"/>
   </SqlMethod>
+  <SqlMethod name="selectupper" type="preparedStatement" return="multiple" connection="true">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    Select '' as serialnumber,'' as lotnumber, '' as retval,'' as barcode,'' as type,'' as id, '' as mess,'' as ad_message_value,'' as m_product_id ,'' as trxqty,'' as m_internal_consumptionline_id,f.wsbomid, zssi_getproductnamewithvalue(f.m_product_id_out,?) as product,l.value as locator,f.issuing_locator_out as m_locator_id ,f.outtype,f.m_product_id_out,f.returnquantity
+           from pdc_PFeedbackUpperGrid(?,?,?) f left join m_locator l on f.issuing_locator_out=l.m_locator_id
+    </Sql>
+    <Parameter name="language"/>
+    <Parameter name="workstepid"/>
+    <Parameter name="pconsumptionid"/>
+    <Parameter name="dconsumptionid"/>
+  </SqlMethod>
     <SqlMethod name="selectlower" type="preparedStatement" return="multiple">
     <SqlMethodComment></SqlMethodComment>
     <Sql>
@@ -55,14 +66,40 @@ Contributor(s): ______________________________________.
       </Sql>
       <Parameter name="cProjecttaskId"/>
    </SqlMethod>
-   <SqlMethod name="isProductionPlannedSerialPossible" type="preparedStatement" return="string">
+   <SqlMethod name="isProductionPlannedSerialPossible" type="preparedStatement" return="string" connection="true">
       <Sql>
-        SELECT pdc_isProductionPlannedSerialPossible(?,?) as retval from dual
+        SELECT pdc_isProductionPlannedSerialPossible(?,?,to_number(?)) as retval from dual
       </Sql>
       <Parameter name="cProjecttaskId"/>
-      <Parameter name="plannedserial"/>
+      <Parameter name="plannedserialorbatch"/>
+      <Parameter name="plannedqty"/>
    </SqlMethod>
-   <SqlMethod name="getQty" type="preparedStatement" return="string">
+   <SqlMethod name="getProductionPlannedSerialQty" type="preparedStatement" return="string" connection="true">
+      <Sql>
+        SELECT pdc_ProductionPlannedSerialQty(?,?) as retval from dual
+      </Sql>
+      <Parameter name="cProjecttaskId"/>
+      <Parameter name="plannedserialorbatch"/>
+   </SqlMethod>
+   <SqlMethod name="getStrictBATCHPossibleQty" type="preparedStatement" return="string" connection="true">
+      <Sql>
+        SELECT pdc_getStrictBATCHPossibleQty(?,?) as retval from dual
+      </Sql>
+      <Parameter name="cProjecttaskId"/>
+      <Parameter name="plannedbatch"/>
+   </SqlMethod>
+   <SqlMethod name="getQty" type="preparedStatement" return="string" connection="true">
+      <Sql>
+        SELECT returnquantity from pdc_PFeedbackUpperGrid(?,?,?) where m_product_id_out=? and coalesce(issuing_locator_out,?) = ?
+      </Sql>
+      <Parameter name="workstepid"/>
+      <Parameter name="pconsumptionid"/>
+      <Parameter name="dconsumptionid"/>
+      <Parameter name="mProductId"/>
+      <Parameter name="mLocatorId"/>
+      <Parameter name="mLocatorId"/>
+   </SqlMethod>
+   <SqlMethod name="getBatchQty" type="preparedStatement" return="string">
       <Sql>
         SELECT returnquantity from pdc_PFeedbackUpperGrid(?,?,?) where m_product_id_out=? and coalesce(issuing_locator_out,?) = ?
       </Sql>
@@ -107,7 +144,7 @@ Contributor(s): ______________________________________.
       </Sql>
       <Parameter name="workstepid"/>
    </SqlMethod>
-   <SqlMethod name="getQtyProduced" type="preparedStatement" return="string" >
+   <SqlMethod name="getQtyProduced" type="preparedStatement" return="string" connection="true">
       <Sql>
         SELECT zssi_strQuantityNumber(sum(movementqty),?) as retval from m_internal_consumptionline 
         where m_internal_consumption_id = ? 
@@ -115,7 +152,8 @@ Contributor(s): ______________________________________.
       <Parameter name="lang"/>
       <Parameter name="prodpid"/>
    </SqlMethod>
-   <SqlMethod name="adjustPassingworkstepQtys" type="preparedStatement" return="string" >
+   
+   <SqlMethod name="adjustPassingworkstepQtys" type="preparedStatement" return="string" connection="true">
       <Sql>
         SELECT pdc_adjustpassingworkstepqtys(?,to_number(?),?) from dual
       </Sql>
@@ -123,15 +161,22 @@ Contributor(s): ______________________________________.
       <Parameter name="qty"/>
       <Parameter name="internalconsumptionid"/>
    </SqlMethod>
-   <SqlMethod name="getLocatorProduced" type="preparedStatement" return="string" >
+   <SqlMethod name="getLocatorProduced" type="preparedStatement" return="string" connection="true">
       <Sql>
         select max(l.value) as ret from m_locator l,m_internal_consumptionline m where  l.m_locator_id=m.m_locator_id and m_internal_consumption_id = ? 
       </Sql>
       <Parameter name="prodpid"/>
    </SqlMethod>
-   <SqlMethod name="IsWSFinishedProd" type="preparedStatement" return="string" >
+   <SqlMethod name="IsWSFinishedProd" type="preparedStatement" return="string" connection="true">
       <Sql>
         SELECT case when qty-qtyproduced=0 then 'Y' else 'N' end  as retval from c_projecttask
+        where c_projecttask_id = ? 
+      </Sql>
+      <Parameter name="workstepId"/>
+   </SqlMethod>
+   <SqlMethod name="getOpenQTY" type="preparedStatement" return="string" >
+      <Sql>
+        SELECT qty-qtyproduced as rtev from c_projecttask
         where c_projecttask_id = ? 
       </Sql>
       <Parameter name="workstepId"/>
