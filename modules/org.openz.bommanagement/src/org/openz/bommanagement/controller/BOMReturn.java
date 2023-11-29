@@ -89,7 +89,7 @@ public class BOMReturn  extends HttpSecureAppServlet {
        // If a barcode was scanned, look at the result
        if (vars.commandIn("SAVE_NEW_NEW") && (!strBarcode.isEmpty() || ! strQty.isEmpty())) {
          if (!strBarcode.isEmpty()) {
-           data = PdcCommonData.selectbarcode(this, strBarcode);
+           data = PdcCommonData.selectbarcode(this, strBarcode,vars.getRole());
            // In this Servlet CONTROL, EMPLOYEE or PRODUCT or CALCULATION, LOCATOR, WORKSTEP can be scanned,
            // The First found will be used...
            String bctype="UNKNOWN";

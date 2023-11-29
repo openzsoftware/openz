@@ -2,38 +2,38 @@
 
 SELECT zsse_DropView ('pdc_barcode_v');
 CREATE VIEW pdc_barcode_v AS
-  SELECT 'D' as ord,bp.value::varchar(200) AS barcode, 'EMPLOYEE' AS type, u.ad_user_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+  SELECT bp.ad_org_id as ad_org_id,'D' as ord,bp.value::varchar(200) AS barcode, 'EMPLOYEE' AS type, u.ad_user_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
   FROM ad_user u, c_bpartner bp
   WHERE 1=1
    AND bp.c_bpartner_id = u.c_bpartner_id
    AND bp.isemployee = 'Y' and bp.isactive='Y' and u.isactive='Y'
  UNION
-  SELECT 'A' as ord,l.value::varchar(200) AS barcode, 'LOCATOR' AS type, l.m_locator_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+  SELECT l.ad_org_id as ad_org_id,'A' as ord,l.value::varchar(200) AS barcode, 'LOCATOR' AS type, l.m_locator_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
   FROM m_locator l where l.isactive='Y'
  UNION
  -- SELECT 'B' as ord,p.value::varchar(200) AS barcode, 'PRODUCT' AS type, p.m_product_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
  -- FROM m_product p where p.isactive='Y'
  --UNION
- SELECT 'C' as ord,coalesce(ws.value,pro.value||'-'||ws.name)::varchar(200) AS barcode, 'WORKSTEP' AS type, ws.c_projecttask_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+ SELECT ws.ad_org_id as ad_org_id,'C' as ord,coalesce(ws.value,pro.value||'-'||ws.name)::varchar(200) AS barcode, 'WORKSTEP' AS type, ws.c_projecttask_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
   FROM c_projecttask ws, c_project pro 
   WHERE ws.c_project_id = pro.c_project_id and pro.projectcategory != 'PRP'
  UNION
-  SELECT 'E' as ord,e.columnname::varchar(200) AS barcode, 'CONTROL' AS type, e.ad_element_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+  SELECT '0' as ad_org_id,'E' as ord,e.columnname::varchar(200) AS barcode, 'CONTROL' AS type, e.ad_element_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
   FROM ad_element e WHERE e.ad_module_id = '000CDBE191604F5A835A3EC3213719E8' AND description like 'CODE-128-code action%'
  UNION 
-  SELECT 'H' as ord,e.columnname::varchar(200) AS barcode, 'CALCULATION' AS type, e.ad_element_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+  SELECT '0' as ad_org_id,'H' as ord,e.columnname::varchar(200) AS barcode, 'CALCULATION' AS type, e.ad_element_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
   FROM ad_element e WHERE e.ad_module_id = '000CDBE191604F5A835A3EC3213719E8' AND description='scan calc'
  UNION
-  SELECT 'F' as ord,l.serialnumber::varchar(200) AS barcode, 'SERIALNUMBER' AS type, l.snr_masterdata_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+  SELECT l.ad_org_id as ad_org_id,'F' as ord,l.serialnumber::varchar(200) AS barcode, 'SERIALNUMBER' AS type, l.snr_masterdata_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
   FROM snr_masterdata l
  UNION
-  SELECT 'G' as ord,l.batchnumber::varchar(200) AS barcode, 'BATCHNUMBER' AS type, l.snr_batchmasterdata_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+  SELECT l.ad_org_id as ad_org_id,'G' as ord,l.batchnumber::varchar(200) AS barcode, 'BATCHNUMBER' AS type, l.snr_batchmasterdata_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
   FROM snr_batchmasterdata l
  UNION
-  SELECT 'I' as ord,l.documentno::varchar(200) AS barcode, case when l.issotrx='Y' then 'SHIPMENT' else 'RECEIPT' end AS type, l.m_inout_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+  SELECT l.ad_org_id as ad_org_id,'I' as ord,l.documentno::varchar(200) AS barcode, case when l.issotrx='Y' then 'SHIPMENT' else 'RECEIPT' end AS type, l.m_inout_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
   FROM m_inout l;
 
-CREATE OR REPLACE FUNCTION pdc_getDataIdFromScan(p_value VARCHAR)
+CREATE OR REPLACE FUNCTION pdc_getDataIdFromScan(p_value VARCHAR,p_rolid varchar)
 RETURNS SETOF pdc_barcode_v -- value, type, id, mess, ad_message_value
 AS $body$
 DECLARE
@@ -60,6 +60,7 @@ DECLARE
   v_weight varchar;
 BEGIN
   BEGIN
+    
     if instr(p_value,'|')>0 and c_getconfigoption('kombibarcode','0')='Y' then
         select SPLIT_PART(p_value, '|', 1) into v_prodvalue; -- 1St Part always Product Value
         select SPLIT_PART(p_value, '|', 2) into v_snrorbtchvalue;-- 2nd Part (Serial or Batch)
@@ -84,7 +85,14 @@ BEGIN
                                              and snr.batchnumber=v_snrorbtchvalue;
            v_btchvalue:=v_snrorbtchvalue;
         end if;
-        if v_product is not null then
+        if v_product is not null and 
+           (select count(*) from m_product p left join ad_role_orgaccess a on (a.ad_org_id=p.ad_org_id or p.ad_org_id='0') 
+                   where p.m_product_id=v_product and a.ad_role_id=p_rolid)>0 and
+           (v_serialid is null or (select count(*) from snr_masterdata p left join ad_role_orgaccess a on (a.ad_org_id=p.ad_org_id or p.ad_org_id='0')  
+                   where p.snr_masterdata_id=v_serialid and a.ad_role_id=p_rolid )>0) and 
+           (v_batchid is null or (select count(*) from snr_batchmasterdata p left join ad_role_orgaccess a on (a.ad_org_id=p.ad_org_id or p.ad_org_id='0')  
+                   where p.snr_batchmasterdata_id=v_batchid and a.ad_role_id=p_rolid)>0) 
+        then
             v_pdc_barcode_v.barcode := p_value;
             v_pdc_barcode_v.type := 'KOMBI';
             v_pdc_barcode_v.id := v_product;
@@ -104,16 +112,20 @@ BEGIN
             RETURN NEXT v_pdc_barcode_v;
         end if;       
     else
-        SELECT 'B' as ord,p.value::varchar(200) AS barcode, 'PRODUCT' AS type, p.m_product_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
+        SELECT '0' as ad_org_id,'B' as ord,p.value::varchar(200) AS barcode, 'PRODUCT' AS type, p.m_product_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
                    into v_pdc_barcode_v
         FROM m_product p where p.isactive='Y' and (p.value=p_value or p.upc=p_value);
-        if v_pdc_barcode_v.type is not null then
+        if v_pdc_barcode_v.type is not null and
+            (select count(*) from m_product p left join ad_role_orgaccess a on (a.ad_org_id=p.ad_org_id or p.ad_org_id='0') 
+                   where p.m_product_id=v_pdc_barcode_v.id and a.ad_role_id=p_rolid)>0 
+        then
             v_pdc_barcode_v.barcode := p_value;
             RETURN NEXT v_pdc_barcode_v;
             y := y + 1;
         else
             FOR v_resultSet IN
-            (SELECT * FROM pdc_barcode_v bc  WHERE bc.barcode = p_value order by ord)
+            (SELECT distinct bc.* FROM pdc_barcode_v bc left join ad_role_orgaccess a on (a.ad_org_id=bc.ad_org_id or bc.ad_org_id='0')
+                    WHERE bc.barcode = p_value  and a.ad_role_id=p_rolid order by bc.ord)
             LOOP
             y := y + 1;
             RETURN NEXT v_resultSet;
@@ -484,6 +496,9 @@ BEGIN
   if v_prt is null and v_tprt is null then
     raise exception '%','Kein Projekt gefunden. Zeitrückmeldung nicht möglich.';
   end if;
+  if p_command='PROJECT' and v_prt is null then
+    raise exception '%','Bitte Projekt wählen';
+  end if;
   -- Arbeisprojekt wird immer zurückgemeldet, sofern angegeben.
   if v_prt is not null then 
     IF (SELECT count(*) from zspm_ptaskfeedbackline where ad_user_id=p_user_id and hour_from is not null and hour_to is null and c_projecttask_id = v_prt and createdbytimefeedbackapp = 'Y')=0  and p_command!='LEAVING' THEN
@@ -543,7 +558,7 @@ BEGIN
         if p_command='LEAVING' then
             v_message:='Arbeitszeit Ende';
         else
-            v_message:='Aufgabe Ende';
+            v_message:='Aufgabe Ende('||coalesce((select round(hours,2) from zspm_ptaskfeedbackline fbl where fbl.ad_user_id = p_user_ID AND createdbytimefeedbackapp = 'Y' AND fbl.c_projecttask_id != coalesce(v_tprt,'') and hour_to = v_timestamp)||'h)','');
         end if;
     END IF;
   END IF;
@@ -612,7 +627,8 @@ BEGIN
             WHERE fbl.ad_user_id = p_user_ID
             AND fbl.hour_to IS NULL
             AND fbl.createdbytimefeedbackapp = 'Y';
-            v_message:='Arbeitszeit Ende';
+            
+            v_message:='Arbeitszeit Ende'||coalesce('('||(select round(hours,2) from zspm_ptaskfeedbackline fbl where fbl.ad_user_id = p_user_ID AND createdbytimefeedbackapp = 'Y' AND fbl.c_projecttask_id = coalesce(v_tprt,'') and hour_to = v_timestamp)||'h)','');
         end if;
      end if;
   end if;
@@ -729,6 +745,7 @@ DECLARE
   v_oneqty numeric;
   v_plannedqty numeric;
   v_possibleqty numeric;
+  v_leftqty numeric;
 BEGIN
   select count(*) into v_count from c_projecttask pt where pt.c_projecttask_id=p_workstepid and pt.assembly='Y';
   if v_count=1 then --assembling Workstep.
@@ -736,8 +753,11 @@ BEGIN
             and m.processed='Y' and ml.c_projecttask_id=p_workstepid and  m.plannedserialnumber=p_plannedBtchNo
             and m.movementtype ='P+';
      if v_producedqty is null then v_producedqty:=0; end if;
+     --raise notice '%',v_producedqty;
      select trunc(qty) into v_plannedqty from c_projecttask where c_projecttask_id=p_workstepid;
      v_possibleqty:=v_plannedqty-v_producedqty;
+     v_leftqty:=v_possibleqty;
+     -- raise notice '%','xPPPP'||v_possibleqty;
      -- Iterating BOM and Consumptions
      FOR v_cur IN (select zspm_projecttaskbom_id as zspm_projecttaskbom_id,qtyreceived as qtyreceived,quantity as quantity,m_product_id 
                    from zspm_projecttaskbom where c_projecttask_id=p_workstepid)
@@ -746,9 +766,10 @@ BEGIN
         select sum((case when m.movementtype='D+' then -1 else 1 end)*ml.movementqty) into v_receivedqty from m_internal_consumptionline ml,m_internal_consumption m where m.m_internal_consumption_id=ml.m_internal_consumption_id
             and m.processed='Y' and ml.c_projecttask_id=p_workstepid and ml.m_product_id=v_cur.m_product_id and m.plannedserialnumber=p_plannedBtchNo
             and m.movementtype in ('D+','D-');
-            --raise notice '%',v_cur.m_product_id||'#'|| coalesce(v_receivedqty,0)||'#'||
+            --raise notice '%',v_cur.m_product_id||'#'|| coalesce(v_receivedqty,0);
         if (coalesce(v_receivedqty,0)/v_oneqty)<v_possibleqty then
-            v_possibleqty:=(coalesce(v_receivedqty,0)/v_oneqty);
+            v_possibleqty:=(coalesce(v_receivedqty,0)/v_oneqty)-v_producedqty;
+            --raise notice '%','PPPP'||v_possibleqty;
         end IF;
      END LOOP;
   else -- Durchreiche 
@@ -757,10 +778,10 @@ BEGIN
                and snr.lotnumber=p_plannedBtchNo;
     if v_producedqty is null then v_producedqty:=0; end if;           
   end if;
-  if round(v_possibleqty-v_producedqty,3)=0.000 then
+  if v_leftqty<=0 or coalesce(v_possibleqty,0)<=0 then
     return null;
   else  
-    RETURN v_possibleqty-v_producedqty;
+    RETURN v_possibleqty;
   end if;
 END;
 $body$
@@ -1164,13 +1185,14 @@ DECLARE
  v_cur record;
 BEGIN
     if p_inoutId is null or p_inoutId='' then return 'FALSE'; end if;
+    select c_getconfigoption('PDCINOUTFULLSCAN',ad_org_id) into v_usecase from m_inout where m_inout_id=p_inoutId;
     for v_cur in (select * from m_inoutline where m_inout_id=p_inoutId)
     LOOP
-        if v_cur.qtycontrolcount!=v_cur.movementqty then
+        if v_cur.qtycontrolcount!=v_cur.movementqty and v_usecase='Y' then
             return 'FALSE';
         end if;
         if (SELECT p.isserialtracking||p.isbatchtracking from m_inoutline l,m_product p where l.m_inoutline_id=v_cur.m_inoutline_id and p.m_product_id =l.m_product_id)!='NN' then
-            if (select sum(quantity) from snr_minoutline where m_inoutline_id=v_cur.m_inoutline_id)!=v_cur.movementqty then
+            if (select coalesce(sum(quantity),0) from snr_minoutline where m_inoutline_id=v_cur.m_inoutline_id)!=v_cur.movementqty then
                 return 'FALSE';
             end if;
         end if;
@@ -1235,36 +1257,47 @@ v_prodqty numeric;
 v_planqty numeric;
 v_qtyreceived numeric;
 v_ass varchar;
+v_corr numeric;
 BEGIN   
     select qtyproduced,case when qty is null then 1 when qty=0 then 1 else qty end,assembly into v_prodqty,v_planqty,v_ass from c_projecttask where c_projecttask_id=p_workstepId;
-    if v_ass='N' and (select m_product_id from pdc_workstepbom_v where zssm_workstep_v_id=p_workstepId order by line limit 1)=p_product_id then --- Durchreiche AG
+     -- Durchreiche AG - Kalkulation für Assembly
+    if v_ass='N' and (select m_product_id from pdc_workstepbom_v where zssm_workstep_v_id=p_workstepId order by line limit 1)=p_product_id then
       if p_snrbnr is null or p_snrbnr='' then -- Workstep-Level Calculation
         select sum(case when m.movementtype='D+' then -1 else 1 end * ml.movementqty) into v_qtyreceived from m_internal_consumptionline ml,m_internal_consumption m
             where m.m_internal_consumption_id=ml.m_internal_consumption_id and m.c_projecttask_id=p_workstepId and ml.m_product_id=p_product_id
                   and m.processed='Y' and m.movementtype in ('D+','D-');        
-      else
+      else  
+        -- Erhaltene Mengen (Montage AG)
         select sum(case when m.movementtype='D+' then -1 else 1 end * ml.movementqty) into v_qtyreceived from m_internal_consumptionline ml,m_internal_consumption m
             where m.m_internal_consumption_id=ml.m_internal_consumption_id and m.c_projecttask_id=p_workstepId and ml.m_product_id=p_product_id
                   and m.processed='Y' and m.plannedserialnumber=p_snrbnr and m.movementtype in ('D+','D-');
       end if;
       return coalesce(v_qtyreceived,0);
     end if;
+    -- Kalkulation für alle Material Positionen
     select bom.quantity/v_planqty ,qtyreceived into v_qtyfor1,v_qtyreceived from zspm_projecttaskbom bom,c_projecttask  t where t.c_projecttask_id=bom.c_projecttask_id 
          and bom.m_product_id=p_product_id and t.c_projecttask_id=p_workstepId;
     if p_snrbnr is null or p_snrbnr='' then -- Workstep-Level Calculation
         return to_char(v_qtyreceived - v_qtyfor1*v_prodqty);
     else -- Material TRX Calculation
-       if (select count(*) from  m_internal_consumption where c_projecttask_id=p_workstepId and processed='Y' and movementtype='P+' and plannedserialnumber=p_snrbnr)>0 then
-            return '0';
-       end if;
+       -- Erhaltene Mengen auf der geplanten SNR/CNR
        select sum(case when m.movementtype='D+' then -1 else 1 end * ml.movementqty) into v_qtyreceived from m_internal_consumptionline ml,m_internal_consumption m
             where m.m_internal_consumption_id=ml.m_internal_consumption_id and m.c_projecttask_id=p_workstepId and ml.m_product_id=p_product_id
-                  and m.processed='Y' and m.plannedserialnumber=p_snrbnr and m.movementtype in ('D+','D-');
-       select sum(ml.movementqty) into v_prodqty from m_internal_consumptionline ml,m_internal_consumption m
-            where m.m_internal_consumption_id=ml.m_internal_consumption_id and m.c_projecttask_id=p_workstepId and ml.m_product_id=p_product_id
+                  and m.processed='Y' and m.plannedserialnumber=p_snrbnr and m.movementtype in ('D+','D-') and m.description!='Generated by PDC ->Send produced Material on Stock';
+       if v_qtyreceived is null then v_qtyreceived:=0; end if;
+       -- Produzierender AG
+       if v_ass='Y' then
+            select sum(ml.movementqty) into v_prodqty from m_internal_consumptionline ml,m_internal_consumption m
+            where m.m_internal_consumption_id=ml.m_internal_consumption_id and m.c_projecttask_id=p_workstepId
                   and m.processed='Y' and m.plannedserialnumber=p_snrbnr and m.movementtype='P+';
-       if (coalesce(v_qtyreceived,0)-coalesce(v_prodqty,0))>0 then
-            return coalesce(v_qtyreceived,0)-coalesce(v_prodqty,0);
+       else -- Durchreicher
+            select sum(ml.movementqty) into v_prodqty from m_internal_consumptionline ml,m_internal_consumption m
+            where m.m_internal_consumption_id=ml.m_internal_consumption_id and m.c_projecttask_id=p_workstepId and ml.m_product_id=(select m_product_id from pdc_workstepbom_v where zssm_workstep_v_id=p_workstepId order by line limit 1)
+                  and m.processed='Y' and m.plannedserialnumber=p_snrbnr and m.movementtype = 'D+' and m.description='Generated by PDC ->Send produced Material on Stock';
+       end if;
+       if v_prodqty is null then v_prodqty:=0; end if;
+       if (v_qtyreceived - v_qtyfor1*v_prodqty)>0 then
+            return to_char(v_qtyreceived - v_qtyfor1*v_prodqty);
        else
             return '0';
        end if;
@@ -1290,11 +1323,80 @@ BEGIN
     if (select assembly from c_projecttask where c_projecttask_id=p_workstep)='N' then
     if (select m_product_id from c_projecttask where c_projecttask_id=p_workstep) is null then
             select zspm_projecttaskbom_id into v_bom  from zspm_projecttaskbom where  c_projecttask_id=p_workstep order by line limit 1;
-            update zspm_projecttaskbom set quantity=quantity-p_qty  where zspm_projecttaskbom_id=v_bom;
-            update m_internal_consumption set movementtype='D+' where m_internal_consumption_id=p_consumption_id;
+            update zspm_projecttaskbom set quantity=quantity-p_qty  where zspm_projecttaskbom_id=v_bom;            
             update c_projecttask set qtyproduced=qtyproduced+p_qty where c_projecttask_id=p_workstep;
             return 'Passing Worksteps Qtys adjusted';  
     end if;
+    end if;
+    return 'NO Passing Worksteps';  
+END ; 
+$_$ LANGUAGE plpgsql;
+
+select zsse_dropfunction('pdc_setPassingworkstepMvMtType');
+CREATE OR REPLACE FUNCTION  pdc_setPassingworkstepMvMtType(p_workstep varchar,p_consumption_id varchar) RETURNS varchar AS
+$_$ 
+DECLARE                                                                                                                                                       
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+OVERLOAD For sheduled Processes                                                                                                                               
+*****************************************************/                                                                                                        
+v_bom varchar;                                                                                                                                               
+BEGIN                                                                                                                                                         
+    if (select assembly from c_projecttask where c_projecttask_id=p_workstep)='N' then
+    if (select m_product_id from c_projecttask where c_projecttask_id=p_workstep) is null then
+            update m_internal_consumption set movementtype='D+' where m_internal_consumption_id=p_consumption_id;
+            return 'Passing Worksteps  adjusted';  
+    end if;
+    end if;
+    return 'NO Passing Worksteps';  
+END ; 
+$_$ LANGUAGE plpgsql;
+
+select zsse_dropfunction('pdc_addpassingworkstSnrBtchReturn');
+CREATE OR REPLACE FUNCTION  pdc_addpassingworkstSnrBtchReturn(p_workstep varchar,p_consumption_id varchar) RETURNS varchar AS
+$_$ 
+DECLARE                                                                                                                                                       
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+Mat-Rückgabe-Geplante SNR in Rückgabe übernehmen.                                                                                                                               
+*****************************************************/                                                                                                        
+v_snr varchar;                                                                                                                                               
+v_bnr varchar;
+v_snrbnr varchar;
+v_product varchar;
+v_client varchar;
+v_org varchar;
+v_user varchar;
+p_LineId varchar;
+v_qty numeric;
+BEGIN                                                                                                                                                         
+    if (select assembly from c_projecttask where c_projecttask_id=p_workstep)='N' then
+        if (select m_product_id from c_projecttask where c_projecttask_id=p_workstep) is null then
+                select m_product_id into v_product  from zspm_projecttaskbom where  c_projecttask_id=p_workstep order by line limit 1;
+                select plannedserialnumber,ad_client_id,ad_org_id,createdby into v_snrbnr,v_client,v_org,v_user
+                       from m_internal_consumption where m_internal_consumption_id=p_consumption_id;
+                select case when isserialtracking='Y' then v_snrbnr else null end,case when isbatchtracking='Y' then v_snrbnr else null end into v_snr,v_bnr 
+                       from m_product where m_product_id=v_product;
+                select m_internal_consumptionline_id,movementqty into p_LineId,v_qty from m_internal_consumptionline where m_internal_consumption_id=p_consumption_id and m_product_id=v_product;
+                if (v_snr is not null or v_bnr is not null) and p_LineId is not null then                    
+                    insert into snr_internal_consumptionline(snr_internal_consumptionline_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY,  UPDATEDBY, M_INTERNAL_CONSUMPTIONLINE_ID, 
+                                                  quantity,lotnumber,serialnumber)
+                    values (get_uuid(),v_client,v_org,v_user,v_user,p_LineId,v_qty,v_bnr,v_snr);
+                end if;
+                return 'Passing Worksteps SnrBtchAdded';  
+        end if;
     end if;
     return 'NO Passing Worksteps';  
 END ; 
@@ -1982,7 +2084,7 @@ BEGIN
         SELECT  p.simplyfiedmanufacturing into v_issimplemanu from m_product p,zssm_workstep_v v where v.m_product_id=p.m_product_id and v.zssm_workstep_v_id = p_workstep; 
     end if;
     if v_ass='N' and v_issimplemanu is null then
-         SELECT  p.simplyfiedmanufacturing into v_issimplemanu from m_product p,pdc_workstepbom_v where v.m_product_id=p.m_product_id and zssm_workstep_v_id=p_workstep order by line limit 1;
+         SELECT  p.simplyfiedmanufacturing into v_issimplemanu from m_product p,pdc_workstepbom_v v where v.m_product_id=p.m_product_id and zssm_workstep_v_id=p_workstep order by line limit 1;
     end if;
     if coalesce(v_issimplemanu,'N')='Y' then
         if v_ass='Y' then
@@ -2025,7 +2127,36 @@ BEGIN
 END ; $_$ LANGUAGE plpgsql;
 
 
-
+select zsse_dropfunction('pdc_isautoprint');
+CREATE OR REPLACE FUNCTION  pdc_isautoprint(p_workstep varchar) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+                                                                                                            
+*****************************************************/  
+  v_isauto varchar;
+  v_org varchar;
+  v_assembly varchar;
+BEGIN  
+    select ad_org_id,assembly into v_org,v_assembly from c_projecttask where c_projecttask_id=p_workstep; -- autoprint only on assebling worksteps
+    select value into v_isauto from (
+        select value from ad_preference where attribute='AUTOPRINTASSEMBLYINPDCCONSUMPTION' and ad_org_id in (v_org,'0')
+        union
+        select 'N' from dual
+    ) a order by value desc limit 1;
+    if v_isauto='Y' and v_assembly='Y' then
+      return 'Y';
+    else 
+      return 'N';
+    end if;
+END ; $_$ LANGUAGE plpgsql;
 
 
 

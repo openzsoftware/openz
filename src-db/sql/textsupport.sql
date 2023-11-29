@@ -2246,7 +2246,8 @@ BEGIN
         if v_cur.docnote='proddesc' then
             select description into v_tmp from m_product where m_product_id=p_product_id;
             if v_tmp is not null then 
-                v_return:=v_tmp;
+                if v_return!='' then v_return:=v_return||'<br/>';  end if;
+                v_return:=v_return||v_tmp;
             end if;
         end if;
         if v_cur.docnote='proddocnote' then
@@ -2333,6 +2334,7 @@ v_temp2 character varying;
 v_temp3 character varying;
 v_tempinout character varying;
 v_cur RECORD;
+v_cur2 RECORD;
 v_return character varying:='';
 v_manu varchar;
 v_uom varchar;
@@ -2412,9 +2414,19 @@ BEGIN
                                 v_prefix:='<br/>'||v_prefix;
                             end if;
                         end if;
-                        select replace(description,'_',';') into v_temp from m_attributesetinstance where m_attributesetinstance_id=v_attrsetinstance;
-                        if  v_temp is not null and v_temp!='' then
-                            v_return:=v_return||v_prefix||v_temp||v_suffix;
+                        select description into v_temp from m_attributesetinstance where m_attributesetinstance_id=v_attrsetinstance;
+                        if v_temp is not null and v_temp!='' then
+                          v_temp2:='';
+                          for v_cur2 in (select  regexp_split_to_table(v_temp,E'_') as part)
+                          LOOP
+                            if v_cur2.part is not null and v_cur2.part!='' and v_cur2.part!='-' then
+                              if v_temp2!='' then
+                                v_temp2:=v_temp2||';';
+                              end if;
+                              v_temp2:=v_temp2||v_cur2.part;
+                            end if;
+                          END LOOP;
+                          v_return:=v_return||v_prefix||v_temp2||v_suffix;
                         end if;
                         v_prefix:='';
                         v_suffix:='';
@@ -2663,6 +2675,7 @@ BEGIN
     v_return:=v_return||zssi_getframecontracttext(p_docline_id, p_language , p_language2);
     v_return:=v_return||zssi_getpartialdeliverytext(p_docline_id, p_language , p_language2);
     v_return:=v_return||zssi_getsubscriptionfrequencetext(p_docline_id, p_language , p_language2);
+    v_return:=v_return||zspr_getproductprintouttext_userexit(p_docline_id, p_language, p_language2);
     if v_desc>0 and substr(v_return,length(v_return)-4,5)!='<br/>' then v_return:=v_return||'<br/>'; end if;
     if (v_return='' or v_return='<br/>') then
         RETURN '';
@@ -2673,6 +2686,15 @@ END;
 $BODY$
 LANGUAGE plpgsql VOLATILE
 COST 100;
+
+-- User Exit to zspr_getproductprintouttext
+CREATE or replace FUNCTION zspr_getproductprintouttext_userexit(p_docline_id varchar, p_language varchar, p_language2 varchar) RETURNS varchar
+AS $_$
+DECLARE
+  BEGIN
+  RETURN '';
+END;
+$_$  LANGUAGE 'plpgsql';
 
 CREATE OR REPLACE FUNCTION zssi_getsubscriptionfrequencetext(p_docline_id character varying, p_language character varying, p_language2 character varying) RETURNS character varying
 AS $_$
@@ -2764,7 +2786,7 @@ BEGIN
       select c.cursymbol,iol.desireddeliverydate,iol.pricelist into v_curr,v_cdate,v_price from c_orderline iol,c_order io,c_order o,c_invoiceline il,c_currency c
             where il.c_orderline_id=iol.c_orderline_id and io.c_order_id=iol.c_order_id and o.c_order_id=io.orderselfjoin and c.c_currency_id=o.c_currency_id and
                 o.subsrdailyratebilling='Y' and  iol.pricelist != iol.priceactual and il.c_invoiceline_id=p_docline_id;
-      if v_price is not null AND v_price != 0 then
+      if v_price is not null AND v_price != 0 AND (select ispricesuppressed = 'N' and iscombined = 'N' from c_invoiceline where c_invoiceline_id = p_docline_id) then
         v_return:=v_return||zssi_getText('SubsIntervalMonthlylirate',p_language)||': '||zssi_strNumber(v_price,p_language)||' '||v_curr||'<br/>';    
       end if;
              
@@ -2933,11 +2955,11 @@ BEGIN
       select zssi_getElementTextByColumname('lotnumber/s',p_language) into v_pretext2;
       -- select zssi_getElementTextByColumname('lotnumber',p_language) into v_pretext2;
       select c_orderline_id into v_orderline from m_inoutline where m_inoutline_id=p_inoutline_id;
-      if v_orderline is null then
+      --if v_orderline is null then
         v_iolines:=p_inoutline_id;
-      else
-        select string_agg(m_inoutline_id,',') into v_iolines from m_inoutline where c_orderline_id=v_orderline;
-      end if;
+      --else
+      --  select string_agg(m_inoutline_id,',') into v_iolines from m_inoutline where c_orderline_id=v_orderline;
+      --end if;
       for v_cur in (select serialnumber,lotnumber,quantity from snr_minoutline where m_inoutline_id = ANY(string_to_array(v_iolines,',')))
       LOOP
         if v_posttext!=' ' then
@@ -4291,6 +4313,7 @@ BEGIN
      select o.ad_org_id,coalesce(coalesce(o.delivery_location_id,o.c_bpartner_location_id),i.c_bpartner_location_id),i.c_bpartner_location_id,o.c_order_id 
             into v_org,v_deli_loc,v_inv_loc,v_order 
             from c_invoice i,c_order o where o.c_order_id=i.c_order_id and i.c_invoice_id=v_record_id;
+     /* -> Ticket 11139
      if coalesce((select adddeliverylocation2invoice from zspr_printinfo where ad_org_id=v_org),'N')='Y' and v_islower='N' then
             if coalesce(v_deli_loc,'')!=coalesce(v_inv_loc,'') then
                 select '<b>'||zssi_getElementTextByColumname('deliveryadress',lang)||': </b>'||coalesce(bl.deviant_bp_name||', ','')||
@@ -4302,6 +4325,7 @@ BEGIN
                 where l.c_location_id=bl.c_location_id and bl.c_bpartner_location_id=v_deli_loc;
             end if;
      end if;
+     */
   elsif v_recordtype='SHIPMENT' then 
       v_table:='zssi_minout_textmodule'; 
       v_table2:='m_inout';
@@ -5303,8 +5327,9 @@ $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;
   
-  
-CREATE OR REPLACE FUNCTION zssi_reportDebtPaymentHeader(p_lang varchar,p_datefrom varchar,p_dateto varchar,p_type varchar,p_org varchar)
+
+select zsse_dropfunction('zssi_reportDebtPaymentHeader');
+CREATE OR REPLACE FUNCTION zssi_reportDebtPaymentHeader(p_lang varchar,p_datefrom varchar,p_dateto varchar,p_type varchar,p_org varchar,p_reportingDate varchar)
 RETURNS character varying AS
 $_$ 
 /***************************************************************************************************************************************************
@@ -5319,6 +5344,7 @@ Contributor(s):
 DECLARE
 v_return character varying:='';
 v_datestr varchar:='';
+v_reportigDate varchar:='';
 
 BEGIN
    if p_datefrom!=''  then
@@ -5339,7 +5365,15 @@ BEGIN
    else
     v_return:=  v_return || ' '||(select name from ad_org where AD_Org_ID=replace(p_org,chr(39),''))||' ';
    end if;
-RETURN v_return||v_datestr;
+
+   v_reportigDate := ' - ' || zssi_getElementTextByColumname('ReportingDate', p_lang) || ': ';
+   if p_reportingDate!='' then
+       v_reportigDate := v_reportigDate || zssi_strDate(to_date(p_reportingDate), p_lang);
+   else
+       v_reportigDate := v_reportigDate || zssi_strDate(now()::timestamp, p_lang);
+   end if;
+
+RETURN v_return||v_datestr||v_reportigDate;
 END;
 $_$ LANGUAGE plpgsql VOLATILE COST 100;
 
@@ -6283,7 +6317,7 @@ v_cur record;
 BEGIN
       select coalesce(description,'') into v_desc from c_projecttask where c_projecttask_id=v_ptask_id;
       -- BOM
-      for v_cur in (select  zssi_getIdentifierFromKey('m_product_id',b.m_product_id,v_lang) as product,b.quantity,l.value,
+      for v_cur in (select  zssi_getIdentifierFromKey('m_product_id',b.m_product_id,v_lang) as product,b.quantity,b.qtyreceived,l.value,
                     (select bs.batchnumber from snr_batchmasterdata bs,snr_batchlocator bl where bs.snr_batchmasterdata_id=bl.snr_batchmasterdata_id and bl.snr_batchlocator_id=b.snr_batchmasterdata_id) as bnr
                     from zspm_projecttaskbom b,m_locator l 
                     where l.m_locator_id=b.receiving_locator and b.c_projecttask_id=v_ptask_id order by l.value,b.line)
@@ -6293,7 +6327,7 @@ BEGIN
             v_bom:='<b>'||zssi_getElementTextByColumname('Zspm_Projecttaskbom_ID',v_lang)||':</b><br/>';
         end if;
         --v_bom:=v_bom||substr(v_cur.product||v_ls,1,60)||'('||substr(v_cur.value||')'||v_ls,1,15)||zssi_strNumber(v_cur.quantity,v_lang)||'<br/>';
-        v_bom:=v_bom||replace(rpad(zssi_strNumber(v_cur.quantity,v_lang),10,'X'),'X','&nbsp;')||v_cur.product||':     ('||coalesce(v_cur.value,'No Locator')||')'||'<br/>';
+        v_bom:=v_bom||replace(rpad(zssi_strNumber(v_cur.quantity-v_cur.qtyreceived,v_lang),10,'X'),'X','&nbsp;')||v_cur.product||':     ('||coalesce(v_cur.value,'No Locator')||')'||'<br/>';
         if v_cur.bnr is not null then
             v_bom:=v_bom||replace(rpad('X',14,'X'),'X','&nbsp;')||v_cur.bnr||'<br/>';
         end if;

@@ -856,7 +856,7 @@ public class <PARAMETER_TMP id="class">Almacen</PARAMETER_TMP> extends HttpSecur
       xmlDocument.setParameter("parentTabContainer", tabs.parentTabs());
       xmlDocument.setParameter("mainTabContainer", tabs.mainTabs());
       xmlDocument.setParameter("childTabContainer", tabs.childTabs());
-      NavigationBar nav = new NavigationBar(this, vars.getLanguage(), "<PARAMETER_TMP id="class">Almacen</PARAMETER_TMP>_Relation.html", "<PARAMETER_TMP id="windowName">Window</PARAMETER_TMP>", "W", strReplaceWith, tabs.breadcrumb());
+      NavigationBar nav = new NavigationBar(this, vars.getLanguage(), "<PARAMETER_TMP id="class">Almacen</PARAMETER_TMP>_Relation.html", "<PARAMETER_TMP id="windowName">Window</PARAMETER_TMP>", "W", strReplaceWith, tabs.breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(), "<PARAMETER_TMP id="class">Almacen</PARAMETER_TMP>_Relation.html", strReplaceWith);
       xmlDocument.setParameter("leftTabs", lBar.relationTemplate());

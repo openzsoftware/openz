@@ -17,6 +17,7 @@ import org.openz.util.LocalizationUtils;
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.data.FieldProvider;
+import org.openbravo.erpCommon.security.SessionLoginData;
 import org.openbravo.erpCommon.utility.Utility;
 import org.openbravo.xmlEngine.XmlDocument;
 import java.math.*;
@@ -74,6 +75,22 @@ public class ConfigureSelectionPopup {
         servlet.getServletContext().setAttribute("searchJSTEMPLATE", template);
       }
       initscript=template.toString();   
+    }
+
+    String navBarLogoId = SessionLoginData.getCustomizedNavBarLogo(servlet);
+    String navBarLogoIdOrg = SessionLoginData.getCustomizedNavBarLogoFromOrg(servlet, vars.getOrg());
+    // org logo overwrites client logo overwrites standard logo
+    if(!navBarLogoIdOrg.isEmpty()) {
+        navBarLogoId = navBarLogoIdOrg;
+    }
+    if(navBarLogoId.isEmpty()) {
+        retval = Replace.replace(retval, "@openbravonavbarlogo@",
+                  "<TD class=\"Popup_NavBar_bg_logo\" width=\"1\" onclick=\"openNewBrowser('http://www.openbravo.com', 'Openbravo');return false;\"><IMG src=\"../web/images/blank.gif\" alt=\"Openbravo\" title=\"Openbravo\" border=\"0\" id=\"openbravoLogo\" class=\"Popup_NavBar_logo\"></TD>");
+    }else {
+        retval = Replace.replace(retval, "@openbravonavbarlogo@",
+                  "<td class=\"Main_NavBar_bg_logo\" width=\"1\"><div class=\"Main_NavBar_logo_custom\" alt=\"NavBarLogo\" title=\"NavBarLogo\" border=\"0\" id=\"NavBarLogo\">"
+                + "<img src=\"../utility/ShowImage?id=" + navBarLogoId +"\" alt=\"NavBarLogo\">"
+                + "</div></td>");
     }
     retval=Replace.replace(retval, "@INITSCRIPT@",initscript);
     retval=Replace.replace(retval, "@SCRIPTSET@",scriptset);

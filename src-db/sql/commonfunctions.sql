@@ -277,6 +277,7 @@ BEGIN
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
     END IF;
  IF TG_OP = 'INSERT' THEN
+    new.ad_org_id:='0';
     if (select count(*) from c_Poc_Configuration where ad_client_id=new.ad_client_id)>0 then
         raise exception 'Only one Record allowed here...';
     end if;
@@ -1464,7 +1465,6 @@ Contributor(s): ______________________________________.
 Part of CORE
 Prevents deletion of Main DOCTYPES
 *****************************************************/
-        
 BEGIN
     
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; END IF;
@@ -1486,8 +1486,17 @@ BEGIN
         update AD_Ref_Fieldcolumn set isactive='N' where AD_Ref_Fieldcolumn_id='E572976E95024F388D51F3040EAD6698';
         update AD_Ref_Fieldcolumn set isactive='Y' where AD_Ref_Fieldcolumn_id='F929D4568D244B3BA9DDCB9153A1367E';
     end if;
--- Updating
-IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
+    -- Updating
+    IF TG_OP = 'UPDATE' THEN
+        IF NEW.mfacookieduration < 1 OR NEW.mfacookieduration > 366 OR NEW.keeploggedincookieduration < 1 OR NEW.keeploggedincookieduration > 366 THEN
+            RAISE EXCEPTION '@MFA_ErrorCookieDurationInvalid@';
+        END IF;
+        IF NEW.pwreqslength < 1 OR NEW.pwreqslength > 100 THEN
+            RAISE EXCEPTION '@passwordRequirementsIllegalLength@';
+        END IF;
+    END IF;
+
+    IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
 END ; $_$;
 
 DROP TRIGGER c_orgconfiguration_trg ON c_orgconfiguration;
@@ -1601,6 +1610,41 @@ BEGIN
     end if;
 END;
 $_$  LANGUAGE 'plpgsql';    
+
+
+
+CREATE or replace FUNCTION c_ismfaactivatedforuser(p_user character varying) RETURNS character
+AS $_$
+DECLARE
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+******************************************************************************************************************************************************************************************************************************/
+v_adorgid character varying;
+v_adroleid character varying;
+BEGIN
+    IF(p_user = '0' OR p_user = '100' OR p_user = 'DDAA21D11CB04D4D8EC59E39934B27FB') THEN -- System, OpenZ or Service
+        RETURN 'N';
+    END IF;
+    IF((SELECT mfa_active FROM ad_user WHERE ad_user_id = p_user) = 'N') THEN -- mfa not active for user
+        RETURN 'N';
+    END IF;
+    FOR v_adroleid IN SELECT ad_role_id FROM ad_user_roles WHERE ad_user_id = p_user LOOP -- loop all roles from user
+        FOR v_adorgid IN SELECT ad_org_id FROM ad_role_orgaccess WHERE ad_role_id = v_adroleid LOOP -- loop all orgs for each role
+            IF(c_getconfigoption('mfaactivated', v_adorgid) = 'Y') THEN
+                RETURN 'Y';
+            END IF;
+        END LOOP;
+    END LOOP;
+    RETURN 'N';
+
+END;
+$_$  LANGUAGE 'plpgsql';  
 
 
 
@@ -2416,7 +2460,35 @@ $BODY$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;
 
-  
+
+-- Is the unit field for a product be read only?
+-- Yes, when there exists a stock transaction or an order of the product
+-- Y -> read only
+-- N -> editable
+select zsse_DropFunction ('is_product_unit_read_only');
+CREATE OR REPLACE FUNCTION is_product_unit_read_only(p_product_id varchar, p_command_type varchar)
+  RETURNS varchar AS
+$BODY$
+DECLARE
+BEGIN
+  -- not a new product and
+  -- does a stock transaction exist?
+  -- or does an orderline exist?
+  IF(
+    p_command_type != 'NEW' AND
+    (
+      (SELECT COUNT(*) FROM m_transaction WHERE m_product_id = p_product_id) != 0
+      OR (SELECT COUNT(*) FROM c_orderline WHERE m_product_id = p_product_id) != 0
+    )
+    ) THEN
+      RETURN 'Y';
+  END IF;
+  RETURN 'N';
+END;
+$BODY$
+  LANGUAGE plpgsql IMMUTABLE
+  COST 100;
+
 
 CREATE OR REPLACE FUNCTION to_number(text)
 -- From Postgres 9.3 on this replace is requred. We assume a german localization in the database

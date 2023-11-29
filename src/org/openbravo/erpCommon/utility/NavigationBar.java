@@ -18,8 +18,12 @@
  */
 package org.openbravo.erpCommon.utility;
 
+import javax.servlet.ServletException;
+
 import org.apache.log4j.Logger;
+import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.database.ConnectionProvider;
+import org.openbravo.erpCommon.security.SessionLoginData;
 
 public class NavigationBar {
   private static Logger log4j = Logger.getLogger(NavigationBar.class);
@@ -32,9 +36,10 @@ public class NavigationBar {
   private String window_type = "";
   private boolean hideBack = false;
   private boolean validateChangesOnRefresh = false;
+  private VariablesSecureApp vars = null;
 
   public NavigationBar(ConnectionProvider _conn, String _language, String _action,
-      String _windowName, String _windowType, String _baseDirection, String _breadcrumb) {
+      String _windowName, String _windowType, String _baseDirection, String _breadcrumb, VariablesSecureApp _vars) {
     this.conn = _conn;
     this.language = _language;
     this.servlet_action = _action;
@@ -42,11 +47,12 @@ public class NavigationBar {
     this.base_direction = _baseDirection;
     this.breadcrumb = _breadcrumb;
     this.window_type = _windowType;
+    this.vars = _vars;
   }
 
   public NavigationBar(ConnectionProvider _conn, String _language, String _action,
       String _windowName, String _windowType, String _baseDirection, String _breadcrumb,
-      boolean _hideBack) {
+      boolean _hideBack, VariablesSecureApp _vars) {
     this.conn = _conn;
     this.language = _language;
     this.servlet_action = _action;
@@ -55,12 +61,13 @@ public class NavigationBar {
     this.breadcrumb = _breadcrumb;
     this.window_type = _windowType;
     this.hideBack = _hideBack;
+    this.vars = _vars;
   }
 
   public NavigationBar(ConnectionProvider _conn, String _language, String _action,
       String _windowName, String _windowType, String _baseDirection, String _breadcrumb,
-      boolean hideBack, boolean _validateChangesOnRefresh) {
-    this(_conn, _language, _action, _windowName, _windowType, _baseDirection, _breadcrumb, hideBack);
+      boolean hideBack, boolean _validateChangesOnRefresh, VariablesSecureApp _vars) {
+    this(_conn, _language, _action, _windowName, _windowType, _baseDirection, _breadcrumb, hideBack, _vars);
     this.validateChangesOnRefresh = _validateChangesOnRefresh;
   }
 
@@ -167,12 +174,30 @@ public class NavigationBar {
             "/images/blank.gif\" alt=\"OpenZ\" title=\"OpenZ\" border=\"0\" id=\"openzLogo\" class=\"Main_NavBar_logo_openz\"></TD>\n");
     toolbar.append("  <TD class=\"Main_NavBar_bg_logo_right\"></TD>\n");
     toolbar.append("  <TD class=\"Main_NavBar_bg_logo_left\"></TD>\n");
-    toolbar
-        .append(
-            "  <TD class=\"Main_NavBar_bg_logo\" width=\"1\" onclick=\"openNewBrowser('http://www.openbravo.com', 'Openbravo');return false;\"><IMG src=\"")
-        .append(base_direction)
-        .append(
-            "/images/blank.gif\" alt=\"Openbravo\" title=\"Openbravo\" border=\"0\" id=\"openbravoLogo\" class=\"Main_NavBar_logo\"></TD>\n");
+
+    String navBarLogoId = "";
+    String navBarLogoIdOrg = "";
+    try {
+        navBarLogoId = SessionLoginData.getCustomizedNavBarLogo(this.conn);
+        navBarLogoIdOrg = vars != null ? SessionLoginData.getCustomizedNavBarLogoFromOrg(this.conn, vars.getOrg()) : "";
+    } catch (ServletException e) {
+        // do nothing print default logo
+    }
+    // org logo overwrites client logo overwrites standard logo
+    if(!navBarLogoIdOrg.isEmpty()) {
+        navBarLogoId = navBarLogoIdOrg;
+    }
+    if(navBarLogoId.isEmpty()) {
+        toolbar.append(
+                  "<TD class=\"Popup_NavBar_bg_logo\" width=\"1\" onclick=\"openNewBrowser('http://www.openbravo.com', 'Openbravo');return false;\"><IMG src=\"../web/images/blank.gif\" alt=\"Openbravo\" title=\"Openbravo\" border=\"0\" id=\"openbravoLogo\" class=\"Popup_NavBar_logo\"></TD>"
+                );
+    }else {
+        toolbar.append(
+                  "<td class=\"Main_NavBar_bg_logo\" width=\"1\"><div class=\"Main_NavBar_logo_custom\" alt=\"NavBarLogo\" title=\"NavBarLogo\" border=\"0\" id=\"NavBarLogo\">"
+                + "<img src=\"../utility/ShowImage?id=" + navBarLogoId +"\" alt=\"NavBarLogo\">"
+                + "</div></td>"
+                );
+    }
     toolbar.append("  <TD class=\"Main_NavBar_bg_logo_right\"></TD>\n");
     toolbar.append("  <TD></TD>\n");
     toolbar.append("  </TR>\n");

@@ -92,6 +92,17 @@ function validate(){
             displayLogicElement('savebutton_inp', false);
         } 
 	}
+
+	//check if group by BP is checked when reportingDate is not empty
+	// else load filter button and dont open pdf popup -> error is shown on load
+	function popupOrError() {
+		if(!document.getElementById("paramGroup").checked && document.getElementById("paramReportingDate").value != ""){
+			submitCommandForm('FIND', true, null , null, '_self' );return false;
+		}else {
+			//no error -> print pdf
+			openServletNewWindow('PRINT_PDF', true, 'ReportDebtPayment.html', 'ReportDebtPayment', null, false, '700', '1000', true);return false;
+		}
+	}
 	</script>
 </head>
     <body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" onload="onLoadDo();" onresize="onResizeDo();">
@@ -358,7 +369,27 @@ function validate(){
 		 	<tr>
               <td class="TitleCell"> <span class="LabelText">Group By Business Partner</span></td>
               <td class="Radio_Check_ContentCell"> <input type="checkbox" name="inpGroup" value="isGroup" id="paramGroup" checked=""></input>
-              </td>
+              <td class="TitleCell"> <span class="LabelText">Reporting Date</span></td>
+              <td class="TextBox_btn_ContentCell">
+	              <table border="0" cellspacing="0" cellpadding="0" summary=""  style="padding-top: 0px;">
+	                  <tr>
+	                    <td class="TextBox_ContentCell">
+	                      <input dojoType="openbravo:DateTextbox" displayFormat="xx" saveFormat="yy"  class="TextBox_btn_OneCell_width" type="text" name="inpReportingDate" id="paramReportingDate" size="10" maxlength="10" value="" onkeyup="autoCompleteDate(this.textbox, this.displayFormat);return true;"></input><script>djConfig.searchIds.push("paramReportingDate");</script>
+	                    </td>
+	                    <td class="FieldButton_ContentCell">
+	                      <a class="FieldButtonLink" href="#" onfocus="setWindowElementFocus(this); window.status='Calendar'; return true;" onblur="window.status=''; return true;" onkeypress="this.className='FieldButtonLink_active'; return true;" onkeyup="this.className='FieldButtonLink_focus'; return true;" onclick="showCalendar('frmMain.inpReportingDate', document.frmMain.inpReportingDate.value, false);return false;">
+	                        <table class="FieldButton"  onmouseout="this.className='FieldButton';window.status='';return true;" onmouseover="this.className='FieldButton_hover';window.status='Show calendar';return true;" onmousedown="this.className='FieldButton_active';return true;" onmouseup="this.className='FieldButton';return true;">
+	                          <tr>
+	                            <td class="FieldButton_bg">
+	                              <img alt="Calendar" class="FieldButton_Icon FieldButton_Icon_Calendar" title="Calendar" src="../../../../../web/images/blank.gif" border="0"></img>
+	                            </td>
+	                          </tr>
+	                        </table>
+	                      </a>
+	                    </td>
+	                  </tr>
+	                </table>
+	          </td>
             </tr>
 			<tr>
               <td class="TitleCell"> <span class="LabelText">Group By Bank Account</span></td>
@@ -538,7 +569,7 @@ function validate(){
                 <div>
                   <button type="button" 
                     class="ButtonLink" 
-                    onclick="openServletNewWindow('PRINT_PDF', true, 'ReportDebtPayment.html', 'ReportDebtPayment', null, false, '700', '1000', true);return false;" 
+                    onclick="popupOrError();"
                     onfocus="buttonEvent('onfocus', this); window.status='Export Results to PDF Format'; return true;" 
                     onblur="buttonEvent('onblur', this);" 
                     onkeyup="buttonEvent('onkeyup', this);" 

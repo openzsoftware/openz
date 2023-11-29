@@ -423,4 +423,5 @@ END ; $_$;
 
 select ad_activatehistorytriggers();
 
-update ad_preference set value='N' where attribute='SUSPENDHISTORY';
+update ad_preference set value=coalesce((select releaseno from ad_system),'N') where attribute='SUSPENDHISTORY';
+update ad_system set releaseno=null;

@@ -26,6 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.erpCommon.businessUtility.Tree;
@@ -107,6 +108,12 @@ public class ReportValuationStock extends HttpSecureAppServlet {
         data = ReportValuationStockData.select(this, strCurrencyId,strWarehouse,vars.getLanguage(), strDate,
             strBaseCurrencyId,  DateTimeData.nDaysAfter(this, strDate, "1"),
             strCategoryProduct);
+        // nachträglicher Filter über die verfügbaren OrgIDs, Listen können nicht direkt mit in die select-Funktion
+        for(ReportValuationStockData cur : data) {
+            if(!Utility.getContext(this, vars, "#AccessibleOrgTree", "").contains(cur.adOrgId)) {
+                data = (ReportValuationStockData[]) ArrayUtils.removeElement(data, cur);
+            }
+        }
       } catch (ServletException ex) {
         myMessage = Utility.translateError(this, vars, vars.getLanguage(), ex.getMessage());
       }
@@ -146,7 +153,7 @@ public class ReportValuationStock extends HttpSecureAppServlet {
         xmlDocument.setParameter("theme", vars.getTheme());
         NavigationBar nav = new NavigationBar(this, vars.getLanguage(),
             "ReportValuationStock.html", classInfo.id, classInfo.type, strReplaceWith, tabs
-                .breadcrumb());
+                .breadcrumb(), vars);
         xmlDocument.setParameter("navigationBar", nav.toString());
         LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(), "ReportValuationStock.html",
             strReplaceWith);
@@ -235,6 +242,12 @@ public class ReportValuationStock extends HttpSecureAppServlet {
         data = ReportValuationStockData.select(this, strCurrencyId,strWarehouse,vars.getLanguage(), strDate,
             strBaseCurrencyId,  DateTimeData.nDaysAfter(this, strDate, "1"),
              strCategoryProduct);
+        // nachträglicher Filter über die verfügbaren OrgIDs, Listen können nicht direkt mit in die select-Funktion
+        for(ReportValuationStockData cur : data) {
+            if(!Utility.getContext(this, vars, "#AccessibleOrgTree", "").contains(cur.adOrgId)) {
+                data = (ReportValuationStockData[]) ArrayUtils.removeElement(data, cur);
+            }
+        }
       } catch (ServletException ex) {
         myMessage = Utility.translateError(this, vars, vars.getLanguage(), ex.getMessage());
       }

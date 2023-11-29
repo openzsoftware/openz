@@ -391,6 +391,7 @@
 1F1B9BADC12B402A86E55E0C41CD19E4	0	0	Y	2012-02-02 15:46:55.856886	0	2012-02-02 15:46:55.856886	0	Order filter	/org/openbravo/erpCommon/ad_reports/ReportInvoiceDiscountEdit.html	Y	0	N
 1F265145A9A146A38FE685428BED4325	0	0	Y	2012-02-02 15:47:37.65494	0	2012-02-02 15:47:37.65494	0	Nat.	/org/openbravo/erpCommon/ad_reports/ReportTaxInvoice_Excel.html	Y	0	N
 1F5D96DA11AF4825887475A52F7ACEAD	0	0	Y	2012-02-02 15:48:35.741756	0	2012-02-02 15:48:35.741756	0	Services	/org/openbravo/erpCommon/ad_reports/ReportProjectProfitabilityJR.jrxml	Y	0	N
+1F618A760D6D43E7A44B0DA80FFACB8F	0	0	Y	2022-10-28 14:43:17.868121	100	2022-10-28 14:43:17.868121	100	Reporting Date	/org/openbravo/erpCommon/ad_reports/ReportDebtPayment.html	Y	0	Y
 1F90F6106804403796F0F2A55C8FAB7C	0	0	Y	2012-02-02 15:47:40.242366	0	2012-02-02 15:47:40.242366	0	Invoiced	/org/openbravo/erpCommon/info/ShipmentReceiptLine.html	Y	0	Y
 1F99D7282F00430A92983B4034673337	0	0	Y	2012-02-02 15:46:27.359075	0	2012-02-02 15:46:27.359075	0	Locator	/org/openbravo/erpCommon/ad_actionButton/CreateFrom_Shipment.html	Y	0	N
 1F9C286E5B184A4AAA280160E0BF7AD7	0	0	Y	2012-02-02 15:47:40.198116	0	2012-02-02 15:47:40.198116	0	To	/org/openbravo/erpCommon/info/ShipmentReceiptLine.html	Y	0	Y

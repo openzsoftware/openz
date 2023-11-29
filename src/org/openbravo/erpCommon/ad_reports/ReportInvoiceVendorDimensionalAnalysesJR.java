@@ -214,7 +214,7 @@ public class ReportInvoiceVendorDimensionalAnalysesJR extends HttpSecureAppServl
       xmlDocument.setParameter("theme", vars.getTheme());
       NavigationBar nav = new NavigationBar(this, vars.getLanguage(),
           "ReportInvoiceVendorDimensionalAnalysesFilterJR.html", classInfo.id, classInfo.type,
-          strReplaceWith, tabs.breadcrumb());
+          strReplaceWith, tabs.breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(),
           "ReportInvoiceVendorDimensionalAnalysesFilterJR.html", strReplaceWith);

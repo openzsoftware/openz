@@ -23,6 +23,7 @@
 08092F5413D34ABF982759635B3A853E	0	0	Y	2013-01-23 10:57:14.208753	100	2013-01-23 10:57:14.208753	100	pdc_NoMaterialLeftInWokstep	There is no material left in the workstep (Everything clean)	\N	I	000CDBE191604F5A835A3EC3213719E8
 08FB86F82E0A4AF7BF72CE699118D928	0	0	Y	2018-11-12 12:34:32.715309	100	2018-12-03 07:56:29.853847	100	OZLicenseInvalid	</tr><tr class="headrow"><td class="fronthead">User is not licenced</td></tr><tr class="contentrow"><td class="content"> You have to increase the number of users licensed. Please call + 49 4792 954517 or write an EMail to info@openz.de to order a license for the user.</td>	\N	I	0
 0922056CF4724012B78D432811B889CE	0	0	Y	2010-11-12 10:20:38.567966	100	2010-11-12 10:20:38.567966	100	zsmf_CancelledMat	Material Reservation Cancelled	\N	I	DFC8AA991ADC45BA9CAB2A088B7D4980
+0A000FAE4DFC430CB647CEF2D995FF75	0	0	Y	2022-06-21 15:06:22.020709	100	2022-06-21 15:06:22.020709	100	mfa_user_banned	There have been at least 3 failed login/verification attemts in the last 10 minutes. For security reasons your login was banned for the next 10 minutes and your verification code was reset.	\N	E	0
 0A33F176F61445A78948EF2CBC666ED1	0	0	Y	2010-11-13 18:23:49.667304	100	2012-11-08 10:19:44.761853	100	zspm_NoChangePhaseStarted	Change is impossible. Phase already started	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
 0A4DF5C7CA634698893DD23E1CA7C663	0	0	Y	2020-04-22 12:17:54.83042	100	2020-04-22 12:17:54.83042	100	RequestsClosed	Requests closed	\N	I	0
 0B0173F15CBD46239CA81A51730E05C6	0	0	Y	2013-10-23 17:08:41.943818	100	2013-10-23 17:08:57.876602	100	HRPlanCreatedSucessfully	Employee plan updated	\N	S	0
@@ -330,6 +331,7 @@
 128	0	0	Y	2009-11-25 19:39:36.441567	0	2009-11-25 19:39:36.441567	0	AccountCombination	Account Combination	\N	M	0
 129	0	0	Y	2009-11-25 19:39:36.447537	0	2009-11-25 19:39:36.447537	0	AccountNewUpdate	Create new Account or update Alias	\N	M	0
 1299B933978E465AB8D9E73B85F10A1A	0	0	Y	2009-11-25 19:40:13.649259	0	2009-11-25 19:40:13.649259	0	20535	New datatype references are not allowed in modules.	\N	E	0
+12FA6F4459F644A5BFFCB0D20788386A	0	0	Y	2022-05-11 14:25:20.750473	100	2022-05-11 14:25:20.750473	100	mfa_oneTimePasswordEmailSubject	Your OpenZ Login Credentials	\N	I	0
 130	0	0	Y	2009-11-25 19:39:36.453674	0	2009-11-25 19:39:36.453674	0	AccountNotUpdated	Account not updated	\N	M	0
 131	0	0	Y	2009-11-25 19:39:36.459543	0	2009-11-25 19:39:36.459543	0	AcctViewer	Account Viewer	\N	M	0
 1312C32F5ECB439A8D5EE56876CC43C1	0	0	Y	2010-03-03 12:50:24.451165	0	2010-03-03 12:50:24.451165	0	TOMCAT_NOT_RESTARTED_TITLE	The application container wasn't restarted	\N	E	0
@@ -416,7 +418,7 @@
 189	0	0	Y	2009-11-25 19:39:36.814153	0	2009-11-25 19:39:36.814153	0	CopyEnter	Update copied record and save or ignore	\N	M	0
 18CA0C00DFCA4588900CD4F7C5E36339	0	0	Y	2018-11-12 12:04:02.216922	100	2018-12-03 16:15:48.330059	100	zsse_UsersSubscribed	Professional OpenZ Subscription found. Enterprise/Cloudservice activated.\r\nNumber of licensed users :   	\N	I	0
 18DFC765D54646A1A3374138F01E61B4	0	0	Y	2022-04-25 20:19:10.931565	100	2022-04-25 20:19:10.931565	100	ThisItemWasNotProducedHere	This Serial or Batch was not produced here	\N	E	0
-18EE682666884D65A3968F8518890DB5	0	0	Y	2011-04-24 18:23:33.502573	100	2011-04-24 18:23:33.502573	100	IDENTIFICATION_USERBAN_MSG	Your Login has been automatically disabled for 10 Minutes.\r\nThere have been at least 3 failed login trys within the last 10 minutes.\r\nPlease be shure that you have th correct Password.\r\nIf anything appears strange to you, please contact your System Administrator	\N	I	0
+18EE682666884D65A3968F8518890DB5	0	0	Y	2011-04-24 18:23:33.502573	100	2022-07-06 14:53:08.39599	100	IDENTIFICATION_USERBAN_MSG	Your Login has been automatically disabled for 10 minutes.\r\nThere have been at least 3 failed login/verification/reset attempts within the last 10 minutes.\r\nPlease be sure that you have the correct information.\r\nIf anything appears strange to you, please contact your System Administrator.	\N	I	0
 18FF8D6A528D40ADA3F328D5B5F10A3D	0	0	Y	2010-12-13 11:40:12.280559	100	2010-12-13 11:40:12.280559	100	zsmf_NoBomNoMatPlan	There is no Production BOM defined. Cannot Plan Material	\N	E	DFC8AA991ADC45BA9CAB2A088B7D4980
 190	0	0	Y	2009-11-25 19:39:36.82013	0	2009-11-25 19:39:36.82013	0	CopyError	Could not copy:	\N	E	0
 191	0	0	Y	2009-11-25 19:39:36.826123	0	2009-11-25 19:39:36.826123	0	Country	Country	\N	E	0
@@ -428,7 +430,9 @@
 197	0	0	Y	2009-11-25 19:39:36.862169	0	2009-11-25 19:39:36.862169	0	CreditCardExpYear	Credit Card Expiration Date Year invalid	\N	E	0
 198	0	0	Y	2009-11-25 19:39:36.868207	0	2009-11-25 19:39:36.868207	0	CreditCardExpired	Credit Card is expired	\N	E	0
 199	0	0	Y	2009-11-25 19:39:36.874181	0	2009-11-25 19:39:36.874181	0	CreditCardNumberError	Credit Card Number not valid	\N	E	0
+19A4C6C7FE804A78B22FE0D1F1782563	0	0	Y	2022-08-10 16:49:08.069192	100	2022-08-10 16:49:08.069192	100	invoiceCancelledReport	Cancellation Invoice	\N	I	0
 19C952A54DA54A6EB6B073D9CAC06BCA	0	0	Y	2010-11-12 10:00:07.065717	100	2010-11-12 10:00:07.065717	100	zsmf_GeneratedByPlanning	Generated by Manufacturing-Material Planning	\N	I	DFC8AA991ADC45BA9CAB2A088B7D4980
+19E3DF52D4F242CA926E8D7DD80756A7	0	0	Y	2022-05-11 11:58:43.143139	100	2022-05-11 11:58:43.143139	100	mfa_ErrorNoEmail	You need to enter an email-address first.	\N	E	0
 19EA7887850A4167AD98A193205EAA25	0	0	Y	2012-11-22 09:39:25.027151	100	2012-12-17 13:55:15.598263	100	zssm_cannotclosePOrderWhenTasksNotClosed	Cannot close a production order. All work steps must be closed before closing the order.	\N	E	9D31DE7CE403417AA30579195A455E02
 1A721BC106BF4DB791325E1421AFA95E	0	0	Y	2009-11-25 19:40:13.733358	0	2009-11-25 19:40:13.733358	0	NUMBER_OF_SOFT_USERS_REACHED_TITLE	Maximum number of concurrent users reached	\N	W	0
 1AEA9AF90BF14A41AAE07C2332BA6852	0	0	Y	2014-08-15 09:19:04.172796	100	2014-08-15 09:20:48.274743	100	NoLinesInDoc_c_bankstatement_post	There are no lines in document to process	SQL procedure: c_bankstatement_post	E	0
@@ -442,6 +446,7 @@
 1DD098E5E69D4B05AD979A79705CB13D	0	0	Y	2012-06-20 11:46:09.994832	100	2012-06-20 13:55:53.243495	100	SQLErrorExcecution	Runtime error in SQL-Procedure	\N	E	0
 1E5E3F7549664A538D5DF2CA7FB7DD02	0	0	Y	2013-09-02 14:03:01.545203	100	2013-09-02 14:03:01.545203	100	23502	Field '@@' does not contain any data.\r\nField '@@' is mandantory, you have to enter data there.\r\nIf you can not see Field '@@' or you cannot enter data there, pleaese contact your System administrator.\r\n	\N	E	0
 1E9B8B942C994D89BF8F4C0F0DAAF106	0	0	Y	2010-06-21 06:45:20.378797	0	2010-06-21 06:45:20.378797	0	zssi_OnlyOneHeadinBP	Only one Headqurter is allowed for each Business Partner	\N	E	2C556DC110134849BF4BB2B657D5B181
+1ECC46DBFB9A4350B2A698E69CBF3551	0	0	Y	2023-07-12 16:25:39.199595	100	2023-07-12 16:25:39.199595	100	pdc_consumtionCompleteError	Received goods have to match the production amount	\N	E	0
 1EE7ECCEBA4446F1A7306E14A129C24D	0	0	Y	2021-12-23 11:17:00.426763	100	2021-12-23 11:17:00.426763	100	pdc_scanSNRBNRToUpdateQty	Scan Serial/Batch to update Quantity	\N	I	000CDBE191604F5A835A3EC3213719E8
 1EEC6C759BE7470A8BB4D5B0A0253239	0	0	Y	2012-08-12 09:07:11.03146	100	2012-08-12 09:07:11.03146	100	JSListSortGoDown	Go down	\N	I	0
 1EF808BA424E4971848E9D967CE0F5E8	0	0	Y	2020-12-30 12:28:11.497892	100	2021-11-30 14:37:36.863284	100	pdc_settrxfirst	Select Trx.	\N	E	000CDBE191604F5A835A3EC3213719E8
@@ -718,6 +723,7 @@
 388141CCF3FB4F13AFC109C5B8D0C2C5	0	0	Y	2012-11-15 10:35:27.562268	100	2012-11-15 10:35:27.562268	100	zssm_MaterialReturnOnlyAfterSerialRegistration	In order to close Workstep and return material you need first to register all serial numbers and complete Stock transaction.  After doing this, execute this step again.	\N	I	9D31DE7CE403417AA30579195A455E02
 389	0	0	Y	2009-11-25 19:39:38.044235	0	2009-11-25 19:39:38.044235	0	Password	Password	\N	M	0
 38E1FA87C7734186B03CF30F020247F9	0	0	Y	2009-11-25 19:40:13.90731	0	2009-11-25 19:40:13.90731	0	NotAValidKey	There was a mismatch between the System Key and the Activation File. Check that both are correct.	\N	E	0
+38FBD1F14476460E99E282E7F8C66762	0	0	Y	2023-08-03 09:35:59.151105	100	2023-08-07 14:13:28.579242	100	notManufacturedInProductionrun	The product with the entered SNR/BNR was not manufactured in this production order.	\N	E	0
 390	0	0	Y	2009-11-25 19:39:38.050232	0	2009-11-25 19:39:38.050232	0	Payment	Payment	\N	E	0
 391	0	0	Y	2009-11-25 19:39:38.056271	0	2009-11-25 19:39:38.056271	0	PaymentAllocation	Payment Allocation	\N	M	0
 392	0	0	Y	2009-11-25 19:39:38.062263	0	2009-11-25 19:39:38.062263	0	PaymentBankAccountNotValid	Bank Account Number is not valid	\N	E	0
@@ -727,6 +733,7 @@
 395	0	0	Y	2009-11-25 19:39:38.080273	0	2009-11-25 19:39:38.080273	0	PaymentCompleteDocument	Enter the payment after completing the transaction	\N	E	0
 396	0	0	Y	2009-11-25 19:39:38.086409	0	2009-11-25 19:39:38.086409	0	PaymentCreated	Created Payment:	\N	M	0
 397	0	0	Y	2009-11-25 19:39:38.092432	0	2009-11-25 19:39:38.092432	0	PaymentDiscount	Payment discount	\N	M	0
+397625F6EBDE4D0EADF7DAE56DA9A2F5	0	0	Y	2022-05-30 09:16:41.334788	100	2022-05-30 09:16:41.334788	100	mfa_verificationCodeEmailSubject	Your OpenZ Verification Code	\N	I	0
 398	0	0	Y	2009-11-25 19:39:38.098507	0	2009-11-25 19:39:38.098507	0	PaymentError	An error occurred when processing the payment:	\N	E	0
 399	0	0	Y	2009-11-25 19:39:38.104482	0	2009-11-25 19:39:38.104482	0	PaymentNoProcessor	No Payment Processor for this Payment Type.	Create Payment Processor for your Bank Account.	E	0
 39F0C9BD955741B9BC82FC6ACE49F19B	0	0	Y	2009-11-25 19:40:13.913313	0	2009-11-25 19:40:13.913313	0	DBPrefixNotAllowedInTemplate	DBPrefixes are not allowed in template modules	\N	E	0
@@ -766,6 +773,7 @@
 408	0	0	Y	2009-11-25 19:39:38.158539	0	2009-11-25 19:39:38.158539	0	PostImmediate?	Post now and create Accounting entries?	\N	I	0
 409	0	0	Y	2009-11-25 19:39:38.164584	0	2009-11-25 19:39:38.164584	0	PostServerError	Posting: Server Error	\N	E	0
 409B57D2120142BFA5375D3A6D71DBF9	0	0	Y	2020-09-16 13:26:19.100587	100	2020-09-16 13:26:19.100587	100	pdc_ScanProductCompletedR	All Products scanned. Scan or Press Ready to finish - Material return	\N	I	000CDBE191604F5A835A3EC3213719E8
+40BDFC888BA64C33BCA00A64C9CFC66B	0	0	Y	2023-01-31 11:21:10.699156	100	2023-01-31 11:21:10.699156	100	zssm_finishandassembleaterSuccess	This workstep is ready for production now. Missing Material was transferd to a following non-assembling workstep. You can finish this workstep by using scanner or the button 'Close task' 	\N	I	0
 40CD0975276B49F2920CFB5E3BB18B38	0	0	Y	2013-05-21 16:54:01.619242	100	2013-05-21 16:54:01.619242	100	ils_lineadded	Product added to transaction	\N	I	F2101ADEF06E45CAA2A50B714B738F61
 40F418622B9D445483065B029E263A5E	0	0	Y	2010-06-21 06:45:20.379551	0	2010-06-21 06:45:20.379551	0	zssi_OnlyOneSetInSIP	Only one Set of Preferences for one Invoice-Type is allowed	\N	E	2C556DC110134849BF4BB2B657D5B181
 410	0	0	Y	2009-11-25 19:39:38.170615	0	2009-11-25 19:39:38.170615	0	Postal	ZIP	\N	E	0
@@ -805,6 +813,7 @@
 438DDB0A996D4ADF91F3C731DDC2146F	0	0	Y	2010-03-03 12:50:24.479683	0	2010-03-03 12:50:24.479683	0	NoDataFound	No data has been found. Please ensure that the selected filter options are correct.	\N	E	0
 438F617A10D04F4188BF6178A32C8AD3	0	0	Y	2015-04-20 14:50:25.080958	100	2015-04-20 14:50:25.080958	100	bom_ScanSerial	Scan serial number	\N	I	19AD0E731F3440E1855E8216A8F6A6AB
 439	0	0	Y	2009-11-25 19:39:38.351013	0	2009-11-25 19:39:38.351013	0	ProcessFailed	Process failed	\N	E	0
+43E3D6C466C84505802BFCC920AED93B	0	0	Y	2022-05-11 14:43:40.261325	100	2022-05-11 14:43:40.261325	100	mfa_oneTimePasswordSent	One Time Password sent	\N	S	0
 440	0	0	Y	2009-11-25 19:39:38.356939	0	2009-11-25 19:39:38.356939	0	ProcessNoProcedure	Cannot start process - No procedure name	\N	M	0
 441	0	0	Y	2009-11-25 19:39:38.362974	0	2009-11-25 19:39:38.362974	0	ProcessOK	Process completed successfully	\N	S	0
 442	0	0	Y	2009-11-25 19:39:38.368957	0	2009-11-25 19:39:38.368957	0	ProcessRunError	Process failed during execution	\N	E	0
@@ -826,6 +835,7 @@
 45A7D286A35744929C2EA374B0D51103	0	0	Y	2012-02-27 11:23:40.021622	100	2012-02-27 11:23:40.021622	100	zsmf_YouNeedtoStrtProjectToPlanMat	In Order to Plan Meterial, the Project must be started	\N	E	DFC8AA991ADC45BA9CAB2A088B7D4980
 45B4041B7E52468594BE834CA23A43EB	0	0	Y	2011-07-29 18:08:18.543628	100	2011-07-29 18:08:18.543628	100	zssi_printordernumberoninvoice	Order number:	\N	I	2C556DC110134849BF4BB2B657D5B181
 45E4517987CF46C6BEE61E70F66DFE66	0	0	Y	2015-11-19 10:53:31.121933	100	2015-11-19 10:53:31.121933	100	ImportSucess	File was processed sucessfully	\N	I	0
+45EFB7110E5B46C58FECECC8B5A69CD5	0	0	Y	2022-05-31 11:52:10.041252	100	2022-06-20 12:37:28.647001	100	Mfa_Logout_Changed_Password	Your password was changed.<br>Please log in again with your new password or press the F5 button on your keyboard.	\N	I	0
 45FB8C27317D441CAFD96F2EE0005EA1	0	0	Y	2009-11-25 19:40:13.967419	0	2009-11-25 19:40:13.967419	0	20541	Each organization can have one and only one ancestor (including itself) that is a business unit	\N	E	0
 460	0	0	Y	2009-11-25 19:39:38.483257	0	2009-11-25 19:39:38.483257	0	Record	Record	\N	M	0
 461	0	0	Y	2009-11-25 19:39:38.489304	0	2009-11-25 19:39:38.489304	0	RecordError	Problems accessing the record:	\N	E	0
@@ -901,6 +911,7 @@
 4EB9CE7EDAC140319460ECCC88B56814	0	0	Y	2015-11-18 19:19:54.978616	100	2015-11-18 19:19:54.978616	100	OrderlineUpdatedSucessfully	Orderlines updated sucessfully	\N	I	0
 4ECAA12B455F4BE497A92FC3F4C86BD6	0	0	Y	2009-11-25 19:40:14.021322	0	2009-11-25 19:40:14.021322	0	CR_RegisterInvalidName	A valid module name should be a string upto 60 characters in natural English.	\N	E	0
 4F9AD483DEA4498084BA29355FFAE421	0	0	Y	2009-11-25 19:40:14.027345	0	2009-11-25 19:40:14.027345	0	ProductLocatorNeeded	does not have a default locator defined. Please assign one in the Product window	\N	E	0
+4FD24F52CF3D4227BA36BA661B5884A1	0	0	Y	2022-07-27 13:28:45.489345	100	2022-07-27 13:28:45.489345	100	PasswordValidationFailedOnlyAllowedCharacters	The password contains illegal characters. Allowed characters are all letters, digits and the follwoing special characters @specialcharacters@.	\N	E	0
 500	0	0	Y	2009-11-25 19:39:38.789991	0	2009-11-25 19:39:38.789991	0	SaveError	Could not save changes:	\N	E	0
 501	0	0	Y	2009-11-25 19:39:38.79613	0	2009-11-25 19:39:38.79613	0	SaveErrorDataChanged	Could not save changes - data was changed after query.	System will re-query record.	E	0
 5019833B88FC446493F2B9552F8DD9A2	0	0	Y	2011-01-09 11:20:03.404724	100	2011-01-09 11:20:03.404724	100	zsfi_AccountIsNull	Cannot Post to GL - Account is null	\N	E	F5307E2B96484292914AE8DAE32D9C74
@@ -944,6 +955,7 @@
 529A5309451D46B889C6BB25DF3D1318	0	0	Y	2022-03-17 16:22:55.292472	100	2022-03-17 16:22:55.292472	100	UOMNotFound	Unit of Measurement not found	\N	E	0
 530	0	0	Y	2009-11-25 19:39:38.982391	0	2009-11-25 19:39:38.982391	0	SelectProgram	Select Program	\N	E	0
 531	0	0	Y	2009-11-25 19:39:38.988501	0	2009-11-25 19:39:38.988501	0	SelectSelectColumns	Select Columns for Select Window	\N	I	0
+53111D4AF72446A9B97CE9C398F06CF8	0	0	Y	2022-12-09 11:17:35.661918	100	2022-12-09 11:17:41.96956	100	ReportDebtPaymentIllegalArguments	The argument 'Group By Business Partner' has to be checked in order to use the 'Reporting Date'.	\N	E	0
 532	0	0	Y	2009-11-25 19:39:38.994428	0	2009-11-25 19:39:38.994428	0	SelectSelectHint	Move columns wanted into the Selected box and sequence their order	\N	I	0
 533	0	0	Y	2009-11-25 19:39:39.00053	0	2009-11-25 19:39:39.00053	0	SelectSelectedChoices	Selected Choices	\N	I	0
 5334B16024684CCCB10333C95AF89876	0	0	Y	2013-05-08 14:38:30.695433	100	2014-07-30 12:17:09.906129	100	zssm_workstepStartedWithManualStockTransaction	Workstep started. Check to proceed with material consumption.	\N	I	9D31DE7CE403417AA30579195A455E02
@@ -1019,6 +1031,7 @@
 584FAADEFE06422E988159E2B3800F3B	0	0	Y	2010-03-03 12:50:24.488005	0	2010-03-03 12:50:24.488005	0	Restart_Tomcat	Restart Tomcat	\N	I	0
 585	0	0	Y	2009-11-25 19:39:39.32528	0	2009-11-25 19:39:39.32528	0	VPayPrintSuccess?	Is the payment print correct ?	\N	M	0
 586	0	0	Y	2009-11-25 19:39:39.331203	0	2009-11-25 19:39:39.331203	0	VPaySelect	Payment selection (manual)	\N	M	0
+586CA398C97949648954B1E789CFB979	0	0	Y	2022-06-13 13:53:08.629905	100	2022-06-29 12:10:52.829709	100	mfa_oneTimePasswordResetEmailBody	<p>Hello,</p>\r\n<p> </p>\r\n<p>a new one-time password has been requested for your OpenZ account. If you have not requested a new password, you can still log in with your old password. In this case, the one-time password will be deleted after login.</p>\r\n<p> </p>\r\n<p>Your one-time password is @password@</p>\r\n<p> </p>\r\n<p>The one-time password is valid for 24 hours only. After login you will be prompted to enter a new password.</p>\r\n<p> </p>\r\n<p>You can log in using the following link <a href="@url@">@url@</a></p>	\N	I	0
 587	0	0	Y	2009-11-25 19:39:39.337349	0	2009-11-25 19:39:39.337349	0	VPaySelectGenerate?	Generate Payments from Payment Selection?	\N	M	0
 588	0	0	Y	2009-11-25 19:39:39.343332	0	2009-11-25 19:39:39.343332	0	VPaySelectNoBank	No Bank Account with Document (e.g. Check)	\N	M	0
 589	0	0	Y	2009-11-25 19:39:39.34936	0	2009-11-25 19:39:39.34936	0	VPaySelectPrint?	Print/export generated Payments?	\N	M	0
@@ -1047,6 +1060,7 @@
 5A28BAA7FC0906FAE040007F01000F92	0	0	Y	2009-11-25 19:40:14.117389	0	2009-11-25 19:40:14.117389	0	CreateReferenceDataFailed	Create reference data process failed	\N	E	0
 5A28BAA7FC0A06FAE040007F01000F92	0	0	Y	2009-11-25 19:40:14.123353	0	2009-11-25 19:40:14.123353	0	SkippingMasterData	Create master data not selected	\N	E	0
 5AC34641AD0D4E64B1CFB66178806651	0	0	Y	2013-05-02 13:25:56.314019	100	2013-05-02 13:25:56.314019	100	snr_products2batch	 Produkte einer Charge zuordnen.	\N	E	A4A01396DEC543E6831611C9D0126605
+5AD634271F704C9981C0D25AA70124B5	0	0	Y	2022-08-09 14:58:33.354313	100	2022-08-09 14:58:33.354313	100	LocatorNotActiveOrNull	Choose an aktive Locator	\N	E	0
 5B91B212F3A049E290D278E03954E606	0	0	Y	2013-01-24 09:37:32.524186	100	2021-12-23 17:20:23.229489	100	pdc_bcnotapplicable	This barcode  is not applicable in this context 	\N	E	000CDBE191604F5A835A3EC3213719E8
 5BBAF581EEC94A11BB175D2398CE0B76	0	0	Y	2009-11-25 19:40:14.12935	0	2009-11-25 19:40:14.12935	0	LOOP_IN_BOM	BOM Tree Contains a Cycle Please Verify BOM	\N	E	0
 5CE2C997F0FA469F8890B7743820C37B	0	0	Y	2021-12-23 09:11:51.917747	100	2021-12-23 09:11:51.917747	100	pdc_newBnrSnrAssigned	New Batch/Serial assigned	\N	I	0
@@ -1085,6 +1099,7 @@
 619	0	0	Y	2009-11-25 19:39:39.529662	0	2009-11-25 19:39:39.529662	0	ZoomDocument	Document Zoom	\N	I	0
 61C67B7DA42E4B84B5091569265DB869	0	0	Y	2021-01-04 13:06:38.038262	100	2021-11-30 14:36:04.671817	100	pdc_ScanComplete	Completed	\N	I	000CDBE191604F5A835A3EC3213719E8
 61CCACD70EF942BCA51EFC1BFC975505	0	0	Y	2016-04-08 09:21:12.313861	100	2016-04-08 09:21:12.313861	100	SalesCalculationUpdated	Sales Calculation Updated	\N	S	0
+61D287AC5CA04D808142253E1ECB686D	0	0	Y	2023-07-25 09:23:36.470232	100	2023-07-25 09:23:36.470232	100	documentNoContactOrNoEmail	There is at least one document with no connected email. The customer has no email on record and there is no contact with an email entered for the document.	\N	E	0
 61DD25C13AC94CAF895C25FFFB7A1103	0	0	Y	2010-03-03 12:50:24.494582	0	2010-03-03 12:50:24.494582	0	GridNextPage	Next	\N	I	0
 61E5952651B3464FAA9416000A129737	0	0	Y	2014-04-21 17:51:50.302039	100	2014-04-21 17:51:50.302039	100	FrameCallOffsMustHaveContract	Frame Contract Call Offs must have a valid Contract associated.	\N	E	0
 620	0	0	Y	2009-11-25 19:39:39.535673	0	2009-11-25 19:39:39.535673	0	of	of	\N	E	0
@@ -1177,6 +1192,7 @@
 6B15C9577E7647CC8637AC46F3AB17C1	0	0	Y	2018-05-09 10:12:42.289579	100	2018-05-09 10:12:42.289579	100	SubsIntervalDaylirateFrom	Position billed from	\N	I	0
 6B7F2C27391542C88433DAA43A942255	0	0	Y	2021-08-05 12:45:55.498089	100	2021-08-05 13:19:04.657775	100	underStock	No Inventory (Stock is:	\N	E	0
 6B9704EA87A442889D7DC78F68BAF07C	0	0	Y	2012-02-28 10:08:26.009067	100	2012-02-28 10:11:17.615037	100	zsmf_Qty2ReserveIsLessThanQtyAvail	The Quantity to Reserve in Inventory is greater than the Quantity that is available for:	\N	E	DFC8AA991ADC45BA9CAB2A088B7D4980
+6BE69CE295D04E2DB6E5542D9002AB66	0	0	Y	2022-05-11 12:00:18.103962	100	2022-05-11 12:00:18.103962	100	mfa_ErrorEmailFailed	An error occurred while sending the email:	\N	E	0
 6C961D7AEB3C44F1AA5776E41826084E	0	0	Y	2017-01-09 15:27:29.450718	100	2017-01-09 15:29:05.589618	100	multipleCustomers	Send EMail to NNN Customers	\N	I	0
 6CAF1A960B414BF495D24B19BF38CFC5	0	0	Y	2020-05-19 12:21:11.415995	100	2020-05-19 12:21:11.415995	100	snr_isinSnrBOM	Serialnumber is currently built in another assembly. Cannot stock this serialnumber	\N	E	0
 6D100135E95744FBBD0A92A5FCD01523	0	0	Y	2013-01-14 16:25:07.859575	100	2013-01-15 08:38:35.502647	100	zssm_barcode_entity_workstep	work step	used for SQL-Translation	I	9D31DE7CE403417AA30579195A455E02
@@ -1185,6 +1201,7 @@
 6ECB1AB469C14439B6229659494B4E1A	0	0	Y	2012-10-18 15:27:42.442738	100	2012-10-18 15:33:07.893822	100	zssm_ProductionPlanNotFound	ProductionPlan not found.	Check ID or c_project.projectcategory = 'PRP'	E	0
 6F0C5B5543D54B4680CE0E0C14C0C96F	0	0	Y	2010-12-16 16:03:16.010333	100	2010-12-16 16:03:16.010333	100	zspm_GetMatBeforCloseTask	Before Closing a Task, the planned and purchased Material schould be fetched from Store	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
 6F61C04080B240B882A007830E585A86	0	0	Y	2010-10-02 09:40:35.426827	100	2010-10-02 09:43:54.778353	100	zsfi_macct_CA_sucess	Manual Accounting Batch successfully Cancelled in G/L 	\N	S	F5307E2B96484292914AE8DAE32D9C74
+700BE399E1C8434088ECD79416A2382B	0	0	Y	2023-05-16 10:31:46.649212	100	2023-05-16 10:31:46.649212	100	zsse_SuccessfullCopyWorkstep	The workstep was copied successfully.	\N	S	65B8CE870F0545B78165CFB19AA3CBD5
 701624AA793449FC8315266E2FC58E10	0	0	Y	2009-11-25 19:40:14.189455	0	2009-11-25 19:40:14.189455	0	OrgHeaderNotReady	The document belongs to a not ready organization	\N	E	0
 70B5E731D7664F4DB6E7BC17DEFD709B	0	0	Y	2012-10-30 15:23:53.021844	100	2012-10-30 15:25:41.434916	100	zssm_projecttaskbomNotFound	projecttask bom not found	record_id not found in table 'zspm_projecttaskbom''	E	9D31DE7CE403417AA30579195A455E02
 70BB613522F046A082707DEA0BDDAF82	0	0	Y	2013-02-01 09:36:41.234833	100	2014-05-10 11:32:52.79678	100	pdc_ScanLocator	Scan locator or product to proceed.	\N	I	000CDBE191604F5A835A3EC3213719E8
@@ -1194,7 +1211,7 @@
 716A7D748A9A9ED8E040007F01015931	0	0	Y	2009-11-25 19:40:14.213403	0	2009-11-25 19:40:14.213403	0	NotNullError	The column @COLUMN_NAME@ is mandatory and cannot be left empty.	\N	E	0
 716A7D748A9B9ED8E040007F01015931	0	0	Y	2009-11-25 19:40:14.219478	0	2009-11-25 19:40:14.219478	0	NotYNError	Only values 'Y'or 'N' may be entered into the field @COLUMN_NAME@.	\N	E	0
 716A7D748A9C9ED8E040007F01015931	0	0	Y	2009-11-25 19:40:14.225425	0	2009-11-25 19:40:14.225425	0	UnspecifiedConstraintViolation	There is a constraint defined that was not satisfied. Please check the data entered	\N	E	0
-71E57D6BDD614D82A958B3DC5A65E94A	0	0	Y	2019-05-13 14:40:43.799669	100	2019-05-13 14:40:43.799669	100	OfferFromOrderCreated	The following Offer was created from this doccument:	\N	I	0
+71E57D6BDD614D82A958B3DC5A65E94A	0	0	Y	2019-05-13 14:40:43.799669	100	2023-08-11 11:43:10.091292	100	OfferFromOrderCreated	The following document was created from the template: 	\N	I	0
 71FD49C46AB94869B236835AEF291A47	0	0	Y	2010-11-13 18:16:56.199611	100	2010-11-13 18:16:56.199611	100	zspm_NoBOMProjectNotOfTypeProd	A BOM can only be Created or Changed on Production Projects when the Task has not been started	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
 7202BD46BE0E408FAAF3EF7FAD88F1E4	0	0	Y	2016-01-19 18:32:58.12913	100	2016-02-17 20:10:59.334592	100	standardtaskassigned	Standard task assigned: 	\N	I	0
 7272CB32B045428CA06727419E1E7561	0	0	Y	2010-03-03 12:50:24.496295	0	2010-03-03 12:50:24.496295	0	MODULE_VERSION_BETWEEN	between @MIN_VERSION@ and @MAX_VERSION@	@MIN_VERSION@ and @MAX_VERSION@ are placeholders for dynamic text. It must be not changed.	I	0
@@ -1210,6 +1227,7 @@
 76492C2EC9E14F9BACAB67BE27FA39B3	0	0	Y	2012-06-19 17:28:55.150897	100	2012-06-19 17:28:55.150897	100	zsse_CopyAttachmentFile_RecordsCopied	Attached files to order template copied:	\N	I	65B8CE870F0545B78165CFB19AA3CBD5
 7687410573FA477BBDDD8B54FDBB74CD	0	0	Y	2009-11-25 19:40:14.243703	0	2009-11-25 19:40:14.243703	0	CouldntDeleteDirectory	Could not delete directory	\N	E	0
 77860AC8A6004E349FD3B80D52A55126	0	0	Y	2019-03-28 11:56:06.680807	100	2019-03-28 11:56:06.680807	100	AccLineDispatched	Accounting line dispatched and dissolved	\N	I	0
+7797BC89D5A641229D99F0B2699D6A83	0	0	Y	2022-05-31 11:12:19.004694	100	2022-06-20 12:37:01.134823	100	Mfa_Logout_after_auth	Your authorization was successfull.<br>Please log in again or press the F5 button on your keyboard.	\N	I	0
 77C39B447C04424AA071A7CD9D8263C7	0	0	Y	2010-12-15 11:31:39.277695	100	2015-01-12 14:07:54.211488	100	zspm_OnlyManagerUser	Only a Project-Supervisor can do this action.	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
 78051A5F7E8649FDB2F810D333B570A8	0	0	Y	2021-09-29 12:39:55.064655	100	2021-12-02 03:53:26.342453	100	pdc_pause	Transaction Saved	\N	I	000CDBE191604F5A835A3EC3213719E8
 785509D8468543F4AF2FE440D9511CF1	0	0	Y	2009-11-25 19:40:14.249464	0	2009-11-25 19:40:14.249464	0	ErrorGettingModule	Error getting the module, it is possible the WebService server is not correctly working.	\N	E	0
@@ -1222,6 +1240,7 @@
 7A743CE40F2340E8B90B7A79805B7B7E	0	0	Y	2014-04-21 17:52:58.724044	100	2014-04-21 17:52:58.724044	100	FrameContractneedsDate	Frame Contracts need a Begin and End Date	\N	E	0
 7ABA9381DCD04BA38B8BB6DCAED42062	0	0	Y	2019-08-01 11:06:58.538921	100	2019-08-01 11:06:58.538921	100	ReceiptAfterInvoiceDate	Receipt after invoice date	\N	I	0
 7B644E5A3528430EB2FAC277D40EAEE6	0	0	Y	2009-11-25 19:40:14.273451	0	2009-11-25 19:40:14.273451	0	IsDependencyOf	is a dependency of	\N	I	0
+7B64E02A612F42518AD4624B17EF175F	0	0	Y	2023-02-03 10:15:18.19095	100	2023-02-03 10:15:46.691727	100	zssm_BOMAdditionNoTrx	BOM of product(s) updated. No material transaction neccessary	\N	I	0
 7BF4B33E022E407BB6615E106AC7A8A6	0	0	Y	2010-03-03 12:50:24.502949	0	2010-03-03 12:50:24.502949	0	ReferenceNotFound	Reference not found for name:	\N	E	0
 7BFC3A210419483BACB487937E6A313A	0	0	Y	2022-04-04 16:51:19.991061	100	2022-04-04 16:51:19.991061	100	ZSMP_FrameContractExists	There exists a frame contract for this product. Please use the following frame contract	\N	I	0
 7C61487F0D7B42A3A88108192BFFCFA0	0	0	Y	2012-11-20 12:04:33.16174	100	2012-11-20 12:04:33.16174	100	zssm_relation_productionplan_task_required	Following workstep required	\N	E	9D31DE7CE403417AA30579195A455E02
@@ -1233,6 +1252,7 @@
 7E6D2D03EF244076B549BAA8A85DF368	0	0	Y	2017-01-09 14:53:52.716101	100	2017-01-09 14:53:52.716101	100	EMailOptionsReplace	The following References will be replaced by values:\r\n@cus_ref@: The document reference of the customer.\r\n@our_ref@: The Document-No. of the document.\r\n@cus_nam@: The name of the customer.\r\n@sal_nam@: The name of the sales rep.	\N	I	0
 7EF3E4E43E344C23BA10A0029A2AD17C	0	0	Y	2011-02-11 10:24:40.663104	100	2011-02-11 10:24:40.663104	100	zsmf_InPlanMatOnlyActiveStockedItems	In Production BOM only active and stocked Items are allowed	\N	I	DFC8AA991ADC45BA9CAB2A088B7D4980
 7F743581957149C598F5CB6D4546501A	0	0	Y	2013-01-22 13:04:57.573676	100	2013-01-22 13:04:57.573676	100	pdc_NothingToDo	In this Transcation there is nothing left to do. You can finish Transaction	\N	I	000CDBE191604F5A835A3EC3213719E8
+7FAF80B3DFA64FDF889DC361114096EC	0	0	Y	2023-02-03 10:45:21.781939	100	2023-02-03 10:45:21.781939	100	zssm_materialQtysNotFitting	Mengen passen nicht. Es müssen alle gebauten Geräte auf einmal verarbeitet werden. Die Produktionsaufgabe muss abgeschlossen sein, die produzierte Menge muss gleich der menge in dieser Aufgabe sein.	\N	I	9D31DE7CE403417AA30579195A455E02
 7FB8C29F83A3457993E4CC101EAF4227	0	0	Y	2010-10-11 15:04:19.633465	100	2010-10-11 15:04:19.633465	100	zsfi_AttributeNotAllwedToSet	This Attribute is not Allowed to set.	\N	E	F5307E2B96484292914AE8DAE32D9C74
 800000	0	0	Y	2009-11-25 19:39:39.956731	0	2009-11-25 19:39:39.956731	0	NoUOMConversion	No UOM Conversion Rate between UOMs found	\N	E	0
 800001	0	0	Y	2009-11-25 19:39:39.962727	0	2009-11-25 19:39:39.962727	0	2292	There are dependents child records	\N	E	0
@@ -1668,7 +1688,9 @@
 81EEDBDC5BD04C1CBD1A42A555CCE34F	0	0	Y	2012-04-23 09:33:54.657476	100	2012-04-23 09:33:54.657476	100	sepaexportonlywithpayments	Sepa Export is only possible with payments	\N	E	0
 82AE4431CD2D4359A696B6C0CC0BA071	0	0	Y	2010-12-07 16:20:35.967614	100	2010-12-07 16:20:52.920691	100	zspm_NotCostApplies	No Cost applies to this Dataset. Hint: You need to define Costs, they mußt be started and CostUOM Hour mus be applied	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
 835D985AD155473B87330EEF9E221CEE	0	0	Y	2015-04-20 14:50:59.554575	100	2015-04-20 14:50:59.554575	100	bom_ScanBatch	Scan batch number	\N	I	19AD0E731F3440E1855E8216A8F6A6AB
+8386CA150B71484888A900077C688E4F	0	0	Y	2022-05-25 15:48:54.4303	100	2022-06-28 15:12:54.917879	100	MFA_ErrorCookieDurationInvalid	The cookie lifespan needs to be in between 1 and 366 days.	\N	E	0
 8437C016631646ED9643B0B53E4F2AF8	0	0	Y	2009-11-25 19:40:14.297462	0	2009-11-25 19:40:14.297462	0	CR_JavaPacakgeInvalid	A valid package name should be a string upto 255 ASCII characters following Java package name convention.	\N	E	0
+845133CFF33340A888BA6599E6B146EC	0	0	Y	2022-05-24 10:32:49.467658	100	2022-06-29 15:07:22.628023	100	Mfa_EmailCodeHeader	<p>A verification code has been sent to your email address.</p><p>Enter the code above and click 'Confirm'.</p><p>You can request a new email with the 'Send Code' button.</p>	\N	I	0
 846C4225C64A4210A4692A55A84C28BB	0	0	Y	2010-11-10 14:46:13.291217	100	2010-11-10 14:46:13.291217	100	zspm_DoNotTaskWhenPhaseNotBegun	Cannot Start Task when Phase not begun	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
 84BF6EB85C054A799655CFCD090C76BF	0	0	Y	2013-02-14 09:55:20.603729	100	2013-02-14 10:06:30.211448	100	pdc_ScanCompleteTF	Press CANCEL or DONE to complete Time Feedback.	\N	I	000CDBE191604F5A835A3EC3213719E8
 84D05C8CC360436C97BA48A88AB7446F	0	0	Y	2013-07-30 12:29:08.915297	100	2013-07-30 12:29:08.915297	100	zspm_NoMachineTransactionPossibleSNRNeeded	Cannot move machine into Project. The Machine needs a serial number to do this. Machine:	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
@@ -1676,6 +1698,7 @@
 84FB34C122EC4D598BF17444C7681619	0	0	Y	2012-11-13 10:01:14.077077	100	2013-07-20 10:42:03.468337	100	zssm_MaterialReceivedCompleteInWorkstep	The needed Materal is completly Received for this Workstep. Transaction completed. You can view the stock transaction by following this link:     	\N	I	9D31DE7CE403417AA30579195A455E02
 8591FB6B3D2549B5BF4207517557647D	0	0	Y	2021-08-09 12:20:56.690546	100	2021-08-09 12:20:56.690546	100	pdc_Inventory	Inventory	\N	I	000CDBE191604F5A835A3EC3213719E8
 85C9EEA820FD47AAA1729F0C878E7E0E	0	0	Y	2014-08-20 14:44:35.470271	100	2014-08-20 14:44:35.470271	100	eordernoorg	Error in E-Commerce Order - Please choose an Organization (not *)	\N	E	0
+8658BA2D25674F40A0BD60AE90BAD154	0	0	Y	2022-07-05 15:19:49.392394	100	2022-07-05 16:59:27.868434	100	PasswordValidationFailedLowercase	,<br>contain at least one lowercase letter	\N	E	0
 866BEA8D85784E2193B9896627EE4597	0	0	Y	2021-12-23 11:45:46.536497	100	2021-12-23 11:45:46.536497	100	pdc_SNRBNRNecessary	Serial-/Batchnumbers not complete	\N	I	000CDBE191604F5A835A3EC3213719E8
 87226E6C0CE04B70B147242E6AECCC9B	0	0	Y	2010-10-04 16:21:51.501854	100	2010-10-04 16:21:51.501854	100	zsfi_AmountIsNull	The Amount of a Line is 0 - This could not be posted	\N	E	F5307E2B96484292914AE8DAE32D9C74
 873B575159384E1CAB008991116622BF	0	0	Y	2009-11-25 19:40:14.303441	0	2009-11-25 19:40:14.303441	0	OPSNoEndDate	Never	\N	I	0
@@ -1689,12 +1712,14 @@
 891D4393C1244D5FAC8C93224FF2A92F	0	0	Y	2012-11-02 15:31:41.745879	100	2012-11-02 15:33:29.810518	100	zsmf_InPBOMPNotOK_setready4production	You cannot plan this product.	Further details to 'Message Text' added by SQL	E	DFC8AA991ADC45BA9CAB2A088B7D4980
 8927B08F10B745E9883A329F1FCBC63A	0	0	Y	2009-11-25 19:40:14.309413	0	2009-11-25 19:40:14.309413	0	CR_DependensOnModule	depends on module 	\N	E	0
 893FBBCBD0A5416FADFFB62A611A4249	0	0	Y	2013-05-02 13:25:25.19036	100	2013-05-02 13:25:25.19036	100	snr_morethanbatchneed	Sie haben einer Charge mehr Produkte zugeordnet als vorhanden sind. Sie müssen in diesem Vorgang genau 	\N	E	A4A01396DEC543E6831611C9D0126605
+89431D52B03841248000B2D64335AB47	0	0	Y	2022-07-13 11:49:38.845445	100	2022-07-13 12:00:42.520305	100	requestPasswordResetText	To request a new password enter your username</br>and your connected email address and click reset.</br></br>If you do not know your email address or no</br>email address is connected to your account</br>contact your system administrator.</br>	\N	I	0
 89741EAD59AC48CE825ADD57D5E9FFBD	0	0	Y	2012-11-22 15:05:39.844555	100	2012-11-22 15:27:52.966267	100	zssm_PlanHasMoreThanOneFinalWorkStep	The production plan has more than one work step as result. A production plan must have only one particular final work step. Check 'Sequence Plan' to add relations on following work steps:	\N	E	9D31DE7CE403417AA30579195A455E02
 89CDB03433534868BA472C08AD49759A	0	0	Y	2012-11-26 09:36:39.683462	100	2012-11-26 10:22:52.237895	100	zssm_PlanTaskHasBomAndAssembly	In the final work step of this production plan option 'Assembly' is activated without a product. Nevertheless a product is assigned to the bill of material (BOM).</br>Check the output of this work step to 'Assembly' in association with a product or one particular product within the BOM.	\N	E	9D31DE7CE403417AA30579195A455E02
 89FDE3CB1891401A8CEDB277C95D6A90	0	0	Y	2009-11-25 19:40:14.315418	0	2009-11-25 19:40:14.315418	0	20542	Every legal entity with accounting must have itself or an ancestor at least an accounting schema attached to it	\N	E	0
 8A7A1426E0A34662A960DD095C18E11A	0	0	Y	2015-12-02 08:49:10.037235	100	2015-12-02 08:49:10.037235	100	ProjecttaskMandatory	Projecttask is mandatory	\N	E	0
 8B03AFC7AAEC4EEBB7364F2BB9A80C99	0	0	Y	2009-11-25 19:40:14.321448	0	2009-11-25 19:40:14.321448	0	DataPackageNotAllowedInTemplate	Data Packages are not allowed in template modules.	\N	E	0
 8B752DBCA3A54FFDBFDCA08009BE06D6	0	0	Y	2014-07-28 17:09:09.4459	100	2022-04-04 16:45:38.401483	100	ZSPM_PriceActual_changed	The price has automatically changed. Press the button to reset the price to the previous value. Previous value	\N	W	0
+8B7BDBD82BCC44E9BD5EE4DF627FF648	0	0	Y	2022-07-13 09:57:50.94896	100	2022-07-13 09:57:50.94896	100	keepmeloggedinlabel	Keep Me Logged In	\N	I	0
 8CFCD0D78A14437BB784E37DAD42DFCD	0	0	Y	2013-01-24 20:12:11.297057	100	2013-01-24 20:12:26.840017	100	pdc_sucessful	data scan sucessful	\N	I	000CDBE191604F5A835A3EC3213719E8
 8D86726EFCD84376BF20924BE3E8F59A	0	0	Y	2009-11-25 19:40:14.327404	0	2009-11-25 19:40:14.327404	0	CannotUninstallDependency	Dependent modules must be uninstalled before their parent ones.	\N	I	0
 8DA2AC3A69BF4686A821CA634149C501	0	0	Y	2009-11-25 19:40:14.333414	0	2009-11-25 19:40:14.333414	0	MOD_OBX	The selected file does not have the mandatory .obx module extension. 	A module file must have a .obx extension.	I	0
@@ -1715,6 +1740,8 @@
 9210E705A80B442688E09A6C7C6BAEBA	0	0	Y	2009-11-25 19:40:14.357369	0	2009-11-25 19:40:14.357369	0	CR_DBPrefixInUse	The given DB prefix is already in use. Try with different DB prefix.	\N	E	0
 929B764272524F159315CB02849B399C	0	0	Y	2013-01-14 16:12:17.079481	100	2013-01-14 16:12:17.079481	100	zssm_barcode_entity_product	product	used for SQL-Translation	I	9D31DE7CE403417AA30579195A455E02
 92EA05BEFD96475F8E805A45B92F975E	0	0	Y	2021-11-26 10:32:36.067441	100	2021-11-26 10:32:36.067441	100	pdc_locatorchanged	Locator Changed	\N	I	000CDBE191604F5A835A3EC3213719E8
+932AF48B0D9B4AC5881D6ABA164CE07C	0	0	Y	2022-05-11 14:27:20.790831	100	2022-06-29 11:42:12.646091	100	mfa_oneTimePasswordEmailBody	<p>Hello,</p>\r\n<p> </p>\r\n<p>in this email you will receive a one-time password for your OpenZ account. You have already received the username required for the login or it will be provided to you in another way.</p>\r\n<p> </p>\r\n<p>Your one-time password is @password@</p>\r\n<p> </p>\r\n<p>The one-time password is valid for 24 hours only. After login you will be prompted to enter a new password.</p>\r\n<p> </p>\r\n<p>You can log in using the following link <a href="@url@">@url@</a></p>	\N	I	0
+9357A9CBD4BF41EB90569E69DC4CA84E	0	0	Y	2023-02-03 10:24:55.132181	100	2023-02-03 10:24:55.132181	100	zssm_materialcompletenoTRX	Material is complete. No Transaction necessary.	\N	I	9D31DE7CE403417AA30579195A455E02
 93839A11FD4842BF826B679F0D4F2816	0	0	Y	2012-08-12 09:09:59.244373	100	2012-08-12 09:09:59.244373	100	JSMultiselMiddle	Delete selected Element from list	\N	I	0
 938EA875212945FB81235B34A24FF568	0	0	Y	2013-05-07 12:24:38.877081	100	2016-09-20 18:23:24.377796	100	pdc_Scan	Button Pressed Barcode Scanned	\N	I	000CDBE191604F5A835A3EC3213719E8
 9409452A724C45F19CFD036CF1342267	0	0	Y	2010-08-19 01:27:14.93713	100	2010-08-19 01:28:18.702828	100	zssi_TaxhintInvoiceExcl	Tax:	\N	I	2C556DC110134849BF4BB2B657D5B181
@@ -1725,6 +1752,7 @@
 9557CE801C41471FA2BE88A487F8A8A3	0	0	Y	2014-01-20 16:13:49.594653	100	2014-01-20 16:13:49.594653	100	pdc_serialisstocked	This Serialnumber is already stocked. (It cannot be stocked again)	\N	I	000CDBE191604F5A835A3EC3213719E8
 95DCF607969A4F1AAFA0EC7B49E90CE7	0	0	Y	2013-05-24 17:59:27.021511	100	2013-05-24 17:59:27.021511	100	snr_nobatchgiven	Sie haben keine Chargennummer eingegeben. Sie müssen entweder eine Chargennummer erfassen oder als unlesbar/nicht vorhanden markieren.	\N	E	A4A01396DEC543E6831611C9D0126605
 964970901F024B758E76DA42A008349E	0	0	Y	2009-11-25 19:40:14.363482	0	2009-11-25 19:40:14.363482	0	ToAccount	To Account	\N	I	0
+966FCF1DCB4B48479FEDF4FC20CA6B0A	0	0	Y	2022-07-05 15:18:17.006237	100	2022-07-05 16:59:18.641613	100	PasswordValidationFailedDigits	,<br>contain at least one digit	\N	E	0
 96C0A88B865F4CD68CC3B7BCD871C155	0	0	Y	2010-11-14 05:03:41.649129	100	2010-11-14 05:03:41.649129	100	zspm_NoChangeOutsourcing	Task has been Outsourced: Planning Task is not possible	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
 96D6B626BAE0442DA6DD9E5CEE28504C	0	0	Y	2012-11-20 13:27:55.975123	100	2012-11-20 14:18:42.355534	100	zssm_relation_issuing_locator_required	Issuing locator required, if stock rotation is enabled	\N	E	9D31DE7CE403417AA30579195A455E02
 974E3FA0F8444BC69AC6061A1F56ACE3	0	0	Y	2012-11-07 14:15:09.456307	100	2012-11-08 10:25:40.711365	100	zssm_relation_recursive	purposed concatination to the target workstep would create a circle into the production task dependencies	\N	E	9D31DE7CE403417AA30579195A455E02
@@ -1751,6 +1779,7 @@
 9D70E4D8EE424F248D99FBA88DA60C36	0	0	Y	2012-11-13 09:24:15.30635	100	2012-12-17 13:57:47.148692	100	zssm_MaterialNotAvailabelCannotStart	The material you need to start the work step is not completely available. See in Tab Bill of Materail. There you can see the 'Needed Quantity' and the 'Available Qty' of each Item you need to start the work step.	\N	E	9D31DE7CE403417AA30579195A455E02
 9DEDEDDC6E44428A8DC45444FCB9A1DD	0	0	Y	2009-11-25 19:40:14.381644	0	2009-11-25 19:40:14.381644	0	CR_PackageInUse	The given Java Package is already in use. Try with different Java Package.	\N	E	0
 9EB5345848E748B8AC0E741E3BE48575	0	0	Y	2012-09-06 10:01:33.552995	100	2012-09-06 10:03:41.347248	100	RoleIdNotFound	RoleId not found	\N	E	0
+9FA776C5868643AD8A5387A22E27C09C	0	0	Y	2022-07-13 12:21:02.654738	100	2022-07-13 12:21:02.654738	100	passwordresetconfirmtext	Your reset request was successful.</br>An email has been sent to you if the</br>entered username and email were correct.</br>	\N	I	0
 9FC0A5DE682A4CC0AD79AD5DD24A3C17	0	0	Y	2010-11-09 20:21:59.234522	100	2010-11-09 20:21:59.234522	100	zspm_OutsourcedPhaseHaveNoTask	An outsourced Phase schould have no Tasks	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
 9FD96DDFD0AD427993F2BD0390583713	0	0	Y	2009-11-25 19:40:14.38749	0	2009-11-25 19:40:14.38749	0	20540	Every organization where transactions are possible must have one and only one ancestor (including itself) that is a legal entity	\N	E	0
 A0053EC4782B481A87068AA84758F091	0	0	Y	2020-11-25 17:58:20.77426	100	2020-11-25 17:58:20.77426	100	pdc_MatSucessful	Material consumption sucessful	\N	I	000CDBE191604F5A835A3EC3213719E8
@@ -1761,6 +1790,7 @@ A0C67D473EA4484EA7638D611872AD05	0	0	Y	2021-01-04 12:56:19.474869	100	2021-11-30
 A0D386199C3A40AABD83BF83BD9998DB	0	0	Y	2012-09-25 16:00:24.109755	100	2012-09-25 16:00:24.109755	100	ProductIdNotFound	Product-Id not found	\N	E	0
 A1260638447B4DE193F1BC7755C715B7	0	0	Y	2010-10-19 09:31:31.982075	100	2010-10-19 09:31:31.982075	100	zsfi_ManualAcctNotBalanced	G/L Accounting is not balanced. No booking in G/L-Journal possible	\N	E	F5307E2B96484292914AE8DAE32D9C74
 A17452B2C3E24B98BF84EB2DF9F99B91	0	0	Y	2010-11-27 08:31:54.819107	100	2010-11-27 08:31:54.819107	100	zsmf_bomspareparttitle	Bill of Material for spareparts/consumables	\N	I	DFC8AA991ADC45BA9CAB2A088B7D4980
+A30883C92CE94C08A0ED7D7BAF8631BE	0	0	Y	2022-05-30 10:21:27.733643	100	2022-07-12 16:44:20.093169	100	mfa_ErrorExceptionOrEmail	A user needs a valid email-address to activate the MFA. Otherwise the user would be locked out of the system.	\N	E	0
 A369D70FB055411FA8231DAEF2A8871C	0	0	Y	2016-01-05 15:15:53.14432	100	2016-01-05 15:15:53.14432	100	ProcessExecutes	The process you want to start is currently excecuting. Please wait and start again.	\N	E	0
 A369F0620C0D4DC29B8CFC32CC5E654B	0	0	Y	2009-11-25 19:40:14.399568	0	2009-11-25 19:40:14.399568	0	10100	The java package of the Data Package must be within the java package of its module.	\N	E	0
 A407897934DC49DEA6F9BD2AFB11B78E	0	0	Y	2014-01-20 16:11:41.49776	100	2014-01-20 16:11:41.49776	100	pdc_ScanUserOrLocator	You have to Scan a employee and a locator to proceed	\N	I	000CDBE191604F5A835A3EC3213719E8
@@ -1791,7 +1821,9 @@ ABB9F7C514344647AB3939B5C08CA4E3	0	0	Y	2019-08-01 10:53:38.414986	100	2019-08-01
 ABFC1C308C20428084E6656C54A4A786	0	0	Y	2021-12-20 21:02:57.655089	100	2021-12-20 21:02:57.655089	100	pdc_Relocatefrom	Relocate from	\N	I	000CDBE191604F5A835A3EC3213719E8
 AC63454AE63A49CDA0EB25806B656B6D	0	0	Y	2009-11-25 19:40:14.450119	0	2009-11-25 19:40:14.450119	0	PaymentsAndHeaderDifferentLEorBU	The document has payments of different business units or legal entities	\N	E	0
 ACE03E1D0D7340B29DEB211E8DE024B5	0	0	Y	2012-11-02 14:44:43.298803	100	2012-11-02 15:32:48.195232	100	zsmf_InPBOMPNotOK_isverified	You cannot plan this product.	Further details to 'Message Text' added by SQL	E	DFC8AA991ADC45BA9CAB2A088B7D4980
+ACE20AD7E8BD4B8B9B8665794CED2808	0	0	Y	2022-05-17 11:17:31.481973	100	2022-05-17 11:18:04.95257	100	Mfa_PasswordMissmatch	The entered passwords do not match.	\N	E	0
 AD012CB96F5742C38F95EB9AA395E978	0	0	Y	2010-12-10 13:16:43.229013	100	2010-12-10 13:16:43.229013	100	zspm_NoCorrectDates	The Dates (Begin and End) selected do not make sense or they are not set. 	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
+AD3964A89C99431A9BA1249D0DBBE13E	0	0	Y	2022-05-24 10:53:18.74389	100	2022-06-29 14:07:31.345417	100	mfa_CodeMismatch	Your entered Code is not correct or expired.	\N	E	0
 ADA611B9B6E04D92A88BDB2D0B1BC0F0	0	0	Y	2010-03-03 12:50:24.521359	0	2016-10-11 10:04:39.723538	100	ColumnDBPrefix	DB Column Name' and/or 'Name' does not follow modularity naming rules. It must start with the module's DBPrefix as the column belongs to a module different that its table.	\N	E	0
 AEA8418A6F4946B9AA3CA72DC2D98C03	0	0	Y	2019-12-13 11:10:13.346009	100	2019-12-13 11:11:28.781547	100	onelocatorPorW	You have to choose either vendor or production locator	\N	E	0
 AEEB7AE9F18F4973A690B8E4509D2B93	0	0	Y	2010-11-12 10:56:10.320575	100	2010-11-12 10:56:10.320575	100	zsmf_CannotPlanMatAssembyNotPlannedYet	Cannot Plan Material: A needed Assembly is not Planned Yet or Not in Time	\N	E	DFC8AA991ADC45BA9CAB2A088B7D4980
@@ -1879,10 +1911,13 @@ C4E67E7F75114701AA8206CF2351B470	0	0	Y	2012-08-12 09:06:07.610024	100	2012-08-12
 C5771301055C4B5D8DC0125E0ABFFDD5	0	0	Y	2009-11-25 19:40:14.573748	0	2009-11-25 19:40:14.573748	0	CR_RegisterNoUUID	ModuleID is mandatory.	\N	E	0
 C5EEEF1A3F78441EA475E8B9BD6143BA	0	0	Y	2018-11-12 12:26:51.515452	100	2018-12-03 14:18:43.907692	100	OZAlreadyLoggedIn	</tr><tr class="headrow"><td class="fronthead">This user is already logged in in OpenZ.</td></tr><tr class="contentrow"><td class="content"> This means that either you or another person is already working with this user. Maybe you have logged in on a different device or on this system using a different browser. Maybe you have closed your browser window withous logging out. In this case you can logout the other session and using OpenZ with your current login</td>	\N	I	0
 C6067F7902944D10A30CBA43EEB06CCB	0	0	Y	2010-10-02 09:43:24.957006	100	2010-10-02 09:43:44.9004	100	zsfi_macct_CAL_sucess	Manual Accounting Line successfully Cancelled in G/L 	\N	S	F5307E2B96484292914AE8DAE32D9C74
+C634E8C725824D1DB2A21DD2B24EA5D1	0	0	Y	2022-05-30 09:17:36.482204	100	2022-06-29 13:49:56.04178	100	mfa_verificationCodeEmailBody	<p>Hello,</p><p> </p><p>your OpenZ verification code is @CODE@</p><p> </p><p>The verification code is valid for 15 minutes only.</p><p> </p><p>If you did not log in to your account right now change your password immediately or contact your system administrator.</p>	\N	I	0
 C6400FA8BD7F4BE49ABA17856F252FA3	0	0	Y	2016-03-07 12:36:03.530051	100	2016-03-07 12:36:03.530051	100	NeedtoDefineaPositiveBudget	You need to define a positive Budget here	\N	E	0
 C66EE5FAC58D4AC8840CBA20004316A6	0	0	Y	2013-02-01 09:39:39.120549	100	2013-02-01 09:39:39.120549	100	pdc_ScanNCCA	Scan NEXT, COMPLETE, CANCEL or Article.	\N	I	000CDBE191604F5A835A3EC3213719E8
 C6B53C6EC4A94F24ACBB8B3EEDF592B5	0	0	Y	2009-11-25 19:40:14.586507	0	2009-11-25 19:40:14.586507	0	PleaseAddTheProduct	Please add the product	\N	E	0
+C6BD7590BFCA4CAD8E0B1FF58058E66E	0	0	Y	2022-05-18 09:19:03.496674	100	2022-05-18 09:19:03.496674	100	mfa_ErrorNoUsername	You need to enter an username first.	\N	E	0
 C6DE79E703C743D7B0BF88E03EE2F742	0	0	Y	2009-11-25 19:40:14.59146	0	2009-11-25 19:40:14.59146	0	DocumentAssociated	Sales Order has been already completed for the document	\N	E	0
+C7003FF32ABD43C58E6ACCA5417A67AD	0	0	Y	2022-06-13 15:24:18.167162	100	2022-06-13 15:24:49.759925	100	mfa_pwResetFailureNoEmailTitle	No email connected to your account	\N	E	0
 C7089980939A4D01AA6A58D265792D99	0	0	Y	2013-09-19 15:11:45.481498	100	2013-09-19 15:11:45.481498	100	ils_inventorycreatedSucessfully	New Serialnumber (Internal Inventory Number) created sucessfully	\N	I	F2101ADEF06E45CAA2A50B714B738F61
 C73B0075242646C5ACC2D438B2D1B35C	0	0	Y	2018-05-07 04:03:10.393643	100	2018-05-07 04:03:10.393643	100	SubsIntervalDaylirate	Charge for the time:	\N	I	0
 C75F4E1BA95A409AB73ECF5A54A6614E	0	0	Y	2009-11-25 19:40:14.597653	0	2009-11-25 19:40:14.597653	0	20537	Every legal entity with accounting must have itself or an ancestor at least a calendar attached to it	\N	E	0
@@ -1892,6 +1927,7 @@ C7E1B342F1C646C98B02923E1D546218	0	0	Y	2013-10-15 12:55:52.412247	100	2013-10-15
 C7FA1BFBD6BE4872BEAF1B1C0C4D5D91	0	0	Y	2010-03-03 12:50:24.534556	0	2010-03-03 12:50:24.534556	0	20555	Price not found for current partner and product.	\N	E	0
 C81E2E9A9B754A65B30F245DF36BCE36	0	0	Y	2009-11-25 19:40:14.609474	0	2009-11-25 19:40:14.609474	0	OPSCommunityEdition	Community Edition	\N	I	0
 C851355E22D0437585BBECAC584F081F	0	0	Y	2010-11-24 13:27:27.552541	100	2010-11-24 13:27:27.552541	100	zssi_OnlyOneUserOnEmp	An Employee must have exactly one Contact  Person	\N	E	2C556DC110134849BF4BB2B657D5B181
+C8B16A8522B94B33B02AB4D628BDEC0B	0	0	Y	2022-06-13 15:28:26.378693	100	2022-06-13 15:28:26.378693	100	mfa_pwResetFailureErrorSendingEmailTitle	Error sending Email	\N	E	0
 C8D1848CEB604C71BE7EDB30D34D96EF	0	0	Y	2012-02-29 16:20:18.78376	100	2014-05-15 13:09:43.665681	100	zsmf_NoModificationsOnReadyPBOM	This Material Planning is Used for Production. It cannot be reassigned. 	\N	I	DFC8AA991ADC45BA9CAB2A088B7D4980
 C97DF7BB41B94EDB9FDFE30F4A6F9011	0	0	Y	2021-12-23 08:26:34.576018	100	2021-12-23 08:26:34.576018	100	pdc_continuetrx	Continue running Transaction	\N	I	000CDBE191604F5A835A3EC3213719E8
 C98731627EFB483AA0A115C7A03B8B69	0	0	Y	2012-09-26 14:06:22.601894	100	2012-09-26 14:06:22.601894	100	DoneWithErrors	Done with Errors	Severe error while processing occured	E	0
@@ -1919,6 +1955,7 @@ CFC198990E664C43BE31007EAA8B87A4	0	0	Y	2019-05-24 10:52:30.25732	100	2019-05-24 
 D0692F1D88A14444AC768A7C13785E03	0	0	Y	2009-11-25 19:40:14.633453	0	2009-11-25 19:40:14.633453	0	CR_RegInvalidUserPass	Invalid username/password.	\N	E	0
 D075E50F08114C1B991D192290CEED72	0	0	Y	2022-04-14 12:11:50.490771	100	2022-04-14 12:13:52.547336	100	zspm_CloseOtherWorkstepFirst	This line was created using the timefeedback app. You need to close/delete the other open workstep fist before closing/deleting this one.	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
 D0C3100272724DE8B9024BD21AC94B2F	0	0	Y	2009-11-25 19:40:14.639546	0	2009-11-25 19:40:14.639546	0	AD_ORG_CALENDAR_CHECK	It is mandatory to check the Allow Period Control flag for selecting a Calendar	\N	E	0
+D1180677528F4C31BB7F2101CC4425C5	0	0	Y	2023-05-12 09:27:07.76475	100	2023-05-12 09:27:07.76475	100	zsmf_rejection	Assembly rejected to:	\N	I	DFC8AA991ADC45BA9CAB2A088B7D4980
 D1970D2225AF42DF97ECFB5BD1116D0E	0	0	Y	2016-01-19 16:42:35.007469	100	2016-01-19 16:42:35.007469	100	standardPricelistIsAlreadySet	There is already a standard pricelist for this organization	\N	E	0
 D1A186C4950640769FFCBC54322664DA	0	0	Y	2013-05-02 11:15:36.247551	100	2021-07-22 11:36:20.815631	100	snr_serialknownbutnotstocked	Serialnumber not in stock.	\N	E	A4A01396DEC543E6831611C9D0126605
 D1E486D1D03F4CDA9320CC0804A0C7B0	0	0	Y	2020-06-05 16:53:15.308395	100	2020-06-05 16:53:15.308395	100	FirstOptionalERR	Es muss erst eine Angebotsposition zugeordnet werden, bevor eine Optionale Position erstellt wird.	\N	I	0
@@ -1933,6 +1970,7 @@ D4208AC7E8B348D08F0D621DB273F257	0	0	Y	2009-11-25 19:40:14.6515	0	2009-11-25 19:
 D42B451A8924406C86F50AF4B113347E	0	0	Y	2022-04-04 16:48:05.733861	100	2022-04-04 16:48:05.733861	100	ZSMP_ButtonReset	Reset	\N	I	0
 D44302EBE9AF4B5490171741B11A8125	0	0	Y	2019-12-14 14:20:05.393383	100	2019-12-14 14:20:05.393383	100	ProformaCreated	Proforma invoice created	\N	I	0
 D44EB28102A44DDAB880D6CB9804FCFD	0	0	Y	2012-08-12 09:10:40.471062	100	2012-08-12 09:10:40.471062	100	JSMultiselLower	Clear List	\N	I	0
+D458136BBC7C4DDFA44E1B79BB856857	0	0	Y	2022-06-13 15:25:53.925548	100	2022-06-14 16:01:44.077732	100	mfa_pwResetFailureNoEmailMessage	Contact your System Administrator to set an email-address for you and to reset your password.	\N	E	0
 D466644DF8AF4961855BF8B7AAF407EC	0	0	Y	2013-09-19 15:49:42.16658	100	2013-09-19 15:49:42.16658	100	ils_INVFillRestOfData	Fill in the rest of Data in the Form or Press Next Button	\N	I	F2101ADEF06E45CAA2A50B714B738F61
 D498CE11DCF949D69226E54E4E344C7F	0	0	Y	2013-05-14 11:11:30.688044	100	2013-05-14 11:11:30.688044	100	ils_serialadded	Serial Number added to Transaction	\N	I	F2101ADEF06E45CAA2A50B714B738F61
 D4FC2BE65402415AA9DCDA4AF3651E94	0	0	Y	2020-07-11 17:00:22.4857	100	2020-07-11 17:00:22.4857	100	ProductionplanCopydone	Productionplan Copy done.	\N	I	0
@@ -1955,6 +1993,7 @@ DAAEE2CA2F96419E8D457F9BA3DC1C5F	0	0	Y	2010-11-13 18:24:28.704687	100	2012-11-08
 DB1BDF0676B94E90BDB38B030EB80600	0	0	Y	2017-01-20 11:47:28.053778	100	2017-01-20 11:47:28.053778	100	zssm_ProductionMovementInDraftExists	There is a production material movement in draft. This has to be closed or deleted first	\N	E	9D31DE7CE403417AA30579195A455E02
 DC0A22652CDB456B85A5B58EFDE9FC04	0	0	Y	2009-11-25 19:40:14.681519	0	2009-11-25 19:40:14.681519	0	CR_ModuleIDInUse	Module Id already Registered.	\N	E	0
 DC799265A3BA4F738EBCF717ADE340DD	0	0	Y	2009-11-25 19:40:14.688728	0	2009-11-25 19:40:14.688728	0	OtherModuleVersionToInstall	module cannot be installed in the requested version because of dependencies problems, this version will be installed instead:	\N	I	0
+DC7B6E1FD1FC445291B947A743229F7E	0	0	Y	2022-05-17 11:19:56.617315	100	2022-07-05 17:01:44.819355	100	Mfa_changePassword	<p>Please enter your new password.<p><p>Every letter, digit and the follwoing special characters are allowed @specialcharacters@.<p><p>The password needs to be at least @minLength@ characters long	\N	I	0
 DD277127AFC74B3E9A0836C56AAD6205	0	0	Y	2013-01-31 10:41:25.018436	100	2013-01-31 10:49:04.885441	100	pdc_workstepstartedautomatically	Workstep started automatically on time feedback	\N	I	000CDBE191604F5A835A3EC3213719E8
 DD486C2E01F64B2F989DE923C43D41DB	0	0	Y	2009-11-25 19:40:14.6935	0	2009-11-25 19:40:14.6935	0	SavingModifiedRecord	You are trying to save a record that is not up to date because it has been modified by another user/process.\n<b>Your changes will be lost!</b>\nYou can revert your changes by reloading the current record from the database clicking on the <a class=LabelLink_noicon" href="#" onclick="document.frmMain.autosave.value='N'; submitCommandForm('DEFAULT'); return true;">reload button</a>."	\N	E	0
 DD98E897BE154085B3761820105EFE4E	0	0	Y	2013-09-19 15:13:16.361205	100	2013-09-19 15:13:16.361205	100	ils_INVScanInventoryNumber	Scan new Inventory Number	\N	I	F2101ADEF06E45CAA2A50B714B738F61
@@ -1964,6 +2003,7 @@ DEF14F59AF6341779337A0CA3DCCDB2D	0	0	Y	2014-05-11 14:00:57.752429	100	2014-05-11
 DF04EB7F607F403589B4E6B247A514E6	0	0	Y	2014-05-14 08:20:49.882954	100	2014-05-14 08:20:49.882954	100	zssm_workorderclosedautomatically	Workorder finished and cloed	\N	I	9D31DE7CE403417AA30579195A455E02
 DF0D37F75DDB4819A41FF8B4898C5712	0	0	Y	2012-10-16 15:00:24.518922	100	2012-10-16 15:00:24.518922	100	zssm_workstep_v_copied	Workstep copied	\N	I	9D31DE7CE403417AA30579195A455E02
 DF6B131024F544EF8654584B84925022	0	0	Y	2015-11-18 14:03:51.97479	100	2015-11-18 14:03:51.97479	100	OrderNeedsFreight	This order needs Freight  	\N	I	0
+DFE6F7C044254B6DA819094E69D1307D	0	0	Y	2022-07-04 16:49:58.062163	100	2022-07-04 16:49:58.062163	100	passwordRequirementsIllegalLength	The minimum length of a password must be between 1 and 100 characters.	\N	E	0
 E05C909058E34E4BBF9A08BE13B7409C	0	0	Y	2012-09-26 14:24:06.405063	100	2012-09-26 14:25:54.499337	100	zsse_SearchKeyOrNameTwice	'Search-Key' or 'Name' alredy exists. Duplicate entries not allowed.	\N	E	65B8CE870F0545B78165CFB19AA3CBD5
 E0805274706B4A8F88A4611650C2E495	0	0	Y	2013-09-19 15:12:24.783872	100	2013-09-19 15:12:24.783872	100	ils_INVScanSourcePackage	Scan Source Package Identifier	\N	I	F2101ADEF06E45CAA2A50B714B738F61
 E0839E719B1F486884281E70DF6E6F09	0	0	Y	2013-05-02 11:12:24.738959	100	2015-06-02 19:58:30.493068	100	snr_qtymustbe1inserial	Bei Seriennummernerfassung muß die Menge immer 1 sein. Wenn Sie Kombi-Barcode nutzen, darf die Menge auch >1 sein.	\N	E	A4A01396DEC543E6831611C9D0126605
@@ -1974,6 +2014,7 @@ E23C3A2C5D77441AA07BA03D67AF5AF6	0	0	Y	2013-06-11 13:13:30.060065	100	2013-06-11
 E2670BE243274B3CBAF627D17B0696D9	0	0	Y	2009-11-25 19:40:14.711479	0	2009-11-25 19:40:14.711479	0	OtherPostingProcessActive	This record is being posted by another process	\N	W	0
 E29ABE9B73B147B0A47495DEC5717F17	0	0	Y	2021-07-22 10:43:02.689421	100	2021-07-22 10:43:02.689421	100	pdc_materialrelocator	Dest. Locator 	\N	I	000CDBE191604F5A835A3EC3213719E8
 E2B9D6E7F6694ABB9845F412E31FB48C	0	0	Y	2016-12-22 10:56:33.838141	100	2016-12-22 10:56:33.838141	100	noNegativeQtyInTransaction	Negative quantities are not allowed in material transactions.	\N	E	0
+E2D824B784624CEF8D0548DD3367B2F9	0	0	Y	2022-06-13 15:29:15.122462	100	2022-06-13 15:29:15.122462	100	mfa_pwResetFailureErrorSendingEmailMessage	Please contact your system administrator.	\N	E	0
 E33FD6FD0BCC4F13959C2A4AB727DA38	0	0	Y	2015-04-08 09:19:57.881461	100	2015-04-08 09:19:57.881461	100	shedinvoicedateismandatory	The scheduled invoice dateis mandatory for this doctype	\N	I	0
 E354F6D8B82741B8878CA029F67E6875	0	0	Y	2022-04-14 12:09:55.016597	100	2022-04-25 11:41:39.734106	100	zspm_ChangeOfInformationForbiddenTimefeedbackapp	This line was created using the timefeedback app. Contact and project may not be changed.	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
 E3678269099943C6B6E2920DA9FCE40C	0	0	Y	2009-11-25 19:40:14.717543	0	2009-11-25 19:40:14.717543	0	NameUsernameLengthCut	Name and Username have been cut to fit field length.	\N	I	0
@@ -1993,6 +2034,7 @@ E6682515E1DE4DC99FF81AE882F28F15	0	0	Y	2020-02-13 15:49:44.603479	100	2020-02-13
 E6772CDD604E4128A1A32F910A79CA95	0	0	Y	2021-12-22 15:11:44.210128	100	2021-12-22 15:12:09.726568	100	underStockBNR	No Inventory BNR (Stock is:	\N	E	0
 E68A5CC862DE4F409392D8CEB355F527	0	0	Y	2013-04-22 15:06:47.205159	100	2013-04-22 15:06:47.205159	100	ils_selectshipper	You have to select a shipping company	\N	E	F2101ADEF06E45CAA2A50B714B738F61
 E70D4CE1033D497DA672F3437856E51A	0	0	Y	2014-02-09 15:15:59.283576	100	2014-02-09 15:15:59.283576	100	dateoutofrange	The entered date is out of range (invalid Date)	\N	E	0
+E743623511AC411AA028457764AFAD8C	0	0	Y	2022-05-10 09:59:08.470651	100	2022-05-10 09:59:08.470651	100	mfa_emailVerificationSuccess	The email-address was successfully verified.	\N	S	0
 E7459767429B49538EA4383794F474CF	0	0	Y	2013-01-22 17:11:17.287365	100	2013-01-22 17:11:17.287365	100	zspm_NoTimeFeedbackOnProjecttask_outsourcing	zspm_NoTimeFeedbackOnProjecttask_outsourcing	c_projecttask.outsourcing='Y'	E	19A7FD2B075F48B2B52ADBEDC581770C
 E7695A84B58B41B5915DF1B73D3E0A66	0	0	Y	2009-11-25 19:40:14.759587	0	2009-11-25 19:40:14.759587	0	ReportWithoutNodes	No nodes were found for this Accounting Report. Please review the Balance sheet and P&L structure setup for this report	\N	E	0
 E784A8B68DF94F2F8A9430D1F3D968B5	0	0	Y	2015-12-03 12:16:51.784851	100	2015-12-03 12:16:51.784851	100	directpurchaseevenue	You are booking revenue. If you wand to book expense, you need to apply minus sign to the amount	\N	W	0
@@ -2006,11 +2048,14 @@ EA8C3BCA062B4BB687AE2A2AAE4E32EE	0	0	Y	2009-11-25 19:40:14.777558	0	2009-11-25 1
 EAA9DDDC51A746A7AC08AD6FB1953607	0	0	Y	2020-11-25 02:36:24.749573	100	2020-11-25 02:36:24.749573	100	pdc_Consumption	Material consumption	\N	I	000CDBE191604F5A835A3EC3213719E8
 EAB990FDF1624D8D85C805A8B420107E	0	0	Y	2019-05-24 11:11:04.745761	100	2019-05-24 11:11:04.745761	100	SC_acctschema	Choose the accounting scheme	\N	I	80CC706C9EA546B08B370401B89B384E
 EB21629341AC4F7CB3F7EE16BCA24E4D	0	0	Y	2010-03-03 12:50:24.538067	0	2010-03-03 12:50:24.538067	0	MultipleDevelopmentTemplates	template is in development. Only one template can be in development at the same time. Current template has been set not in developemnt.	\N	E	0
+EBB712E931F44CBA962752F406C52C46	0	0	Y	2022-12-09 11:15:49.811025	100	2022-12-09 11:15:49.811025	100	ReportDebtPaymentIllegalArgumentsIgnored	The arguments 'Outstanding' and 'Paid' cannot be used with the 'Reporting Date' and are ignored.	\N	W	0
 EBC3768882634C2488388FD835116317	0	0	Y	2013-01-22 16:33:17.94277	100	2013-01-22 16:33:17.94277	100	zssm_NoTimeFeedbackOnPRO_iscomplete	Time feedback on production order not valid. The order ist assigned as scompleted.	zssm_workstep_v.iscomplete='Y'	E	9D31DE7CE403417AA30579195A455E02
 EBFD0C1D5E4C48C3879A266930ECA26E	0	0	Y	2021-08-06 10:36:11.174028	100	2021-08-06 10:36:11.174028	100	pdc_InventoryNewline	New Product added	\N	I	000CDBE191604F5A835A3EC3213719E8
 EC42050E21C943FCACAC5958EFD99ECC	0	0	Y	2019-05-24 10:46:35.62219	100	2019-05-24 10:46:35.62219	100	SC_email	Enter the Organisation Email	\N	I	80CC706C9EA546B08B370401B89B384E
+EC5917F6D9894E1FA329AB4129EFE94C	0	0	Y	2022-06-22 13:41:33.700993	100	2022-07-05 17:01:19.98217	100	PasswordValidationFailed	The password does not meet the required guidelines. Allowed characters are all letters, digits and the follwoing special characters @specialcharacters@.<br>The password needs to be at least @minLength@ characters long	\N	E	0
 EC77BB542DF5482E953A6EDC7E0DCE33	0	0	Y	2015-05-20 13:34:44.991649	100	2015-05-20 13:34:44.991649	100	zspm_nochangeonclosedproject	You cannot change a closed Project or Production Order	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
 EC9DFE1756224678B6F09083B3918922	0	0	Y	2013-09-20 09:26:19.758	100	2013-09-20 09:26:19.758	100	pdc_AddedCode2Employee	The scanned code was assigned to the selected employee	\N	I	000CDBE191604F5A835A3EC3213719E8
+ECB4573CEA3443EB98114878B55F74AD	0	0	Y	2022-07-05 15:19:04.842488	100	2022-07-05 16:59:44.639307	100	PasswordValidationFailedSpecial	,<br>contain at least one special character	\N	E	0
 ED0C97E12EFD4B7CBB3861A95E6EEAE0	0	0	Y	2012-11-08 10:22:46.037564	100	2012-11-08 10:22:46.037564	100	zspm_relation_existent	purposed concatination already exists within the production task dependencies	\N	E	19A7FD2B075F48B2B52ADBEDC581770C
 ED713D03AADE4B5882FB52B2FC1A5F30	0	0	Y	2013-01-28 10:22:12.050768	100	2013-01-28 10:22:12.050768	100	pdc_ScanSerialorBatch	Scan a Serial or Batch No for one of the Products shown in the List.	\N	I	000CDBE191604F5A835A3EC3213719E8
 ED94DA7D967E401B93DDFFE86C9715A9	0	0	Y	2009-11-25 19:40:14.783574	0	2009-11-25 19:40:14.783574	0	NUMBER_OF_CONCURRENT_USERS_REACHED_TITLE	Maximum number of concurrent users reached	\N	E	0
@@ -2024,6 +2069,7 @@ EF789ED433D84B009527CA49A7D75F12	0	0	Y	2013-01-22 16:23:56.142261	100	2013-01-22
 EF8E67F42D6B4D2B9E86AE1711788D16	0	0	Y	2013-10-29 10:05:43.634928	100	2013-10-29 10:05:43.634928	100	CannotChangeStockedProduct	This Product has stock Transaction. It must be a Stocked Product , with a locator. It cannot be a service Product.	\N	E	0
 EFD09AE0AA404AA9AF5362FCB064C3CC	0	0	Y	2017-10-16 16:31:14.023203	100	2017-10-16 16:31:14.023203	100	zssm_simulationnotpossiblelocatorundefined	Action not Possible: No Locators defined in Workstep	\N	E	9D31DE7CE403417AA30579195A455E02
 F016D21A8D4E4606AD4707DB8D5C995C	0	0	Y	2021-09-27 15:30:52.240353	100	2021-09-27 15:30:57.985438	100	RunningInventory	Transaction not possible. Physical Inventory Count running.	\N	E	0
+F08A64C7367E481EB615F0199BEF1732	0	0	Y	2022-05-10 09:55:05.397282	100	2022-06-14 15:58:28.79843	100	mfa_ErrorSendOnlyOnePerMinute	Please wait 60 seconds before sending another email.	\N	E	0
 F0BE4D6E8ED64CD58DBA172C35D92B6C	0	0	Y	2012-11-22 09:57:52.579408	100	2012-11-22 09:57:52.579408	100	zssm_MaterialReturnToStockSucessfully	Material returned to stock sucessfully. Stock transaction completed. To view stock transaction, follow this link:	\N	I	9D31DE7CE403417AA30579195A455E02
 F1481A5123264C3A851139606D71AF22	0	0	Y	2012-11-15 10:32:59.721813	100	2012-11-15 10:33:13.592804	100	zssm_MaterialReturnSerialRegistrationNeccessary	Material return sucessfull. Document not completed. Serial Number Registration necessary. Please follow the link to register Serial numbers.	\N	I	9D31DE7CE403417AA30579195A455E02
 F15CAF76F1334C36B70D83F8D43BBF94	0	0	Y	2012-11-07 14:21:26.937513	100	2012-12-17 13:56:32.833047	100	zssm_relation_existent	Purposed concatination already exists within the production task dependencies	\N	E	9D31DE7CE403417AA30579195A455E02
@@ -2077,6 +2123,7 @@ FD566AFF54594519858BD944F90831E8	0	0	Y	2013-01-28 10:17:08.033509	100	2013-05-07
 FD5CDA03260B436D832C49C33AD3BB66	0	0	Y	2009-11-25 19:40:14.867593	0	2009-11-25 19:40:14.867593	0	OPS_MODULE_EXPIRED	The license for the following installed modules has expired. Only System Administrator role can log into the application to renew the license or uninstall the modules.	\N	E	0
 FE74EA5C061C418C8A807FB4AF423C1D	0	0	Y	2009-11-25 19:40:14.879681	0	2009-11-25 19:40:14.879681	0	Total	Total	\N	I	0
 FE88E1D0FB204477983A77FE42C1297A	0	0	Y	2010-03-03 12:50:24.546393	0	2010-03-03 12:50:24.546393	0	IDENTIFICATION_FAILURE_TITLE	Identification failure.Try again.	\N	E	0
+FE9D9DB59D8F4AA4921BFA382C2457FA	0	0	Y	2022-07-05 15:20:24.607348	100	2022-07-05 17:00:14.665618	100	PasswordValidationFailedUppercase	,<br>contain at least one uppercase letter	\N	E	0
 FEC6A8413D6C4420A011058ABFA9F137	0	0	Y	2021-01-24 16:55:11.792259	100	2021-01-24 16:55:11.792259	100	pdc_ScanProductIC	Scan Product to proceed	\N	I	0
 FECDA686D1BC4D70B9B1933E58EE7758	0	0	Y	2010-05-31 19:00:56.025965	0	2010-05-31 19:00:56.025965	0	zspr_NoOpenPeriod	Not a single open Period found	Please check Calendar Setup/OpenPeriod Control	E	F5307E2B96484292914AE8DAE32D9C74
 FEF1D898118C49CCA950E27C3BEAF876	0	0	Y	2021-08-20 11:34:03.215495	100	2021-08-20 11:34:03.215495	100	pdc_Timefeedback	Time feedback	\N	I	000CDBE191604F5A835A3EC3213719E8

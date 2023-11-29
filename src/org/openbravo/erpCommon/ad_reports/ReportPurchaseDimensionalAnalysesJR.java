@@ -234,7 +234,7 @@ public class ReportPurchaseDimensionalAnalysesJR extends HttpSecureAppServlet {
       xmlDocument.setParameter("theme", vars.getTheme());
       NavigationBar nav = new NavigationBar(this, vars.getLanguage(),
           "ReportPurchaseDimensionalAnalysesFilterJR.html", classInfo.id, classInfo.type,
-          strReplaceWith, tabs.breadcrumb());
+          strReplaceWith, tabs.breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(),
           "ReportPurchaseDimensionalAnalysesFilterJR.html", strReplaceWith);

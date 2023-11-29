@@ -14,6 +14,7 @@ package org.openbravo.base.secureApp;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.mail.Session;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -25,11 +26,13 @@ import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
 import org.openbravo.erpCommon.security.SessionLoginData;
 import org.openbravo.erpCommon.utility.Utility;
-import org.openbravo.model.ad.module.Module;
+import org.openbravo.erpCommon.utility.poc.EmailManager;
 import org.openbravo.model.ad.system.Client;
 import org.openbravo.model.ad.system.SystemInformation;
+import org.openbravo.utils.FormatUtilities;
 import org.openbravo.xmlEngine.XmlDocument;
 import org.openz.util.FormatUtils;
+import org.openz.util.UtilsData;
 
 public class LoginHandler extends HttpBaseServlet {
   private static final long serialVersionUID = 1L;
@@ -50,23 +53,100 @@ public class LoginHandler extends HttpBaseServlet {
     }
     final VariablesSecureApp vars = new VariablesSecureApp(req);
 
+    if(vars.commandIn("LINKTORESET")) {
+        res.sendRedirect(res.encodeRedirectURL(strDireccion + "/security/Login_ResetPassword.html"));
+        return;
+    } else if(vars.commandIn("BACKTOLOGIN")) {
+        res.sendRedirect(res.encodeRedirectURL(strDireccion + "/security/Login_FS.html"));
+        return;
+    } else if(vars.commandIn("RESET")) {
+        final String strUser = vars.getStringParameter("user");
+        final String strEmail = vars.getStringParameter("email");
+        
+        if(!strUser.isEmpty()) {
+            final String adUserId = SeguridadData.getuserID(this, strUser);
+            final String userEmail = SeguridadData.getUserEmail(this, adUserId);
+            final String adClientId = SeguridadData.getUserClient(this, adUserId);
+            final String adOrgId = SeguridadData.getUserOrg(this, adUserId);
+            final String url = vars.getSessionValue("#ACTUALURLCONTEXT#");
+
+            if(!adUserId.equals("-1") && userEmail.isEmpty()) {
+                // reset not possible without email -> contact administrator
+                String language = SeguridadData.getUserDefaultLanguage(this, adUserId);
+                String errorMessage = Utility.messageBD(this, "mfa_pwResetFailureNoEmailMessage",language);
+                String errorTitle = Utility.messageBD(this, "mfa_pwResetFailureNoEmailTitle",language);
+                goToRetry(res, vars, errorMessage, errorTitle, "Error", "../security/Login_FS.html");
+                return;
+            } else {
+                if(!adUserId.equals("-1")
+                        && MfaEmailCodeData.isSendingAllowed(this, adUserId).equals("t")
+                        && SeguridadData.checkBanSecure(myPool, adUserId).equals("OK")) {
+                    if(strEmail.equalsIgnoreCase(userEmail)) {
+                        EmailManager em = new EmailManager();
+                        Session sess;
+
+                        String email_to = strEmail;
+                        String email_from = MfaEmailCodeData.getSenderEmail(this, adClientId);
+                        String email_body = "";
+                        String email_subject = "";
+                        String oneTimePassword = LoginUtils.createOneTimePassword();
+
+                        email_subject = MfaSendOneTimePasswordData.getEmailSubject(this, adUserId);
+                        email_body = MfaSendOneTimePasswordData.getEmailBodyPWReset(this, adUserId);
+                        email_body = email_body.replaceAll("@password@", oneTimePassword).replaceAll("@url@", url);
+
+                        try {
+                            sess = em.newMailSession(this, adClientId, adOrgId);
+                            em.sendSimpleEmail(sess, email_from, email_to, "", email_subject, email_body, "");
+                        }catch (Exception e) {
+                            String language = SeguridadData.getUserDefaultLanguage(this, adUserId);
+                            String errorMessage = Utility.messageBD(this, "mfa_pwResetFailureErrorSendingEmailMessage",language);
+                            String errorTitle = Utility.messageBD(this, "mfa_pwResetFailureErrorSendingEmailTitle",language);
+                            goToRetry(res, vars, errorMessage, errorTitle, "Error", "../security/Login_ResetPassword.html");
+                            return;
+                        }
+
+                        // save pw in otp culumn, normal password is still usable
+                        MfaSendOneTimePasswordData.setOneTimePassword(this, FormatUtilities.sha1Base64(oneTimePassword), adUserId, adUserId);
+                    } else {
+                        SeguridadData.recordFailedLogin(myPool, adUserId);
+                    }
+                }
+            }
+        }
+        
+        res.sendRedirect(res.encodeRedirectURL(strDireccion + "/security/Login_ResetPasswordConfirm.html"));
+        return;
+    }
+
     // Empty session
     req.getSession(true).setAttribute("#Authenticated_user", null);
     // Permanent Login
     if (!vars.getStringParameter("permsession").equals("")) {
-    	String stpermsession=vars.getStringParameter("permsession");
-    	String userid=SeguridadData.getPermsessinUser(myPool, stpermsession);
+        boolean adUserSettingsPermsession = true;
+        String stpermsession=vars.getStringParameter("permsession");
+        String userid=SeguridadData.getPermsessinUser(myPool, stpermsession); // legacy support for old non hashed permsession cookies
+        if(FormatUtils.isNix(userid)) {
+            userid=SeguridadData.getPermsessinUser(myPool, FormatUtilities.sha1Base64(stpermsession));
+        }
+        if(FormatUtils.isNix(userid)) { // adUser Settings permsession overrides keep logged in checkbox/cookie (MFAPermsession)
+            userid = SeguridadData.getMFAPermsessinUser(this, FormatUtilities.sha1Base64(stpermsession));
+            adUserSettingsPermsession = false;
+        }
     	// Kein Eintrag mehr: Cook Löschen
-    	if (FormatUtils.isNix(userid) || SeguridadData.checkBanSecure(myPool, userid).equals("BANNED")) {
+        if (FormatUtils.isNix(userid)
+                || (adUserSettingsPermsession && SeguridadData.getUserPermsessionCheck(this, userid).equals("N")) // permsession cookie AND not allowed
+                || (!adUserSettingsPermsession && SeguridadData.isKeepLoggedInActivatedForUser(this, userid).equals("N")) // keep me logged in cookie AND not allowed
+                || SeguridadData.checkBanSecure(myPool, userid).equals("BANNED")) {
     		Cookie[] cooks=req.getCookies();
     	    if (cooks!=null) {
-    		    for (int i=0;i<cooks.length;i++) {
-    		    	if (cooks[i].getName().equals("permsession")) {
-    		    		cooks[i].setMaxAge(0);
-    		    		cooks[i].setPath(req.getContextPath());
-    		            res.addCookie(cooks[i]);
-    		    	}
-    		    }
+               for (int i=0;i<cooks.length;i++) {
+                   if (cooks[i].getName().equals("permsession")) {
+                       cooks[i].setMaxAge(0);
+                       cooks[i].setPath(req.getContextPath());
+                       res.addCookie(cooks[i]);
+                   }
+               }
     	    }
     	    res.sendRedirect(strDireccion + "/security/Login_F1.html");
     	} else {
@@ -82,6 +162,7 @@ public class LoginHandler extends HttpBaseServlet {
 	    } else {
 	      final String strUser = vars.getRequiredStringParameter("user");
 	      final String strPass = vars.getStringParameter("password");
+	      final String strKeepLoggedIn = vars.getStringParameter("keepLoggedIn");
 	      final String strUserAuth = LoginUtils.getValidUserId(myPool, strUser, strPass);
 	      final String userNotBanned = SeguridadData.checkBanSecure(myPool, strUserAuth);
 	      String failureMessage;
@@ -91,15 +172,29 @@ public class LoginHandler extends HttpBaseServlet {
 	        req.getSession(true).setAttribute("#ScreenX", vars.getStringParameter("ScreenX"));
 	        String t=vars.getStringParameter("ScreenX");
 	        String b=vars.getStringParameter("permsession");
-	        // If Prmsession: Set Cokkie
-	        if (! FormatUtils.isNix(SeguridadData.getUserPermsessin(myPool, strUserAuth))) {
-	        	String prmsession=SeguridadData.getUserPermsessin(myPool, strUserAuth);
-	        	Cookie kk=new Cookie("permsession", prmsession);
-	        	kk.setMaxAge(2147483647); //permanent
-	        	String strcon=req.getContextPath();
-	        	kk.setPath(strcon);
-	        	res.addCookie(kk);
-	        }
+            // If Prmsession: Set Cookie
+            // permsession in adUser Settings -> permanent
+	        String prmsession_check = SeguridadData.getUserPermsessionCheck(this, strUserAuth);
+            if (prmsession_check.equals("Y")
+                    || (strKeepLoggedIn.equals("on") && SeguridadData.isKeepLoggedInActivatedForUser(this, strUserAuth).equals("Y"))) {
+                String prmsession = UtilsData.getUUID(this);
+                int cookieMaxAge = 2147483647; //permanent
+                if (prmsession_check.equals("Y")) {
+                    SeguridadData.setUserPermsession(this, FormatUtilities.sha1Base64(prmsession), strUserAuth, strUserAuth);
+                } else {
+                    String prmsession_id = UtilsData.getUUID(this);
+                    final String userClient = SeguridadData.getUserClient(this, strUserAuth);
+                    final String userOrg = SeguridadData.getUserOrg(this, strUserAuth);
+                    // +12 hours so the cookie does not expire during working day
+                    cookieMaxAge = (Math.round(Float.parseFloat(MfaEmailCodeData.getKeepMeLoggedInCookieLifetime(this, userOrg))) * 24 + 12) * 60 * 60; //to seconds
+                    SeguridadData.setMFAPermsession(this, prmsession_id, String.valueOf(cookieMaxAge), userClient, userOrg, strUserAuth, strUserAuth, strUserAuth, FormatUtilities.sha1Base64(prmsession));
+                } 
+                Cookie kk=new Cookie("permsession", prmsession);
+                kk.setMaxAge(cookieMaxAge);
+                String strcon=req.getContextPath();
+                kk.setPath(strcon);
+                res.addCookie(kk);
+            }
 	        checkLicenseAndGo(res, vars, strUserAuth);
 	      } else {
 	        Client systemClient = OBDal.getInstance().get(Client.class, "0");

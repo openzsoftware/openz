@@ -202,9 +202,9 @@ BEGIN
         -- select ad_org_id into v_orgspec from ad_org where value=v_cur2.org_key;
          v_orgspec:=null;
         insert into m_product_org (m_product_org_id,AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY,m_product_ID,m_locator_id,mrp_planningmethod_id,
-                               capacity,stockmin,isvendorreceiptlocator,qtyoptimal)
+                               capacity,stockmin,isvendorreceiptlocator,qtyoptimal,isproduction)
                values(get_uuid(),ad_client,coalesce(v_orgspec,v_org),now(),creator,now(),creator,v_productid,v_locator,v_plningmethod,
-                      to_number(v_cur2.capacity),to_number(v_cur2.stockmin),v_cur2.isvendorreceiptlocator,to_number(v_cur2.qtyoptimal));
+                      to_number(v_cur2.capacity),to_number(v_cur2.stockmin),coalesce(v_cur2.isvendorreceiptlocator,'N'),to_number(v_cur2.qtyoptimal),coalesce(v_cur2.isproduction,'N'));
     END LOOP;
    
 END;

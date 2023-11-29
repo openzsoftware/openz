@@ -757,13 +757,33 @@ BEGIN
             AD_CLIENT_ID, AD_ORG_ID, ISACTIVE, CREATED, CREATEDBY, UPDATED, UPDATEDBY,
             M_PRODUCT_ID, QTY,  PLANNEDDATE, PLANNEDORDERDATE, INOUTTRXTYPE,neededqty,
             C_ORDERLINE_ID, C_PROJECTTASK_ID, MRP_SALESFORECASTLINE_ID, M_REQUISITIONLINE_ID, ISCOMPLETED, C_BPARTNER_ID,m_warehouse_id,m_attributesetinstance_id,
-            description,vendorproductno)
+            description,vendorproductno,
+            leadtime,
+            demanddate)
           VALUES (
             p_Line_ID,p_runID,
             v_Client_ID, p_Org_ID, 'Y', TO_DATE(NOW()), p_User_ID, TO_DATE(NOW()), p_User_ID,
             p_Product_ID, p_Qty,  p_PlannedDate, v_plannedorderdate, p_InOutTrxType,0,
             p_OrderLine_ID, p_projecttask_ID, p_SalesForecastLine_ID, p_RequisitionLine_ID, 'N', p_vendor_Id,p_warehouse_id,p_attributesetinstance_id,
-            v_descr,v_vpvnr 
+            v_descr,v_vpvnr,
+            case when p_InOutTrxType = 'PP' then
+              (select deliverytime_promised from m_product_po po where
+                      po.m_product_id = p_Product_ID
+                  and po.isactive = 'Y'
+                  and po.iscurrentvendor = 'Y'
+                  and po.ad_org_id in ('0', p_Org_ID)
+                  order by po.qualityrating desc nulls last, po.updated limit 1
+              )
+            else null end,
+            case when p_InOutTrxType = 'PP' then
+              (select planneddate from mrp_inoutplan_v io where
+                      io.m_product_id = p_Product_ID
+                  and io.isactive = 'Y'
+                  and io.ad_org_id in ('0', p_Org_ID)
+                  and io.estimated_stock_qty < 0
+                  order by planneddate asc limit 1
+              )
+            else null end
           );
           --raise notice '%',p_runID||'AIIIIIIIIII'||p_Line_ID;
     end if;
@@ -819,6 +839,7 @@ $body$
 
   v_M_Warehouse_ID VARCHAR(32); --OBTG:VARCHAR2--
   v_Description character varying; --OBTG:nvarchar2--
+  v_Description2 character varying; 
   v_DateDoc TIMESTAMP;
   v_PriceList NUMERIC;
   v_PriceActual NUMERIC;
@@ -892,7 +913,7 @@ $body$
             delete from MRP_RUN_PURCHASELINE where MRP_RUN_PURCHASE_ID = v_Record_ID and INOUTTRXTYPE = 'PP' and  isapproved='N';
     end if;       
     SELECT COALESCE(TO_CHAR(DESCRIPTION), ' '), DateDoc, AD_Org_ID
-      INTO v_Description, v_DateDoc, v_Org_ID
+      INTO v_Description2, v_DateDoc, v_Org_ID
      FROM MRP_RUN_PURCHASE
      WHERE MRP_RUN_PURCHASE_ID = v_Record_ID;
     -- You need to have vendor information in order to purchase
@@ -976,7 +997,7 @@ $body$
          (v_COrder_ID, v_Client_ID, v_Org_ID,'Y',
          TO_DATE(NOW()), v_User_ID, TO_DATE(NOW()), v_User_ID,
          'N', v_DocumentNo,  'DR', 'CO','N',
-          v_CDocTypeID, v_CDocTypeID, v_Description,
+          v_CDocTypeID, v_CDocTypeID, v_Description2,
           v_DateDoc,v_DateDoc, Cur_workproposal.C_BPartner_ID,v_BillTo_ID,
           v_BPartner_Location_ID, Cur_workproposal.C_Currency_ID, Cur_workproposal.paymentrule, Cur_workproposal.C_PAYMENTTERM_ID,
           'D', 'A', 'I',COALESCE(Cur_workproposal.DeliveryViaRule,'D'),
@@ -1002,7 +1023,7 @@ $body$
         AND IsActive= 'Y' and iscurrentvendor='Y';
       IF (v_count > 0) THEN
         SELECT PriceList, Pricepo as PriceStd,
-               M_Get_Offers_Price(v_DateDoc,Cur_workproposal.C_BPartner_ID,Cur_workproposal.M_Product_ID,coalesce(Cur_workproposal.quantityorder,Cur_workproposal.QTY), Cur_workproposal.PO_PRICELIST_ID,'N',null,'N',null,v_2nduom,Cur_workproposal.m_product_po_id, Cur_workproposal.m_attributesetinstance_id),
+               M_Get_Offers_Price(v_DateDoc,Cur_workproposal.C_BPartner_ID,Cur_workproposal.M_Product_ID,coalesce(Cur_workproposal.quantityorder,Cur_workproposal.QTY), Cur_workproposal.PO_PRICELIST_ID,'N',null,'N',null,v_2nduom,Cur_workproposal.m_product_po_id, Cur_workproposal.m_attributesetinstance_id,v_Org_ID),
                Pricepo as PriceLimit,
                qtystd,c_uom_id,vendorproductno, ismultipleofminimumqty, order_min -- qtytype
           INTO v_PriceList, v_PriceStd, v_PriceActual, v_PriceLimit,v_stdqty,v_orderuom ,v_vendorpnumber, v_ismultipleofminimumqty, v_order_min -- v_qtytype
@@ -1168,6 +1189,46 @@ END;
 $body$
 LANGUAGE 'plpgsql'
 COST 100;
+
+
+
+select zsse_dropfunction('mrp_getpurchseleadtime');  
+CREATE or replace FUNCTION mrp_getpurchseleadtime(p_product_id varchar,p_quickest varchar)  RETURNS numeric
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+
+
+*****************************************************/
+DECLARE
+  v_leadtime numeric;
+BEGIN
+    if p_quickest='N' then
+        -- select the Best vendor
+        SELECT po.deliverytime_promised
+                INTO v_leadtime
+                FROM M_PRODUCT_PO po
+                WHERE po.m_product_id=p_product_id and PO.iscurrentvendor='Y' 
+                ORDER BY COALESCE(po.qualityrating,0) desc  LIMIT 1;
+    else
+         SELECT po.deliverytime_promised
+                INTO v_leadtime
+                FROM M_PRODUCT_PO po
+                WHERE po.m_product_id=p_product_id and PO.iscurrentvendor='Y' 
+                ORDER BY COALESCE(po.deliverytime_promised,0)  LIMIT 1;
+    end if;
+    return v_leadtime;
+END ; $_$ LANGUAGE 'plpgsql';
+
+
+
+
 
 select zsse_dropfunction('mrp_getpo_qtystd');
 CREATE OR REPLACE FUNCTION mrp_getpo_qtystd (
@@ -1360,7 +1421,7 @@ BEGIN
           and pr.projectstatus='OR' 
           and p.iscomplete='N' and p.istaskcancelled='N' 
           and (bom.quantity-bom.qtyreceived)>0
-          and case when pr.projectcategory='PRO' then p.assembly='Y' else 1=1 end 
+          and bom.isreturnafteruse='N' 
           and trunc(coalesce(coalesce(case when pr.projectcategory='PRO' then p.startdate else bom.date_plan end,p.startdate),now()))<=p_date 
           and case when pr.projectcategory='PRO' then bom.receiving_locator else bom.m_locator_id end in (select m_locator_id from m_locator where m_warehouse_id =p_warehouse_id);
   return coalesce(v_currstock,0)+coalesce(v_purchase,0)-coalesce(v_sales,0)-coalesce(v_consumption,0)+coalesce(v_production,0);
@@ -1461,7 +1522,7 @@ select trunc(coalesce(coalesce(case when pr.projectcategory='PRO' then p.startda
         and pr.projectstatus='OR' 
         and p.iscomplete='N' and p.istaskcancelled='N' 
         and (bom.quantity-bom.qtyreceived)>0
-        and case when pr.projectcategory='PRO' then p.assembly='Y' else 1=1 end 
+        and bom.isreturnafteruse='N'
         --and w.m_warehouse_id in (select m_warehouse_id from m_warehouse where isactive='Y' and isblocked='N')
 ;
 
@@ -1497,6 +1558,7 @@ select
         b.m_product_id||coalesce(b.m_warehouse_id,'') AS zssi_onhanqty_overview_id,
         p.m_product_category_id,
         p.c_uom_id,
+        p.ispurchased,
         p.production,   ol.isapproved,ol.desireddeliverydate,b.m_attributesetinstance_id
 from 
         mrp_inoutplanbase b left join c_orderline ol on ol.c_orderline_id=b.c_orderline_id, 
@@ -1524,7 +1586,9 @@ select zsse_DropView ('mrp_criticalitems_v');
 create or replace view mrp_criticalitems_v as
 select 
         *,mrp_inoutplan_v_id as mrp_criticalitems_v_id,
-        mrp_getnextincomingDate(mrp_inoutplan_v.m_product_id,mrp_inoutplan_v.planneddate,mrp_inoutplan_v.estimated_stock_qty,mrp_inoutplan_v.m_attributesetinstance_id) as nextincomingdate
+        mrp_getnextincomingDate(mrp_inoutplan_v.m_product_id,mrp_inoutplan_v.planneddate,mrp_inoutplan_v.estimated_stock_qty,mrp_inoutplan_v.m_attributesetinstance_id) as nextincomingdate,
+        mrp_getpurchseleadtime(mrp_inoutplan_v.m_product_id,'N') as stdleadtime,
+        mrp_getpurchseleadtime(mrp_inoutplan_v.m_product_id,'Y') as quickestleadtime
 from 
         mrp_inoutplan_v
 where

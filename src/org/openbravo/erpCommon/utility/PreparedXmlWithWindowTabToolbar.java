@@ -50,7 +50,7 @@ public class PreparedXmlWithWindowTabToolbar   {
      xmlDocument.setParameter("theme", vars.getTheme());
      // filename-example: ReportSalesDimensionalAnalyzeJRFilter.html
      NavigationBar nav = new NavigationBar(conn, vars.getLanguage(),filename, classinfo.id, classinfo.type,
-         replacewith, tabs.breadcrumb());
+         replacewith, tabs.breadcrumb(), vars);
      xmlDocument.setParameter("navigationBar", nav.toString());
      LeftTabsBar lBar = new LeftTabsBar(conn, vars.getLanguage(),filename, replacewith);
      xmlDocument.setParameter("leftTabs", lBar.manualTemplate());

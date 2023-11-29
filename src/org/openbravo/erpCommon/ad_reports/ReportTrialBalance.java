@@ -245,7 +245,7 @@ public class ReportTrialBalance extends HttpSecureAppServlet {
       xmlDocument.setParameter("mainTabContainer", tabs.mainTabs());
       xmlDocument.setParameter("childTabContainer", tabs.childTabs());
       xmlDocument.setParameter("theme", vars.getTheme());
-      NavigationBar nav = new NavigationBar(this, vars.getLanguage(), "ReportTrialBalance.html", classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb());
+      NavigationBar nav = new NavigationBar(this, vars.getLanguage(), "ReportTrialBalance.html", classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(), "ReportTrialBalance.html", strReplaceWith);
       xmlDocument.setParameter("leftTabs", lBar.manualTemplate());

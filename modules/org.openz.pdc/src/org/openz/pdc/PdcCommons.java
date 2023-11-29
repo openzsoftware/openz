@@ -306,6 +306,7 @@ public String prepareProduction(VariablesSecureApp vars,String qty, String strpd
     if (FormatUtils.isNix(strLocatorID))
         strLocatorID=DoProductionData.getLocator(con, strpdcWorkstepID);
     String possibQty=DoProductionData.getQty(conn,con, strpdcWorkstepID, strProductionid, "", assproduct,strLocatorID);
+    String qtyLeft=DoProductionData.getQtyLeft(con, strpdcWorkstepID);
     String strQty;
     if (FormatUtils.isNix(possibQty))
     	possibQty="0";
@@ -315,6 +316,8 @@ public String prepareProduction(VariablesSecureApp vars,String qty, String strpd
         strQty=vars.getNumericParameter("inppdcproductionquantity");
     if (FormatUtils.isNix(strQty)||Float.parseFloat(strQty)>Float.parseFloat(possibQty))
     	strQty=possibQty;
+    if (Float.parseFloat(strQty) > Float.parseFloat(qtyLeft))
+        strQty=qtyLeft;
     if (PdcCommonData.isserialtracking(con, assproduct).equals("Y") && UtilsData.getOrgConfigOption(con, "serialbomstrict", vars.getOrg()).equals("Y")) { 
     	strQty="1";    	
     }
@@ -341,7 +344,8 @@ public String prepareProduction(VariablesSecureApp vars,String qty, String strpd
             return null;
         }
     // Create a new P+ Transaction, if we have none
-    if (! (FormatUtils.isNix(strpdcWorkstepID)||FormatUtils.isNix(strpdcUserID)|| FormatUtils.isNix(strQty)  || FormatUtils.isNix(strLocatorID))) {
+    if (! (FormatUtils.isNix(strpdcWorkstepID)||FormatUtils.isNix(strpdcUserID)|| FormatUtils.isNix(strQty)  || FormatUtils.isNix(strLocatorID)) 
+         && (Float.parseFloat(strQty)>Float.parseFloat("0"))) {
     if (strProductionid.isEmpty()) {
         strProductionid=UtilsData.getUUID(con);
         PdcCommonData.insertProduction(conn, con, strProductionid, vars.getClient(), vars.getOrg(), 
@@ -417,7 +421,7 @@ public void finishProduction(HttpServletResponse response, String ptrxID,String 
 	                return;
 	        	}		
 	        }
-	    	if (PdcMaterialConsumptionData.isSerielProduced(con, snrbnr, strpdcWorkstepID).equals("Y"))
+	    	if (DoProductionData.isSnrBtchProducedCompleteFinish(conn,con, snrbnr, strpdcWorkstepID).equals("Y"))
       		  throw new ServletException("@plannedserialisproduced@");
 	    }
     }
@@ -429,7 +433,7 @@ public void finishProduction(HttpServletResponse response, String ptrxID,String 
         if (!ptrxID.equals("")) {
         //PdcCommonData.doConsumptionPost(con, ptrxID);
         String qtyp=DoProductionData.getQtyProduced(conn,con,vars.getLanguage(), ptrxID);
-        String qadj=DoProductionData.adjustPassingworkstepQtys(conn,con, strpdcWorkstepID, qtyp,ptrxID);
+        String qadj=DoProductionData.setPassingworkstepMvMtType(conn,con, strpdcWorkstepID,ptrxID); 
         //ProcessUtils.startProcessDirectly(ptrxID, "800131", vars, con);  //  M_Internal_Consumption_Post
         PdcCommonData.doConsumptionPost(conn,con,ptrxID);
         message=UtilsData.getProcessResultWC(conn,con, ptrxID);
@@ -477,7 +481,7 @@ public void finishProduction(HttpServletResponse response, String ptrxID,String 
 public static PdcCommonData getBarcode(HttpSecureAppServlet con, VariablesSecureApp vars) throws ServletException, IOException {
 	PdcCommonData[] data;
 	String barcode=vars.getStringParameter("inppdcmaterialconsumptionbarcode");
-    data = PdcCommonData.selectbarcode(con, barcode);
+    data = PdcCommonData.selectbarcode(con, barcode,vars.getRole());
     String qty=vars.getNumericParameter("inppdcmaterialconsumptionquantity");
     if (! FormatUtils.isNix(data[0].serialnumber) && ! qty.equals("0"))
       qty="1";

@@ -340,6 +340,14 @@
       ]]></Sql>
       <Parameter name="aduserid"/>
    </SqlMethod>
+   
+   <SqlMethod name="isMFAActivatedForUser" type="preparedStatement" return="String">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+         SELECT c_ismfaactivatedforuser(?) FROM DUAL;
+      ]]></Sql>
+      <Parameter name="aduserid"/>
+   </SqlMethod>
 
 </SqlClass>
 

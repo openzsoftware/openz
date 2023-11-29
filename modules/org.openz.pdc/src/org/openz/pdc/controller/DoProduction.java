@@ -124,7 +124,7 @@ public class DoProduction  extends HttpSecureAppServlet {
           vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_DataSelected",vars.getLanguage()));  
           if (!strBarcode.isEmpty()) {
             // Analyze Scanned Barcode..
-            PdcCommonData[] data  = PdcCommonData.selectbarcode(this, strBarcode);
+            PdcCommonData[] data  = PdcCommonData.selectbarcode(this, strBarcode,vars.getRole());
             // In this Servlet CONTROL, EMPLOYEE or PRODUCT or CALCULATION, LOCATOR, WORKSTEP can be scanned,
             // The First found will be used...
             String bctype="UNKNOWN";
@@ -190,8 +190,14 @@ public class DoProduction  extends HttpSecureAppServlet {
 	                  vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_sucessful",vars.getLanguage()));
                   }
                 } else {
-                  vars.setSessionValue("PDCSTATUS","ERROR");
-                  vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_cannotchangeuserorworkstep",vars.getLanguage())+"-"+vars.getStringParameter("inppdcmaterialconsumptionbarcode"));
+                	if (! FormatUtils.isNix(strpdcWorkstepID) && bctype.equals("KOMBI") && DoProductionData.isSnrBtchPartOfWS(this, snrbnr, strpdcWorkstepID).equals("Y") && vars.getSessionValue("pdcAssemblySerialOrBatchNO").isEmpty()) {
+                		vars.setSessionValue("pdcAssemblySerialOrBatchNO",snrbnr);
+                		setLocalSessionVariable(vars,"plannedserialorbatch", snrbnr);
+                		setLocalSessionVariable(vars,"plannedserialorbatchno", PdcCommonData.getPlannedSerialVIdfromsnr(this, snrbnr, strpdcWorkstepID));
+                	}else {
+                		vars.setSessionValue("PDCSTATUS","ERROR");
+                		vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_cannotchangeuserorworkstep",vars.getLanguage())+"-"+vars.getStringParameter("inppdcmaterialconsumptionbarcode"));
+                	}
                 }
             } else if (bctype.equals("CONTROL")){// Scanned a Control Barcode
               if (bcid.equals("57C99C3D7CB5459BADEC665F78D3D6BC")) // Cancel
@@ -237,7 +243,7 @@ public class DoProduction  extends HttpSecureAppServlet {
             vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_TransactionAborted",vars.getLanguage()));
             response.sendRedirect(strDireccion + strpdcFormerDialogue);
           }
-          if (bcCommand.equals("CLOSEWS")||bcCommand.equals("DONE")){
+          if (bcCommand.equals("CLOSEWS")||bcCommand.equals("DONE")||bcCommand.equals("REJECT")){
         	if (UtilsData.getOrgConfigOption(this, "serialbomstrict", vars.getOrg()).equals("Y") && getLocalSessionVariable(vars,"plannedserialorbatch").isEmpty() && 
         			vars.getSessionValue("ISSNRBNR").equals("Y") && DoProductionData.isMovingWorkstep(this, strpdcWorkstepID).equals("N")) {
     			  vars.setSessionValue("PDCSTATUS","ERROR");
@@ -249,7 +255,12 @@ public class DoProduction  extends HttpSecureAppServlet {
         		} else {
         			try {
 	        			con=this.getTransactionConnection();	
+	        			String rejectmsg="";
+			    		 if (vars.commandIn("REJECT"))
+			    			  rejectmsg=PdcCommonData.doRejection(con, this, strProductionid, vars.getLanguage());
 	        			commons.finishProduction(response,strProductionid,strpdcWorkstepID,bcCommand,strpdcUserID,vars,this,con);
+	        			if (!rejectmsg.isEmpty())
+			    			  vars.setSessionValue("PDCSTATUSTEXT",rejectmsg);
 	        			con.commit();
 	        			con.close();
         			} catch (Exception e) { try {con.rollback();}catch (Exception ign) {} try {con.close();}catch (Exception ign) {} throw e;}
@@ -329,7 +340,11 @@ public class DoProduction  extends HttpSecureAppServlet {
       	  Infobar2 =Infobar2 + "<br />" +Utility.messageBD(this, "pdcmaterialconsumptionlocator",vars.getLanguage()) +": " + PdcCommonData.getLocator(this, strLocatorID);
         Infobar2 =Infobar2 + "</span>";  
         strPdcInfobar = ConfigureInfobar.doConfigure2Rows(this, vars, script, Infobar, Infobar2);                    // Generate infobar html code
-
+        // Ausschuss
+        if (! FormatUtils.isNix(strpdcWorkstepID) && PdcCommonData.isTestingWorkstep(this, strpdcWorkstepID).equals("Y"))
+			  vars.setSessionValue("pdcIsTestingWorkstep","Y");
+	    else 
+		  vars.setSessionValue("pdcIsTestingWorkstep","N");
         // Build the User Interface    
         script.addHiddenfield("inpadOrgId", vars.getOrg());
         script.addHiddenShortcut("linkButtonSave_New"); // Adds shortcut for save & new

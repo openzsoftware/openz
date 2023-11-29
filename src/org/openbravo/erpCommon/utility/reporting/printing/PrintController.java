@@ -134,7 +134,7 @@ public class PrintController extends HttpSecureAppServlet {
     PocData[] pocData = null;
     String requestdoctype=documentType.getDoctype();
     if (dataSet== null){
-    pocData = getContactDetails(documentType, strDocumentId);
+    pocData = getContactDetails(documentType, strDocumentId, false);
     } else      {
       pocData= new PocData[dataSet.length];
       for (int i=0;i<pocData.length; i++) {
@@ -833,7 +833,7 @@ public class PrintController extends HttpSecureAppServlet {
 
   }
 
-  PocData[] getContactDetails(DocumentType documentType, String strDocumentId)
+  PocData[] getContactDetails(DocumentType documentType, String strDocumentId, boolean getAllDunrunInvoices)
       throws ServletException {
     if (documentType.getDoctype().equals("ORDER"))
       return PocData.getContactDetailsForOrders(this, strDocumentId);
@@ -845,7 +845,13 @@ public class PrintController extends HttpSecureAppServlet {
     	Vector<String> drIds=new Vector();
     	Vector<String> InvIds=new Vector();
     	String invIdList ="";
-    	String strSql =   "select dunrun_getinvoice(DUNRUN_HISTORY_ID) as invoice_id,dunrun_history_id as dunrun_history_id from  DUNRUN_HISTORY where DUNRUN_HISTORY_id in " + strDocumentId ;
+        String strSql = "";
+        if(getAllDunrunInvoices) { // only for error message, get all invoices
+            strSql =   "select dunrun_getallinvoices(DUNRUN_HISTORY_ID) as invoice_id,dunrun_history_id as dunrun_history_id from  DUNRUN_HISTORY where DUNRUN_HISTORY_id in " + strDocumentId ;
+        }else {
+            strSql =   "select dunrun_getinvoice(DUNRUN_HISTORY_ID) as invoice_id,dunrun_history_id as dunrun_history_id from  DUNRUN_HISTORY where DUNRUN_HISTORY_id in " + strDocumentId ;
+        }
+
         ResultSet result;
         PreparedStatement st = null;
         
@@ -1162,7 +1168,7 @@ public class PrintController extends HttpSecureAppServlet {
     XmlDocument xmlDocument = null;
     PocData[] pocData;
     if (dataSet== null){
-      pocData = getContactDetails(documentType, strDocumentId);
+      pocData = getContactDetails(documentType, strDocumentId, false);
       } else      {
         pocData= new PocData[dataSet.length];
         for (int i=0;i<pocData.length; i++) {
@@ -1280,21 +1286,27 @@ public class PrintController extends HttpSecureAppServlet {
       if (checks.get("moreThanOneDoc")) {
         if (customer == null || customer.length() == 0) {
           final OBError on = new OBError();
-          on.setMessage(Utility.messageBD(this,
-              "There is at least one document with no contact. Doc nº ("
-                  + documentData.ourreference + ")", vars.getLanguage()));
-          on.setTitle(Utility.messageBD(this, "Info", vars.getLanguage()));
-          on.setType("info");
-          final String tabId = vars.getSessionValue("inpTabId");
-          vars.getStringParameter("tab");
-          vars.setMessage(tabId, on);
-          vars.getRequestGlobalVariable("inpTabId", "AttributeSetInstance.tabId");
-          printPageClosePopUpAndRefreshParent(response, vars);
-        } else if (documentData.contactEmail == null || documentData.contactEmail.equals("")) {
-          final OBError on = new OBError();
-          on.setMessage(Utility.messageBD(this,
-              "There is at least one document with no email set (" + customer + ")", vars
-                  .getLanguage()));
+          // There is at least one document with no connected email. The customer has no email on record and there is no contact with an email entered for the document.
+          // get all affected documents
+          // Format: Customer: Docnumber, Contact
+          String affectedDocs = "";
+          int counter = 0;
+          // identical to pocData UNLESS it is a dunrun
+          for(final PocData innerErrorLoop : getContactDetails(documentType, strDocumentId, true)) {
+              if(innerErrorLoop.contactEmail == null || innerErrorLoop.contactEmail.length() == 0) {
+                  if(counter == 0) {
+                      affectedDocs = "</br>" + innerErrorLoop.bpartnerName + ": " + innerErrorLoop.ourreference + ", " + (innerErrorLoop.contactName.isEmpty() ? "-" : innerErrorLoop.contactName);
+                  }else if(counter == 10) {
+                      // print maximum of 10 documents
+                      affectedDocs = affectedDocs + "</br>" + "...";
+                      break;
+                  }else {
+                      affectedDocs = affectedDocs + "</br>" + innerErrorLoop.bpartnerName + ": " + innerErrorLoop.ourreference + ", " + (innerErrorLoop.contactName.isEmpty() ? "-" : innerErrorLoop.contactName);
+                  }
+                  counter++;
+              }
+          }
+          on.setMessage(Utility.messageBD(this, "documentNoContactOrNoEmail", vars.getLanguage()) + affectedDocs);
           on.setTitle(Utility.messageBD(this, "Info", vars.getLanguage()));
           on.setType("info");
           final String tabId = vars.getSessionValue("inpTabId");
@@ -1317,30 +1329,33 @@ public class PrintController extends HttpSecureAppServlet {
 
       boolean moreThanOnesalesRep = checks.get("moreThanOnesalesRep").booleanValue();
       if (moreThanOnesalesRep) {
-        if (salesRep == null || salesRep.length() == 0) {
-          final OBError on = new OBError();
-          on.setMessage(Utility.messageBD(this,
-              "There is at least one document with no sender set", vars.getLanguage()));
-          on.setTitle(Utility.messageBD(this, "Info", vars.getLanguage()));
-          on.setType("info");
-          final String tabId = vars.getSessionValue("inpTabId");
-          vars.getStringParameter("tab");
-          vars.setMessage(tabId, on);
-          vars.getRequestGlobalVariable("inpTabId", "AttributeSetInstance.tabId");
-          printPageClosePopUpAndRefreshParent(response, vars);
-        } else if (documentData.salesrepEmail == null || documentData.salesrepEmail.equals("")) {
-          final OBError on = new OBError();
-          on.setMessage(Utility.messageBD(this,
-              "There is at least one document with no sender Email set (" + salesRep + ")", vars
-                  .getLanguage()));
-          on.setTitle(Utility.messageBD(this, "Info", vars.getLanguage()));
-          on.setType("info");
-          final String tabId = vars.getSessionValue("inpTabId");
-          vars.getStringParameter("tab");
-          vars.setMessage(tabId, on);
-          vars.getRequestGlobalVariable("inpTabId", "AttributeSetInstance.tabId");
-          printPageClosePopUpAndRefreshParent(response, vars);
-        }
+          // only throw error, if no sender email is found
+          if (documentData.salesrepEmail == null || documentData.salesrepEmail.equals("")) {
+              final OBError on = new OBError();
+
+              // no sales rep entered
+              if (salesRep == null || salesRep.length() == 0) {
+                  on.setMessage(Utility.messageBD(this,
+                          "There is at least one document with no sender set. "
+                                  + "Furthermore there is no central sender Email set.",
+                          vars.getLanguage()));
+
+              // no email entered for sales rep
+              } else {
+                  on.setMessage(Utility.messageBD(this,
+                          "There is at least one document with no sender Email set (" + salesRep + "). "
+                                  + "Furthermore there is no central sender Email set.",
+                          vars.getLanguage()));
+              }
+
+              on.setTitle(Utility.messageBD(this, "Info", vars.getLanguage()));
+              on.setType("info");
+              final String tabId = vars.getSessionValue("inpTabId");
+              vars.getStringParameter("tab");
+              vars.setMessage(tabId, on);
+              vars.getRequestGlobalVariable("inpTabId", "AttributeSetInstance.tabId");
+              printPageClosePopUpAndRefreshParent(response, vars);
+          }
       }
         
       if (!salesRepMap.containsKey(salesRep)) {

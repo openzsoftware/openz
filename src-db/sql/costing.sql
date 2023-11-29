@@ -1557,7 +1557,7 @@ $BODY$ DECLARE
                   END IF;
                END IF;
             END IF;
-            IF v_permanent='N' and v_actual_cost!=0 then              
+            IF v_permanent='N' and v_actual_cost!=0 and v_purchase_price!=0 then
                if v_currproduct!=v_cur_line.m_product_id and p_invoiceid is null then
                     if v_isdefault='N' then
                         update m_costing set DATETO=now() where m_costing_id=v_cost_id;

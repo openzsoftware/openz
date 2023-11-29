@@ -537,7 +537,7 @@ public class ExpenseSOrder extends HttpSecureAppServlet {
       xmlDocument.setParameter("childTabContainer", tabs.childTabs());
       xmlDocument.setParameter("theme", vars.getTheme());
       NavigationBar nav = new NavigationBar(this, vars.getLanguage(), "ExpenseSOrder.html",
-          classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb());
+          classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(), "ExpenseSOrder.html",
           strReplaceWith);

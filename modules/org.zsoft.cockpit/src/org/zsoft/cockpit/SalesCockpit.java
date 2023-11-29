@@ -47,7 +47,7 @@ public class SalesCockpit extends HttpSecureAppServlet {
 			WindowTabs tabs = new WindowTabs(this, vars,"org.openbravo.erpCommon.ad_forms.ShowSessionPreferences");
 			xmlDocument.setParameter("theme", vars.getTheme());
 			NavigationBar nav = new NavigationBar(this, vars.getLanguage(),
-		    "ShowSessionPreferences.html", classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb());
+		    "ShowSessionPreferences.html", classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb(), vars);
 			xmlDocument.setParameter("navigationBar", nav.toString());
 			LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(), "ShowSessionPreferences.html", strReplaceWith);
 			xmlDocument.setParameter("leftTabs", lBar.manualTemplate());

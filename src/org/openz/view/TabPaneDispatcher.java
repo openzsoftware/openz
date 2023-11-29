@@ -29,7 +29,7 @@ public class TabPaneDispatcher implements ManualTabPane{
 			String workstep=vars.getSessionValue(fromWindow + "|Zssm_Workstep_V_ID");
 		    vars.setSessionValue("A2BEBB9B07564D2AAA372B4CB2D01165|Zssm_Workstep_V_ID", workstep);
 		    String parent=UtilsData.getParentID(servlet,  "zssm_productionorder_v","Zssm_Workstep_V", workstep);
-		    vars.setSessionValue("A2BEBB9B07564D2AAA372B4CB2D01165||zssm_productionorder_v_id", parent);		    
+		    vars.setSessionValue("A2BEBB9B07564D2AAA372B4CB2D01165|zssm_productionorder_v_id", parent);
 		    response.sendRedirect(servlet.strDireccion + "/org.openbravo.zsoft.serprod.ProductionOrder/WorkSteps035860BB9D4F4D08878CED2F371D7201_Edition.html");      		
 	
 		}

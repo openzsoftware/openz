@@ -254,6 +254,11 @@ public class FileImport extends HttpSecureAppServlet {
     	  String baseDesignPath = getBaseDesignPath(vars.getLanguage());
     	  return pollBank(vars, baseDesignPath, uploadedFilePath);    	  
       }
+      // Custom Module Subscription Management
+      if (strAdImpformatId.equals("A51ECA6BCE624C3BA82DDFCCCE0C6445")){ // Abrechnung erp2go
+          String strAD_Org_ID = vars.getStringParameter("inpadOrgId");
+          return FileImportData.i_import_erp2go_invoicing(this, uploadedFilePath,vars.getUser(), strAD_Org_ID,Delimiter);
+      }
 
       throw new ServletException ("Unsupported ImpformatId: " + strAdImpformatId);
   }
@@ -301,7 +306,7 @@ public class FileImport extends HttpSecureAppServlet {
       xmlDocument.setParameter("parentTabContainer", tabs.parentTabs());
       xmlDocument.setParameter("mainTabContainer", tabs.mainTabs());
       xmlDocument.setParameter("childTabContainer", tabs.childTabs());
-      NavigationBar nav = new NavigationBar(this, vars.getLanguage(), "FileImport.html", classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb());
+      NavigationBar nav = new NavigationBar(this, vars.getLanguage(), "FileImport.html", classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(), "FileImport.html", strReplaceWith);
       xmlDocument.setParameter("leftTabs", lBar.manualTemplate());

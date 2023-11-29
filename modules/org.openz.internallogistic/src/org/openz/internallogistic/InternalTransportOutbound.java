@@ -125,7 +125,7 @@ public class InternalTransportOutbound extends HttpSecureAppServlet {
           // We can determine PRODUCT, CONTROL, LOCATOR, WORKSTEP, EMPLOYEE
           // Serial Number can not be determined, it is dependent on Product or Transaction or Workstep
           // A serial Number can be the same on different Products.
-          data = PdcCommonData.selectbarcode(this, vars.getStringParameter("inp" + BarcodeADName));
+          data = PdcCommonData.selectbarcode(this, vars.getStringParameter("inp" + BarcodeADName),vars.getRole());
           // In this Servlet CONTROL, EMPLOYEE or WORKSTEP or SERIALNUMBER can be scanned,
           // The First found will be used...
           String bctype="UNKNOWN";

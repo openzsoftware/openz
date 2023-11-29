@@ -130,7 +130,7 @@ public class ReportGeneralLedgerJournalDetail extends HttpSecureAppServlet {
       xmlDocument.setParameter("theme", vars.getTheme());
       NavigationBar nav = new NavigationBar(this, vars.getLanguage(),
           "ReportGeneralLedgerJournalDetail.html", classInfo.id, classInfo.type, strReplaceWith,
-          tabs.breadcrumb());
+          tabs.breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(),
           "ReportGeneralLedgerJournalDetail.html", strReplaceWith);

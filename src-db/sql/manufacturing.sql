@@ -87,6 +87,9 @@ BEGIN
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
     END IF;
   IF(TG_OP = 'INSERT' or TG_OP = 'UPDATE') THEN
+      if new.bomqty<0 then
+          RAISE EXCEPTION '%', 'Menge muss > 0 sein!';
+      end if;
       select substr(name,1,40),c_bpartner_id into v_value,v_bpartner from m_product where m_product.m_product_id=NEW.M_ProductBOM_ID;
       new.product_value:=v_value;
       new.c_bpartner_id:=v_bpartner;
@@ -229,6 +232,7 @@ Product Enhancements for Manufacturing Implementation
 - Product Read Only Attributes (in GUI)
 - Attachments not modifyable
 - Copy Product - Process available
+- Copy Attachments to Production Order
 
 
 
@@ -722,7 +726,88 @@ EXCEPTION
 END;
 $_$  LANGUAGE 'plpgsql';
      
- 
+CREATE OR REPLACE FUNCTION zsmf_copyDocsToProdOrder(p_pinstance_id character varying, p_dirin OUT varchar,p_dirout OUT varchar, p_filename OUT character varying) RETURNS setof record
+AS $_$
+DECLARE
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2021 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+Copy Attachments to Production Order
+*****************************************************/
+v_user varchar;
+v_org  varchar;
+v_client varchar;
+v_count numeric;
+v_i numeric:=1;
+v_attributeset varchar;
+v_attributevalue varchar;
+v_cur record;
+v_cur2 record;
+v_cur3 record;
+BEGIN 
+    select createdby,ad_org_id,ad_client_id into v_user,v_org,v_client from zssm_productionrun where pinstance=p_pinstance_id;
+    if c_getconfigoption('copydocstoprodorder',v_org)='Y' then
+        for v_cur in (select * from zssm_productionrun where pinstance=p_pinstance_id and c_project_id is not null)
+        LOOP
+            v_count:=10;
+            --Product Attachments 208
+            if v_cur.m_product_id is not null then
+                for v_cur2 in (select * from c_file where AD_TABLE_ID='208' and AD_RECORD_ID=v_cur.m_product_id and ISACTIVE='Y' order by SEQNO)
+                LOOP
+                    insert into c_file (C_FILE_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE, CREATED, CREATEDBY, UPDATED, UPDATEDBY, NAME, C_DATATYPE_ID, SEQNO, TEXT, AD_TABLE_ID, AD_RECORD_ID)
+                    values (get_uuid(),v_client,v_org, v_cur2.ISACTIVE, now(),v_user,now(),v_user,v_cur2.NAME,v_cur2.C_DATATYPE_ID, v_count, v_cur2.TEXT, '32854A6CD107446F88172D884020C26E',v_cur.c_project_id);
+                    p_dirin:='208-'||v_cur2.AD_RECORD_ID||'/';
+                    p_filename:=v_cur2.NAME;
+                    p_dirout:='32854A6CD107446F88172D884020C26E-'||v_cur.c_project_id||'/';
+                    v_count:=v_count+10;
+                    return next;
+                END LOOP;
+            end if;
+            --Attribute Attachments 558
+            if v_cur.m_attributesetinstance_id is not null then
+                select m_attributeset_id into v_attributeset from m_attributesetinstance where m_attributesetinstance_id=v_cur.m_attributesetinstance_id;
+                for v_cur3 in (select m_attribute_id  from m_attributeuse where m_attributeset_id=v_attributeset order by seqno)
+                LOOP
+                    select  m_attributevalue_id into v_attributevalue from m_attributevalue where m_attribute_id=v_cur3.m_attribute_id and name=m_attributesetgetInstanceValue(v_cur.m_attributesetinstance_id,v_i);
+                    v_i:=v_i+1;
+                    for v_cur2 in (select * from c_file where AD_TABLE_ID='558' and AD_RECORD_ID=v_attributevalue and ISACTIVE='Y' order by SEQNO)
+                    LOOP
+                        insert into c_file (C_FILE_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE, CREATED, CREATEDBY, UPDATED, UPDATEDBY, NAME, C_DATATYPE_ID, SEQNO, TEXT, AD_TABLE_ID, AD_RECORD_ID)
+                        values (get_uuid(),v_client,v_org, v_cur2.ISACTIVE, now(),v_user,now(),v_user,v_cur2.NAME,v_cur2.C_DATATYPE_ID, v_count, v_cur2.TEXT, '32854A6CD107446F88172D884020C26E',v_cur.c_project_id);
+                        p_dirin:='558-'||v_cur2.AD_RECORD_ID||'/';
+                        p_filename:=v_cur2.NAME;
+                        p_dirout:='32854A6CD107446F88172D884020C26E-'||v_cur.c_project_id||'/';
+                        v_count:=v_count+10;
+                        return next;
+                    END LOOP; 
+                END LOOP;
+            end if;
+            -- Base Workstep Attachments 530C8BFD91D14C319EFC04813849A4A0
+            if v_cur.productionplan_id is not null then
+                for v_cur3 in (select c_projecttask_id from zssm_productionplan_task_v where zssm_productionplan_v_id=v_cur.productionplan_id)
+                LOOP
+                    for v_cur2 in (select * from c_file where AD_TABLE_ID='530C8BFD91D14C319EFC04813849A4A0' and AD_RECORD_ID=v_cur3.c_projecttask_id and ISACTIVE='Y' order by SEQNO)
+                    LOOP
+                        insert into c_file (C_FILE_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE, CREATED, CREATEDBY, UPDATED, UPDATEDBY, NAME, C_DATATYPE_ID, SEQNO, TEXT, AD_TABLE_ID, AD_RECORD_ID)
+                        values (get_uuid(),v_client,v_org, v_cur2.ISACTIVE, now(),v_user,now(),v_user,v_cur2.NAME,v_cur2.C_DATATYPE_ID, v_count, v_cur2.TEXT, '32854A6CD107446F88172D884020C26E',v_cur.c_project_id);
+                        p_dirin:='530C8BFD91D14C319EFC04813849A4A0-'||v_cur2.AD_RECORD_ID||'/';
+                        p_filename:=v_cur2.NAME;
+                        p_dirout:='32854A6CD107446F88172D884020C26E-'||v_cur.c_project_id||'/';
+                        v_count:=v_count+10;
+                        return next;
+                    END LOOP; 
+                END LOOP;
+            end if;
+        END LOOP;
+    end if;
+END;
+$_$  LANGUAGE 'plpgsql'; 
 
 CREATE OR REPLACE FUNCTION zsmf_copyproductionplanfromproduct(p_fromproduct_id character varying, p_toproductid character varying, p_user character varying) RETURNS character varying
 AS $_$
@@ -741,6 +826,7 @@ Copy a Product - File Entrys in C_File
 v_now timestamp without time zone;
 v_count numeric;
 v_cur_prj c_project%ROWTYPE;
+v_cur RECORD;
 v_cur_tasktab zssm_productionplan_task%ROWTYPE;
 v_cur_pt c_projecttask%ROWTYPE;
 v_cur_hr zspm_ptaskhrplan%ROWTYPE;
@@ -767,9 +853,11 @@ BEGIN
     end if;
     v_now:=now();
     select value,name into v_ovalue,v_oname from m_product where m_product_id=p_fromproduct_id;
-    for v_cur_prj in (select * from c_project where projectcategory='PRP' and exists (select 0 from zssm_productionplan_task tp,c_projecttask t 
-                  where t.c_projecttask_id=tp.c_projecttask_id and tp.c_project_id=c_project.c_project_id and t.m_product_id=p_fromproduct_id and t.assembly='Y' and t.c_project_id is null))
+    -- Neuen Produktionsplan erstellen-Nur wenn der Artikel Output eines Produktionsplanes ist..
+    for v_cur in (select a.* from ad_org o,zssm_getproductionplanofproduct(p_fromproduct_id,o.ad_org_id) a)
     LOOP
+         -- Load Rowtype
+        select * into v_cur_prj from c_project where c_project_id=v_cur.c_project_id;
         if c_getconfigoption('createdefaultplanandworkstep',v_cur_prj.ad_org_id)='Y' then
             return '';
         end if;
@@ -921,6 +1009,7 @@ BEGIN
             INSERT INTO zssm_productionplan_task SELECT v_cur_tasktab.*; -- %rowtype
         END LOOP;
         -- Generate Dependencies for the new Plan
+        delete from zssm_productionplan_taskdep where c_project_id=v_cur_prj.c_project_id;
         FOR v_cur_dep in (select * from zssm_productionplan_taskdep where c_project_id=v_prp)
         LOOP
             v_cur_dep.zssm_productionplan_taskdep_id:=get_uuid();
@@ -937,6 +1026,109 @@ BEGIN
             INSERT INTO zssm_productionplan_taskdep SELECT v_cur_dep.*; -- %rowtype
         END LOOP;
     END LOOP;
+    -- Nur Base-Workstep, wenn der Artikel nicht Output eines Produktionsplanes ist
+    for v_cur_pt in (select * from c_projecttask where assembly='Y' and c_project_id is null and m_product_id=p_fromproduct_id and 
+                         (select count(*) from ad_org o,zssm_getproductionplanofproduct(p_fromproduct_id,o.ad_org_id) a) = 0
+                    )
+        LOOP
+            if c_getconfigoption('createdefaultplanandworkstep',v_cur_pt.ad_org_id)='Y' then
+                return '';
+            end if;
+            -- Genetrate new Base Workstep
+            v_prt:=v_cur_pt.c_projecttask_id;
+            v_cur_pt.c_projecttask_id:=get_uuid();
+            v_cur_pt.created := v_now;
+            v_cur_pt.createdby := p_user;
+            v_cur_pt.updated := v_now;
+            v_cur_pt.updatedby := p_user;
+            v_cur_pt.name:=replace(v_cur_pt.name,v_oname,v_name);
+            v_cur_pt.isautogeneratedplan:='N';
+            v_count:=1;
+            WHILE (select count(*) from c_projecttask where c_project_id is null and name=v_cur_pt.name)>0
+            LOOP
+                if v_count=1 then 
+                    v_cur_pt.name:=v_cur_pt.name ||'-'||v_count;
+                else
+                    v_cur_pt.name:=replace(v_cur_pt.name,'-'||to_char(v_count-1),'-'||v_count);
+                end if;
+                v_count:=v_count+1;
+            END LOOP;
+            v_cur_pt.value:=replace(v_cur_pt.value,v_ovalue,v_value);
+            v_count:=1;
+            WHILE (select count(*) from  c_projecttask where c_project_id is null and value=v_cur_pt.value)>0
+            LOOP
+                if v_count=1 then 
+                    v_cur_pt.value:=v_cur_pt.value ||'-'||v_count;
+                else
+                    v_cur_pt.value:=replace(v_cur_pt.value,'-'||to_char(v_count-1),'-'||v_count);
+                end if;
+                v_count:=v_count+1;
+            END LOOP;
+            if v_cur_pt.assembly='Y' then
+                v_cur_pt.m_product_id:=p_toproductid;
+            end if;
+            INSERT INTO c_projecttask SELECT v_cur_pt.*; -- %rowtype
+            -- Add the New Task to new Plan
+            FOR v_cur_tasktab in (select * from zssm_productionplan_task where c_project_id=v_prp)
+            LOOP
+                v_cur_tasktab.copyidbak:=v_cur_tasktab.zssm_productionplan_task_id;
+                v_cur_tasktab.zssm_productionplan_task_id:=get_uuid();
+                v_cur_tasktab.c_project_id=v_cur_prj.c_project_id;
+                v_cur_tasktab.created := v_now;
+                v_cur_tasktab.createdby := p_user;
+                v_cur_tasktab.updated := v_now;
+                v_cur_tasktab.updatedby := p_user;
+                -- Umhängen der zu Produzierenden Task
+                if v_cur_tasktab.c_projecttask_id=v_prt then
+                    v_cur_tasktab.c_projecttask_id:=v_cur_pt.c_projecttask_id;
+                    INSERT INTO zssm_productionplan_task SELECT v_cur_tasktab.*; -- %rowtype
+                end if;     
+            END LOOP;
+            -- Create bom
+            FOR v_cur_bom in (select * from zspm_projecttaskbom where c_projecttask_id=v_prt)
+            LOOP
+                v_cur_bom.zspm_projecttaskbom_id:=get_uuid();
+                v_cur_bom.c_projecttask_id:=v_cur_pt.c_projecttask_id;
+                v_cur_bom.created := v_now;
+                v_cur_bom.createdby := p_user;
+                v_cur_bom.updated := v_now;
+                v_cur_bom.updatedby := p_user;
+                if v_cur_bom.m_product_id=p_fromproduct_id then
+                    v_cur_bom.m_product_id:=p_toproductid;
+                end if;
+                INSERT INTO zspm_projecttaskbom SELECT v_cur_bom.*; -- %rowtype
+            END LOOP;
+            FOR v_cur_hr in (select * from zspm_ptaskhrplan where c_projecttask_id=v_prt)
+            LOOP
+                v_cur_hr.zspm_ptaskhrplan_id:=get_uuid();
+                v_cur_hr.created := v_now;
+                v_cur_hr.createdby := p_user;
+                v_cur_hr.updated := v_now;
+                v_cur_hr.updatedby := p_user;
+                v_cur_hr.c_projecttask_id:=v_cur_pt.c_projecttask_id;
+                INSERT INTO zspm_ptaskhrplan  SELECT v_cur_hr.*; -- %rowtype
+            END LOOP;
+            FOR v_cur_ma in (select * from zspm_ptaskmachineplan where c_projecttask_id=v_prt)
+            LOOP
+                v_cur_ma.zspm_ptaskmachineplan_id:=get_uuid();
+                v_cur_ma.created := v_now;
+                v_cur_ma.createdby := p_user;
+                v_cur_ma.updated := v_now;
+                v_cur_ma.updatedby := p_user;
+                v_cur_ma.c_projecttask_id:=v_cur_pt.c_projecttask_id;
+                INSERT INTO zspm_ptaskmachineplan  SELECT v_cur_ma.*; -- %rowtype
+            END LOOP;
+            FOR v_cur_td in (select * from zssm_Ptasktechdoc where c_projecttask_id=v_prt)
+            LOOP
+                v_cur_td.zssm_Ptasktechdoc_id:=get_uuid();
+                v_cur_td.created := v_now;
+                v_cur_td.createdby := p_user;
+                v_cur_td.updated := v_now;
+                v_cur_td.updatedby := p_user;
+                v_cur_td.c_projecttask_id:=v_cur_pt.c_projecttask_id;
+                INSERT INTO zssm_Ptasktechdoc  SELECT v_cur_td.*; -- %rowtype
+            END LOOP;
+        END LOOP; -- Workstep Created
     RAISE NOTICE '%','Copy Product - Productionplan Finished';
     return '  @ProductionplanCopydone@';
 END;

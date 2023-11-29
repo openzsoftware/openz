@@ -183,8 +183,9 @@ END;
 $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-
-CREATE OR REPLACE FUNCTION zssi_resourceplan_wdfix(p_date_from timestamp, p_date_to timestamp,p_org varchar,p_planOrStarted varchar)
+  
+select zsse_dropfunction('zssi_resourceplan_wdfix');  
+CREATE OR REPLACE FUNCTION zssi_resourceplan_wdfix(p_date_from timestamp, p_date_to timestamp,p_org varchar,p_planOrStarted varchar,p_userrole varchar)
 RETURNS character varying AS
 $_$
 /***************************************************************************************************************************************************
@@ -212,16 +213,19 @@ v_pretext1 character varying:='';
 v_posttext character varying:='';
 v_posttext1 character varying:='</div>';
 BEGIN
+if p_org not in (select ad_org_id from ad_role_orgaccess where ad_role_id=p_userrole) then
+    return '';
+end if;
  select (zssi_resourceplan_headerfix(p_date_from,p_date_to)) INTO v_return;
  select (zssi_resourcedates_eofix(p_date_from,p_date_to,p_org,p_planOrStarted)) INTO v_return1;
-
 RETURN v_pretext||v_return||v_pretext1||v_return1||v_posttext||v_posttext1;
 END;
 $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+  
 select zsse_dropfunction('zssi_resourceplan_wdfix_small');  
-CREATE OR REPLACE FUNCTION zssi_resourceplan_wdfix_small(p_date_from timestamp, p_date_to timestamp,p_org varchar,p_planOrStarted varchar,p_withmachines varchar, p_project varchar)
+CREATE OR REPLACE FUNCTION zssi_resourceplan_wdfix_small(p_date_from timestamp, p_date_to timestamp,p_org varchar,p_planOrStarted varchar,p_withmachines varchar, p_project varchar,p_userrole varchar)
 RETURNS character varying AS
 $_$
 /***************************************************************************************************************************************************
@@ -249,14 +253,18 @@ v_pretext1 character varying:='';
 v_posttext character varying:='';
 v_posttext1 character varying:='</div>';
 BEGIN
+
+if p_org not in (select ad_org_id from ad_role_orgaccess where ad_role_id=p_userrole) then
+    return '';
+end if;
  select (zssi_resourceplan_headerfix_small(p_date_from,p_date_to,p_project,p_org)) INTO v_return;
  select (zssi_resourcedates_eofix_small(p_date_from,p_date_to,p_org,p_planOrStarted,p_withmachines,p_project)) INTO v_return1;
-
 RETURN v_pretext||v_return||v_pretext1||v_return1||v_posttext||v_posttext1;
 END;
 $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+  
 select zsse_dropfunction('zssi_resourcedates_eo');
 CREATE OR REPLACE FUNCTION zssi_resourcedates_eo(p_date_from timestamp, p_date_to timestamp,p_org varchar,p_planOrStarted varchar)
 RETURNS character varying AS
@@ -602,7 +610,6 @@ p_date_from timestamp;
 p_date_to timestamp;
 v_postrundays numeric;
 BEGIN
-
 --Weekend,holiday,actualday correlation
 v_today:=to_char(now(),'DD.MM.YYYY');
 --end
@@ -637,7 +644,7 @@ countereasy := countereasy+1;
 countertop:=(countereasy*21)-21;
 v_prerun:=9;
     if v_curname.rtype='BP' then
-    for  v_curstat in (select workdate, dayname, isworkday, isholiday, isweekend from c_workcalender where workdate between (p_date_from-9) AND  p_date_to)
+    for  v_curstat in (select workdate, dayname, isworkday, isholiday, isweekend from c_workcalender where workdate between (p_date_from-9) AND  p_date_to order by workdate)
     loop 
         select content,countbr,zindex into v_returncon1,v_countbr,v_zindex
             from zssi_resourceplan where resourcedate=v_curstat.workdate and c_bpartner_id=v_curname.idkey 
@@ -745,7 +752,7 @@ v_prerun:=9;
 -- Business Partner LOOP
     end loop;
     else
-       for  v_curstat in (select workdate, dayname, isworkday, isholiday, isweekend from c_workcalender where workdate between (p_date_from-9) AND  p_date_to)
+       for  v_curstat in (select workdate, dayname, isworkday, isholiday, isweekend from c_workcalender where workdate between (p_date_from-9) AND  p_date_to order by workdate)
         loop 
             select content,countbr, zindex into  v_returncon1,v_countbr,v_zindex
                 from zssi_resourceplan where resourcedate=v_curstat.workdate and ma_machine_id=v_curname.idkey 
@@ -859,7 +866,7 @@ v_prerun:=9;
 heightcount:=(counter*21+indheightsum);
 conheight:=(counter*20+indheightsum);
 if (v_returncon='3') OR (v_returncon='4') OR(v_returncon='5') OR (v_returncon='6')then
-indheightsum:=indheightsum+v_indheightsingle;
+    indheightsum:=indheightsum+v_indheightsingle;
 else
 --v_indheightsingle:=20;
 indheightsum:=indheightsum;
@@ -887,7 +894,6 @@ formercountbr:=1;
     end if;
         v_return1:='';
 end loop;    
-
 
 RETURN '<div id="xtFzCol" class="xtFzCol" style="height:'||heightcount||'px;width:100px;position:relative;left:-3px;z-index:6"> <div class="xtFCInner" style="left:0px;height:'||heightcount||'px;top:3px;width:100px;position:relative;">'||v_returnname||'</div></div><div id="xtTblConId" class="xtTblCon"  style="float:left;top:87px;left:99px;width:'||widthcount-1||'px;height:'||conheight+2||'px;position:absolute;"><table id="table1" class="xTable" style="border-spacing:0px !important;"><tbody>'||v_return||'</tbody></table></div>';
 END;

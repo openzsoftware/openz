@@ -54,6 +54,7 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
       String strC_BPartner_ID;
       String strDateFrom;
       String strDateTo;
+      String strReportingDate;
       String strAD_Org_ID = vars.getSessionValue("ReportDebtPayment|AD_Org_ID");
       
       if (strAD_Org_ID.isEmpty()) {
@@ -70,6 +71,7 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
         strC_BPartner_ID = vars.getStringParameter("inpBpartnerId");
         strDateFrom = vars.getDateParameter("inpDateFrom",this);
         strDateTo = vars.getDateParameter("inpDateTo",this);
+        strReportingDate = vars.getDateParameter("inpReportingDate", this);
         if (strC_BPartner_ID.length() > 0) {
           strcBpartnerId = "('" + strC_BPartner_ID + "')";
         } else {
@@ -84,6 +86,7 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
             "ReportDebtPayment|C_BPartner_ID", "");
         strDateFrom = vars.getDateParameterGlobalVariable("inpDateFrom", "ReportDebtPayment|DateFrom", "",this);
         strDateTo = vars.getDateParameterGlobalVariable("inpDateTo", "ReportDebtPayment|DateTo", "",this);
+        strReportingDate = vars.getDateParameterGlobalVariable("inpReportingDate", "ReportDebtPayment|ReportingDate", "",this);
         strcBpartnerId = vars.getGlobalVariable("inpcBPartnerId_IN",
             "ReportDebtPayment|inpcBPartnerId_IN", "");
       }
@@ -115,7 +118,7 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
       try {
         printPageDataSheet(response, vars,strAD_Org_ID, strcBpartnerId, strDateFrom, strDateTo, strCal1, strCal2,
             strPaymentRule, strSettle, strConciliate, strReceipt, strPending, strcbankaccount,
-            strStatus, strGroup, strGroupBA, strsalesrepId, strupdatedby);
+            strStatus, strGroup, strGroupBA, strsalesrepId, strupdatedby, strReportingDate);
       } catch (Exception e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
@@ -133,6 +136,7 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
       String strDateFrom = vars.getDateParameterGlobalVariable("inpDateFrom",
           "ReportDebtPayment|DateFrom",this);
       String strDateTo = vars.getDateParameterGlobalVariable("inpDateTo", "ReportDebtPayment|DateTo",this);
+      String strReportingDate = vars.getDateParameterGlobalVariable("inpReportingDate", "ReportDebtPayment|ReportingDate",this);
       String strCal1 = vars.getNumericRequestGlobalVariable("inpCal1", "ReportDebtPayment|Cal1");
       String strCal2 = vars.getNumericRequestGlobalVariable("inpCal2", "ReportDebtPayment|Cal2");
       String strPaymentRule = vars.getRequestGlobalVariable("inpCPaymentRuleId",
@@ -184,7 +188,7 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
       try {
         printPageDataSheet(response, vars,strAD_Org_ID, strcBpartnerId, strDateFrom, strDateTo, strCal1, strCal2,
             strPaymentRule, strSettle, strConciliate, strReceipt, strPending, strcbankaccount,
-            strStatus, strGroup, strGroupBA, strsalesrepId, strupdatedby);
+            strStatus, strGroup, strGroupBA, strsalesrepId, strupdatedby, strReportingDate);
       } catch (Exception e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
@@ -204,6 +208,7 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
       String strDateFrom = vars.getDateParameterGlobalVariable("inpDateFrom",
           "ReportDebtPayment|DateFrom",this);
       String strDateTo = vars.getDateParameterGlobalVariable("inpDateTo", "ReportDebtPayment|DateTo",this);
+      String strReportingDate = vars.getDateParameterGlobalVariable("inpReportingDate", "ReportDebtPayment|ReportingDate", this);
       String strCal1 = vars.getNumericRequestGlobalVariable("inpCal1", "ReportDebtPayment|Cal1");
       String strCal2 = vars.getNumericRequestGlobalVariable("inpCal2", "ReportDebtPayment|Cal2");
       String strPaymentRule = vars.getRequestGlobalVariable("inpCPaymentRuleId",
@@ -224,7 +229,7 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
       setHistoryCommand(request, "DIRECT");
       printPageDataPdf(response, vars, strAD_Org_ID,strcBpartnerId, strDateFrom, strDateTo, strCal1, strCal2,
           strPaymentRule, strSettle, strConciliate, strReceipt, strPending, strcbankaccount,
-          strStatus, strGroup, strsalesrepId, strupdatedby, strGroupBA);
+          strStatus, strGroup, strsalesrepId, strupdatedby, strGroupBA, strReportingDate);
     } else
       pageError(response);
   }
@@ -233,7 +238,7 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
       String strAD_Org_ID, String strC_BPartner_ID, String strDateFrom, String strDateTo, String strCal1,
       String strCalc2, String strPaymentRule, String strSettle, String strConciliate,
       String strReceipt, String strPending, String strcbankaccount, String strStatus,
-      String strGroup, String strsalesrepId, String strupdatedby, String strGroupBA) throws IOException, ServletException {
+      String strGroup, String strsalesrepId, String strupdatedby, String strGroupBA, String strreportingdate) throws IOException, ServletException {
     String strAux = "";
     if (log4j.isDebugEnabled())
       log4j.debug("strGroup = " + strGroup);
@@ -253,11 +258,18 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
     } else
       strAD_Org_ID="'"+ strAD_Org_ID+"'";
     if (!strGroup.equals("")) {
+      if(strreportingdate.equals("")) {
+          data = ReportDebtPaymentData.selectReport(this, vars.getLanguage(), Utility.getContext(this, vars,
+                  "#User_Client", "ReportDebtPayment"), strAD_Org_ID, strC_BPartner_ID, strDateFrom, DateTimeData
+                  .nDaysAfter(this, strDateTo, "1"), strCal1, strCalc2, strPaymentRule, strReceipt,
+                  strStatus,  strcbankaccount, strsalesrepId, strupdatedby,strAux, "BPARTNER, BANKACC");
+      }else {
+          data = ReportDebtPaymentData.selectReportWithReportingDate(this, vars.getLanguage(), strreportingdate, Utility.getContext(this, vars,
+                  "#User_Client", "ReportDebtPayment"), strAD_Org_ID, strC_BPartner_ID, strDateFrom, DateTimeData
+                  .nDaysAfter(this, strDateTo, "1"), strCal1, strCalc2, strPaymentRule, strReceipt,
+                  strStatus,  strcbankaccount, strsalesrepId, strupdatedby, "BPARTNER, BANKACC");
+      }
 
-      data = ReportDebtPaymentData.selectReport(this, vars.getLanguage(), Utility.getContext(this, vars,
-          "#User_Client", "ReportDebtPayment"), strAD_Org_ID, strC_BPartner_ID, strDateFrom, DateTimeData
-          .nDaysAfter(this, strDateTo, "1"), strCal1, strCalc2, strPaymentRule, strReceipt,
-          strStatus,  strcbankaccount, strsalesrepId, strupdatedby,strAux, "BPARTNER, BANKACC");
       if (!strGroupBA.equals("")) {
         strReportName = this.strBasePath + "/src-loc/design/org/openbravo/erpCommon/ad_reports/ReportDebtPayment_BankAcc.jrxml";
       } else {
@@ -275,7 +287,7 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
         strReportName = this.strBasePath + "/src-loc/design/org/openbravo/erpCommon/ad_reports/ReportDebtPayment_NoBP.jrxml";
       }
     }
-    String title=ReportDebtPaymentData.getHeader(this, vars.getLanguage(), strDateFrom, strDateTo, strReceipt,strAD_Org_ID);
+    String title=ReportDebtPaymentData.getHeader(this, vars.getLanguage(), strDateFrom, strDateTo, strReceipt,strAD_Org_ID, strreportingdate);
     HashMap<String, Object> parameters = new HashMap<String, Object>();
     parameters.put("group", "no"); 
     parameters.put("HEADER", title);
@@ -287,7 +299,7 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
       String strAD_Org_ID, String strC_BPartner_ID, String strDateFrom, String strDateTo, String strCal1,
       String strCalc2, String strPaymentRule, String strSettle, String strConciliate,
       String strReceipt, String strPending, String strcbankaccount, String strStatus,
-      String strGroup, String strGroupBA, String strsalesrepId, String strupdatedby) throws Exception {
+      String strGroup, String strGroupBA, String strsalesrepId, String strupdatedby, String strReportingDate) throws Exception {
     if (log4j.isDebugEnabled())
       log4j.debug("Output: dataSheet");
     response.setContentType("text/html; charset=UTF-8");
@@ -328,17 +340,41 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
     	  strAD_Org_Sel="''";
     } else
       strAD_Org_Sel="'"+ strAD_Org_ID+"'";
-    if (!strGroup.equals(""))
-      data = ReportDebtPaymentData.select(this, vars.getLanguage(), Utility.getContext(this, vars,
-          "#User_Client", "ReportDebtPayment"), strAD_Org_Sel, strC_BPartner_ID, strDateFrom, DateTimeData
-          .nDaysAfter(this, strDateTo, "1"), strCal1, strCalc2, strPaymentRule, strReceipt,
-          strStatus, strAux, strcbankaccount, strsalesrepId, strupdatedby, "BPARTNER, BANKACC");
-    else
-      data = ReportDebtPaymentData.selectNoBpartner(this, vars.getLanguage(), Utility.getContext(
-          this, vars, "#User_Client", "ReportDebtPayment"), strAD_Org_Sel, strC_BPartner_ID, strDateFrom, DateTimeData
-          .nDaysAfter(this, strDateTo, "1"), strCal1, strCalc2, strPaymentRule, strReceipt,
-          strStatus, strAux, strcbankaccount, strsalesrepId, strupdatedby,  "BANKACC, BPARTNER");
-    
+    if (!strGroup.equals("")) {
+        if(strReportingDate.equals("")) {
+            data = ReportDebtPaymentData.select(this, vars.getLanguage(), Utility.getContext(this, vars,
+                    "#User_Client", "ReportDebtPayment"), strAD_Org_Sel, strC_BPartner_ID, strDateFrom, DateTimeData
+                    .nDaysAfter(this, strDateTo, "1"), strCal1, strCalc2, strPaymentRule, strReceipt,
+                    strStatus, strAux, strcbankaccount, strsalesrepId, strupdatedby, "BPARTNER, BANKACC");
+        }else {
+            if(!strAux.equals("")) {
+                //show warning
+                OBError myMessage = new OBError();
+                myMessage.setType("WARNING");
+                myMessage.setTitle("Warning");
+                myMessage.setMessage(Utility.messageBD(this, "ReportDebtPaymentIllegalArgumentsIgnored", vars.getLanguage()));
+                vars.setMessage("ReportDebtPayment", myMessage);
+            }
+            data = ReportDebtPaymentData.selectWithReportingDate(this, vars.getLanguage(), strReportingDate, Utility.getContext(this, vars,
+                    "#User_Client", "ReportDebtPayment"), strAD_Org_Sel, strC_BPartner_ID, strDateFrom, DateTimeData
+                    .nDaysAfter(this, strDateTo, "1"), strCal1, strCalc2, strPaymentRule, strReceipt,
+                    strStatus, strcbankaccount, strsalesrepId, strupdatedby, "BPARTNER, BANKACC");
+        }
+    }else {
+        if(strReportingDate.equals("")) {
+            data = ReportDebtPaymentData.selectNoBpartner(this, vars.getLanguage(), Utility.getContext(
+                    this, vars, "#User_Client", "ReportDebtPayment"), strAD_Org_Sel, strC_BPartner_ID, strDateFrom, DateTimeData
+                    .nDaysAfter(this, strDateTo, "1"), strCal1, strCalc2, strPaymentRule, strReceipt,
+                    strStatus, strAux, strcbankaccount, strsalesrepId, strupdatedby,  "BANKACC, BPARTNER");
+        }else {
+            OBError myMessage = new OBError();
+            myMessage.setType("ERROR");
+            myMessage.setTitle("Error");
+            myMessage.setMessage(Utility.messageBD(this, "ReportDebtPaymentIllegalArguments", vars.getLanguage()));
+            vars.setMessage("ReportDebtPayment", myMessage);
+        }
+    }
+
     if (data == null || data.length == 0) {
       data = ReportDebtPaymentData.set();
       discard[0] = "sectionBpartner";
@@ -410,7 +446,7 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
       xmlDocument.setParameter("theme", vars.getTheme());
       
       NavigationBar nav = new NavigationBar(this, vars.getLanguage(), "ReportDebtPayment.html",
-          classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb());
+          classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(), "ReportDebtPayment.html",
           strReplaceWith);
@@ -448,6 +484,9 @@ public class ReportDebtPayment extends HttpSecureAppServlet {
     xmlDocument.setParameter("dateTo",  UtilsData.selectDisplayDatevalue(this,strDateTo, "DD-MM-YYYY", vars.getSessionValue("#AD_SqlDateFormat")));
     xmlDocument.setParameter("dateTodisplayFormat", vars.getSessionValue("#AD_SqlDateFormat"));
     xmlDocument.setParameter("dateTosaveFormat", vars.getSessionValue("#AD_SqlDateFormat"));
+    xmlDocument.setParameter("reportingDate",  UtilsData.selectDisplayDatevalue(this,strReportingDate, "DD-MM-YYYY", vars.getSessionValue("#AD_SqlDateFormat")));
+    xmlDocument.setParameter("reportingDatedisplayFormat", vars.getSessionValue("#AD_SqlDateFormat"));
+    xmlDocument.setParameter("reportingDatesaveFormat", vars.getSessionValue("#AD_SqlDateFormat"));
     xmlDocument.setParameter("amountFrom", strCal1);
     xmlDocument.setParameter("amountTo", strCalc2);
     xmlDocument.setParameter("adOrgId", strAD_Org_ID);

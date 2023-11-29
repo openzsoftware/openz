@@ -421,7 +421,7 @@ BEGIN
         if v_hourto<v_hourfrom then 
             v_hourto:=v_hourto + INTERVAL '24 hours';
         end if;
-        if v_cur.ident='sunday' and (select dayname from c_workcalender where trunc(workdate)=trunc(new.workdate))='7' then
+        if v_cur.ident='sunday' and (select dayname from c_workcalender where trunc(workdate)=trunc(new.workdate))='7' then -- Es zählt der Tag bei Arbeitsbeginn
             new.issunday:='Y';
             v_cost:=round((v_cost*v_cur.fee/100)+v_cost,2);
             -- Includes Monday morning hours :
@@ -462,7 +462,7 @@ BEGIN
                 else
                     v_nightendhour:=v_hourto;
                 end if;
-                -- From night to morning
+                -- From night (Fr.) to morning (Sa.)
                 if v_hourfrom>v_cur.nightbegin and v_nightendhour>=v_cur.nightend then
                     new.nighthours:=(SELECT ((EXTRACT (EPOCH FROM (v_hourfrom - v_cur.nightend))) / 3600)) *(-1);
                 -- all the night (and more)
@@ -623,3 +623,36 @@ create or replace view tsrv_employeeevent_v as
 
 
 
+CREATE OR REPLACE FUNCTION zspm_getEmployeestatus(p_employeeID character varying,p_lang varchar)
+  RETURNS character varying AS
+$BODY$ 
+DECLARE 
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+
+*****************************************************/
+  v_uname varchar;
+  v_ptask varchar;
+  v_result varchar;
+  v_temp varchar;
+BEGIN
+  SELECT name from ad_user into v_uname where ad_user_id=p_employeeID;
+  SELECT coalesce(value,name) into v_ptask  from zspm_ptaskfeedbackline l,c_projecttask pt where 
+         pt.c_projecttask_id=l.c_projecttask_id and l.ad_user_id=p_employeeID and l.hour_from is not null and l.hour_to is null and l.createdbytimefeedbackapp = 'Y'
+         and not exists (select 0 from c_bpartner bp,ad_user u where u.c_bpartner_id=bp.c_bpartner_id and u.ad_user_id=l.ad_user_id  and pt.c_project_id=bp.c_project_id);
+  if v_ptask is not null then
+    select  ', in '|| zssi_getElementTextByColumname('Project',p_lang)||'  '||v_ptask into v_temp;
+    return v_uname||v_temp;
+  else 
+    return v_uname;
+  end if;
+END ; $BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;

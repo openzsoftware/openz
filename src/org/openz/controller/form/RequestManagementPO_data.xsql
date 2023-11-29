@@ -200,4 +200,12 @@
     <Parameter name="parUserID"/>
   </SqlMethod>
   
+  <SqlMethod name="getOrderlineDescription" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+       select description from c_orderline where c_orderline_id= ?
+    </Sql>
+    <Parameter name="cOrderlineId"/>
+  </SqlMethod>
+
   </SqlClass>

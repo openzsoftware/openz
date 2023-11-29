@@ -16,6 +16,7 @@ import org.openz.util.FileUtils;
 import org.openz.util.LocalizationUtils;
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 import org.openbravo.base.secureApp.VariablesSecureApp;
+import org.openbravo.erpCommon.security.SessionLoginData;
 import org.openz.view.Scripthelper;
 import org.openz.util.LocalizationUtils;
 import java.sql.Connection;
@@ -23,7 +24,7 @@ public class ConfigurePopup{
  
   
 	  public static String doConfigure(HttpSecureAppServlet servlet,VariablesSecureApp vars,Scripthelper script, String title, String focusfield) throws Exception{
-		    String retval="";
+	        String retval="";
 		    Connection conn = null;
 		    String scriptset="";
 		    String msgbox="";
@@ -49,9 +50,23 @@ public class ConfigurePopup{
 		    }
 		    msgbox=template.toString();   
 		    
-		    
-		    
-                    title=LocalizationUtils.getElementTextByElementName(servlet, title, vars.getLanguage());
+		    String navBarLogoId = SessionLoginData.getCustomizedNavBarLogo(servlet);
+		    String navBarLogoIdOrg = SessionLoginData.getCustomizedNavBarLogoFromOrg(servlet, vars.getOrg());
+		    // org logo overwrites client logo overwrites standard logo
+		    if(!navBarLogoIdOrg.isEmpty()) {
+		        navBarLogoId = navBarLogoIdOrg;
+		    }
+		    if(navBarLogoId.isEmpty()) {
+		        retval = Replace.replace(retval, "@openbravonavbarlogo@",
+		                  "<TD class=\"Popup_NavBar_bg_logo\" width=\"1\" onclick=\"openNewBrowser('http://www.openbravo.com', 'Openbravo');return false;\"><IMG src=\"../web/images/blank.gif\" alt=\"Openbravo\" title=\"Openbravo\" border=\"0\" id=\"openbravoLogo\" class=\"Popup_NavBar_logo\"></TD>");
+		    }else {
+		        retval = Replace.replace(retval, "@openbravonavbarlogo@",
+		                  "<td class=\"Main_NavBar_bg_logo\" width=\"1\"><div class=\"Main_NavBar_logo_custom\" alt=\"NavBarLogo\" title=\"NavBarLogo\" border=\"0\" id=\"NavBarLogo\">"
+		                + "<img src=\"../utility/ShowImage?id=" + navBarLogoId +"\" alt=\"NavBarLogo\">"
+		                + "</div></td>");
+		    }
+
+            title=LocalizationUtils.getElementTextByElementName(servlet, title, vars.getLanguage());
 
 		    retval=Replace.replace(retval, "@TITLE@", title);
 		    retval=Replace.replace(retval, "@SCRIPTSET@",scriptset);

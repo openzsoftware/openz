@@ -4144,7 +4144,7 @@ BEGIN
          RAISE NOTICE '%','Entry for PInstance not found - Using parameter &1=''' || p_PInstance_ID || ''' instead';
          v_src_role_id := p_PInstance_ID;
          v_user_id     := '0';
-         v_new_name    := '<SQL-test>';
+         v_new_name    := 'GENERATED';
       ELSE
         -- Get Parameters
         v_message := 'ReadingParameters';
@@ -4175,7 +4175,8 @@ BEGIN
       RAISE EXCEPTION '%', 'SQL-PROC ad_role_GenerateRole: '|| '@InvalidArguments@'|| ' v_src_role_id= '|| COALESCE(v_src_role_id, ''); -- GOTO EXCEPTION
     END IF;
     IF ( isempty(v_new_name) ) THEN
-      RAISE EXCEPTION '%', 'SQL-PROC ad_role_GenerateRole: '||'@InvalidArguments@'|| ' new_Name '||COALESCE(v_new_name, ''); -- GOTO EXCEPTION
+      v_new_name:= 'GENERATED';
+      --RAISE EXCEPTION '%', 'SQL-PROC ad_role_GenerateRole: '||'@InvalidArguments@'|| ' new_Name '||COALESCE(v_new_name, ''); -- GOTO EXCEPTION
     END IF;
 
  -- part 1/12: ad_role
@@ -4349,6 +4350,110 @@ $body$
 LANGUAGE 'plpgsql'
 COST 100;
 
+CREATE OR REPLACE FUNCTION ad_role_orgaccess_trg() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $_$ DECLARE 
+
+    /*************************************************************************
+    * The contents of this file are subject to the Compiere Public
+    * License 1.1 ("License"); You may not use this file except in
+    * compliance with the License. You may obtain a copy of the License in
+    * the legal folder of your Openbravo installation.
+    * Software distributed under the License is distributed on an
+    * "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+    * implied. See the License for the specific language governing rights
+    * and limitations under the License.
+    * The Original Code is  Compiere  ERP &  Business Solution
+    * The Initial Developer of the Original Code is Jorg Janke and ComPiere, Inc.
+    * Portions created by Jorg Janke are Copyright (C) 1999-2001 Jorg Janke,
+    * parts created by ComPiere are Copyright (C) ComPiere, Inc.;
+    * All Rights Reserved.
+    * Contributor(s): Openbravo SL
+    * Contributions are Copyright (C) 2001-2008 Openbravo, S.L.
+    * Contributions OpenZ Software GmbH, 2022
+    * Specifically, this derivative work is based upon the following Compiere
+    * file and version.
+    *************************************************************************
+    * $Id: AD_Role_OrgAccess_Trg.sql,v 1.3 2003/05/04 06:46:07 jjanke Exp $
+    ***
+    * Title: Update AD_Role.OrgList / ClientList
+    *  for all Roles as otherwise mutating trigger
+    * Description:
+    ************************************************************************/
+    --TYPE RECORD IS REFCURSOR;
+  CUR_Role RECORD;
+  Cur_Org RECORD;
+  v_ClientList VARCHAR(2000):=''; --OBTG:VARCHAR2--
+  v_OrgList    VARCHAR(2000):=''; --OBTG:VARCHAR2--
+  v_Client_ID VARCHAR(32):=-1; --OBTG:VARCHAR2--
+  v_role varchar;  
+BEGIN
+    
+    IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
+    END IF;
+  IF TG_OP = 'DELETE' THEN 
+    v_role:=old.ad_role_id;
+  ELSE 
+    v_role:=new.ad_role_id; 
+  END IF; 
+  -- For each Role
+  FOR CUR_Role IN
+    (SELECT *  FROM AD_Role where ad_role_id=v_role )
+  LOOP
+    v_ClientList:='';
+    v_OrgList:='';
+    v_Client_ID:=-1;
+    -- Assemble Client/OrgList
+    FOR Cur_Org IN
+      (
+      SELECT AD_Client_ID,
+        AD_Org_ID
+      FROM AD_Role_OrgAccess
+      WHERE AD_Role_ID=CUR_Role.AD_Role_ID
+        AND IsActive='Y'
+      ORDER BY AD_Client_ID,
+        AD_Org_ID
+      )
+    LOOP
+      IF(v_Client_ID <> Cur_Org.AD_Client_ID) THEN
+        v_Client_ID:=Cur_Org.AD_Client_ID;
+        IF(LENGTH(v_ClientList) <> 0) THEN
+          v_ClientList:=v_ClientList || ',';
+        END IF;
+        v_ClientList:=v_ClientList || Cur_Org.AD_Client_ID;
+      END IF;
+      -- Org
+      IF(LENGTH(v_OrgList) <> 0) THEN
+        v_OrgList:=v_OrgList || ',';
+      END IF;
+      v_OrgList:=v_OrgList || Cur_Org.AD_Org_ID;
+    END LOOP;
+    -- Org
+    --
+    IF(v_ClientList IS NULL OR LENGTH(v_ClientList)=0) THEN
+      v_ClientList:=' ';
+    END IF;
+    IF(v_OrgList IS NULL OR LENGTH(v_OrgList)=0) THEN
+      v_OrgList:=' ';
+    END IF;
+    RAISE NOTICE '%',CUR_Role.Name || ': Client=' || CUR_Role.ClientList || '->' || v_ClientList || ' - Org= ' || CUR_Role.OrgList || '->' || v_OrgList ;
+    -- Update Role
+    UPDATE AD_Role
+      SET ClientList=v_ClientList,
+      OrgList=v_OrgList
+    WHERE AD_ROLE.AD_ROLE_ID=CUR_Role.AD_ROLE_ID;
+  END LOOP;
+  -- Role
+  IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
+END; $_$;
+
+select zsse_DropTrigger ('ad_role_orgaccess_trg','ad_role_orgaccess');
+
+CREATE TRIGGER ad_role_orgaccess_trg
+  AFTER INSERT OR UPDATE OR DELETE
+  ON ad_role_orgaccess FOR EACH ROW
+  EXECUTE PROCEDURE ad_role_orgaccess_trg();
+  
 
 CREATE OR REPLACE FUNCTION ad_field_mod_trg() RETURNS trigger
     LANGUAGE plpgsql

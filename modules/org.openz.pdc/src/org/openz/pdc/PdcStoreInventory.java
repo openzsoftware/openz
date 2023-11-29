@@ -225,7 +225,7 @@ public class PdcStoreInventory extends HttpSecureAppServlet {
 	          new ProcessRunner(bundle).execute(this);
 	          PInstanceProcessData[] pinstanceData = PInstanceProcessData.select(this, pinstance);
 	          OBError mymess = Utility.getProcessInstanceMessage(this, vars, pinstanceData);
-	          mymess=vars.getMessage(getServletInfo());
+	          //mymess=vars.getMessage(getServletInfo());
 	          vars.removeMessage(getServletInfo());
 	          if (mymess!=null) {
 	            if (mymess.getType().equals("Error")) {

@@ -1080,9 +1080,11 @@ public class CreateFrom extends HttpSecureAppServlet {
     OBError myMessage = null;
     Connection conn = null;
     String strDocTypeTargetId= "";
-    // SZ Load Doctype to Determin Credit Memo (AR) - Only on Sales Invoice (167) Window
+    // SZ Load Doctype to Determin Credit Memo (AR) - Only on Sales Invoice (167)/Purchase Invoice (183) Window
     if (strWindowId.equals("167"))
         strDocTypeTargetId= vars.getGlobalVariable("inpcDoctypeTargetId", "167" + "|C_DOCTYPETARGET_ID", "");
+    if (strWindowId.equals("183"))
+        strDocTypeTargetId= vars.getGlobalVariable("inpcDoctypeTargetId", "183" + "|C_DOCTYPETARGET_ID", "");
     try {
       conn = this.getTransactionConnection();
       // Created from Shipment

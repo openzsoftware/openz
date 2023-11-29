@@ -45,9 +45,10 @@
   
    <SqlMethod name="getEmployee" type="preparedStatement" return="string">
       <Sql>
-        SELECT name from ad_user where ad_user_id=?
+        SELECT zspm_getEmployeestatus(?,?) from dual
       </Sql>
       <Parameter name="userid"/>
+      <Parameter name="lang"/>
    </SqlMethod>
    <SqlMethod name="getEmployeeStatusLeaving" type="preparedStatement" return="string">
       <Sql>

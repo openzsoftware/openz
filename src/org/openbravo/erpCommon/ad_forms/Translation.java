@@ -672,7 +672,7 @@ public class Translation extends HttpSecureAppServlet {
       xmlDocument.setParameter("childTabContainer", tabs.childTabs());
       xmlDocument.setParameter("theme", vars.getTheme());
       final NavigationBar nav = new NavigationBar(this, vars.getLanguage(), "Translation.html",
-          classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb());
+          classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       final LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(), "Translation.html",
           strReplaceWith);

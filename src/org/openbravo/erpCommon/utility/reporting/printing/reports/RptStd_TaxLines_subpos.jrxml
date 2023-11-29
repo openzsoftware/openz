@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.5.1.final using JasperReports Library version 6.5.1  -->
+<!-- Created with Jaspersoft Studio version 6.17.0.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RptStd_TaxLines" pageWidth="515" pageHeight="842" columnWidth="515" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="d7dc6787-6221-47db-93f9-bdfd850b77e9">
 	<property name="ireport.scriptlethandling" value="0"/>
 	<property name="ireport.encoding" value="UTF-8"/>
@@ -67,7 +67,7 @@ GROUP BY C_INVOICE.C_INVOICE_ID, nametax, C_CURRENCY.cursymbol, TAXHINT, taxdesc
 	<detail>
 		<band height="16" splitType="Stretch">
 			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
-				<reportElement key="textField-1" x="433" y="0" width="82" height="16" uuid="1f1b5487-a65f-4cec-abd5-0435c9e9d191"/>
+				<reportElement key="textField-1" stretchType="RelativeToTallestObject" x="433" y="0" width="82" height="16" uuid="1f1b5487-a65f-4cec-abd5-0435c9e9d191"/>
 				<box>
 					<pen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -76,13 +76,13 @@ GROUP BY C_INVOICE.C_INVOICE_ID, nametax, C_CURRENCY.cursymbol, TAXHINT, taxdesc
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph rightIndent="4" spacingBefore="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{taxamt}+" "+$F{cursymbol}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
-				<reportElement key="textField-2" x="367" y="0" width="66" height="16" uuid="a5a48992-7457-4048-bbae-2ea4b624746b"/>
+				<reportElement key="textField-2" stretchType="RelativeToTallestObject" x="367" y="0" width="66" height="16" uuid="a5a48992-7457-4048-bbae-2ea4b624746b"/>
 				<box leftPadding="2">
 					<pen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -91,13 +91,13 @@ GROUP BY C_INVOICE.C_INVOICE_ID, nametax, C_CURRENCY.cursymbol, TAXHINT, taxdesc
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="9" />
+					<font size="9"/>
 					<paragraph spacingBefore="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{nametax} + ":"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement key="textField-3" x="501" y="0" width="14" height="16" uuid="75458be7-98f9-4eac-8c09-c9917cc8cca5"/>
+				<reportElement key="textField-3" stretchType="RelativeToTallestObject" x="501" y="0" width="14" height="16" uuid="75458be7-98f9-4eac-8c09-c9917cc8cca5"/>
 				<box>
 					<pen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -106,13 +106,13 @@ GROUP BY C_INVOICE.C_INVOICE_ID, nametax, C_CURRENCY.cursymbol, TAXHINT, taxdesc
 					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph spacingBefore="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
-				<reportElement key="textField" x="250" y="0" width="117" height="16" uuid="187978a7-94af-42f7-90f5-c955b76c328d"/>
+				<reportElement key="textField" stretchType="RelativeToTallestObject" x="249" y="0" width="118" height="16" uuid="187978a7-94af-42f7-90f5-c955b76c328d"/>
 				<box>
 					<pen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -121,7 +121,7 @@ GROUP BY C_INVOICE.C_INVOICE_ID, nametax, C_CURRENCY.cursymbol, TAXHINT, taxdesc
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="9" />
+					<font size="9"/>
 					<paragraph spacingBefore="3"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{taxhint} == null ? "" : $F{taxhint})]]></textFieldExpression>
@@ -135,12 +135,14 @@ GROUP BY C_INVOICE.C_INVOICE_ID, nametax, C_CURRENCY.cursymbol, TAXHINT, taxdesc
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font size="9" />
+					<font size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($F{taxdesc} == null ? "" : $F{taxdesc})]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement key="Borderdesc" stretchType="RelativeToTallestObject" x="10" y="0" width="240" height="16" isPrintWhenDetailOverflows="true" uuid="cb05a65b-fb74-44e2-8f3b-e33aa26b8b0a"/>
+				<reportElement key="Borderdesc" stretchType="RelativeToTallestObject" x="10" y="0" width="239" height="16" isPrintWhenDetailOverflows="true" uuid="cb05a65b-fb74-44e2-8f3b-e33aa26b8b0a">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -148,11 +150,11 @@ GROUP BY C_INVOICE.C_INVOICE_ID, nametax, C_CURRENCY.cursymbol, TAXHINT, taxdesc
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font size="9" />
+					<font size="9"/>
 				</textElement>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement key="Bordertaxhint" x="250" y="0" width="117" height="16" isPrintWhenDetailOverflows="true" uuid="b892af31-fea5-40a5-8214-4c265547c1e1"/>
+				<reportElement key="Bordertaxhint" stretchType="RelativeToTallestObject" x="249" y="0" width="118" height="16" isPrintWhenDetailOverflows="true" uuid="b892af31-fea5-40a5-8214-4c265547c1e1"/>
 				<box>
 					<pen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -161,12 +163,12 @@ GROUP BY C_INVOICE.C_INVOICE_ID, nametax, C_CURRENCY.cursymbol, TAXHINT, taxdesc
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="9" />
+					<font size="9"/>
 					<paragraph spacingBefore="3"/>
 				</textElement>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement key="Bordername" x="381" y="0" width="66" height="16" isPrintWhenDetailOverflows="true" uuid="309f6a67-4dfe-4530-b3af-11d9cb734265"/>
+				<reportElement key="Bordername" stretchType="RelativeToTallestObject" x="381" y="0" width="66" height="16" isPrintWhenDetailOverflows="true" uuid="309f6a67-4dfe-4530-b3af-11d9cb734265"/>
 				<box leftPadding="2">
 					<pen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -175,12 +177,12 @@ GROUP BY C_INVOICE.C_INVOICE_ID, nametax, C_CURRENCY.cursymbol, TAXHINT, taxdesc
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="9" />
+					<font size="9"/>
 					<paragraph spacingBefore="3"/>
 				</textElement>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement key="Borderamt" x="447" y="0" width="68" height="16" isPrintWhenDetailOverflows="true" uuid="52e8ef22-1e86-441d-8e02-740fb68b4fc1"/>
+				<reportElement key="Borderamt" stretchType="RelativeToTallestObject" x="447" y="0" width="68" height="16" isPrintWhenDetailOverflows="true" uuid="52e8ef22-1e86-441d-8e02-740fb68b4fc1"/>
 				<box>
 					<pen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -189,7 +191,7 @@ GROUP BY C_INVOICE.C_INVOICE_ID, nametax, C_CURRENCY.cursymbol, TAXHINT, taxdesc
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph spacingBefore="3"/>
 				</textElement>
 			</textField>
@@ -203,7 +205,7 @@ GROUP BY C_INVOICE.C_INVOICE_ID, nametax, C_CURRENCY.cursymbol, TAXHINT, taxdesc
 					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph spacingBefore="3"/>
 				</textElement>
 			</textField>

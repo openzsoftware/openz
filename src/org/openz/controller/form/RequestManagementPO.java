@@ -57,8 +57,12 @@ public class RequestManagementPO extends HttpSecureAppServlet {
             	 }
             	 retval=grid.getSelectedIds(null, vars, "c_orderline_id");
             	 for (int i = 0; i < retval.size(); i++) {
-            		 String soorderline=grid.getValue(this, vars, retval.elementAt(i), "soorderlineid");
-            		 String description = grid.getValue(this, vars, retval.elementAt(i), "description");
+            	     String description = RequestManagementPOData.getOrderlineDescription(this, retval.elementAt(i)); // aus datenbank
+            	     String newDescription = grid.getValue(this, vars, retval.elementAt(i), "description"); // aus user input
+            		 if(!description.replaceAll("\\r\\n", "").equals(newDescription)){ // zeilenumbrüche ignorieren im vergleich
+            		     description = newDescription;
+            		 }
+                     String soorderline=grid.getValue(this, vars, retval.elementAt(i), "soorderlineid");
             		 String auxfield1 = grid.getValue(this, vars, retval.elementAt(i), "auxfield1");
             		 String scheddeliverydatepo=  LocalizationUtils.convDateString2SQL(grid.getValue(this, vars, retval.elementAt(i), "scheddeliverydatePO"), this, vars);
             		 String scheddeliverydateso=  LocalizationUtils.convDateString2SQL(grid.getValue(this, vars, retval.elementAt(i), "scheddeliverydateSO"), this, vars);
@@ -133,6 +137,10 @@ public class RequestManagementPO extends HttpSecureAppServlet {
         		   RequestManagementPOData.postAction(conn, this, docID);
   			   RequestManagementPOData.checkPOOffersAndCloseFromSO(conn, this, soorderline,vars.getUser());
         	 }
+             retval = grid.getSelectedIds(null, vars, "c_order_id");
+             for(int i = 0; i < retval.size(); i++) {
+                 RequestManagementPOData.updateDocAction(conn,this, "RE", retval.elementAt(i)); // revert RX from postaction
+             }
         	 conn.commit();
         	 conn.close();
         	 msg.setTitle("OK");

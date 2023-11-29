@@ -231,4 +231,11 @@ Contributor(s): ______________________________________.
        <Parameter name="strchildtablename"/>
        <Parameter name="strchildkey"/>
    </SqlMethod>
+   <SqlMethod name="getTimestamp" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        SELECT to_char(now(),?) as result from dual
+      ]]></Sql>
+      <Parameter name="dateTimeFormat"/>
+   </SqlMethod>
  </SqlClass>

@@ -175,5 +175,58 @@
       ]]></Sql>
     <Parameter name="attribute"/>
     <Parameter name="value"/>
+   </SqlMethod>
+   
+   <SqlMethod name="isOneTimePassword" type="preparedStatement" return="boolean" default="false">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT COUNT(*) AS RESULT FROM ad_user WHERE ad_user_id = ? AND password IS NULL AND mfa_onetimepassword IS NOT NULL
+      </Sql>
+      <Parameter name="adUserId"/>
+   </SqlMethod>
+
+   <SqlMethod name="isPermsession" type="preparedStatement" return="boolean" default="false">
+        <Sql><![CDATA[
+            SELECT count(*) as result FROM ad_user WHERE permsessionid = ?
+        ]]></Sql>
+        <Parameter name="permsessionId"/>
+   </SqlMethod>
+
+   <SqlMethod name="isKeepMeLoggedInActivated" type="preparedStatement" return="string">
+        <Sql><![CDATA[
+            SELECT c_getconfigoption('keeploggedinactivated', ?);
+        ]]></Sql>
+        <Parameter name="adOrgId"/>
+   </SqlMethod>
+   
+   <SqlMethod name="isMFAActivated" type="preparedStatement" return="string">
+        <Sql><![CDATA[
+            SELECT c_getconfigoption('mfaactivated', ?);
+        ]]></Sql>
+        <Parameter name="adOrgId"/>
+   </SqlMethod>
+
+   <SqlMethod name="getDefaultLanguage" type="preparedStatement" return="string">
+        <SqlMethodComment>C726FEC915A54A0995C568555DA5BB3C -> Your Company</SqlMethodComment>
+        <Sql><![CDATA[
+            SELECT ad_language FROM ad_client WHERE ad_client_id = 'C726FEC915A54A0995C568555DA5BB3C';
+        ]]></Sql>
+   </SqlMethod>
+
+   <SqlMethod name="getCustomizedNavBarLogo" type="preparedStatement"  return="String" default="">
+    <SqlMethodComment>Navbar Logo of standard client</SqlMethodComment>
+    <Sql>
+    <![CDATA[
+        select your_company_menu_image from ad_clientinfo where ad_client_id='C726FEC915A54A0995C568555DA5BB3C';
+    ]]></Sql>
+    </SqlMethod>
+
+   <SqlMethod name="getCustomizedNavBarLogoFromOrg" type="preparedStatement"  return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+        select your_company_menu_image from ad_orginfo where ad_org_id=?
+    ]]></Sql>
+    <Parameter name="adOrgId"/>
     </SqlMethod>
 </SqlClass>

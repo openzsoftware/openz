@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -32,7 +33,9 @@ import org.openbravo.base.filter.ValueListFilter;
 import org.openbravo.base.model.Entity;
 import org.openbravo.base.model.ModelProvider;
 import org.openbravo.base.model.Property;
+import org.openbravo.base.secureApp.DefaultOptionsData;
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
+import org.openbravo.base.secureApp.MfaEmailCodeData;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.base.structure.BaseOBObject;
 import org.openbravo.dal.core.OBContext;
@@ -41,6 +44,7 @@ import org.openbravo.erpCommon.utility.Utility;
 import org.openbravo.model.ad.datamodel.Table;
 import org.openbravo.model.ad.ui.Tab;
 import org.openbravo.model.ad.ui.Window;
+import org.openbravo.utils.FormatUtilities;
 import org.openbravo.xmlEngine.XmlDocument;
 
 public class Menu extends HttpSecureAppServlet {
@@ -60,6 +64,7 @@ public class Menu extends HttpSecureAppServlet {
     VariablesSecureApp vars = new VariablesSecureApp(request);
     String tempMenu=SessionLoginData.selectMenuTarget(this, vars.getRole());;
     String tempMain=SessionLoginData.selectMainTarget(this, vars.getRole());
+    final String adUserId = vars.getSessionValue("#AD_USER_ID");
     if (queryString == null && tempMain != null){
     	queryString=tempMain;
     }
@@ -70,6 +75,24 @@ public class Menu extends HttpSecureAppServlet {
     	}else {
     		queryString="../org.openz.sysconfig.ad_forms/Name.html";
     	}
+    
+    boolean noMenu = false;
+    boolean cookieSet = false;
+    Cookie[] cooks=request.getCookies();
+    if (cooks!=null) {
+        for (int i=0;i<cooks.length;i++) {
+            if (cooks[i].getName().equals("MFA_Cookie") && MfaEmailCodeData.validateCookie(this, FormatUtilities.sha1Base64(cooks[i].getValue()), adUserId)) {
+                cookieSet = true;
+            }
+        }
+    }
+    if (SessionLoginData.isOneTimePassword(this, adUserId)) {
+        queryString="../org.openbravo.base.secureApp.ad_forms/Mfa_ChangePassword.html";
+        noMenu = true;
+    }else if (DefaultOptionsData.isMFAActivatedForUser(this, adUserId).equals("Y") && !cookieSet) {
+        queryString = "../org.openbravo.base.secureApp.ad_forms/Mfa_EmailCode.html";
+        noMenu = true;
+    }
     if (vars.getCommand().equals("DEACTIVATEOTHER")) {
     	SessionLoginData.deactivateOtherUserSessions(this, vars.getDBSession(), vars.getUser());
     	vars.removeSessionValue("ISLOGGEDIN");
@@ -100,6 +123,10 @@ public class Menu extends HttpSecureAppServlet {
     if ("true".equals(hideMenu)) {
     menuLoadingURL = "about:blank";
      menuURL += "?Command=HIDE";
+    }
+
+    if(noMenu) {
+        menuURL = "../hidden.html";
     }
 
     printPageFrameIdentificacion(response, menuURL, (targetmenu.equals("") ? "../utility/Home.html"

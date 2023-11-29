@@ -268,4 +268,16 @@
     <Parameter name="orgid"/>
     <Parameter name="Delimiter"/>
   </SqlMethod>
+  <SqlMethod name="i_import_erp2go_invoicing" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT i_import_erp2go_invoicing(?,?,?,?) AS plresult FROM dual
+     ]]>
+     </Sql>
+    <Parameter name="filename"/>
+    <Parameter name="adUserId"/>
+    <Parameter name="orgid"/>
+    <Parameter name="Delimiter"/>
+  </SqlMethod>
 </SqlClass>

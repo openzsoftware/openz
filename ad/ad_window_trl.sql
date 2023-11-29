@@ -125,7 +125,6 @@
 11373C5DB3AF470E832DD6E90CCCD3D8	128	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	0	2014-02-21 21:32:07.717551	0	Attachment	\N	\N	N
 119CB6A0C9624A7DA5F7A7D610A887DC	131	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	0	2022-03-23 17:35:13.857015	0	Muhasebe kategorileri	\N	\N	Y
 11F86964EC624657B6BF1A8990EEEF87	2AA1983A1B004B17B4DED1318FE61748	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	100	2014-02-21 21:32:07.717551	100	Afdelingen / Vakgebieden	\N	\N	Y
-122756BFF1584786A4ACA6A5FA0872F5	800051	fr_FR	0	0	Y	2013-11-15 15:37:03.793514	0	2013-11-15 15:37:03.793514	100	Process Plan	\N	\N	N
 124461AD5C984D3B9119AC963D3E1DCF	152	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	0	2014-02-21 21:32:07.717551	0	Verkoop Regio	\N	\N	Y
 12627C2C9C9248E8B9D872E3C6FD2BC6	800064	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	0	2022-03-23 17:35:13.857015	100	Kontrol noktası - şart	\N	\N	Y
 1283F987F65F48438549E75E638C2F41	120	de_DE	0	0	Y	2010-01-06 10:18:53.292413	0	2010-06-21 04:38:47.627292	0	Mengeneinheiten	Maintain Unit of Measure `	The Unit of Measure Window is used to define non monetary units of measure.  It also defines if conversion between units of measure are allowed and how they are to be performed. The system provides some automatic conversions between units of measures (e.g. minute, hour, day, working day, etc.) if they are not explicitly defined here.Conversions need to be direct (i.e. if you have only a conversion between A-B and B-C, the system cannot convert A-C, you need to define it explicitly).`	Y
@@ -138,7 +137,6 @@
 1367D9523CB14CB9B2815B421D22FA7A	800002	de_DE	0	0	Y	2010-01-06 10:18:53.292413	0	2010-06-21 04:38:47.754642	0	Incoterms		When commercial traders enter into a contract for the purchase and sale of goods they are free to negotiate specific terms of their contract. These terms include the price, quantity, and characteristics of the goods. Every international contract will also contain what is referred to as an Incoterm (international commercial term). The Incoterm selected by the parties to the transaction will determine which party pays the cost of each segment of transport, who is responsible for loading & unloading of goods, and who bears the risk of loss at any given point during a given international shipment. Incoterms also influence Customs valuation basis of imported merchandise.`	Y
 136EA6A3C45C47C0A31C77871B259F25	203	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	0	2014-02-21 21:32:07.717551	0	Request Processor	\N	\N	N
 13A500F4B3BF481683561755C8F7BE70	8FB3E5CFBE244B3E993E960ED86F0565	fr_FR	0	0	Y	2013-11-15 15:37:03.793514	100	2013-11-15 15:37:03.793514	100	Color Definition	\N	\N	N
-13E6713EF5004F128402EA7F109B7171	800051	it_IT	0	0	Y	2014-02-21 21:17:07.983467	0	2014-02-21 21:17:07.983467	100	Process Plan	\N	\N	N
 13E85CDE1D024305BD2AC717EF8BA792	800008	it_IT	0	0	Y	2014-02-21 21:17:07.983467	0	2014-02-21 21:17:07.983467	100	Tracker Proposta	\N	\N	Y
 1414FAEBF5434255955A76EC20B99810	861E3767450D436EB14CC603010E2FE3	zh_CN	0	0	Y	2016-01-06 19:37:11.516696	100	2016-01-06 19:37:11.516696	100	银行结单SEPA	\N	\N	Y
 14174FC13156413D88722B52B85FE814	39B246B57AF84164A3523A052ECA2B21	de_DE	0	0	Y	2012-04-13 13:01:13.145118	100	2012-04-13 13:01:25.445692	100	Positionen / Funktionen	\N	\N	Y
@@ -238,7 +236,6 @@
 1FC54DE702A1446F8D78646A5D326EDA	111	it_IT	0	0	Y	2014-02-21 21:17:07.983467	0	2014-02-21 21:17:07.983467	0	Role	\N	\N	N
 2027A1AB83E143CFB404BAF38B55E162	A3BCE1EE0AA340A8B3B0CA69502080E2	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	100	2022-03-23 17:35:13.857015	100	Çalışanın saatlik hesabı	\N	\N	Y
 20E083E12A1B4A95B440D376D7C0ADFA	254	it_IT	0	0	Y	2014-02-21 21:17:07.983467	0	2014-02-21 21:17:07.983467	0	Employee Expenses	\N	\N	N
-20F75513662641D09557A71F18BBC125	800016	zh_CN	0	0	Y	2011-04-07 17:42:21.229113	0	2011-04-07 17:42:21.229113	0	执行计划	Define background processes to be automatically performed by the application.	Define background processes to be automatically performed by the application.	Y
 2103FC01B28B46F38D5F820E0F5E137C	0C646E51BF1C4C95B34B5D80642C4F29	zh_CN	0	0	Y	2011-04-07 17:42:21.229113	0	2011-04-07 17:42:21.229113	0	直销	Direct Sales	\N	Y
 2120994E00844443897646F2168680D9	87599AF9D85448A88B595351789EF383	zh_CN	0	0	Y	2016-01-06 19:37:11.516696	100	2016-01-06 19:37:11.516696	100	不可生产项	\N	\N	Y
 214DA563130F44469AF7DA002BA1F4F3	5B4232EDDDD54CBF9FF4B0A869BBFBF6	fr_FR	0	0	Y	2013-11-15 15:37:03.793514	100	2013-11-15 15:37:03.793514	100	Etapes actuellemnt actives	\N	\N	Y
@@ -305,7 +302,6 @@
 2A0BC507A7C44B4E86186E2EA22242BC	2AA1983A1B004B17B4DED1318FE61748	de_DE	0	0	Y	2012-04-13 12:59:57.769754	100	2012-04-13 13:00:47.850364	100	Abteilungen / Bereiche	\N	\N	Y
 2A0C03335AE44076AC660C7CDEB6EA7F	204	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	0	2014-02-21 21:32:07.717551	0	Mail Sjabloon	\N	\N	Y
 2A248BF386E440C69C8ED6E199952601	4CDDF99823C94ACA81700FB8F12052AA	es_ES	0	0	Y	2011-02-17 12:20:59.132554	0	2011-02-17 12:20:59.132554	0	Invoice Preferences	Invoice Preferences	\N	N
-2A444C5F309A4D569BD540B6E6175898	800051	es_ES	0	0	Y	2011-02-17 12:20:59.132554	0	2011-02-17 12:21:55.857252	0	Plan de Producción	Define los pasos y procesos a completar para un bien terminado o en estado intermedio, tomando en cuenta los recursos disponibles.	Define los pasos y procesos a completar para un bien terminado o en estado intermedio, tomando en cuenta los recursos disponibles.	Y
 2A4AF26A05904A1DB7F33F1465F8EB73	A4DEE23F8DD44127B0C55D54F9C4AB5F	de_DE	0	0	Y	2010-11-01 16:47:56.496809	100	2010-11-01 16:48:04.992497	100	Kostenstelle	\N	\N	Y
 2A8741EDC6574555B29C00B2B4F7A698	245	es_ES	0	0	Y	2011-02-17 12:20:59.132554	0	2011-02-17 12:21:54.909169	0	Área de interés	Crea y edita áreas de interés para rastrear las necesidades y los deseos potenciales de sus terceros.	Crea y edita áreas de interés para rastrear las necesidades y los deseos potenciales de sus terceros.	Y
 2A8C42FE1C4C415EB76DB1D6E85B2B22	F41D3C7F5DF1440485C25231B68F2683	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	100	2022-03-23 17:35:13.857015	100	iş takvimi	\N	\N	Y
@@ -588,7 +584,6 @@
 58379596A62847ADB7D3B31C78029424	93C7676AA2A94769B48A4B6E102FDD67	it_IT	0	0	Y	2014-02-21 21:17:07.983467	100	2014-02-21 21:17:07.983467	100	Modelli Ordine	\N	\N	Y
 5879EDC012CB4B4E8854AF07B6497D07	100	it_IT	0	0	Y	2014-02-21 21:17:07.983467	0	2014-02-21 21:17:07.983467	0	Tables and Columns	\N	\N	N
 588F126D14AA45358C4FCA5F578385AB	252	es_ES	0	0	Y	2011-02-17 12:20:59.132554	0	2011-02-17 12:21:54.959193	0	Categoría de Activos	Crea y edita categorías para agrupar los activos de características similares.	Crea y edita categorías para agrupar los activos de características similares.	Y
-589D2802C2704C238DDAEB4FA229CE03	800016	es_ES	0	0	Y	2011-02-17 12:20:59.132554	0	2011-02-17 12:21:55.267894	0	Planificador de procesos	Define los procesos en background que deben ser ejecutados automáticamente por la aplicación. 	Define los procesos en background que deben ser ejecutados automáticamente por la aplicación. 	Y
 58DFE1D52F434CA990A4B9E9BCE0C0DB	8FCD3BFE5FD746BCAC6C5947251BB16A	fr_FR	0	0	Y	2015-06-01 09:18:11.553486	100	2015-06-01 09:18:11.553486	100	Order Overwiew	\N	\N	N
 59177BD87F9E410DA6273D8EA3BFDFF9	113	de_DE	0	0	Y	2010-01-06 10:18:53.292413	0	2010-06-21 04:38:47.617389	0	Workflows	Maintain Workflow`	The Workflow Window defines Workflows in the system, the access level for the Workflow and the Nodes or Steps within the Workflow.`	Y
 5979C10FC9A148FB8DFFBFB1D0703F8A	800070	de_DE	0	0	Y	2010-01-06 10:18:53.292413	0	2010-06-21 04:38:47.804643	0	Externe Funktionen			Y
@@ -700,7 +695,6 @@
 69A3F06E4602460EA6EDBE369DF0A1F5	168	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	0	2022-03-23 17:35:13.857015	100	Envanter	\N	\N	Y
 69CA23150FF244138E6EEFF2C899F4A2	C6E0BAC29A894948B25C233A6B16A47C	fr_FR	0	0	Y	2013-11-15 15:37:03.793514	100	2013-11-15 15:37:03.793514	100	Articles important dans la vente	\N	\N	Y
 6A76ACEADDA5420CA928EBD7715F679D	BEE6D919FC9B44C096DA60CB08F43494	de_DE	0	0	Y	2014-04-21 16:55:33.270747	100	2014-04-21 16:55:50.325434	100	Übersicht Rahmenverträge	\N	\N	Y
-6A92376EB2454167BE886D1E672C4531	800016	it_IT	0	0	Y	2014-02-21 21:17:07.983467	0	2014-02-21 21:17:07.983467	0	Process Scheduling	\N	\N	N
 6AA0B3513B544F18976D566959F0C877	800086	de_DE	0	0	Y	2010-01-06 10:18:53.292413	0	2010-06-21 04:38:47.818251	0	Steuerkategorie Geschäftspartner	Defines Tax Categories for bussines partners`	Defines Tax Categories for bussines partners. These categories are used in order to choose which tax will be applied.`	Y
 6AC2B900DE244A16AF8DA626ABF920F5	175	es_ES	0	0	Y	2011-02-17 12:20:59.132554	0	2011-02-17 12:21:54.625019	0	Reglas de almacén	Mantenimiento de las reglas de los almacenes tipo	La ventana de Mantenimiento de las reglas de los almacenes tipo define las reglas que para contabilizar cuando se realizan inventarios.	Y
 6ADFEDA93818475BA974F24188F26296	4E31A5C7FD0148D68553F0F913396CDB	de_DE	0	0	Y	2013-08-05 16:23:36.651477	100	2013-08-05 16:24:42.355506	100	Sendingsannahme	\N	\N	Y
@@ -780,7 +774,6 @@
 753AE8399A164AB99E35EAEFCDD7E632	40F78582E7444D0495EF8B32AB67BACE	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	100	2014-02-21 21:32:07.717551	100	Serial Nummer Tracking	\N	\N	Y
 7542E69EB27C487090CCAD8551E197AA	F75EF0A0829649A9B3E3540447B5E5BE	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	100	2022-03-23 17:35:13.857015	100	Beklenen Teslimatlar	\N	\N	Y
 75537D655A314C97959CC1B9AA39BE8E	163	de_DE	0	0	Y	2010-01-06 10:18:53.292413	0	2010-06-21 04:38:47.657306	0	Verzeichnisstruktur	Maintain Tree definition`	The Tree and Node Image Window defines the descriptors and images that will be used when a Tree is displayed.`	Y
-756EE1CE36BB4FC0BDF2466794647434	800016	fr_FR	0	0	Y	2013-11-15 15:37:03.793514	0	2013-11-15 15:37:03.793514	0	Process Scheduling	\N	\N	N
 7575E11A6C8F42F5BC1448B2D685D9D6	3B800C41F0DC4618B81E4295E9E2B232	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	100	2022-03-23 17:35:13.857015	100	Çalışan (MLM)	\N	\N	Y
 758502BA09784BCE9D2087A71E1628AC	A6EF179570554AD1A0E91B333138DFE0	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	100	2022-03-23 17:35:13.857015	100	Online mağaza arayüzünün durumu	\N	\N	Y
 758C7347A13D4129A2782D7088F928FA	5B4232EDDDD54CBF9FF4B0A869BBFBF6	es_ES	0	0	Y	2012-11-22 10:21:32.242977	100	2012-11-22 10:21:32.242977	100	Overview currently active Arbeitsgänge 	\N	\N	Y
@@ -870,7 +863,6 @@
 8158F08CCF694CEF81438CB32ABC8348	259	it_IT	0	0	Y	2014-02-21 21:17:07.983467	0	2014-02-21 21:17:07.983467	100	Sequenza N. Seriale	\N	\N	Y
 815C695ABD3E4716B33D378E08557EEA	252	de_DE	0	0	Y	2010-01-06 10:18:53.292413	0	2015-09-23 18:17:53.565405	100	Gütergruppe	Gütergruppe	The group of assets determines default accounts.  If a asset group is selected in the product category, assets are created when delivering the asset.`	Y
 81D7DBDD4EB146618CA6B026CBFC6F52	800048	es_ES	0	0	Y	2011-02-17 12:20:59.132554	0	2011-02-17 12:21:55.843496	0	Incidencia de Trabajo	Define los tipos de incidencias de trabajo que pueden ocurrir durante la producción.	Define los tipos de incidencias de trabajo que pueden ocurrir durante la producción.	Y
-81E8C18C71DA483B9C9C6B2F8AAFB872	800051	zh_CN	0	0	Y	2011-04-07 17:42:21.229113	0	2011-04-07 17:42:21.229113	0	执行计划	Define the steps and processes to be completed for an intermediate or finished good, taking in account available resources.	Define the steps and processes to be completed for an intermediate or finished good, taking in account available resources.	Y
 82B6ED5CDF6B4478AF2F5FABD1C88C4D	151	fr_FR	0	0	Y	2013-11-15 15:37:03.793514	0	2013-11-15 15:37:03.793514	0	Element	\N	\N	Y
 82C4585C60FE4A03929454B3D5D660FC	161	zh_CN	0	0	Y	2011-04-07 17:42:21.229113	0	2011-04-07 17:42:21.229113	0	杂费	Maintain Charges	The Charges Window defines the different charges that may be incurred.  These can include Bank Charges, Vendor Charges and Handling Charges.	Y
 830E5B67077046809F7373609D1F2610	BD531B6DF0A24EC4BF5411CB19A73A02	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	100	2014-02-21 21:32:07.717551	100	Subscription Order	\N	\N	N
@@ -962,7 +954,6 @@
 8FFCED091589486EB63AB4495BDEABBA	198	fr_FR	0	0	Y	2013-11-15 15:37:03.793514	0	2013-11-15 15:37:03.793514	0	Journal de trésorerie	\N	\N	Y
 90572C70897E4013AAA4C3BED08A2A68	122	zh_CN	0	0	Y	2011-04-07 17:42:21.229113	0	2011-04-07 17:42:21.229113	0	国家区域和城市	Define countries with regions and cities to be used in the application.	Define countries with regions and cities to be used in the application.	Y
 90C668AECBD4455EB50BF1ACAF07EF48	149	es_ES	0	0	Y	2011-02-17 12:20:59.132554	0	2011-02-17 12:21:54.448653	0	Campaña de Marketing	Crea campañas específicas de ventas para las operaciones de ventas.	Crea campañas específicas de ventas para las operaciones de ventas.	Y
-90C912759F9946E7BDFAB2FF9F681C18	800051	de_DE	0	0	Y	2010-01-06 10:18:53.292413	0	2010-06-21 04:38:47.793355	0	Produktionsplan	Process Plan`	In this window there are defined the diferent process plans of the \n\nenterprise. A process plan is a set of sequences or processes that elaborates \n\none or more diferent products.`	Y
 90CE6578C8F24F50BBCFDCC3E44F5736	B30E33E33A994A95A1AF7A65B64C8CEF	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	100	2014-02-21 21:32:07.717551	100	Importeer Prijslijst	\N	\N	Y
 91270ABB782F42A2B5BBEF8A8D045DA9	27D221E87D2F48888EF9250DECEDA2F4	zh_CN	0	0	Y	2016-01-06 19:37:11.516696	100	2016-01-06 19:37:11.516696	100	订购间隔概观	\N	\N	Y
 919D6A4D9EFD45988C348FAA64051B6D	233	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	0	2022-03-23 17:35:13.857015	100	Price List Schema	\N	\N	N
@@ -1007,7 +998,6 @@
 95A1ED991CBE4688B66D56991D8B3AAB	121	fr_FR	0	0	Y	2013-11-15 15:37:03.793514	0	2013-11-15 15:37:03.793514	0	emplacement	\N	\N	Y
 95B2114D33D946BFBDE416FF948BE1AB	E6AB33F249AA494197149ED6387D1442	de_DE	0	0	Y	2012-09-06 12:01:46.144909	100	2012-09-06 12:01:46.144909	100	Teams	\N	\N	Y
 9673FB21BE764471BF05D2AD518E6D23	800083	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	0	2014-02-21 21:32:07.717551	0	Extern Point of Sales	\N	\N	Y
-96C5FFBEF9D44C9F936A6105B6AD7208	800016	de_DE	0	0	Y	2010-01-06 10:18:53.292413	0	2010-06-21 04:38:47.768287	0	Prozessautomatisierung			Y
 9702F9D1099F447D9E42B032CDB1A63A	256	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	0	2014-02-21 21:32:07.717551	0	Attribuut Set	\N	\N	Y
 97250272410E4CA99BED0DD7C5124499	149	de_DE	0	0	Y	2010-01-06 10:18:53.292413	0	2010-06-21 04:38:47.651885	0	Verkauf-Kampangne	Maintain Marketing Campaigns`	The Marketing Campaign Window defines the start and end date for a campaign.  It also gives a running balance of the invoice amounts which referred to this campaign.`	Y
 9750B8E5DFC8413398DEB14150BA4DC4	800067	zh_CN	0	0	Y	2011-04-07 17:42:21.229113	0	2011-04-07 17:42:21.229113	0	周期数量控制数据	Create and edit data collection and measurements related to quality control.  This is done at predefined checkpoints for a produced product.	Create and edit data collection and measurements related to quality control.  This is done at predefined checkpoints for a produced product.	Y
@@ -1380,7 +1370,6 @@ CD1B433C16DD4B50B313829EB79DB16A	137	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	0	20
 CD6B4647C3C241DCBEE24E15B30F86B4	246	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	0	2022-03-23 17:35:13.857015	0	System	\N	\N	N
 CD6CA44101A94D539D1EAEEDB6CBF16A	110	es_ES	0	0	Y	2011-02-17 12:20:59.132554	0	2011-02-17 12:21:54.164999	0	Organización	Crea las organizaciones y gestiona la estructura organizacional de acuerdo con sus necesidades de negocios.	Crea las organizaciones y gestiona la estructura organizacional de acuerdo con sus necesidades de negocios.	Y
 CD70C9CB5175442AB6A68927995B750D	800003	de_DE	0	0	Y	2010-01-06 10:18:53.292413	0	2010-06-21 04:38:47.755443	0	Mengenrabatte		Thorugh this window users can configuer different rappels when a client reaches a certain sales volume. Each rappel is managed through different product categories and is applicable to partners that have been included. In summary, this are valid to a certain category and to specific partners.`	Y
-CD966ACEED7944BBBB7B5573F758765A	800016	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	0	2014-02-21 21:32:07.717551	0	Process Scheduling	\N	\N	N
 CDA256AA1AB84FDBAD788F001E2385B8	169	de_DE	0	0	Y	2010-01-06 10:18:53.292413	0	2012-11-21 13:53:28.801245	100	Warenbewegung Kunde	Customer Inventory Shipments Customer Returns`	The Shipment Window defines shipments made or to be made to a customer.  They are generated from an Customer Order.  The Shipment Document will generate the Customer Invoice.`	Y
 CDA709ACA3CC4AD9913758072965C347	8144C81A271542C7815F594EA0D3DB6D	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	100	2014-02-21 21:32:07.717551	100	User Definable Lists	\N	\N	Y
 CDAC55829E97428B910338924FDEAA5A	A3B54491A52A417EA04E0955968DBC4B	fr_FR	0	0	Y	2015-12-06 13:27:41.820662	100	2015-12-06 13:27:41.820662	100	Export Product	\N	\N	N
@@ -1568,7 +1557,6 @@ E914447064464F689419552B873FC1B5	139	de_DE	0	0	Y	2010-01-06 10:18:53.292413	0	20
 E977D1260E624E5684F570F18CEBEFFF	2CC1DC1EDEA2454F987E7F2BBF48A4AE	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	0	2022-03-23 17:35:13.857015	0	Dataset	\N	\N	Y
 E9910C5D7F574D818346DD1E57CB9817	143	it_IT	0	0	Y	2014-02-21 21:17:07.983467	0	2014-02-21 21:17:07.983467	100	Ordine Vendite	\N	\N	Y
 E9CEECA96026458EADA4F5AF82EA82C0	203	zh_CN	0	0	Y	2011-04-07 17:42:21.229113	0	2011-04-07 17:42:21.229113	0	请求引擎	Define Request Processors	The Request Processor Window allows you to define different processes that you want to occur and the frequency and timing of these processes	Y
-E9F97F5635034B8498D5253A130F63AD	800051	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	0	2014-02-21 21:32:07.717551	100	Process Plan	\N	\N	N
 EA20966649774E1C994FD245251C63FF	54575FD7FA134A729D4BC19358904775	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	100	2022-03-23 17:35:13.857015	100	Malzeme hareketine genel bakış	\N	\N	Y
 EA3607C68BDE4D6D9E1810F450291F78	800030	nl_NL	0	0	Y	2014-02-21 21:32:07.717551	0	2014-02-21 21:32:07.717551	100	Service Center	\N	\N	Y
 EA4ED97B12424A43877FE29AACA748A7	207	fr_FR	0	0	Y	2013-11-15 15:37:03.793514	0	2013-11-15 15:37:03.793514	100	Commission	\N	\N	Y
@@ -1659,10 +1647,8 @@ F81D973D0BD2454D9174253356FA149A	237	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	0	20
 F831E5ED3BC443C894402135C3565B90	207	zh_CN	0	0	Y	2011-04-07 17:42:21.229113	0	2011-04-07 17:42:21.229113	0	委托	Define how and when you want commissions to be calculated and to whom they are to be paid.	Define how and when you want commissions to be calculated and to whom they are to be paid.	Y
 F836C564C5E346EE83094F66E860713D	800072	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	0	2022-03-23 17:35:13.857015	100	Bakım prosedürleri	\N	\N	Y
 F8D9B90D598240C081B96D21F8AB680D	E6AB33F249AA494197149ED6387D1442	zh_CN	0	0	Y	2016-01-06 19:37:11.516696	100	2016-01-06 19:37:11.516696	100	团	\N	\N	Y
-F902A65C33E042B780C6981EF2309EBD	800016	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	0	2022-03-23 17:35:13.857015	0	Process Scheduling	\N	\N	N
 F91D6AA398C04251BCC38EA0D5213DD4	1E964B3926344B8A8EEA8C1C7F23189F	zh_CN	0	0	Y	2011-05-05 15:30:37.031076	100	2011-05-05 15:30:37.031076	100	车间维护	\N	\N	Y
 F921E46ADF4C4F738230E719D732D6E1	3E801605DEA44BA0920CD7A8BB1A2A0B	de_DE	0	0	Y	2012-10-10 11:30:31.606976	100	2012-10-11 08:18:14.986019	100	Produktions-Plan	Produktions-Plan	Produktions-Plan	Y
-F9469B0192E74640BEF01CE753DA56CD	800051	tr_TR	0	0	Y	2022-03-23 17:35:13.857015	0	2022-03-23 17:35:13.857015	100	Process Plan	\N	\N	N
 F94BEFA71E7042E69BF23E88EE8B788A	27D221E87D2F48888EF9250DECEDA2F4	it_IT	0	0	Y	2014-02-21 21:17:07.983467	100	2014-02-21 21:17:07.983467	100	Visione d'insieme Sottoscrizione Intervallo	\N	\N	Y
 F96109459BF048DE9F4D4391C55F4881	800030	zh_CN	0	0	Y	2011-04-07 17:42:21.229113	0	2011-04-07 17:42:21.229113	0	服务中心	Create and edit cost centers related to production to sum up charges associated with a specific transaction.	Create and edit cost centers related to production to sum up charges associated with a specific transaction.	Y
 F967DD719E0A4B5D9247E828EC954DD4	C007244E3516497C96AE928F680C256C	zh_CN	0	0	Y	2016-01-06 19:37:11.516696	100	2016-01-06 19:37:11.516696	100	文件归档	\N	\N	Y

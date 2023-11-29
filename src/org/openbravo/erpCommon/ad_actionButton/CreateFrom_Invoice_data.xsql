@@ -113,7 +113,6 @@
         AND o.AD_Client_ID IN ('1') 
         AND o.AD_Org_ID IN ('1') 
         AND o.C_BPartner_ID = ? 
-        AND ol.qtydelivered<ol.qtyinvoiced
         AND ol.qtyinvoiced>0
         GROUP BY o.C_ORDER_ID, o.DocumentNo, o.DateOrdered, o.GrandTotal 
         ORDER BY NAME
@@ -194,7 +193,7 @@
     <Sql>
       <![CDATA[
         SELECT o.C_ORDER_ID as ID, Ad_Column_Identifier(to_char('C_Order'), to_char(o.c_order_id), to_char(?) ) AS NAME,o.DocumentNo AS NAMEORDER,
-        l.QTYINVOICED-l.QTYDELIVERED AS QTY, l.C_UOM_ID, COALESCE(uomt.UOMSymbol, uom.UOMSymbol) AS UOMSymbol, 
+        l.QTYINVOICED AS QTY, l.C_UOM_ID, COALESCE(uomt.UOMSymbol, uom.UOMSymbol) AS UOMSymbol, 
         l.M_Product_ID,zssi_getIdentifierFromKey('m_product_id',l.M_PRODUCT_ID,?)  AS RELATION_NAME, l.C_OrderLine_ID,l.Line,
         l.linenetamt,l.linegrossamt,l.description
         FROM C_UOM uom left join C_UOM_TRL uomt on uom.C_UOM_ID = uomt.C_UOM_ID
@@ -205,7 +204,6 @@
         AND o.AD_Client_ID IN ('1') 
         AND o.AD_Org_ID IN ('1') 
         AND l.M_Product_ID=p.M_Product_ID
-        AND l.qtydelivered<l.qtyinvoiced
         AND l.qtyinvoiced>0
         AND o.C_Order_ID = ? 
         GROUP BY o.C_ORDER_ID, o.DocumentNo, o.DateOrdered, o.GrandTotal, l.QtyOrdered,
@@ -247,7 +245,7 @@
     <SqlMethodComment></SqlMethodComment>
     <Sql>
       <![CDATA[
-        SELECT l.QTYINVOICED-l.QTYDELIVERED AS pendingqty,
+        SELECT l.QTYINVOICED AS pendingqty,
                 l.C_UOM_ID,uom.UOMSymbol, l.M_Product_ID,p.NAME, 
                 l.C_OrderLine_ID,l.Line, uom.stdprecision, cur.priceprecision, null as M_InOutLine_ID, l.Description,
                 l.quantityOrder  AS quantityOrder,
@@ -256,7 +254,6 @@
          FROM C_ORDERLINE l ,C_UOM uom,  M_PRODUCT p  ,c_currency cur
          WHERE cur.C_CURRENCY_ID=l.C_CURRENCY_ID AND l.C_UOM_ID=uom.C_UOM_ID
                 AND l.M_Product_ID=p.M_Product_ID 
-                AND l.qtydelivered<l.qtyinvoiced
                 AND l.qtyinvoiced>0
         ORDER BY l.Line
       ]]>

@@ -44,6 +44,19 @@
       <Parameter name="user"/>
       <Parameter name="passwd"/>
    </SqlMethod>
+   <SqlMethod name="validoOTP" type="preparedStatement" return="String" default="-1">
+      <SqlMethodComment>otp only valid for 24 hours</SqlMethodComment>
+      <Sql>
+        SELECT AD_USER_ID 
+        FROM AD_USER 
+        WHERE ISACTIVE = 'Y' 
+        AND USERNAME = ? 
+        AND mfa_onetimepassword = ?
+        AND mfa_code_timestamp + interval '24 hours' > now()
+      </Sql>
+      <Parameter name="user"/>
+      <Parameter name="otpasswd"/>
+   </SqlMethod>
    <SqlMethod name="loggedOK" type="preparedStatement" return="boolean">
       <SqlMethodComment></SqlMethodComment>
       <Sql>
@@ -53,7 +66,6 @@
       </Sql>
       <Parameter name="adSessionId"/>
    </SqlMethod>
-
    <SqlMethod name="isUserRole" type="preparedStatement" return="Boolean" default="false">
       <SqlMethodComment></SqlMethodComment>
       <Sql>
@@ -346,10 +358,24 @@
      <Parameter name="roleId"/>
      <Parameter name="tabId"/>
    </SqlMethod>
+   <SqlMethod name="getUserPermsessionCheck" type="preparedStatement" return="string">
+        <Sql><![CDATA[
+            SELECT permsessionid_set from ad_user where ad_user_id=?
+        ]]></Sql>
+        <Parameter name="adUserId"/>
+   </SqlMethod>
    <SqlMethod name="getUserPermsessin" type="preparedStatement" return="string">
         <Sql><![CDATA[
             SELECT permsessionid from ad_user where ad_user_id=?
         ]]></Sql>
+        <Parameter name="adUserId"/>
+   </SqlMethod>
+   <SqlMethod name="setUserPermsession" type="preparedStatement" return="rowcount">
+        <Sql><![CDATA[
+            UPDATE ad_user SET permsessionid = ?, updated = now(), updatedby = ? WHERE ad_user_id = ?;
+        ]]></Sql>
+        <Parameter name="permsessionid"/>
+        <Parameter name="updatedby"/>
         <Parameter name="adUserId"/>
    </SqlMethod>
    <SqlMethod name="getPermsessinUser" type="preparedStatement" return="string">
@@ -357,5 +383,68 @@
             SELECT ad_user_id from ad_user where permsessionid=?
         ]]></Sql>
         <Parameter name="permsessionId"/>
+   </SqlMethod>
+   <SqlMethod name="getMFAPermsessinUser" type="preparedStatement" return="string">
+        <Sql><![CDATA[
+            SELECT ad_user_id from ad_user_mfa_permsessions where cookie_hash = ? and expires >= now()
+        ]]></Sql>
+        <Parameter name="cookie_hash"/>
+   </SqlMethod>
+   <SqlMethod name="isKeepLoggedInActivatedForUser" type="preparedStatement" return="string">
+        <Sql><![CDATA[
+            SELECT keeploggedinactivated FROM ad_user WHERE ad_user_id = ?
+        ]]></Sql>
+        <Parameter name="adUserId"/>
+   </SqlMethod>
+   <SqlMethod name="getUserEmail" type="preparedStatement" return="string">
+        <Sql><![CDATA[
+            SELECT email from ad_user where ad_user_id = ?
+        ]]></Sql>
+        <Parameter name="adUserId"/>
+   </SqlMethod>
+   <SqlMethod name="getUserClient" type="preparedStatement" return="string">
+        <Sql><![CDATA[
+            SELECT ad_client_id from ad_user where ad_user_id = ?
+        ]]></Sql>
+        <Parameter name="adUserId"/>
+   </SqlMethod>
+   <SqlMethod name="getUserDefaultLanguage" type="preparedStatement" return="string">
+        <Sql><![CDATA[
+            SELECT default_ad_language from ad_user where ad_user_id = ?
+        ]]></Sql>
+        <Parameter name="adUserId"/>
+   </SqlMethod>
+   <SqlMethod name="getUserOrg" type="preparedStatement" return="string">
+        <Sql><![CDATA[
+            SELECT ad_org_id from ad_user where ad_user_id = ?
+        ]]></Sql>
+        <Parameter name="adUserId"/>
+   </SqlMethod>
+   <SqlMethod name="resetNormalPassword" type="preparedStatement" return="rowcount">
+        <Sql><![CDATA[
+            UPDATE ad_user SET password = NULL, updated = NOW(), updatedby = ? WHERE ad_user_id = ? AND password IS NOT NULL
+        ]]></Sql>
+        <Parameter name="updatedby"/>
+        <Parameter name="adUserId"/>
+   </SqlMethod>
+   <SqlMethod name="resetOTPassword" type="preparedStatement" return="rowcount">
+        <Sql><![CDATA[
+            UPDATE ad_user SET mfa_onetimepassword = NULL, mfa_onetimepassword_entered_manually = 'N', updated = NOW(), updatedby = ? WHERE ad_user_id = ? AND mfa_onetimepassword IS NOT NULL
+        ]]></Sql>
+        <Parameter name="updatedby"/>
+        <Parameter name="adUserId"/>
+   </SqlMethod>
+   <SqlMethod name="setMFAPermsession" type="preparedStatement" return="rowcount">
+        <Sql><![CDATA[
+            insert into ad_user_mfa_permsessions(ad_user_mfa_permsessions_id, expires, ad_client_id, ad_org_id, createdby, updatedby, ad_user_id, cookie_hash) values(?,(now()+ cast(? as int) * interval '1 seconds'),?,?,?,?,?,?);
+        ]]></Sql>
+             <Parameter name="permsessionId"/>
+             <Parameter name="expires"/>
+             <Parameter name="adClientId"/>
+             <Parameter name="adOrgId"/>
+             <Parameter name="createdBy"/>
+             <Parameter name="updatedBy"/>
+             <Parameter name="adUserId"/>
+             <Parameter name="cookie_hash"/>
    </SqlMethod>
 </SqlClass>

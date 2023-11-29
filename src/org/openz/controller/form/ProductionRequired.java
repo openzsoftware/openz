@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.openbravo.base.filter.IsIDFilter;
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 import org.openbravo.base.secureApp.VariablesSecureApp;
+import org.openbravo.base.session.OBPropertiesProvider;
 import org.openbravo.data.FieldProvider;
 //import org.openbravo.erpCommon.ad_forms.RequisitionToOrderData;
 import org.openbravo.erpCommon.businessUtility.Tree;
@@ -31,6 +32,7 @@ import org.openz.view.FormhelperData;
 import org.openz.view.Scripthelper;
 import org.openz.view.EditableGrid;
 import org.openz.view.templates.*;
+import org.openz.util.FileUtils;
 
 
 public class ProductionRequired  extends HttpSecureAppServlet {
@@ -101,39 +103,41 @@ public class ProductionRequired  extends HttpSecureAppServlet {
                 String prodline,prodlineProduct,prodlineQty,strStartDate,strCausetext,strEndDate,strAttr;
                 String msg="";
                 for (int i = 0; i < retval.size(); i++) {
-                  conn= this.getTransactionConnection();
-                  prodline=retval.elementAt(i);
-                  String prunId = SequenceIdData.getUUID();
-                  String pinstance = SequenceIdData.getUUID();
-                  
-                  strStartDate=grid.getValue(this, vars, retval.elementAt(i), "startdate");
-                  strEndDate=grid.getValue(this, vars, retval.elementAt(i), "needbydate");
-                  
-                  //grid.getValue(this, vars, retval.elementAt(i), "C_Order_ID");
-                  prodlineQty=grid.getValue(this, vars, retval.elementAt(i), "qty");
-                  prodlineProduct=grid.getValue(this, vars, retval.elementAt(i), "m_product_id");
-                  strCausetext=grid.getValue(this, vars, retval.elementAt(i), "causetext");
-                  strAttr=grid.getValue(this, vars, retval.elementAt(i), "m_attributesetinstance_id");
+	              conn= this.getTransactionConnection();
+	              prodline=retval.elementAt(i);
+	              String prunId = SequenceIdData.getUUID();
+	              String pinstance = SequenceIdData.getUUID();
+	              
+	              strStartDate=grid.getValue(this, vars, retval.elementAt(i), "startdate");
+	              strEndDate=grid.getValue(this, vars, retval.elementAt(i), "needbydate");
+	              
+	              //grid.getValue(this, vars, retval.elementAt(i), "C_Order_ID");
+	              prodlineQty=grid.getValue(this, vars, retval.elementAt(i), "qty");
+	              prodlineProduct=grid.getValue(this, vars, retval.elementAt(i), "m_product_id");
+	              strCausetext=grid.getValue(this, vars, retval.elementAt(i), "causetext");
+	              strAttr=grid.getValue(this, vars, retval.elementAt(i), "m_attributesetinstance_id");
                                 
-                        ProductionRequiredData.insert(conn,this,prunId,
-	                         vars.getClient(),
-	                         vars.getOrg(),
-	                         vars.getUser(),
-	                         vars.getUser(),
-	                         prodlineQty,
-	                         strStartDate,
-	                         prodlineProduct,
-	                         pinstance,
-	                         strCausetext,strEndDate,strAttr); 
-                                
-                        msg=msg+ProductionRequiredData.productionrun(conn,this,pinstance);
-                        releaseCommitConnection(conn);
-                        while (Integer.valueOf(ProductionRequiredData.selectdependent(this,pinstance))>0) {
-                        	conn= this.getTransactionConnection();
-                        	msg=msg+ProductionRequiredData.productionrun(conn,this,pinstance);
-                        	releaseCommitConnection(conn);
-                        }
-                        ProductionRequiredData.deleteerror(this, pinstance);
+	                ProductionRequiredData.insert(conn,this,prunId,
+	                     vars.getClient(),
+	                     vars.getOrg(),
+	                     vars.getUser(),
+	                     vars.getUser(),
+	                     prodlineQty,
+	                     strStartDate,
+	                     prodlineProduct,
+	                     pinstance,
+	                     strCausetext,strEndDate,strAttr); 
+                            
+                    msg=msg+ProductionRequiredData.productionrun(conn,this,pinstance);
+                    releaseCommitConnection(conn);
+                    while (Integer.valueOf(ProductionRequiredData.selectdependent(this,pinstance))>0) {
+                    	conn= this.getTransactionConnection();
+                    	msg=msg+ProductionRequiredData.productionrun(conn,this,pinstance);
+                    	releaseCommitConnection(conn);
+                    }
+                    ProductionRequiredData.deleteerror(this, pinstance);
+                    // Copy Attchments-If Configured
+                    copyProductAttachments(pinstance,vars);
                 }   
                 ProductionRequiredData.deleteonload(this);
                 /*
@@ -159,7 +163,7 @@ public class ProductionRequired  extends HttpSecureAppServlet {
                   log4j.debug(myMessage.getMessage());
                 // new message system
                 vars.setMessage(this.getClass().getName(), myMessage);
-                //ProductionRequiredData.deleteerror(this, pinstance);
+                //ProductionRequiredData.deleteerror(this, pinstance);                
                 
                 response.sendRedirect(strDireccion + request.getServletPath());
             }
@@ -205,10 +209,6 @@ public class ProductionRequired  extends HttpSecureAppServlet {
             throw new ServletException(e);}
           }
        
-        
-        
-        
-
 
     private void removeSessionValues(VariablesSecureApp vars ){
       vars.removeSessionValue(this.getClass().getName() + "|M_Product_ID");
@@ -216,6 +216,17 @@ public class ProductionRequired  extends HttpSecureAppServlet {
       vars.removeSessionValue(this.getClass().getName() + "|DateTo");
       
     }
+    
+    private void copyProductAttachments(String pinstance, VariablesSecureApp vars ) throws Exception {
+    	ProductionRequiredData[] copyfiles;
+    	String attchpath = OBPropertiesProvider.getInstance().getOpenbravoProperties().getProperty("attach.path") + "/";
+    	copyfiles=ProductionRequiredData.selectfiles2copy(this, pinstance);
+    	for (int i=0;i<copyfiles.length;i++) {
+    		FileUtils.copyFile(attchpath+copyfiles[i].dirin, attchpath+copyfiles[i].dirout, copyfiles[i].filename, copyfiles[i].filename);
+    	}
+        
+    }
+    
     public String getServletInfo() {
       return this.getClass().getName();
     } // end of getServletInfo() method

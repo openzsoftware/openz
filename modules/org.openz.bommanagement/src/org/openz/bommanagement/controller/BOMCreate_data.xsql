@@ -10,9 +10,10 @@
    <SqlMethod name="selectbarcode" type="preparedStatement" return="multiple">
     <SqlMethodComment></SqlMethodComment>
     <Sql>
-        select type,id from  pdc_getDataIdFromScan(?)
+        select type,id from  pdc_getDataIdFromScan(?,?)
     </Sql>
     <Parameter name="barcode"/>
+    <Parameter name="roleId"/>
     </SqlMethod>
        <SqlMethod name="createInsertion" type="preparedStatement" return="String">
     <SqlMethodComment></SqlMethodComment>

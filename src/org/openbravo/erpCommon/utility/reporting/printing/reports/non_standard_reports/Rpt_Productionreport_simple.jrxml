@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.1.1  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Rpt_Productionreport" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="52fa489a-98d6-46c0-adca-97c27caed16e">
+	<property name="ireport.zoom" value="5.706233412220006"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="DataAdapter.xml"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<style name="default" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="10" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Report_Title" fontName="OpenZ Sans" fontSize="18">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Report_Subtitle" forecolor="#555555" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Total_Field" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5"/>
+	</style>
+	<style name="Detail_Header" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle">
+		<box leftPadding="5">
+			<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+			<rightPen lineWidth="1.0" lineStyle="Solid" lineColor="#FFFFFF"/>
+		</box>
+	</style>
+	<style name="GroupHeader_DarkGray" mode="Opaque" forecolor="#FFFFFF" backcolor="#555555" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="14">
+		<box leftPadding="5"/>
+	</style>
+	<style name="GroupHeader_Gray" mode="Opaque" backcolor="#999999"/>
+	<style name="Detail_Line">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{REPORT_COUNT}.intValue()%2==1)]]></conditionExpression>
+			<style mode="Opaque" backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Total_Gray" mode="Opaque" forecolor="#000000" backcolor="#CCCCCC"/>
+	<style name="Group_Footer" fontName="OpenZ Sans" fontSize="11" isBold="true"/>
+	<style name="Report_Footer" isDefault="true" vTextAlign="Middle" vImageAlign="Middle" fontName="OpenZ Sans" fontSize="11"/>
+	<parameter name="ATTACH" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_ATTACH" class="java.lang.String"/>
+	<parameter name="BASE_WEB" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="BASE_DESIGN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/stefan/OBproject/openbravo/MTMBranch/OpenbravoERP/modules/org.openbravo.zsoft.smartui/src"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LANGUAGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_CLIENT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('1000000')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_ORG" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["('0')"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_TITLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["REPORT TITLE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REPORT_SUBTITLE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DOCUMENT_ID" class="java.lang.String"/>
+	<parameter name="LOCALE" class="java.util.Locale" isForPrompting="false"/>
+	<parameter name="NUMBERFORMAT" class="java.text.DecimalFormat" isForPrompting="false"/>
+	<parameter name="SUBREP_RptStd_PTasks_simple" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+	<parameter name="LANGUAGE2" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["de_DE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="M_PRODUCT_ID" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select zssi_getelementtextbycolumname ('signature', $P{LANGUAGE}) as sig,
+zssi_getelementtextbycolumname ('completed', $P{LANGUAGE}) as comp,
+zssi_getelementtextbycolumname ('qtycompl', $P{LANGUAGE}) as qty,
+p.c_project_id   from c_project p where p.c_project_id in ($P{DOCUMENT_ID})]]>
+	</queryString>
+	<field name="sig" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="sig"/>
+	</field>
+	<field name="comp" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="comp"/>
+	</field>
+	<field name="qty" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="qty"/>
+	</field>
+	<field name="c_project_id" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="c_project_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="c_project"/>
+	</field>
+	<variable name="doctype_id" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band/>
+	</title>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="715">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<subreport isUsingCache="true">
+				<reportElement key="subreport-2" style="Report_Footer" positionType="Float" x="1" y="0" width="592" height="700" isRemoveLineWhenBlank="true" uuid="0e3efba9-4f25-487b-85e3-166980c3f03a">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<subreportParameter name="NUMBERFORMAT">
+					<subreportParameterExpression><![CDATA[$P{NUMBERFORMAT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOCALE">
+					<subreportParameterExpression><![CDATA[$P{LOCALE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_DESIGN">
+					<subreportParameterExpression><![CDATA[$P{BASE_DESIGN}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DOCUMENT_ID">
+					<subreportParameterExpression><![CDATA[$P{DOCUMENT_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="START_PAGE_SUBREP">
+					<subreportParameterExpression><![CDATA[$V{PAGE_NUMBER}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="doctype_id">
+					<subreportParameterExpression><![CDATA[$V{doctype_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LANGUAGE2">
+					<subreportParameterExpression><![CDATA[$P{LANGUAGE2}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BASE_ATTACH">
+					<subreportParameterExpression><![CDATA[$P{BASE_ATTACH}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREP_RptStd_PTasks_simple}
+/*"C:/Users/Frank/Documents/OBproject/Reports/RptStd_OrderLines_juwi_angebot.jasper"*/]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="112">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<image scaleImage="FillFrame" hAlign="Center">
+				<reportElement x="505" y="20" width="60" height="60" uuid="7b00ebe3-59c9-4142-a9cb-af733111df0c">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode("pdc_bc_btn_cancel",com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="350" y="20" width="100" height="30" uuid="b2b75380-b93a-4333-8311-62b7b0a8ea72"/>
+				<box>
+					<topPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font isBold="true" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sig}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="20" y="20" width="140" height="30" uuid="281f7b0f-8267-4b26-92fd-a727e910ca56">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{comp}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="170" y="20" width="100" height="30" uuid="e15631d7-685e-4fd8-8c75-66cc54ac0e8c">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<box>
+					<topPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font isBold="true" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qty}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="510" y="75" width="50" height="20" uuid="2e8d32a7-9fb8-4039-9624-3ff5e14eb145">
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Abbrechen"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="540" y="90" width="20" height="15" uuid="1ac5c729-c4ba-4e0a-bc98-5f3f761c6e01">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Right">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="570" y="90" width="20" height="15" uuid="d536ca73-a3e2-4ecd-aa12-66b45f19d00c">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement>
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="560" y="90" width="10" height="15" uuid="d41fd9c7-d85f-4ecd-94bf-26608f767b5c"/>
+				<textElement textAlignment="Center">
+					<font size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA["/"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

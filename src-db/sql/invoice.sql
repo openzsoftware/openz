@@ -361,6 +361,29 @@ $BODY$
 ALTER FUNCTION zssi_invoiceline_trg() OWNER TO tad;
 
 
+CREATE OR REPLACE FUNCTION c_invoice_create_userexit(v_invoice_id varchar)
+  RETURNS varchar AS
+$BODY$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***********************************************************************************************+*****************************************
+User-Exit for c_invoice_create
+**/
+DECLARE
+v_return varchar:='';
+BEGIN
+
+RETURN v_return;
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
 --
 -- Function: c_invoice_create(character varying, character varying)
 
@@ -460,6 +483,7 @@ $BODY$ DECLARE
     v_lzstart timestamp:=trunc(now()+100);
     v_lzend timestamp:=trunc(now()+100);
     v_combined varchar:='N';
+    v_actualdoc varchar;
     v_orderall varchar;
     v_textpos varchar;
         -- manual edited lines
@@ -497,6 +521,9 @@ $BODY$ DECLARE
           o.contractdate,
           o.enddate,
           o.scheddeliverydate,
+          o.poreference,
+          o.documentno,
+          o.salesrep_id,
           ol.m_attributesetinstance_id,ol.c_project_id,ol.c_projectphase_id,ol.c_projecttask_id,ol.a_asset_id,ol.textposition,ol.ispagebreak,ol.iscombined,ol.ispricesuppressed
         FROM c_orderline ol, c_generateinvoicemanual gm, c_order o where 
              ol.c_orderline_id=gm.c_orderline_id and gm.c_order_id= Order_ID and gm.c_invoiceline_id is null
@@ -704,11 +731,12 @@ $BODY$ DECLARE
                         'Y', TO_DATE(NOW()), v_ĺinesrecord.createdby, TO_DATE(NOW()), v_ĺinesrecord.createdby , 
                         Cur_Order.IsSOTrx, v_DocumentNo, 'DR', 'CO', 
                         'N', 'N', v_DocType_ID, v_DocType_ID, 
-                        v_description||coalesce(Cur_Order.Description,''), Cur_Order.SalesRep_ID, 
+                        v_description||coalesce(Cur_Order.Description,''), case when v_orderall is not null then Cur_Order.SalesRep_ID else v_ĺinesrecord.salesrep_id end, -- if combined invoice, take salesrep of first order
                         v_DateInvoiced, 
                         NULL, 'N', v_DateInvoiced, v_DateInvoiced, -- DateInvoiced=DateAcct
                         Cur_Order.C_PaymentTerm_ID, coalesce(v_invoicereceiver,Cur_Order.C_BPartner_ID), coalesce(v_invoiceadress,Cur_Order.BillTo_ID), Cur_Order.AD_User_ID,
-                        case when Cur_Order.IsSOTrx='Y' then Cur_Order.POReference else null end, Cur_Order.deliverylocationtext, Cur_Order.DateOrdered, Cur_Order.IsDiscountPrinted, Cur_Order.C_Currency_ID,
+                        case when (Cur_Order.IsSOTrx='Y' and v_orderall is not null) then Cur_Order.POReference else null end,
+                        Cur_Order.deliverylocationtext, Cur_Order.DateOrdered, Cur_Order.IsDiscountPrinted, Cur_Order.C_Currency_ID,
                         Cur_Order.PaymentRule, Cur_Order.C_Charge_ID, Cur_Order.ChargeAmt, Cur_Order.IsSelfService,
                         0, 0, Cur_Order.M_PriceList_ID, Cur_Order.C_Campaign_ID,
                         Cur_Order.C_Activity_ID, Cur_Order.AD_OrgTrx_ID, Cur_Order.User1_ID,
@@ -792,21 +820,21 @@ $BODY$ DECLARE
                             v_qty2nduom:=null;
                           end if;
                           -- Combined Invoice / Performance period
-                          if v_combined='Y' and 
-                             (coalesce(coalesce(v_ĺinesrecord.contractdate,v_ĺinesrecord.scheddeliverydate),v_lzstart)!=v_lzstart or coalesce(v_ĺinesrecord.enddate,v_lzend)!=v_lzend) then
+                          if v_combined='Y' and v_ĺinesrecord.documentno!=coalesce(v_actualdoc,'#') then
                             v_lzstart:=coalesce(v_ĺinesrecord.contractdate,v_ĺinesrecord.scheddeliverydate);
-                            if v_lzstart is null then  v_lzstart:=trunc(now()+100); end if;
+                            if v_lzstart is null then  v_lzstart:=trunc(now()); end if;
                             v_lzend:= v_ĺinesrecord.enddate;
-                            if v_lzend is null then  v_lzend:=trunc(now()+100); end if;
-                            if v_lzstart!=trunc(now()+100) and v_lzend!=trunc(now()+100) then
-                                v_textpos:= zssi_getElementTextByColumname('performanceperiod',v_lang)||' '||zssi_strDate(v_lzstart,v_lang)||' - '||zssi_strDate(v_lzend,v_lang)|| case when v_ĺinesrecord.textposition is not null then chr(10)||v_ĺinesrecord.textposition else '' end;
+                            if v_lzend is null then  v_lzend:=trunc(now()+10000); end if;
+                            if v_lzend!=trunc(now()+10000) then
+                                v_textpos:= zssi_getElementTextByColumname('performanceperiod',v_lang)||' '||zssi_strDate(v_lzstart,v_lang)||' - '||zssi_strDate(v_lzend,v_lang)||', ' || zssi_getElementTextByColumname('DocumentNo',v_lang) || ': ' || v_ĺinesrecord.documentno || case when v_ĺinesrecord.textposition is not null then chr(10)||v_ĺinesrecord.textposition else '' end;
                             end if;
-                            if v_lzstart!=trunc(now()+100) and v_lzend=trunc(now()+100) then
-                                v_textpos:= zssi_getElementTextByColumname('performanceperiod',v_lang)||' '||zssi_strDate(v_lzstart,v_lang)|| case when v_ĺinesrecord.textposition is not null then v_ĺinesrecord.textposition else '' end;
+                            if v_lzend=trunc(now()+10000) then
+                                v_textpos:= zssi_getElementTextByColumname('performanceperiod',v_lang)||' '||zssi_strDate(v_lzstart,v_lang)|| ', ' || zssi_getElementTextByColumname('DocumentNo',v_lang) || ': ' || v_ĺinesrecord.documentno || case when v_ĺinesrecord.textposition is not null then v_ĺinesrecord.textposition else '' end;                                
                             end if;
                           else
                             v_textpos:=v_ĺinesrecord.textposition;
                           end if;
+                          v_actualdoc:=v_ĺinesrecord.documentno;
                           INSERT
                           INTO C_INVOICELINE
                             (
@@ -846,6 +874,7 @@ $BODY$ DECLARE
                         --    update m_inoutline set isinvoiced='Y' where M_InOutLine_ID=v_ĺinesrecord.M_InOutLine_ID;
                         --end if;
                            update c_generateinvoicemanual set C_InvoiceLine_ID=v_NextNo  where c_generateinvoicemanual_id=v_ĺinesrecord.c_generateinvoicemanual_id;
+
                            FETCH Cur_ManualGeneratedLines INTO v_ĺinesrecord;
                            if NOT FOUND then
                                CLOSE Cur_ManualGeneratedLines;
@@ -883,7 +912,6 @@ $BODY$ DECLARE
                     end if; 
               end if; -- Check, if there is NO Draft INVOICE
           END LOOP; -- Order Loop
-
  
         ---- <<FINISH_PROCESS>>
         v_Message:='@Created@: ' || v_NoRecords||v_Message;
@@ -894,6 +922,9 @@ $BODY$ DECLARE
         ELSE
           RAISE NOTICE '%','--<<C_Invoive_Create finished>> ' || v_Message ;
         END IF;
+
+        PERFORM c_invoice_create_userexit(p_Invoice_ID);
+
         RETURN;
       END; --BODY
     EXCEPTION
@@ -1704,8 +1735,7 @@ $BODY$ DECLARE
             IF(v_RDocumentNo IS NULL) THEN
               SELECT * INTO  v_RDocumentNo FROM Ad_Sequence_Doc('DocumentNo_C_Invoice', v_Org_ID, 'Y') ;
             END IF;
-            v_Message:='@ReversedBy@: ' || v_RDocumentNo;
-            --
+            v_Message:='@ReversedBy@: ' || zsse_htmlLinkDirectKey('../SalesInvoice/Header_Relation.html', v_RInvoice_ID, v_RDocumentNo) || '</br>';
             RAISE NOTICE '%','Reversal Invoice_ID=' || v_RInvoice_ID || ' DocumentNo=' || v_RDocumentNo ;
             v_ResultStr:='InsertInvoice ID=' || v_RInvoice_ID;
             -- Don't copy C_Payment_ID or C_CashLine_ID
@@ -1736,7 +1766,7 @@ $BODY$ DECLARE
               v_DoctypeReversed_ID, '(*R*: ' || DocumentNo || ') ' || Description, SalesRep_ID,
               trunc(NOW()), NULL, 'N', trunc(NOW()),
               trunc(NOW()), C_PaymentTerm_ID, C_BPartner_ID, C_BPartner_Location_ID,
-              AD_User_ID, '*R*: '||POReference, DateOrdered, IsDiscountPrinted,
+              AD_User_ID, '*R*: ' || DocumentNo, DateOrdered, IsDiscountPrinted,
               C_Currency_ID, PaymentRule, C_Charge_ID, ChargeAmt * -1,
               M_PriceList_ID, C_Campaign_ID,
               C_Project_ID, C_Activity_ID, AD_OrgTrx_ID, User1_ID,
@@ -2645,7 +2675,7 @@ Matching END
                                 FROM C_SETTLEMENT S
                                WHERE DP.C_SETTLEMENT_GENERATE_ID = S.C_Settlement_ID
                                  AND IsGenerated = 'Y');
-
+/*
                 IF v_GenDebt_PaymentID IS NOT NULL THEN
                   v_SettlementDocTypeID:=Ad_Get_Doctype(v_Client_ID, v_GenDP_Org, TO_CHAR('STT')) ;
                   SELECT * INTO  v_settlement_ID FROM Ad_Sequence_Next('C_Settlement', v_Record_ID) ;
@@ -2662,8 +2692,8 @@ Matching END
                       C_DOCTYPE_ID, PROCESSING, PROCESSED, POSTED,
                       C_CURRENCY_ID, ISGENERATED
                     )
-                    /*, C_PROJECT_ID, C_CAMPAIGN_ID,
-                    C_ACTIVITY_ID, USER1_ID, USER2_ID, CREATEFROM)*/
+                    --, C_PROJECT_ID, C_CAMPAIGN_ID,
+                    --C_ACTIVITY_ID, USER1_ID, USER2_ID, CREATEFROM)
                     VALUES
                     (
                       v_Settlement_ID, v_Client_ID, v_GenDP_Org, 'Y',
@@ -2680,6 +2710,7 @@ Matching END
                   WHERE c_Debt_Payment_ID IN(v_genDebt_PaymentID, v_debtPaymentID) ;
                   PERFORM C_SETTLEMENT_POST(NULL, v_Settlement_ID) ;
                 END IF;
+*/                
                 --If Invoice.paymentRule = 'B', insert de cashline de tipo efecto apuntando al efecto
                 IF(v_cashBook IS NOT NULL AND CUR_PAYMENTS.PaymentRule='B') THEN
                   SELECT MAX(C.C_CASH_ID)
@@ -4524,3 +4555,217 @@ $_$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100; 
 
+
+  
+/* DRUCKAUSGABE FÜR SAMMELRECHNUNGEN */  
+  
+CREATE OR REPLACE FUNCTION get_OrdNoBP_for_c_invoice_print(v_invoice_id character varying)
+  RETURNS character varying AS
+$BODY$ DECLARE
+/***************************************************************************************************************************************************
+Called in Application Dictionary || Reference  || Reference Invoice List || Reference List || OrdNoBP
+
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+**************************************************************************************************************************************************
+*****************************************************/
+v_return_val varchar;
+
+BEGIN
+  -- old:
+  -- @SQL=SELECT CASE WHEN (C_INVOICE.POREFERENCE is null) THEN C_ORDER.DOCUMENTNO ELSE C_INVOICE.POREFERENCE END from C_INVOICE LEFT JOIN C_ORDER on c_invoice.c_order_id=c_order.c_order_id  WHERE C_INVOICE.C_INVOICE_ID = #ID#
+
+  -- first priority poreference
+  SELECT poreference INTO v_return_val FROM c_invoice WHERE c_invoice_id = v_invoice_id;
+  -- second priority documentno
+  IF(v_return_val IS NULL) THEN
+      SELECT documentno INTO v_return_val FROM c_order WHERE c_order_id = (
+         SELECT c_order_id FROM c_invoice WHERE c_invoice_id = v_invoice_id
+      );
+  END IF;
+  -- still null means combined invoice
+  -- third priority documentno of the first line/order of the invoice
+  -- add dots for multiple orders in invoice
+  IF(v_return_val IS NULL) THEN
+      SELECT documentno INTO v_return_val FROM c_order WHERE c_order_id = (
+        SELECT c_order_id FROM c_orderline WHERE c_orderline_id = (
+          SELECT c_orderline_id FROM c_invoiceline WHERE c_invoice_id = v_invoice_id AND c_orderline_id IS NOT NULL ORDER BY line LIMIT 1
+        )
+      );
+      v_return_val := v_return_val || ', ...';
+  END IF;
+
+  -- else empty
+  IF(v_return_val IS NULL) THEN
+      v_return_val := '';
+  END IF;
+
+  return v_return_val;
+END;
+$BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
+CREATE OR REPLACE FUNCTION get_Contact_for_c_invoice_print(v_invoice_id character varying)
+  RETURNS character varying AS
+$BODY$ DECLARE
+/***************************************************************************************************************************************************
+Called in Application Dictionary || Reference  || Reference Invoice List || Reference List || Contact
+
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+**************************************************************************************************************************************************
+*****************************************************/
+v_return_val varchar;
+
+BEGIN
+  -- old:
+  -- @SQL=SELECT u.name from ad_user u,c_invoice m where m.salesrep_id=u.ad_user_id and m.c_invoice_id=#ID#
+  SELECT u.name INTO v_return_val from ad_user u,c_invoice m where m.salesrep_id=u.ad_user_id and m.c_invoice_id=v_invoice_id;
+  -- 1St Order of Invoice
+  IF(v_return_val IS NULL) THEN
+      SELECT u.name  INTO v_return_val from c_order o,ad_user u where o.salesrep_id=u.ad_user_id and o.c_order_id = (
+        SELECT c_order_id FROM c_orderline WHERE c_orderline_id = (
+          SELECT c_orderline_id FROM c_invoiceline WHERE c_invoice_id = v_invoice_id AND c_orderline_id IS NOT NULL ORDER BY line LIMIT 1
+        ));
+  ENd IF;
+  -- else empty
+  IF(v_return_val IS NULL) THEN
+      v_return_val := '';
+  END IF;
+
+  return v_return_val;
+END;
+$BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
+CREATE OR REPLACE FUNCTION get_Phone_for_c_invoice_print(v_invoice_id character varying)
+  RETURNS character varying AS
+$BODY$ DECLARE
+/***************************************************************************************************************************************************
+Called in Application Dictionary || Reference  || Reference Invoice List || Reference List || Phone
+
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+**************************************************************************************************************************************************
+*****************************************************/
+v_return_val varchar;
+
+BEGIN
+  -- old:
+  -- @SQL=SELECT zssi_getuserphone(C_INVOICE.salesrep_id) from C_INVOICE where C_INVOICE.C_INVOICE_ID = #ID#
+  SELECT zssi_getuserphone(u.ad_user_id) INTO v_return_val from ad_user u,c_invoice m where m.salesrep_id=u.ad_user_id and m.c_invoice_id=v_invoice_id;
+  -- 1St Order of Invoice
+  IF(v_return_val IS NULL) THEN
+      SELECT zssi_getuserphone(u.ad_user_id)  INTO v_return_val from c_order o,ad_user u where o.salesrep_id=u.ad_user_id and o.c_order_id = (
+        SELECT c_order_id FROM c_orderline WHERE c_orderline_id = (
+          SELECT c_orderline_id FROM c_invoiceline WHERE c_invoice_id = v_invoice_id AND c_orderline_id IS NOT NULL ORDER BY line LIMIT 1
+        ));
+  ENd IF;
+  -- else empty
+  IF(v_return_val IS NULL) THEN
+      v_return_val := '';
+  END IF;
+
+  return v_return_val;
+END;
+$BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+  
+CREATE OR REPLACE FUNCTION get_Email_for_c_invoice_print(v_invoice_id character varying)
+  RETURNS character varying AS
+$BODY$ DECLARE
+/***************************************************************************************************************************************************
+Called in Application Dictionary || Reference  || Reference Invoice List || Reference List || Email
+
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+**************************************************************************************************************************************************
+*****************************************************/
+v_return_val varchar;
+
+BEGIN
+  -- old:
+  -- @SQL=SELECT zssi_getuseremail(C_INVOICE.salesrep_id) from C_INVOICE where C_INVOICE.C_INVOICE_ID = #ID#
+  SELECT zssi_getuseremail(u.ad_user_id) INTO v_return_val from ad_user u,c_invoice m where m.salesrep_id=u.ad_user_id and m.c_invoice_id=v_invoice_id;
+  -- 1St Order of Invoice
+  IF(v_return_val IS NULL) THEN
+      SELECT zssi_getuseremail(u.ad_user_id)  INTO v_return_val from c_order o,ad_user u where o.salesrep_id=u.ad_user_id and o.c_order_id = (
+        SELECT c_order_id FROM c_orderline WHERE c_orderline_id = (
+          SELECT c_orderline_id FROM c_invoiceline WHERE c_invoice_id = v_invoice_id AND c_orderline_id IS NOT NULL ORDER BY line LIMIT 1
+        ));
+  ENd IF;
+  -- else empty
+  IF(v_return_val IS NULL) THEN
+      v_return_val := '';
+  END IF;
+
+  return v_return_val;
+END;
+$BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
+CREATE OR REPLACE FUNCTION get_Ordname_for_c_invoice_print(v_invoice_id character varying)
+  RETURNS character varying AS
+$BODY$ DECLARE
+/***************************************************************************************************************************************************
+Called in Application Dictionary || Reference  || Reference Invoice List || Reference List || Name (Ord)
+
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+**************************************************************************************************************************************************
+*****************************************************/
+v_return_val varchar;
+
+BEGIN
+  -- old:
+  -- @SQL=select COALESCE(C_ORDER.NAME,'') from C_INVOICE LEFT JOIN C_ORDER ON C_ORDER.C_ORDER_ID = C_INVOICE.C_ORDER_ID WHERE C_INVOICE.C_INVOICE_ID = #ID#
+  SELECT o.name INTO v_return_val from c_invoice m,c_order o where m.c_order_id=o.c_order_id and m.c_invoice_id=v_invoice_id;
+  -- 1St Order of Invoice
+  IF(v_return_val IS NULL) THEN
+      SELECT o.name INTO v_return_val from c_order o where o.c_order_id = (
+        SELECT c_order_id FROM c_orderline WHERE c_orderline_id = (
+          SELECT c_orderline_id FROM c_invoiceline WHERE c_invoice_id = v_invoice_id AND c_orderline_id IS NOT NULL ORDER BY line LIMIT 1
+        ));
+  ENd IF;
+  -- else empty
+  IF(v_return_val IS NULL) THEN
+      v_return_val := '';
+  END IF;
+
+  return v_return_val;
+END;
+$BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+  
+  
+/* DRUCKAUSGABE FÜR SAMMELRECHNUNGEN ENDE*/ 

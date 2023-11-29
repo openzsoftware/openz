@@ -27,6 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 import org.openbravo.base.secureApp.VariablesSecureApp;
+import org.openbravo.erpCommon.security.SessionLoginData;
+import org.openbravo.utils.Replace;
 import org.openbravo.xmlEngine.XmlDocument;
 
 public class Home extends HttpSecureAppServlet {
@@ -54,7 +56,25 @@ public class Home extends HttpSecureAppServlet {
     xmlDocument.setParameter("leftTabs", lBar.manualTemplate());
     response.setContentType("text/html; charset=UTF-8");
     PrintWriter out = response.getWriter();
-    out.println(xmlDocument.print());
+
+    String output = xmlDocument.print();
+    String navBarLogoId = SessionLoginData.getCustomizedNavBarLogo(this);
+    String navBarLogoIdOrg = SessionLoginData.getCustomizedNavBarLogoFromOrg(this, vars.getOrg());
+    // org logo overwrites client logo overwrites standard logo
+    if(!navBarLogoIdOrg.isEmpty()) {
+        navBarLogoId = navBarLogoIdOrg;
+    }
+    if(navBarLogoId.isEmpty()) {
+        output = Replace.replace(output, "@openbravonavbarlogo@",
+                  "<TD class=\"Popup_NavBar_bg_logo\" width=\"1\" onclick=\"openNewBrowser('http://www.openbravo.com', 'Openbravo');return false;\"><IMG src=\"../web/images/blank.gif\" alt=\"Openbravo\" title=\"Openbravo\" border=\"0\" id=\"openbravoLogo\" class=\"Popup_NavBar_logo\"></TD>");
+    }else {
+        output = Replace.replace(output, "@openbravonavbarlogo@",
+                  "<td class=\"Main_NavBar_bg_logo\" width=\"1\"><div class=\"Main_NavBar_logo_custom\" alt=\"NavBarLogo\" title=\"NavBarLogo\" border=\"0\" id=\"NavBarLogo\">"
+                + "<img src=\"../utility/ShowImage?id=" + navBarLogoId +"\" alt=\"NavBarLogo\">"
+                + "</div></td>");
+    }
+
+    out.println(output);
     out.close();
   }
 }

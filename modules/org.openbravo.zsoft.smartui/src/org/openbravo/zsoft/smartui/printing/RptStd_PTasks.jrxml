@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.16.0.final using JasperReports Library version 6.1.1  -->
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Rpt_Productionreport" language="groovy" pageWidth="595" pageHeight="842" columnWidth="591" leftMargin="2" rightMargin="2" topMargin="2" bottomMargin="2" isIgnorePagination="true" uuid="52fa489a-98d6-46c0-adca-97c27caed16e">
 	<property name="ireport.zoom" value="5.706233412220006"/>
 	<property name="ireport.x" value="0"/>
@@ -106,11 +106,15 @@ pt.value as qrcode,
  coalesce( (select lo.value from m_locator lo where lo.m_locator_id=pt.issuing_locator),'') as ilocator,
    zssi_getproductname(pt.m_product_id, $P{LANGUAGE} ) as productname,
    zssi_getproductkey(pt.m_product_id ) as productvalue,
-   coalesce(pt.triggerreason,'''') as triggerreason,
+   -- triggerreason
+   CASE WHEN COALESCE(pt.m_product_id, '') = '' OR pt.m_product_id != zssm_getproductofproductionplan((SELECT prpreference FROM zssm_productionorder_v as pp WHERE pp.c_project_id = p.c_project_id)) THEN
+        zssi_getproductnamewithvalue(zssm_getproductofproductionplan((SELECT prpreference FROM zssm_productionorder_v as pp WHERE pp.c_project_id = p.c_project_id)), $P{LANGUAGE})
+        || CASE WHEN coalesce(pt.triggerreason,'') != '' THEN ' | ' || coalesce(pt.triggerreason,'') ELSE '' END
+   ELSE coalesce(pt.triggerreason,'') END as triggerreason,
    zssi_getusername(p.ad_user_id) as employee, 
 to_char(pt.startdate,'DD.MM.YYYY') as startdt,
    coalesce(m.name,'') as machine,
-  zssi_strNumber(coalesce(pt.qty,0),$P{LANGUAGE} )  as qtypo,
+  zssi_strNumber(coalesce(pt.qty-pt.qtyproduced,0),$P{LANGUAGE} )  as qtypo,
  zssi_getDescriptiontext4Workorder(pt.c_projecttask_id, $P{LANGUAGE} )  as description
    from c_project p, c_projecttask pt 
    left join zspm_ptaskmachineplan ptm on ptm.c_projecttask_id=pt.c_projecttask_id  

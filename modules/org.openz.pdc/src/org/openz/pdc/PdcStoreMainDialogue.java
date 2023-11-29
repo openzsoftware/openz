@@ -38,6 +38,7 @@ import org.openz.view.EditableGrid;
 import org.openz.view.templates.*;
 import org.openz.pdc.controller.PdcStatusBar;
 import org.openz.util.*;
+import org.openz.pdc.controller.PdcCommonData;
 
 
 public class PdcStoreMainDialogue  extends HttpSecureAppServlet {
@@ -69,7 +70,7 @@ public class PdcStoreMainDialogue  extends HttpSecureAppServlet {
         //CommandIn Decisions
     	vars.setSessionValue("PDCFORMERDIALOGUE","/ad_forms/PDCStoreMainDialoge.html");
     	
-    	if (vars.commandIn("RESET")){
+    	if (vars.commandIn("RESET") && PdcCommonData.hasMenu(this, vars.getRole()).equals("Y")){
     		response.sendRedirect(strDireccion + "/security/Menu.html");
     	}
         

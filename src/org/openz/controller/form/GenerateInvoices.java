@@ -103,10 +103,15 @@ public class GenerateInvoices  extends HttpSecureAppServlet {
      String strToolbar=FormhelperData.getFormToolbar(this, this.getClass().getName());
      //Window Tabs (Default Declaration)
      WindowTabs tabs;                  //The Servlet Name generated automatically
-     tabs = new WindowTabs(this, vars, this.getClass().getName());
+     if(vars.getSessionValue("issotrx").equals("Y")) {
+         tabs = new WindowTabs(this, vars, "org.openbravo.erpCommon.ad_forms.GenerateInvoicesmanualSO");
+     }else {
+         tabs = new WindowTabs(this, vars, "org.openbravo.erpCommon.ad_forms.GenerateInvoicesmanualPO");
+     }
+
      //Configuring the Structure                                                   Title of Site  Toolbar  
      strSkeleton = ConfigureFrameWindow.doConfigure(this,vars,"inpdatefrom",null, "Generate Invoices Manual",strToolbar,"NONE",tabs);
-    
+
 
 
 

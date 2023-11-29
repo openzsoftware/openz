@@ -128,7 +128,7 @@ BEGIN
     VALUES (get_uuid(), v_clientid, v_userid, v_userid, v_orgid, v_warehouseid, v_shortcut||' - '||'Lagerort', 50, 'Y', '0', '0', '0'); --Anlegen eines Lagers
 
     INSERT INTO c_poc_configuration (c_poc_configuration_id, ad_client_id, createdby, updatedby, ad_org_id, smtpserver, smtpserveraccount, smtpserverpassword, smtpserversenderaddress, issmtpauthorization, usetls, usessl, isactive, created, updated)
-    VALUES (get_uuid(), v_clientid, v_userid, v_userid, v_orgid, 'localhost', 'localhost', 'localhost', p_email, 'N', 'N', 'N', 'Y', trunc(now()), trunc(now())); --Anlegen der Email-Einstellungen für den Client
+    VALUES (get_uuid(), v_clientid, v_userid, v_userid, '0', 'localhost', 'localhost', 'localhost', p_email, 'N', 'N', 'N', 'Y', trunc(now()), trunc(now())); --Anlegen der Email-Einstellungen für den Client
 
     INSERT INTO zspr_printinfo (zspr_printinfo_id, ad_client_id, createdby, updatedby, ad_org_id, addressheader, address1, address2, footer1)
     VALUES (get_uuid(), v_clientid, v_userid, v_userid, v_orgid, p_name, p_address, p_zipcode||' '||p_city, ''); --Anlegen einer Adresse in der Vorbelegung Ausdrucke

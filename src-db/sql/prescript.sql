@@ -1,3 +1,4 @@
+update ad_system set releaseno=(select value from ad_preference  where attribute='SUSPENDHISTORY');
 update ad_preference set value='Y' where attribute='SUSPENDHISTORY';
 
 
@@ -215,6 +216,41 @@ BEGIN
     EXECUTE v_cmd;
 --  RAISE NOTICE 'SUCCESS : %', v_cmd; 
   END IF;
+END;
+$body$
+LANGUAGE 'plpgsql';
+
+CREATE OR REPLACE FUNCTION public.zsse_dropindex(p_contraint varchar)
+RETURNS varchar AS
+$body$
+DECLARE
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+******************************************************************************************************************************************************************************************************************************+
+Stefan Zimmermann, 04/2022, sz@zimmermann-software.de
+Check if Database - Dump is created out of an opensource instance
+If ORG-ID exists, there may be customer-Data - Giva warning in that case
+*****************************************************************************/
+  v_exists numeric;
+  v_cmd    VARCHAR;
+  v_ret varchar:='Not Found';
+BEGIN
+--RAISE NOTICE 'params: p_table=''%'', p_contraint=''%'' ', p_table, p_contraint; 
+  SELECT COUNT(*) INTO v_exists FROM pg_indexes
+  WHERE lower(indexname) = lower(p_contraint);
+  
+  IF (v_exists > 0) THEN
+    v_cmd := ' DROP INDEX ' || p_contraint;
+    EXECUTE v_cmd;
+    v_ret:='Index Dropped';
+  END IF;
+  return v_ret;
 END;
 $body$
 LANGUAGE 'plpgsql';

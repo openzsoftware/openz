@@ -147,7 +147,7 @@ public class ReportAssetDepreciationSchedule extends HttpSecureAppServlet {
       xmlDocument.setParameter("theme", vars.getTheme());
       NavigationBar nav = new NavigationBar(this, vars.getLanguage(),
           "ReportAssetDepreciationSchedule.html", classInfo.id, classInfo.type, strReplaceWith,
-          tabs.breadcrumb());
+          tabs.breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(),
           "ReportAssetDepreciationSchedule.html", strReplaceWith);

@@ -90,11 +90,11 @@ public class PdcMainDialogue  extends HttpSecureAppServlet {
 	    	  //renderJR(vars, response, strReportName, "pdfFILE", parameters, data, null);	
 	    	  //String repfile=this.getCreatedFile();
      	}
-    	if (vars.commandIn("RESET")){
+    	if (vars.commandIn("RESET") && PdcCommonData.hasMenu(this, vars.getRole()).equals("Y")){
     		response.sendRedirect(strDireccion + "/security/Menu.html");
     	}
         if (vars.commandIn("SAVE_NEW_NEW")){          
-        	PdcCommonData[] data  = PdcCommonData.selectbarcode(this, strbarcode);
+        	PdcCommonData[] data  = PdcCommonData.selectbarcode(this, strbarcode,vars.getRole());
         if (data.length==1){
         	PdcCommonData mydatarow =data[0];
           
@@ -233,6 +233,11 @@ public class PdcMainDialogue  extends HttpSecureAppServlet {
         // Enable Shortcuts
         script.addHiddenShortcut("linkButtonSave_New");
         script.enableshortcuts("EDITION");
+        // Autoprint Function
+        if (vars.getSessionValue("AUTOPRINTASSEMBLYINPDC").equals("Y")) {
+        	script.addOnload("setTimeout(function(){openServletNewWindow('PRINT', true, 'PdcMainDialogue.html', 'PdcMainDialogue', null, false, '400', '700', true)},50)");
+        	vars.removeSessionValue("AUTOPRINTASSEMBLYINPDC");
+        }
         //Creating the Output
         strOutput = script.doScript(strOutput, "",this,vars);
 

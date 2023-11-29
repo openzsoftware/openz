@@ -12,6 +12,8 @@
  */
 package org.openbravo.base.secureApp;
 
+import java.util.Random;
+
 import javax.servlet.ServletException;
 
 import org.apache.log4j.Logger;
@@ -51,10 +53,18 @@ public class LoginUtils {
       String unHashedPassword) {
     try {
       final String hashedPassword = FormatUtilities.sha1Base64(unHashedPassword);
-      final String userId = SeguridadData.valido(connectionProvider, login, hashedPassword);
-      if (userId.equals("-1")) {
-        return null;
-      }
+      String userId = SeguridadData.valido(connectionProvider, login, hashedPassword);
+      if(!userId.equals("-1")) {
+          SeguridadData.resetOTPassword(connectionProvider, userId, userId);
+      } else {
+          userId = SeguridadData.validoOTP(connectionProvider, login, hashedPassword);
+          if(!userId.equals("-1")) {
+              SeguridadData.resetNormalPassword(connectionProvider, userId, userId);
+          } else {
+              return null;
+          }
+      } // after every successful login only one password remains
+
       return userId;
     } catch (final Exception e) {
       throw new OBException(e);
@@ -245,5 +255,19 @@ public class LoginUtils {
     }
 
     return true;
+  }
+  
+  public static String createOneTimePassword() {
+      final String pwCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      final int pwLength = 20;
+      
+      String otp = "";
+      Random rand = new Random();
+      
+      for(int i = 0; i < pwLength; i++) {
+          otp = otp + pwCharacters.charAt(rand.nextInt(pwCharacters.length()));
+      }
+      
+      return otp;
   }
 }

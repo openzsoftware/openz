@@ -50,15 +50,16 @@ BEGIN
         if p_customer_Id is not null then
           select count(*) into v_count from c_bpartner where c_bpartner_id=p_customer_Id;
           if v_count=1 then
-              update c_bpartner set updatedby=v_user,updated=now(),value=p_value,name=p_name,c_bp_group_id=coalesce(v_bpgroup,c_bp_group_id) where c_bpartner_id=p_customer_Id;
+              update c_bpartner set updatedby=v_user,updated=now(),value=replace(p_value,'#',''),name=replace(p_name,'#',''),c_bp_group_id=coalesce(v_bpgroup,c_bp_group_id) where c_bpartner_id=p_customer_Id;
               v_message:='UPDATED';
           end if;
         else
-            if (p_org is not null and v_user is not null and p_value is not null and p_name is not null) then
+            if (p_org is not null and v_user is not null and p_value is not null and p_name is not null
+                and (select count(*) from c_bpartner where value=replace(p_value,'#',''))=0) then
               v_uid:=get_uuid();
               select ad_client_id,ad_language into v_client,v_lang from ad_client where ad_client_id!='0';
               insert into c_bpartner(C_BPARTNER_ID, AD_CLIENT_ID, AD_ORG_ID, CREATEDBY,UPDATEDBY, VALUE, NAME, C_BP_GROUP_ID, ISCUSTOMER, AD_LANGUAGE,so_creditlimit)
-                    values(v_uid,v_client,p_org,v_user,v_user,p_value,p_name,v_bpgroup,'Y',v_lang,500000);
+                    values(v_uid,v_client,p_org,v_user,v_user,replace(p_value,'#',''),replace(p_name,'#',''),v_bpgroup,'Y',v_lang,500000);
               v_message:=v_uid;
             end if;
         end if;
@@ -355,8 +356,10 @@ BEGIN
                 select invoicerule, deliveryrule,
                 case when v_issotrx='Y' then m_pricelist_id else po_pricelist_id end, 
                 case when v_issotrx='Y' then  c_paymentterm_id else po_paymentterm_id end, 
-                salesrep_id, so_description, paymentrule
-                into v_invrule2, v_delrule2, v_pricelist2, v_payterm2, v_salesrep, v_so_description,v_paymentrule2
+                salesrep_id, so_description,  
+                case when v_issotrx='Y' then  paymentrule else paymentrulepo end,
+                coalesce(c_Incoterms_Id,v_incoterms)
+                into v_invrule2, v_delrule2, v_pricelist2, v_payterm2, v_salesrep, v_so_description,v_paymentrule2,v_incoterms
                 from c_bpartner where c_bpartner_id=p_bpartner_Id;
                 select ad_user_id into v_salesrep from ad_user where v_salesrep=c_bpartner_id;
         end if;          
@@ -667,7 +670,7 @@ v_direct character varying;
 
 v_client character varying;
 v_org character varying;
-
+v_shop varchar;
 BEGIN 
     select count(*) into v_count from c_order where c_order_id=p_order_Id;
     if v_count=0 then v_message:='ERR: Order does not exist!'; end if;
@@ -676,9 +679,10 @@ BEGIN
         delete from c_order where c_order_id=p_order_Id;
     else
         if substr(v_message,1,3)!='ERR' then  
-        select ad_client_id,ad_org_id into v_client,v_org from c_order where c_order_id=p_order_Id;
+        select o.ad_client_id,o.ad_org_id,s.zse_shop_id into v_client,v_org,v_shop from c_order o left join ZSE_Shoporderstatus s on s.c_order_id=o.c_order_id where o.c_order_id=p_order_Id;
         --Needs Construction for multiple shops...
-        select isautoclosing into v_direct  from zssi_smartinvoiceprefs where ad_client_id=v_client and ad_org_id in ('0',v_org) and invoicetype='SSO' and isactive='Y' order by ad_org_id desc LIMIT 1;   
+        select isautoclosing into v_direct  from zssi_smartinvoiceprefs where ad_client_id=v_client and ad_org_id in ('0',v_org) and invoicetype='SSO' 
+                                                 and isactive='Y' and coalesce(zse_shop_id,'#')=coalesce(v_shop,'#') order by ad_org_id desc LIMIT 1;   
         if v_direct='Y' then
             -- Create invoice and schipment
             PERFORM C_Order_Post1(null,p_order_Id);

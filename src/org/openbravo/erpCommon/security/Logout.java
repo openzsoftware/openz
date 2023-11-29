@@ -15,8 +15,10 @@ package org.openbravo.erpCommon.security;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.openbravo.utils.FormatUtilities;
 
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 
@@ -34,6 +36,23 @@ public class Logout extends HttpSecureAppServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException,
       ServletException {
 
-    logout(request, response);
+      // delete (keep me logged in) permsession cookie on logout
+      Cookie[] cooks=request.getCookies();
+      if (cooks!=null) {
+         for (int i=0;i<cooks.length;i++) {
+             if (cooks[i].getName().equals("permsession")) {
+                 final String permsessionId = cooks[i].getValue();
+                 // delete permsession cookie if permsession id is not set in adUser Settings --> delete only keep me logged in cookie
+                 // legacy support for old non hashed permsession cookies
+                 if(!SessionLoginData.isPermsession(this, FormatUtilities.sha1Base64(permsessionId)) && !SessionLoginData.isPermsession(this, permsessionId)) {
+                     cooks[i].setMaxAge(0);
+                     cooks[i].setPath(request.getContextPath());
+                     response.addCookie(cooks[i]);
+                 }
+             }
+         }
+      }
+
+      logout(request, response);
   }
 }

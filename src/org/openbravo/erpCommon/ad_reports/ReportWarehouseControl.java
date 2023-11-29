@@ -117,7 +117,7 @@ public class ReportWarehouseControl extends HttpSecureAppServlet {
       xmlDocument.setParameter("theme", vars.getTheme());
       NavigationBar nav = new NavigationBar(this, vars.getLanguage(),
           "ReportWarehouseControl.html", classInfo.id, classInfo.type, strReplaceWith, tabs
-              .breadcrumb());
+              .breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(), "ReportWarehouseControl.html",
           strReplaceWith);

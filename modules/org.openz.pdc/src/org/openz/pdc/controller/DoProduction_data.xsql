@@ -152,15 +152,6 @@ Contributor(s): ______________________________________.
       <Parameter name="lang"/>
       <Parameter name="prodpid"/>
    </SqlMethod>
-   
-   <SqlMethod name="adjustPassingworkstepQtys" type="preparedStatement" return="string" connection="true">
-      <Sql>
-        SELECT pdc_adjustpassingworkstepqtys(?,to_number(?),?) from dual
-      </Sql>
-      <Parameter name="workstepid"/>
-      <Parameter name="qty"/>
-      <Parameter name="internalconsumptionid"/>
-   </SqlMethod>
    <SqlMethod name="getLocatorProduced" type="preparedStatement" return="string" connection="true">
       <Sql>
         select max(l.value) as ret from m_locator l,m_internal_consumptionline m where  l.m_locator_id=m.m_locator_id and m_internal_consumption_id = ? 
@@ -199,5 +190,32 @@ Contributor(s): ______________________________________.
       <SqlMethodComment></SqlMethodComment>
       <Sql></Sql>
    </SqlMethod>
-   
+   <SqlMethod name="setPassingworkstepMvMtType" type="preparedStatement" return="string" connection="true">
+      <Sql>
+        SELECT pdc_setPassingworkstepMvMtType(?,?) from dual
+      </Sql>
+      <Parameter name="workstepid"/>
+      <Parameter name="internalconsumptionid"/>
+   </SqlMethod>
+   <SqlMethod name="isSnrBtchProducedCompleteFinish" type="preparedStatement" return="string" connection="true">
+      <Sql>
+        select isSnrBtchProducedCompleteFinish(?,?) 
+      </Sql>
+      <Parameter name = "plannedserial"/>
+      <Parameter name="workstepid"/>
+   </SqlMethod>
+    <SqlMethod name="isSnrBtchPartOfWS" type="preparedStatement" return="string">
+      <Sql>
+        select case when count(*)>0 then 'Y' else 'N' end from zssm_predefinedserials_v where name=? and zssm_workstep_v_id=?
+      </Sql>
+      <Parameter name = "plannedserial"/>
+      <Parameter name="workstepid"/>
+    </SqlMethod>
+    <SqlMethod name="getQtyLeft" type="preparedStatement" return="string">
+      <Sql>
+        SELECT qtyleft from zssm_workstep_v  where zssm_workstep_v_id = ?
+      </Sql>
+      <Parameter name="workstepid"/>
+    </SqlMethod>
+ 
   </SqlClass>

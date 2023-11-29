@@ -42,6 +42,10 @@ function buttonOK_click() {
     submitCommandForm('DEFAULT', false, null, '../secureApp/LoginHandler.html', '_top', true);
     return false;
 }
+function buttonReset_click() {
+    submitCommandForm('LINKTORESET', false, null, '../secureApp/LoginHandler.html', '_top', true);
+    return false;
+}
 
 function redirectWhenPopup() {
   var permission = false;
@@ -69,7 +73,8 @@ function redirectWhenPopup() {
         submitCommandForm('DEFAULT', false, null, '../secureApp/LoginHandler.html', '_top', true);
     redirectWhenPopup();
     this.windowTables = new Array(
-      new windowTableId('client', 'buttonOK')
+      new windowTableId('client', 'buttonOK'),
+      new windowTableId('client', 'buttonReset')
     );
     setWindowTableParentElement();
     enableShortcuts('edition');
@@ -110,9 +115,10 @@ function redirectWhenPopup() {
   <td class="Main_NavBar_bg_logo_right_partner"></td>
   <td class="Main_NavBar_bg_logo_left"></td>
   <td width="1" onclick="openNewBrowser('http://openz.de', 'OpenZ');return false;" class="Main_NavBar_bg_logo"><img border="0" class="Main_NavBar_logo_openz" id="openzLogo" title="OpenZ" alt="OpenZ" src="../web/images/blank.gif"></td>
-  <td class="Main_NavBar_bg_logo_right"></td>
+  <td><div class="Main_NavBar_bg_logo_right" /></td>
               <td><div class="Main_NavBar_bg_logo_left" /></td>
               <td class="Main_NavBar_bg_logo" width="1" onclick="openNewBrowser('http://www.openbravo.com', 'Openbravo');return false;"><div class="Main_NavBar_logo" alt="Openbravo" title="Openbravo" border="0" id="openbravoLogo" /></td>
+              <td><div class="Main_NavBar_bg_logo_right" /></td>
               <td><div class="Main_NavBar_bg_logo_right" /></td>
             </tr>
           </table>
@@ -159,44 +165,22 @@ function redirectWhenPopup() {
                 <tr>
                   <!-- <td class="TitleCell_Login"><span class="LabelText_Login">Username</span></td>-->
                   <td class="TextBox_ContentCell_Login" >
-                    <input autocorrect="off" autocapitalize="none" style="border:none;" class="dojoValidateValid_Login TextBox_TwoCells_width_Login" type="text" size="40" maxlength="60" name="user" placeholder="Username" ></input> 
+                    <input autocorrect="off" autocapitalize="none" style="border:none;" class="dojoValidateValid_Login TextBox_TwoCells_width_Login" type="text" size="40" maxlength="60" name="user" placeholder="@username@" ></input> 
                   </td>
                 </tr>
 
                 <tr>
                    <!-- <td class="TitleCell_Login"><span class="LabelText_Login">Password</span></td>-->
                   <td class="TextBox_ContentCell_Login">
-                    <input autocorrect="off" autocapitalize="none" style="border:none;" class="dojoValidateValid_Login TextBox_TwoCells_width_Login" type="password" size="40" maxlength="40" name="password" placeholder="Password" ></input> 
+                    <input autocorrect="off" autocapitalize="none" style="border:none;" class="dojoValidateValid_Login TextBox_TwoCells_width_Login" type="password" size="40" maxlength="40" name="password" placeholder="@password@" ></input> 
                   </td>
                 </tr>
-<tr class="Login_emptyline" style="height:20px;"></tr>
                 <!--Remember  onfocus="if(this.value=='Password'){this.type='password';this.value=''}"  <tr><td height="20px"></td></tr>-->
-
+                @keepmeloggedincheckbox@
+                <tr class="Login_emptyline" style="height:20px;"></tr>
                 <tr>
                   <td class="Button_CenterAlign_ContentCell">
-                    <div style="text-align:center;">
-                      <button type="button" 
-                        id="buttonOK" 
-                        class="ButtonLink" 
-                        onclick="buttonOK_click();" 
-                        onfocus="buttonEvent('onfocus', this); window.status='Login'; return true;" 
-                        onblur="buttonEvent('onblur', this);" 
-                        onkeyup="buttonEvent('onkeyup', this);" 
-                        onkeydown="buttonEvent('onkeydown', this);" 
-                        onkeypress="buttonEvent('onkeypress', this);" 
-                        onmouseup="buttonEvent('onmouseup', this);" 
-                        onmousedown="buttonEvent('onmousedown', this);" 
-                        onmouseover="buttonEvent('onmouseover', this); window.status='Login'; return true;" 
-                        onmouseout="buttonEvent('onmouseout', this);">
-                        <table class="Button hpfrbtn" id="fieldTable">
-                          <tr>
-                            <td class="Button_left Button_left_LI"><img class="Button_Icon Button_Icon_ok" alt="Login" title="Login" src="../../../../../web/images/blank.gif" border="0" id="fieldButton" /></td>
-                            <td class="Button_text Button_text_LI Button_width">Login</td>
-                            <td class="Button_right Button_right_LI"></td>
-                          </tr>
-                        </table>
-                      </button>
-                    </div>
+                    @buttons@
                                  <div class="lgnfttt" style="margin-top:54px; vertical-align:bottom;text-align:center;">   
                   <div class="lgnft"><span class="forsupport">For Support Contact:</span><div style="color:#fff;" class="LabelText_Login" id="itService">www.your-it-service.com</div><div  class="Login_Copyright_text_new" style="text-align:center" id="versionNo">Version: 2.#.##.###</div></div>
 </div>

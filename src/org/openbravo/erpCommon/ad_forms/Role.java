@@ -30,7 +30,7 @@ import org.openbravo.base.secureApp.LoginUtils;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.dal.core.OBContext;
 import org.openbravo.dal.service.OBDal;
-
+import org.openbravo.database.ConnectionProvider;
 import org.openbravo.erpCommon.utility.OBError;
 import org.openbravo.erpCommon.utility.Utility;
 import org.openbravo.model.ad.system.SystemInformation;
@@ -107,10 +107,90 @@ public class Role extends HttpSecureAppServlet {
       log4j.error("Invalid password");
       throw new ServletException("@CODE=PasswordIncorrect");
     }
+    validatePassword(this, vars.getOrg(), vars.getLanguage(), strClaveNew);
    // SZ added: On Test-Systems and schared Accounts users may not update pwd
     if (RoleData.isPasswordUpdateAllowed(myPool, vars.getUser()).equals("Y")) {
       if (RoleData.update(this, FormatUtilities.sha1Base64(strClaveNew), vars.getUser()) == 0)
         throw new ServletException("@CODE=ProcessError");
+    }
+  }
+  
+  public static String getGuidelinesText(ConnectionProvider con, String adOrgId, String language, boolean error) throws ServletException  {
+
+      // please enter your new password
+      String message = Utility.messageBD(con, "Mfa_changePassword", language);
+
+      // error -> validation failed...
+      if(error) {
+          message = Utility.messageBD(con, "PasswordValidationFailed", language);
+      }
+
+      final String specialChars = "-*/!\"§€%\\\\()=?{\\[\\]}~#<>|,.;:_^";
+      final int minLength = Math.round(Float.parseFloat(RoleData.getpwreqslength(con, adOrgId)));
+      final boolean digit = RoleData.getpwreqsdigit(con, adOrgId).equals("Y");
+      final boolean special = RoleData.getpwreqsspecialcharacter(con, adOrgId).equals("Y");
+      final boolean lowercase = RoleData.getpwreqslowercasecharacter(con, adOrgId).equals("Y");
+      final boolean uppercase = RoleData.getpwreqsuppercasecharacter(con, adOrgId).equals("Y");
+
+      if(digit) {
+          message = message + Utility.messageBD(con, "PasswordValidationFailedDigits", language);
+      }
+      if(special) {
+          message = message + Utility.messageBD(con, "PasswordValidationFailedSpecial", language);
+      }
+      if(lowercase) {
+          message = message + Utility.messageBD(con, "PasswordValidationFailedLowercase", language);
+      }
+      if(uppercase) {
+          message = message + Utility.messageBD(con, "PasswordValidationFailedUppercase", language);
+      }
+      message = message + ".</p>";
+
+      message = message.replaceAll("@minLength@", String.valueOf(minLength)).replaceAll("@specialcharacters@", specialChars);
+
+      return message;
+  }
+
+  // sysadmin ad_user settings, only check for forbidden characters
+  public static void validatePasswordOnlyAllowedCharacters(ConnectionProvider con, String adOrgId, String language, String password) throws ServletException  {
+
+      final String specialChars = "-*/!\"§€%\\\\()=?{\\[\\]}~#<>|,.;:_^"; // + and & are replaced to " " and therefore forbidden
+      String regex = "[\\p{L}\\d" + specialChars + "]{1,}";     // allowed characters -> letters, digits, special characters
+      if(!password.matches(regex)) {
+          throw new ServletException(Utility.messageBD(con, "PasswordValidationFailedOnlyAllowedCharacters", language).replaceAll("@specialcharacters@", specialChars));
+      }
+  }
+
+  // for user, change password
+  public static void validatePassword(ConnectionProvider con, String adOrgId, String language, String password) throws ServletException  {
+
+    final int minLength = Math.round(Float.parseFloat(RoleData.getpwreqslength(con, adOrgId)));
+    final boolean digit = RoleData.getpwreqsdigit(con, adOrgId).equals("Y");
+    final boolean special = RoleData.getpwreqsspecialcharacter(con, adOrgId).equals("Y");
+    final boolean lowercase = RoleData.getpwreqslowercasecharacter(con, adOrgId).equals("Y");
+    final boolean uppercase = RoleData.getpwreqsuppercasecharacter(con, adOrgId).equals("Y");
+
+    final String specialChars = "-*/!\"§€%\\\\()=?{\\[\\]}~#<>|,.;:_^"; // + and & are replaced to " " and therefore forbidden
+
+    //match password with regular expression
+    String regex = "[\\p{L}\\d" + specialChars + "]"     // allowed characters -> letters, digits, special characters
+               + "{" + String.valueOf(minLength) + ",}"; // at least x characters
+
+    if(digit) {
+        regex = "(?=.*\\d)" + regex; // at least one digit
+    }
+    if(special) {
+        regex = "(?=.*[" + specialChars + "])" + regex; // at least one special character
+    }
+    if(lowercase) {
+        regex = "(?=.*\\p{Ll})" + regex; // at least one letter lowercase (unicode character)
+    }
+    if(uppercase) {
+        regex = "(?=.*\\p{Lu})" + regex; // at least one letter uppercase (unicode character)
+    }
+
+    if(!password.matches(regex)) {
+        throw new ServletException(getGuidelinesText(con, adOrgId, language, true));
     }
   }
 

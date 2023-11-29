@@ -71,7 +71,7 @@ public class ServletSetPriority extends HttpSecureAppServlet {
       WindowTabs tabs = new WindowTabs(this, vars, "org.openbravo.erpCommon.ad_forms.ShowSession");
       xmlDocument.setParameter("theme", vars.getTheme());
       NavigationBar nav = new NavigationBar(this, vars.getLanguage(), "SetPriority.html",
-          classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb());
+          classInfo.id, classInfo.type, strReplaceWith, tabs.breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(), "SetPriority.html",
           strReplaceWith);

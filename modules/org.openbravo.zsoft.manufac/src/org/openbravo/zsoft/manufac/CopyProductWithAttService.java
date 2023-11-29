@@ -41,6 +41,7 @@ public class CopyProductWithAttService implements org.openbravo.scheduling.Proce
        
       final String newName = (String) bundle.getParams().get("name");
       final String newKey = (String) bundle.getParams().get("value");
+      final String copyAttachments = (String) bundle.getParams().get("copyattachments");
       String fileDir = OBPropertiesProvider.getInstance().getOpenbravoProperties().getProperty("attach.path");
       final String mProductID = (String) bundle.getParams().get("M_Product_ID");
       String adUserId=bundle.getContext().getUser();
@@ -70,44 +71,47 @@ public class CopyProductWithAttService implements org.openbravo.scheduling.Proce
       if ( (result.indexOf("<a href") > 0) && (result.indexOf("</a>") > 0) )  {
         link = "</br>" + result.substring(result.indexOf("<a href"), result.indexOf("</a>")+4);  
       }
-      
       log.debug(" Copy Product-SQL-Procedure finished with:  " + result + "\n");
-      sql = "SELECT  AD_CLIENT_ID,  AD_ORG_ID, ISACTIVE, NAME, C_DATATYPE_ID, SEQNO, TEXT, AD_TABLE_ID from c_file where AD_RECORD_ID='" + mProductID + "'";
-      res = stmt.executeQuery(sql);
-      while (res.next()) {
-        // Copy File First
-        
-          final File toDir = new File(fileDir + "/" + res.getString("AD_TABLE_ID") + "-" + uid);
-          final File fromDir = new File(fileDir + "/" + res.getString("AD_TABLE_ID") + "-" + mProductID);
-          if (!toDir.exists())
-            toDir.mkdirs();
-          final File inputFile = new File(fromDir, res.getString("NAME"));
-          final File outputFile = new File(toDir, res.getString("NAME"));
-          FileInputStream in = new FileInputStream(inputFile);
-          FileOutputStream out = new FileOutputStream(outputFile);
-          byte[] buf = new byte[1024]; 
-          int len; 
-          while ((len = in.read(buf)) >= 0)  
-            out.write(buf, 0, len); 
-          in.close(); 
-          out.flush();
-          out.close(); 
+      
+      if(copyAttachments.equals("Y")) {
+          sql = "SELECT  AD_CLIENT_ID,  AD_ORG_ID, ISACTIVE, NAME, C_DATATYPE_ID, SEQNO, TEXT, AD_TABLE_ID from c_file where AD_RECORD_ID='" + mProductID + "'";
+          res = stmt.executeQuery(sql);
+          while (res.next()) {
+            // Copy File First
+            
+              final File toDir = new File(fileDir + "/" + res.getString("AD_TABLE_ID") + "-" + uid);
+              final File fromDir = new File(fileDir + "/" + res.getString("AD_TABLE_ID") + "-" + mProductID);
+              if (!toDir.exists())
+                toDir.mkdirs();
+              final File inputFile = new File(fromDir, res.getString("NAME"));
+              final File outputFile = new File(toDir, res.getString("NAME"));
+              FileInputStream in = new FileInputStream(inputFile);
+              FileOutputStream out = new FileOutputStream(outputFile);
+              byte[] buf = new byte[1024]; 
+              int len; 
+              while ((len = in.read(buf)) >= 0)  
+                out.write(buf, 0, len); 
+              in.close(); 
+              out.flush();
+              out.close(); 
+          }
+          
+          log.debug("Copy Files Successfully finished\n");
+          // Do insert File Table.
+          sql = "select zsmf_copyproductfiles('" + mProductID + "','"  + uid + "','" + adUserId + "') as plresult from dual";
+          res = stmt.executeQuery(sql);
+          if (res.first())
+            result = res.getString("plresult");
+          else
+            result = "@zsse_DataNotExists@";
+          // Throw if SQL not OK
+          if (!result.equals("SUCCESS"))
+            throw new Exception ("Error in Copy Files - SQL-Procedure" + result);
       }
       
-      log.debug("Copy Files Successfully finished\n");
-      // Do insert File Table.
-      sql = "select zsmf_copyproductfiles('" + mProductID + "','"  + uid + "','" + adUserId + "') as plresult from dual";
-      res = stmt.executeQuery(sql);
-      if (res.first())
-        result = res.getString("plresult");
-      else
-        result = "@zsse_DataNotExists@";
-      // Throw if SQL not OK
-      if (!result.equals("SUCCESS"))
-        throw new Exception ("Error in Copy Files - SQL-Procedure" + result);
       conn.close();
       final OBError msg = new OBError();
-      if (!result.equals("SUCCESS")) {
+      if (!result.startsWith("SUCCESS")) {
         msg.setType("Error");
         msg.setMessage(result);
       } 

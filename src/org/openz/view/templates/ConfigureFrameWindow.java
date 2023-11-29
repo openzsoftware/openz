@@ -19,6 +19,7 @@ import org.openz.view.*;
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.erpCommon.businessUtility.WindowTabs;
+import org.openbravo.erpCommon.security.SessionLoginData;
 import org.openbravo.erpCommon.utility.*;
 
 
@@ -116,7 +117,23 @@ public class ConfigureFrameWindow {
       template = new String(FileUtils.readFile("MessageBox.xml", directory + "/src-loc/design/org/openz/view/templates/"));
       servlet.getServletContext().setAttribute("messageBoxTEMPLATE", template);
     }
-    msgbox=template.toString();   
+    msgbox=template.toString();
+
+    String navBarLogoId = SessionLoginData.getCustomizedNavBarLogo(servlet);
+    String navBarLogoIdOrg = SessionLoginData.getCustomizedNavBarLogoFromOrg(servlet, vars.getOrg());
+    // org logo overwrites client logo overwrites standard logo
+    if(!navBarLogoIdOrg.isEmpty()) {
+        navBarLogoId = navBarLogoIdOrg;
+    }
+    if(navBarLogoId.isEmpty()) {
+        Replace.replace(retval, "@openbravonavbarlogo@",
+                  "<TD class=\"Popup_NavBar_bg_logo\" width=\"1\" onclick=\"openNewBrowser('http://www.openbravo.com', 'Openbravo');return false;\"><IMG src=\"../web/images/blank.gif\" alt=\"Openbravo\" title=\"Openbravo\" border=\"0\" id=\"openbravoLogo\" class=\"Popup_NavBar_logo\"></TD>");
+    }else {
+        Replace.replace(retval, "@openbravonavbarlogo@",
+                  "<td class=\"Main_NavBar_bg_logo\" width=\"1\"><div class=\"Main_NavBar_logo_custom\" alt=\"NavBarLogo\" title=\"NavBarLogo\" border=\"0\" id=\"NavBarLogo\">"
+                + "<img src=\"../utility/ShowImage?id=" + navBarLogoId +"\" alt=\"NavBarLogo\">"
+                + "</div></td>");
+    }
     Replace.replace(retval, "@SCRIPTSET@",scriptset);
     Replace.replace(retval, "@LEFTTABSBAR@",leftTabsBar);
     Replace.replace(retval, "@THEME@", theme);
@@ -162,8 +179,8 @@ public class ConfigureFrameWindow {
     Replace.replace(retval, "@FOCUSFIELD@", focusfield );
     // Auto Logged in APP Mode - Remove Logout and Back, only Refresh is triggered.
     if ( PdcCommonData.isAutologin(servlet, vars.getUser()).equals("Y") && leftTabsMode.equals("REMOVED") && hideframes.equals("true")) {
-    	Replace.replace(retval, "openNewBrowser('http://www.openbravo.com', 'Openbravo');", "");
-    	Replace.replace(retval, "openNewBrowser('http://openz.de', 'OpenZ');", "");
+    	Replace.replace(retval, "openNewBrowser('http://www.openbravo.com', 'Openbravo');", "menuQuit();");
+    	Replace.replace(retval, "openNewBrowser('http://openz.de', 'OpenZ');", "menuQuit();");
     }
     return retval.toString();
   }

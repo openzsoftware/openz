@@ -113,10 +113,12 @@ qtystd character varying(255));
 create table zsi_productorg(productvalue_key character varying(250),
 locator_key character varying(250),
 isvendorreceiptlocator character varying(250),
+isproduction character varying(250),
 planingmethod_key character varying(250),
 capacity character varying(250),
 stockmin character varying(250),
 qtyoptimal character varying(250),
+abc  character varying(250),
 org_key  character varying(250)
 );
 

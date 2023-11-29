@@ -129,7 +129,7 @@ public class PdcMaterialReturn extends HttpSecureAppServlet {
     	vars.setSessionValue("PDCSTATUS","OK");
         vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_DataSelected",vars.getLanguage()));  
         if (!vars.getStringParameter("inp" + BarcodeADName).isEmpty()) {
-          data = PdcCommonData.selectbarcode(this, vars.getStringParameter("inp" + BarcodeADName));
+          data = PdcCommonData.selectbarcode(this, vars.getStringParameter("inp" + BarcodeADName),vars.getRole());
           // In this Servlet CONTROL, EMPLOYEE or PRODUCT or CALCULATION, LOCATOR, WORKSTEP can be scanned,
           // The First found will be used...
           String bctype="UNKNOWN";
@@ -275,10 +275,12 @@ public class PdcMaterialReturn extends HttpSecureAppServlet {
 	                    PdcCommonData.getProductStdUOM(this, upperGridData[i].getField("m_product_id")),
 	                    PdcCommonData.getProductionOrderFromWorkstep(this,getLocalSessionVariable(vars, WorkstepIDADName)),
 	                    getLocalSessionVariable(vars, WorkstepIDADName));
-	                }
+	                }	                
 	              }
-	            }
+	            }	            
 	          }
+	          // Rückgabe eines Gerätes -> SNR/BBTCh ggf. aus geplanter SNR vorbelegen
+              PdcMaterialReturnData.pdc_addpassingworkstSnrBtchReturn(this,  GlobalWorkstepID, GlobalConsumptionID);
           } else {
               PdcCommonData.deleteAllMaterialLines(this,GlobalConsumptionID);
               PdcCommonData.deleteMaterialTransaction(this,GlobalConsumptionID);

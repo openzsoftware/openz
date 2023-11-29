@@ -51,7 +51,7 @@
         select
             zssi_getproductnamewithvalue(pdc_workstepbom_v.m_product_id, ?) as pdcmaterialconsumptionproduct,
                 m_locator.value||m_product_locatordescription_userexit(pdc_workstepbom_v.m_product_id) as pdcmaterialconsumptionlocator,
-                case when ?!=? then qtyforone*to_number(?) else qtyrequired end as pdcmaterialconsumptionplannedqty,
+                trunc(qtyforone*to_number(?), coalesce(u.stdprecision, 0)::INTEGER) as pdcmaterialconsumptionplannedqty,
                 pdc_getReturnQtyBomProduct(pdc_workstepbom_v.zssm_workstep_v_id,pdc_workstepbom_v.m_product_id,?) + coalesce((select sum(m_internal_consumptionline.movementqty)), 0) as pdcmaterialconsumptionreceivedqty,
                 qty_available as pdcmaterialconsumptionavailableqty,
                 pdc_workstepbom_v_id,pdc_workstepbom_v.m_product_id,m_locator.m_locator_id, pdc_workstepbom_v.line,
@@ -61,6 +61,7 @@
         left join m_locator on 
             coalesce(pdc_workstepbom_v.receiving_locator,pdc_workstepbom_v.m_locator_id) = m_locator.m_locator_id
         left join m_product p on p.m_product_id=pdc_workstepbom_v.m_product_id
+        left join c_uom u on u.c_uom_id=p.c_uom_id
         left join m_internal_consumptionline on
             m_internal_consumptionline.m_internal_consumption_id = ? and
             m_internal_consumptionline.m_product_id = pdc_workstepbom_v.m_product_id
@@ -71,24 +72,21 @@
             pdc_workstepbom_v.value,
             pdc_workstepbom_v.m_product_id,
             pdc_workstepbom_v.zssm_workstep_v_id,
+            u.stdprecision,
             m_locator.value,
             m_locator.m_locator_id,
             qtyrequired,
             qtyreceived,
             qty_available,qtyforone,
             pdc_workstepbom_v_id,p.isserialtracking ,p.isbatchtracking 
-        having case when ?!=? then qtyforone*to_number(?) else qtyrequired - qtyreceived end - coalesce((select sum(m_internal_consumptionline.movementqty)), 0) > 0
+        having qtyforone*to_number(?) - coalesce((select sum(m_internal_consumptionline.movementqty)), 0) > 0
         order by  pdc_workstepbom_v.line,pdc_workstepbom_v.value
 	</Sql>
 	<Parameter name = "language"/>
 	<Parameter name = "partlyproductionqty"/>
-	<Parameter name = "qtyleft"/>
-	<Parameter name = "partlyproductionqty"/>
 	<Parameter name = "plannedserial"/>
     <Parameter name = "pconsumptionid"/>
     <Parameter name = "workstepid"/>
-    <Parameter name = "partlyproductionqty"/>
-	<Parameter name = "qtyleft"/>
 	<Parameter name = "partlyproductionqty"/>
 </SqlMethod>
   
@@ -125,7 +123,7 @@
 <SqlMethod name="selectlower" type="preparedStatement" return="multiple">
 <SqlMethodComment></SqlMethodComment>
     <Sql>
-         Select f.m_internal_consumptionline_id,zssi_getproductnamewithvalue(f.m_product_id,?) AS pdcmaterialconsumptionproduct,
+         Select f.m_internal_consumptionline_id,zssi_getproductnamewithvalue(f.m_product_id,?) AS pdcmaterialconsumptionproduct,f.m_product_id,
          zssi_getproductnamewithvalue(f.m_product_id,?)||string_agg(case when snr.serialnumber is not null then ',SN:'||snr.serialnumber when snr.lotnumber is not null then 'CN:'||snr.lotnumber||'('||snr.quantity||')' end,';') as textline,
          l.value as pdcmaterialconsumptionlocator,f.movementqty as pdcmaterialconsumptionreceivedqty,
          case when p.isserialtracking='Y' and max(snr.serialnumber) is null then 'X' else string_agg(snr.serialnumber,';') end as serialnumber,
@@ -164,9 +162,10 @@
             serialnumber,
             lotnumber
         from 
-            pdc_getDataIdfromScan(?)
+            pdc_getDataIdfromScan(?,?)
     </Sql>
     <Parameter name="barcode"/>
+    <Parameter name="roleId"/>
 </SqlMethod>
     
 <SqlMethod name="insertConsumption" type="preparedStatement"  return="rowCount">
@@ -228,9 +227,7 @@
  
 <SqlMethod name="getQty" type="preparedStatement" return="string">
       <Sql>
-        SELECT case when sum(qty_available - qtyrequired -(qtyreceived + coalesce((movementqty), 0))) >=0 then
-                     sum(qtyrequired -(qtyreceived + coalesce((movementqty), 0))) else
-                     sum(qty_available) end as qty
+        SELECT least(sum(qtyrequired -(qtyreceived + coalesce(movementqty, 0))),sum(qty_available)) as qty
         from
             pdc_workstepbom_v
             left join m_internal_consumptionline on
@@ -303,4 +300,30 @@
       <Parameter name = "workstep"/>
       <Parameter name="palnnedsnr"/>
   </SqlMethod>
+
+  <SqlMethod name="getProduceContinuously" type="preparedStatement" return="String">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select producecontinuously from zssm_workstep_v where zssm_workstep_v_id = ?
+    </Sql>
+    <Parameter name = "workstep"/>
+  </SqlMethod>
+
+  <SqlMethod name="getPdconlyreceivecomplete" type="preparedStatement" return="String">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select c_getconfigoption('pdconlyreceivecomplete', ?) as result from dual
+    </Sql>
+    <Parameter name = "ad_org_id"/>
+  </SqlMethod>
+
+  <SqlMethod name="getQtyForOne" type="preparedStatement" return="String">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select qtyforone from pdc_workstepbom_v where zssm_workstep_v_id = ? and m_product_id = ?
+    </Sql>
+    <Parameter name = "workstep"/>
+    <Parameter name = "productid"/>
+  </SqlMethod>
+
 </SqlClass>

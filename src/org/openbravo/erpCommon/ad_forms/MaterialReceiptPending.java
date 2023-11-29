@@ -143,7 +143,7 @@ public class MaterialReceiptPending extends HttpSecureAppServlet {
       xmlDocument.setParameter("theme", vars.getTheme());
       NavigationBar nav = new NavigationBar(this, vars.getLanguage(),
           "MaterialReceiptPending.html", classInfo.id, classInfo.type, strReplaceWith, tabs
-              .breadcrumb());
+              .breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(), "MaterialReceiptPending.html",
           strReplaceWith);

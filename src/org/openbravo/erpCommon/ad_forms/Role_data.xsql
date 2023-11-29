@@ -110,4 +110,40 @@
       <Parameter name="aduserid"/>
    </SqlMethod>
 
+   <SqlMethod name="getpwreqslength" type="preparedStatement" return="string" default="10">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT COALESCE((SELECT pwreqslength FROM c_orgconfiguration WHERE isactive = 'Y' and ad_org_id = ?),
+                        (SELECT pwreqslength FROM c_orgconfiguration WHERE isactive = 'Y' and isstandard = 'Y' limit 1)) FROM dual;
+      </Sql>
+      <Parameter name="adOrgId"/>
+   </SqlMethod>
+   <SqlMethod name="getpwreqsdigit" type="preparedStatement" return="string" default="N">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT c_getconfigoption('pwreqsdigit', ?) FROM dual;
+      </Sql>
+      <Parameter name="adOrgId"/>
+   </SqlMethod>
+   <SqlMethod name="getpwreqsspecialcharacter" type="preparedStatement" return="string" default="N">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT c_getconfigoption('pwreqsspecialcharacter', ?) FROM dual;
+      </Sql>
+      <Parameter name="adOrgId"/>
+   </SqlMethod>
+   <SqlMethod name="getpwreqslowercasecharacter" type="preparedStatement" return="string" default="N">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT c_getconfigoption('pwreqslowercasecharacter', ?) FROM dual;
+      </Sql>
+      <Parameter name="adOrgId"/>
+   </SqlMethod>
+   <SqlMethod name="getpwreqsuppercasecharacter" type="preparedStatement" return="string" default="N">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT c_getconfigoption('pwreqsuppercasecharacter', ?) FROM dual;
+      </Sql>
+      <Parameter name="adOrgId"/>
+   </SqlMethod>
 </SqlClass>

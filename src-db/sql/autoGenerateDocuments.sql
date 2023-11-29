@@ -70,9 +70,10 @@ BEGIN
             -- New Order when BPartner changes.
             if coalesce(v_partner,'')!= coalesce(v_prevPartner,'')  then  
                     select c_order_id from c_order into v_order where c_doctype_id = '6C8EA6FFBB2B4ACBA0542BA4F833C499' and c_project_id=v_cur.c_project_id  and c_bpartner_id=v_partner and docstatus='CO'
-                                 and not exists (select 0 from c_invoice i where i.c_order_id=c_order.c_order_id and i.docstatus!='VO')
-                                 and not exists (select 0  from c_invoiceline il,c_invoice i where i.c_invoice_id=il.c_invoice_id and il.c_orderline_id in 
-                                                                                (select x.c_orderline_id from c_orderline x where x.c_order_id=c_order.c_order_id) and i.docstatus!='VO') order by datepromised limit 1;
+                                   and exists (select 0 from c_orderline l where l.c_order_id=c_order.c_order_id and l.qtyordered>l.qtyinvoiced and l.ignoreresidue='N') order by datepromised limit 1;
+                                 --and not exists (select 0 from c_invoice i where i.c_order_id=c_order.c_order_id and i.docstatus!='VO')
+                                 --and not exists (select 0  from c_invoiceline il,c_invoice i where i.c_invoice_id=il.c_invoice_id and il.c_orderline_id in 
+                                 --                                               (select x.c_orderline_id from c_orderline x where x.c_order_id=c_order.c_order_id) and i.docstatus!='VO') order by datepromised limit 1;
                     if v_order is null then
                                     select case when  paymentrule='K' then 'A'  
                                                           when   paymentrule='P' then 'BC'

@@ -24,7 +24,7 @@
     <Sql>
       <![CDATA[
         SELECT AD_PARENT_MENU_ELEMENT(M.AD_MENU_ID, ?, ?) AS ELEMENT_NAME, 
-        (W.NAME ||' - ' || TB.NAME) AS NAME, T.TABLENAME, C.COLUMNNAME, TB.AD_TAB_ID, 
+        (W.NAME ||' - ' || TB.NAME) AS NAME, lower(T.TABLENAME) as tablename, C.COLUMNNAME, TB.AD_TAB_ID, 
         TB.NAME AS TABNAME, W.NAME AS WINDOWNAME, '' AS HASTREE, '' AS ID, '' AS WHERECLAUSE, 0 AS TOTAL,
        (CASE WHEN (SELECT COUNT(*)
                      FROM AD_WINDOW_ACCESS WA
@@ -90,7 +90,7 @@
         SELECT AD_PARENT_MENU_ELEMENT(M.AD_MENU_ID, ?, ?) AS ELEMENT_NAME, 
         ((case when Wt.NAME IS NULL then W.NAME else  Wt.NAME end) || ' - ' || 
         (case when TBt.NAME IS NULL then TB.NAME else TBt.NAME end)) AS NAME, 
-        T.TABLENAME, C.COLUMNNAME, TB.AD_TAB_ID, 0 AS TOTAL, 
+        lower(T.TABLENAME) as tablename, C.COLUMNNAME, TB.AD_TAB_ID, 0 AS TOTAL, 
         (case when Wt.NAME IS NULL then W.NAME else  Wt.NAME end) AS WINDOWNAME, 
         (case when TBt.NAME IS NULL then TB.NAME else TBt.NAME end) AS TABNAME,
         (CASE WHEN (SELECT COUNT(*)

@@ -917,6 +917,8 @@ CREATE OR REPLACE FUNCTION m_inout_post(p_pinstance_id character varying, p_inou
     ---- <<FINISH_PROCESS>>
     -- Do Update the Material Plan with new Stock qty's
     PERFORM mrp_inoutplanupdate(null);
+    -- Call Supply to Vendor Function on Production Orders
+    select  v_message||zssm_supply2vendoractivation(v_Record_ID) into v_message;
     -- Call User Exit Function
     select  v_message||m_inout_post_userexit(v_Record_ID) into v_message;
     IF(p_PInstance_ID IS NOT NULL) THEN
@@ -1101,6 +1103,7 @@ v_count numeric;
 v_cur record;
 v_sheddate timestamp without time zone; 
 v_ptype varchar;
+v_oconf varchar;
 BEGIN
   select coalesce(scheddeliverydate,now()),qtyordered,qtydelivered,deliverycomplete,c_order_id,m_product_id,ad_org_id,ad_client_id 
          into v_sheddate,v_qtyordered,v_qtydelivered,v_deliverycomplete,v_orderid,v_product,v_org,v_client from c_orderline where c_orderline_id=p_orderline_id;
@@ -1108,7 +1111,11 @@ BEGIN
   SELECT allownegativestock  INTO  v_allownegativestock  FROM ad_clientinfo where ad_client_id = v_client;
   -- Delivery of Services?
   select producttype into v_ptype from m_product where m_product_id = v_product;
-  if c_getconfigoption('deliveryofservices',v_org) = 'N' and v_ptype='S' then
+  select deliveryofservices into v_oconf from c_orgconfiguration where ad_org_id=v_org;
+  if v_oconf is null then
+    select deliveryofservices into v_oconf from c_orgconfiguration where isstandard='Y' limit 1;
+  end if;
+  if v_oconf='N' and v_ptype='S' then
      return 'N';
   end if;
   -- Purchase
@@ -1324,7 +1331,7 @@ BEGIN
             RAISE EXCEPTION '%', '@RunningInventory@ (' ||(select value from m_locator where m_locator_id=new.m_locator_id)||')';
         end if;
         if (select count(*) from m_locator where m_locator_id=new.m_locator_id and isactive='Y')=0 then
-            RAISE EXCEPTION '%', 'Locator is not active';
+            RAISE EXCEPTION '%', '@LocatorNotActiveOrNull@';
         end if;
         if (select count(*) from m_product where m_product_id=new.m_product_id and isactive='Y')=0 then
             RAISE EXCEPTION '%', 'Product is not active';
@@ -2089,6 +2096,28 @@ IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
 END; $_$;
 
 
+CREATE OR REPLACE FUNCTION m_inout_create_userexit(v_inout_id varchar)
+  RETURNS varchar AS
+$BODY$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***********************************************************************************************+*****************************************
+User-Exit for m_inout_create
+**/
+DECLARE
+v_return varchar:='';
+BEGIN
+RETURN v_return;
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
 
 CREATE OR REPLACE FUNCTION m_inout_create(p_pinstance_id character varying, OUT p_inout_id character varying, p_order_id character varying, p_invoice_id character varying, p_forcedelivery character, p_locator_id character varying) RETURNS character varying
     LANGUAGE plpgsql
@@ -2469,6 +2498,9 @@ For Manual Shipments a new Function was Created - This one is tooo chaotic.
         RAISE NOTICE '%','--<<M_InOut_Create finished>> ' || v_Message;
       END IF;
       --
+
+      PERFORM m_inout_create_userexit(p_InOut_ID);
+
       RETURN;
     END; --BODY
 EXCEPTION
@@ -2531,6 +2563,7 @@ $BODY$ DECLARE
     V_STOCKED       VARCHAR;
     v_type          VARCHAR;
     v_movementtype character varying;
+    v_descr varchar;
     v_movqty numeric;
     v_resqty numeric;
     v_new_id VARCHAR(32);
@@ -2566,13 +2599,13 @@ $BODY$ DECLARE
       Processed,
       AD_Client_ID,
       AD_Org_ID,
-      movementtype
+      movementtype,description
     INTO v_MoveDate,
       v_IsProcessing,
       v_IsProcessed,
       v_Client_ID,
       v_Org_ID,
-      v_movementtype
+      v_movementtype,v_descr
     FROM M_Internal_Consumption
     WHERE M_Internal_Consumption_ID=Record_ID  FOR UPDATE;
     IF(v_IsProcessing='Y') THEN
@@ -2660,9 +2693,14 @@ $BODY$ DECLARE
           END IF;
           -- SZ Update BOM of Project-Task if any to indicate that Material is fetched from stock
           if (Cur_MoveLine.c_projecttask_id is not null and v_type='I') then
+                -- Produktion
                 if v_movementtype='P+' then
                     -- Update Produced Quantity
                     update c_projecttask set qtyproduced=qtyproduced+v_movqty where c_projecttask_id=Cur_MoveLine.c_projecttask_id;
+                end if;
+                -- Durchreicher
+                if v_movementtype='D+' and v_descr='Generated by PDC ->Send produced Material on Stock' then
+                    perform pdc_adjustpassingworkstepqtys(Cur_MoveLine.c_projecttask_id,v_movqty,Cur_MoveLine.m_internal_consumption_id);
                 end if;
                 select count(*) into v_count from zspm_projecttaskbom where c_projecttask_id=Cur_MoveLine.c_projecttask_id and m_product_id=Cur_MoveLine.m_product_id
                                              and directship='N';
@@ -3406,7 +3444,7 @@ BEGIN
         RAISE EXCEPTION '%', '@RunningInventory@ (' ||(select value from m_locator where m_locator_id=new.m_locator_id)||')';
     end if;
     if (select count(*) from m_locator where m_locator_id=new.m_locator_id and isactive='Y')=0 then
-        RAISE EXCEPTION '%', 'Locator is not active';
+        RAISE EXCEPTION '%', '@LocatorNotActiveOrNull@';
     end if;
     if (select count(*) from m_product where m_product_id=new.m_product_id and isactive='Y')=0 then
         RAISE EXCEPTION '%', 'Product is not active';
@@ -4353,6 +4391,7 @@ v_qtyproduced numeric;
 v_qtyplan numeric;
 v_count  numeric;
 v_plannedsnr varchar;
+v_descr varchar;
 BEGIN
   IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; END IF;
   
@@ -4370,15 +4409,20 @@ BEGIN
   
   IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
     
-    select movementtype,plannedserialnumber into v_movementtype,v_plannedsnr from M_Internal_Consumption where M_Internal_Consumption_id=new.M_Internal_Consumption_ID;
+    select movementtype,plannedserialnumber,description into v_movementtype,v_plannedsnr,v_descr from M_Internal_Consumption where M_Internal_Consumption_id=new.M_Internal_Consumption_ID;
     -- Calc Consumptions on NON Serial
     if (new.c_projecttask_id is not null and v_movementtype='D+' and v_plannedsnr is null) then
        select sum(qtyreceived),sum(quantity) into v_qtyreceived,v_bomplan from zspm_projecttaskbom where c_projecttask_id=new.c_projecttask_id and m_product_id=new.m_product_id;
        if (v_qtyreceived is null) then v_qtyreceived=0; end if;
-       select qty,qtyproduced into v_qtyplan,v_qtyproduced from c_projecttask where c_projecttask_id=new.c_projecttask_id;
-       if v_qtyproduced>0 and v_qtyplan>0 then
-        v_qtyreceived:=round(v_qtyreceived-v_bomplan*(v_qtyproduced/v_qtyplan),3);
-       end if;
+       if (select assembly from  c_projecttask where  c_projecttask_id=new.c_projecttask_id)='N' and (select m_product_id from zspm_projecttaskbom where c_projecttask_id=new.c_projecttask_id order by line limit 1)=new.m_product_id
+       then -- Ausrüstungs AG (Durchreicher) -> Der Durchreiche-Artikel wird in der menge 1:1 geprüft (keine Prod. Menge bei der ersten Pos. abziehen)
+            v_qtyreceived:=v_qtyreceived;
+       else
+            select qty,qtyproduced into v_qtyplan,v_qtyproduced from c_projecttask where c_projecttask_id=new.c_projecttask_id;
+            if v_qtyproduced>0 and v_qtyplan>0 then
+                v_qtyreceived:=round(v_qtyreceived-v_bomplan*(v_qtyproduced/v_qtyplan),3);
+            end if;
+       end if; -- Producing worksteps
        if TG_OP = 'UPDATE' and old.zspm_projecttaskbom_id is not null and new.zspm_projecttaskbom_id is null THEN
         raise notice '%','Delete BOM-Pos. in PTask';
        else
@@ -4391,10 +4435,10 @@ BEGIN
     if (new.c_projecttask_id is not null and v_movementtype='D+' and v_plannedsnr is not null) then
         select qty into v_qtyplan from c_projecttask where c_projecttask_id=new.c_projecttask_id;
         select sum(quantity) into v_bomplan from zspm_projecttaskbom where c_projecttask_id=new.c_projecttask_id and m_product_id=new.m_product_id;
-        select case when c.movementtype='D+' then (-1) else (1) end * sum(l.movementqty)  into v_qtyreceived from m_internal_consumption c,m_internal_consumptionline l 
+        select sum(a.qty) into v_qtyreceived from (select case when c.movementtype='D+' then (-1) else (1) end * sum(l.movementqty) as qty from m_internal_consumption c,m_internal_consumptionline l 
                where l.m_internal_consumption_id=c.m_internal_consumption_id and c.c_projecttask_id=new.c_projecttask_id and c.m_internal_consumption_id!=new.m_internal_consumption_id 
                and m_product_id=new.m_product_id and c.plannedserialnumber=v_plannedsnr and c.processed='Y' and c.movementtype in ('D+','D-')
-               group by c.movementtype;
+               group by c.movementtype) a;
         if (v_qtyreceived is null) then v_qtyreceived=0; end if;       
         -- SNR Produced? -> Nur Rst-Mat.
         select sum(l.movementqty) into v_qtyproduced from m_internal_consumption c,m_internal_consumptionline l 
@@ -4417,7 +4461,7 @@ BEGIN
         end if;
     end if;
     if (select count(*) from m_locator where m_locator_id=new.m_locator_id and isactive='Y')=0 then
-        RAISE EXCEPTION '%', 'Locator is not active';
+        RAISE EXCEPTION '%', '@LocatorNotActiveOrNull@';
     end if;
     if (select count(*) from m_product where m_product_id=new.m_product_id and isactive='Y')=0 then
         RAISE EXCEPTION '%', 'Product is not active';
@@ -4598,7 +4642,7 @@ BEGIN
         end if;
      end if;
   end if; --Updating 
-  if (select count(*) from m_locator where m_warehouse_id=new.m_warehouse_id and m_locator_id!=new.m_locator_id and value=new.value)>0 then
+  if (select count(*) from m_locator where m_locator_id!=new.m_locator_id and value=new.value)>0 then
       raise exception '%', '@duplicatename@';
   end if;
   IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
@@ -5348,8 +5392,14 @@ BEGIN
         AND P.M_ATTRIBUTESETINSTANCE_ID IS NULL
         AND COALESCE(M.M_ATTRIBUTESETINSTANCE_ID, '0') = '0'
         AND M.M_Movement_ID=v_Record_ID;
-      IF v_Count<>0 THEN
-       RAISE EXCEPTION '%', '@Inline@ '||v_line||' '||'@productWithoutAttributeSet@' ; --OBTG:-20000--
+      -- Prevent Movement for aticles with mandatory attributes, where no attribute is specified
+      IF v_Count<>0 AND (
+          SELECT a.ismandatory = 'Y' FROM m_attributeset a, m_product p, m_movementline m
+          where a.m_attributeset_id = p.m_attributeset_id
+            and p.m_product_id = m.m_product_id
+            and m.m_movement_id = v_Record_ID
+        ) THEN
+        RAISE EXCEPTION '%', '@Inline@ '||v_line||' '||'@productWithoutAttributeSet@' ; --OBTG:-20000--
       END IF;
     END IF;--END_PROCESS
     IF(NOT END_PROCESS) THEN

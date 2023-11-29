@@ -1384,10 +1384,11 @@ Obacht: date1 in ad user ist Eintritt ins Unternehmen!
   v_cmpmonth numeric;
   v_year numeric;
   v_gdate timestamp;
+  v_lastdate timestamp;
   v_mo character varying;
   v_ye character varying;
 BEGIN 
-   select now()- interval '6 month' into  v_gdate;
+   select now()- interval '3 month' into  v_gdate;
    select  extract (year from v_gdate) into v_year;
    select extract (month from v_gdate) into v_month;
    select  extract (year from now()) into v_cmpyear;
@@ -1961,6 +1962,10 @@ DECLARE
     v_nb timestamp;
     v_nomalhours numeric;
     v_bpartner varchar;
+    v_nightfee numeric;
+    v_satfee numeric;
+    v_sunfee numeric;
+    v_holifee numeric;
 BEGIN
     p_norm:=0;
     p_over:=0;
@@ -1973,11 +1978,24 @@ BEGIN
         v_workdyhours:=(SELECT ((EXTRACT (EPOCH FROM (v_nightendhour - v_cur.hour_from))) / 3600));
         select c_bpartner_id into v_bpartner from ad_user where ad_user_id=v_cur.ad_user_id;
         select c_getemployeeworktimeNormal(v_bpartner,v_cur.workdate) into v_nomalhours;
-        select nightbegin into v_nb from c_additionalfees where ad_org_id in ('0',v_cur.ad_org_id) and 
+        select coalesce(nightbegin,to_timestamp('0001-01-01 20:00:00','yyyy-mm-dd hh24:mi:ss')),
+           coalesce(night,10),coalesce(saturday,20),coalesce(sunday,30),coalesce(holiday,40)
+           into v_nb,v_nightfee,v_satfee,v_sunfee,v_holifee from c_additionalfees where ad_org_id in ('0',v_cur.ad_org_id) and 
            case when v_cur.ma_machine_id IS NOT NULL then 1=0 else 1=1 end and validfrom <=v_cur.workdate and isactive='Y' order by  ad_org_id desc,validfrom desc limit 1; 
-        if v_cur.issaturday='Y' then p_sat:=v_workdyhours; end if;
-        if v_cur.issunday='Y' then p_sun:=v_workdyhours; end if;
-        if v_cur.isholiday='Y' then p_holi:=v_workdyhours;p_sun:=0; p_sat:=0; end if;
+        --
+        -- Prüfen, ob Nachtschicht höher bezahlt ist als Sa....
+        -- if v_cur.issaturday='Y' then p_sat:=v_workdyhours; end if;
+        if v_cur.issaturday='Y' then 
+            if v_satfee<v_nightfee then
+                p_sat:=(SELECT ((EXTRACT (EPOCH FROM (v_nb-v_cur.hour_from))) / 3600));
+                if p_sat<0 then p_sat:=0; end if;
+                p_night:=(SELECT ((EXTRACT (EPOCH FROM (v_nightendhour-greatest(v_nb,v_cur.hour_from)))) / 3600));
+            else
+                p_sat:=v_workdyhours; 
+            end if;
+        end if;
+        if v_cur.issunday='Y' then p_sun:=v_workdyhours; end if; -- TODO: Nachtschicht höher bezahlt ist als So.
+        if v_cur.isholiday='Y' then p_holi:=v_workdyhours;p_sun:=0; p_sat:=0; end if;  -- TODO: Nachtschicht höher bezahlt ist als Feiertag.
         if v_cur.issaturday='N' and  v_cur.issunday='N' and v_cur.isholiday='N' then
             p_night:=(SELECT ((EXTRACT (EPOCH FROM (v_nightendhour-greatest(v_nb,v_cur.hour_from)))) / 3600));
             p_norm:=(SELECT ((EXTRACT (EPOCH FROM (v_nb-v_cur.hour_from))) / 3600));
@@ -2003,6 +2021,10 @@ DECLARE
     v_nomalhours numeric;
     v_bpartner varchar;
     v_hoursdaybefore numeric;
+    v_nightfee numeric;
+    v_satfee numeric;
+    v_sunfee numeric;
+    v_holifee numeric;
 BEGIN
     p_norm:=0;
     p_over:=0;
@@ -2015,20 +2037,32 @@ BEGIN
         v_workdyhours:=(SELECT ((EXTRACT (EPOCH FROM (v_cur.hour_to - v_nightbeginhour))) / 3600));       
         select c_bpartner_id into v_bpartner from ad_user where ad_user_id=v_cur.ad_user_id;
         select c_getemployeeworktimeNormal(v_bpartner,v_cur.workdate+1) into v_nomalhours;
-        select nightend into p_ne from c_additionalfees where ad_org_id in ('0',v_cur.ad_org_id) and 
+        select coalesce(nightend,to_timestamp('0001-01-01 06:00:00','yyyy-mm-dd hh24:mi:ss')),
+            coalesce(night,10),coalesce(saturday,20),coalesce(sunday,30),coalesce(holiday,40)
+            into p_ne,v_nightfee,v_satfee,v_sunfee,v_holifee  from c_additionalfees where ad_org_id in ('0',v_cur.ad_org_id) and 
            case when v_cur.ma_machine_id IS NOT NULL then 1=0 else 1=1 end and validfrom <=v_cur.workdate and isactive='Y' order by  ad_org_id desc,validfrom desc limit 1; 
-           
+        --
         if (select dayname from c_workcalender where trunc(workdate)=trunc(v_cur.workdate+1))='6' then   
-           p_sat:=v_workdyhours;
+           --p_sat:=v_workdyhours;
+           --Nachtschicht höher bezahlt ist als Sa.?
+           if v_satfee<v_nightfee then
+                p_sat:=(SELECT ((EXTRACT (EPOCH FROM (v_cur.hour_to-p_ne))) / 3600));  
+                if p_sat<0 then p_sat:=0; end if;
+                p_night:=(SELECT ((EXTRACT (EPOCH FROM (least(p_ne,v_cur.hour_to)-v_nightbeginhour))) / 3600));
+           else
+                p_sat:=v_workdyhours;
+                p_night:=0;
+           end if;
         end if;
+        --
         if (select dayname from c_workcalender where trunc(workdate)=trunc(v_cur.workdate+1))='7' then
-           p_sun:=v_workdyhours; 
+           p_sun:=v_workdyhours; -- TODO: Nachtschicht höher bezahlt ist als So.
         end if;
         if ((select isholiday from c_workcalender where trunc(workdate)=trunc(v_cur.workdate+1))='Y' or (
                                       select isholyday from C_CALENDAREVENT,C_WORKCALENDAREVENT where C_CALENDAREVENT.C_CALENDAREVENT_id=C_WORKCALENDAREVENT.C_CALENDAREVENT_ID  and C_WORKCALENDAREVENT.ad_org_id=v_cur.ad_org_id
                                       and trunc(v_cur.workdate+1) between datefrom and  coalesce(dateto,datefrom) order by isholyday desc limit 1)='Y')
         then
-           p_holi:=v_workdyhours; 
+           p_holi:=v_workdyhours;  -- TODO: Nachtschicht höher bezahlt ist als Feiertag.
            p_sat:=0;
            p_sun:=0;
         end if;
@@ -2195,7 +2229,7 @@ from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_i
                dsun>0 then dsun:=dsun-dpaidbreak; elsif
                dsat>0 then dsat:=dsat-dpaidbreak; 
             end if;            
-        end if;
+        end if;        
     end if;
     
     

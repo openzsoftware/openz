@@ -76,7 +76,7 @@ public class SerialAndBatchNumbers  extends HttpSecureAppServlet {
    try{
       if (bcCommand.equals("SAVE_NEW_NEW")){
       // Analyze Scanned Barcode..
-        PdcCommonData[] data  = PdcCommonData.selectbarcode(this, strBarcode);
+        PdcCommonData[] data  = PdcCommonData.selectbarcode(this, strBarcode,vars.getRole());
         // In this Servlet CONTROL, EMPLOYEE or PRODUCT or CALCULATION, LOCATOR, WORKSTEP can be scanned,
         // The First found will be used...
         String bctype="UNKNOWN";
@@ -84,13 +84,14 @@ public class SerialAndBatchNumbers  extends HttpSecureAppServlet {
         for (int i=0;i<data.length;i++){
           if (data[i].type.equals("KOMBI")||data[i].type.equals("CONTROL")||data[i].type.equals("EMPLOYEE")||data[i].type.equals("PRODUCT")||data[i].type.equals("CALCULATION")||data[i].type.equals("LOCATOR")||data[i].type.equals("WORKSTEP")) {
             bcid=data[i].id;  
-            bctype=data[i].type;
+            bctype=data[i].type; 
             if (bctype.equals("KOMBI")) {
             	String snrbnr=data[0].serialnumber;
                 if (FormatUtils.isNix(snrbnr))
               	  snrbnr=data[0].lotnumber;
         		if (!FormatUtils.isNix(snrbnr))
         			strBarcode=snrbnr;
+        		bctype="UNKNOWN";//Remains unknown....
         	}
             break;
           }             

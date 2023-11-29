@@ -626,24 +626,26 @@ public class WindowTabs {
     boolean isFirst = true;
     try {
       text.append("<span>").append(getMenuInfo()).append("</span>\n");
-      text.append("&nbsp;||&nbsp;\n");
     } catch (final Exception ex) {
       ex.printStackTrace();
       log4j.error("Failed when trying to get parent menu element for breadcrumb");
     }
     while (!this.breadcrumb.empty()) {
       final WindowTabsData data = this.breadcrumb.pop();
-      if (!isFirst)
-        text.append("&nbsp;&gt;&gt;&nbsp;\n");
-      else
-        isFirst = false;
-      if (!this.breadcrumb.empty()) {
-        text.append("<a class=\"Link\" onmouseover=\"return true;\" href=\"#\" onclick=\"");
-        text.append(getUrlCommand(data.adTabId, data.name, Integer.valueOf(data.tablevel)
-            .intValue()));
-        text.append("\" onmouseout=\"return true;\">").append(data.tabname).append("</a>\n");
-      } else
+      //if (!isFirst)
+      //  text.append("&nbsp;&gt;&gt;&nbsp;\n");
+      //else
+      //  isFirst = false;
+      //if (!this.breadcrumb.empty()) {
+      //  text.append("<a class=\"Link\" onmouseover=\"return true;\" href=\"#\" onclick=\"");
+      //  text.append(getUrlCommand(data.adTabId, data.name, Integer.valueOf(data.tablevel)
+      //      .intValue()));
+      //  text.append("\" onmouseout=\"return true;\">").append(data.tabname).append("</a>\n");
+      //} else
+      if (!text.toString().contains(data.tabname)) {
+    	text.append("&nbsp;||&nbsp;\n");
         text.append(data.tabname).append("\n");
+      }
     }
     return text.toString();
   }

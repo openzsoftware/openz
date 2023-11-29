@@ -260,7 +260,7 @@ public class InvoiceVendorMultiline extends HttpSecureAppServlet {
       xmlDocument.setParameter("childTabContainer", tabs.childTabs());
       NavigationBar nav = new NavigationBar(this, vars.getLanguage(),
           "../ExpenseInvoice/ExpenseInvoice_Relation.html", classInfo.id, classInfo.type,
-          strReplaceWith, tabs.breadcrumb());
+          strReplaceWith, tabs.breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(),
           "../ExpenseInvoice/ExpenseInvoice_Relation.html", strReplaceWith);

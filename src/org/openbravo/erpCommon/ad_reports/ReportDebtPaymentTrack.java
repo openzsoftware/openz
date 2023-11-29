@@ -179,7 +179,7 @@ public class ReportDebtPaymentTrack extends HttpSecureAppServlet {
       xmlDocument.setParameter("theme", vars.getTheme());
       NavigationBar nav = new NavigationBar(this, vars.getLanguage(),
           "ReportDebtPaymentTrack.html", classInfo.id, classInfo.type, strReplaceWith, tabs
-              .breadcrumb());
+              .breadcrumb(), vars);
       xmlDocument.setParameter("navigationBar", nav.toString());
       LeftTabsBar lBar = new LeftTabsBar(this, vars.getLanguage(), "ReportDebtPaymentTrack.html",
           strReplaceWith);

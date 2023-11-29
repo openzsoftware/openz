@@ -190,7 +190,7 @@ BEGIN
  
     IF TG_OP = 'INSERT' then       
              if new.zse_parcelweight is null then
-		select CASE WHEN weight=null then null else weight*new. movementqty end into new.zse_parcelweight from m_product where m_product_id=new.m_product_id;
+		select CASE WHEN weight=null then null else m_product_weight(m_product_id)*new. movementqty end into new.zse_parcelweight from m_product where m_product_id=new.m_product_id;
              end if;
 
 	     if(0 = COALESCE(new.zse_parcelweight, 0) AND v_allValuesEmpty) then
@@ -234,7 +234,7 @@ BEGIN
        else
 
          if new.m_product_id!=old.m_product_id or new. movementqty!=old.movementqty then
-                        select  weight*new. movementqty into new.zse_parcelweight from m_product where m_product_id=new.m_product_id;
+                        select  m_product_weight(m_product_id)*new. movementqty into new.zse_parcelweight from m_product where m_product_id=new.m_product_id;
          end if;
     
          v_parcels:=v_tmpparcels-coalesce(old.zse_parcelqty,0);
@@ -254,12 +254,12 @@ BEGIN
     -- Product weight on insert/update 
     IF TG_OP = 'INSERT' then
         if new.weight is null then
-            select weight*new.movementqty into new.weight from m_product where m_product_id=new.m_product_id;
+            select m_product_weight(m_product_id)*new.movementqty into new.weight from m_product where m_product_id=new.m_product_id;
         end if;
     end if;
     IF TG_OP = 'UPDATE' then
         if coalesce(new.weight,0)=coalesce(old.weight,0) and (new.m_product_id!=old.m_product_id or new.movementqty!=old.movementqty) then
-            select weight*new.movementqty  into new.weight from m_product where m_product_id=new.m_product_id;
+            select m_product_weight(m_product_id)*new.movementqty  into new.weight from m_product where m_product_id=new.m_product_id;
         end if;
     end if;
     IF TG_OP = 'DELETE' then RETURN OLD; else RETURN NEW; end if;

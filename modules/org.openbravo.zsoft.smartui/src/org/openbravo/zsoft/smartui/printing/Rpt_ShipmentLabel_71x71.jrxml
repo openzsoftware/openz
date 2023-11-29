@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.16.0.final using JasperReports Library version 6.1.1  -->
+<!-- Created with Jaspersoft Studio version 6.17.0.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Label_Shipment_15x10" language="groovy" pageWidth="71" pageHeight="73" columnWidth="71" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="9f73743e-29dd-4f98-becd-f4bf1953337a">
 	<property name="ireport.zoom" value="6.72749994932561"/>
 	<property name="ireport.x" value="0"/>
@@ -39,7 +39,7 @@ from m_inout mi left join m_inoutline mil on mi.m_inout_id=mil.m_inout_id
                 left join m_product_po mpo on mp.m_product_id=mpo.m_product_id and mpo.c_bpartner_id=mi.c_bpartner_id
                 left join snr_minoutline mils on mil.m_inoutline_id=mils.m_inoutline_id 
     where mi.m_inout_id in ($P{DOCUMENT_ID})
--- Interne Materialbewegung (Entnahme/Rückgabe von Material) 
+-- Interne Materialbewegung (Entnahme/Rückgabe/Produktion von Material - komplette Materialliste, wenn keine SNR/CNR Produktion) 
 union
 select         
          m_product.value||'|'||coalesce(snr_internal_consumptionline.serialnumber,'')||'|'||coalesce(snr_internal_consumptionline.lotnumber,'')||'|'||coalesce(to_char(round(m_internal_consumptionline.weight/m_internal_consumptionline.movementqty,4)),'') as qr,
@@ -56,7 +56,7 @@ from m_internal_consumption, m_product,m_internal_consumptionline
 where m_internal_consumptionline.m_product_id=m_product.m_product_id and m_internal_consumption.plannedserialnumber is null
 and m_internal_consumption.m_internal_consumption_id=m_internal_consumptionline.m_internal_consumption_id
 and m_internal_consumption.m_internal_consumption_id IN ($P{DOCUMENT_ID})
--- Interne Materialbewegung (Entnahme/Rückgabe--> SNR / Chargen Produktion) 
+-- Interne Materialbewegung (Entnahme/Rückgabe/Produktion - SNR/CNR Etikett für produziertes Gut) 
 union
 select         
          p.value||'|'||case when p.isserialtracking='Y' then c.plannedserialnumber else '' end||'|'||case when p.isbatchtracking='Y' then c.plannedserialnumber else '' end||'|'||coalesce(to_char(p.weight),'') as qr,

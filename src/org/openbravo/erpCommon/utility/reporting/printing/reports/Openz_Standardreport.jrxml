@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.16.0.final using JasperReports Library version 6.1.1  -->
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Openz_Standardreport" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="489" leftMargin="60" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Error" isIgnorePagination="true" uuid="3e518bbc-8b0e-4955-a01c-08f9e1fc488e">
 	<property name="ireport.zoom" value="2.0"/>
 	<property name="ireport.x" value="0"/>
@@ -163,6 +163,7 @@ null as shippingto,
 c_order.issotrx as issotrx,
 zssi_GetReportTitle(c_printout_config.c_printout_config_id, C_ORDER.c_doctype_id, $P{POCDOCTYPE_ID}, $P{LANGUAGE}) as title,
 c_order.c_doctype_id as doctype_id,
+null as movementtype,
 CASE when ad_get_docbasetype(c_doctype_id)='POO' then zssi_getelementtextbycolumname(to_char('Bono'),$P{LANGUAGE}) when ad_get_docbasetype(c_doctype_id)='QUOTATION' then zssi_getelementtextbycolumname(to_char('Pono'),$P{LANGUAGE}) when ad_get_docbasetype(c_doctype_id)='SALESOFFER' then zssi_getelementtextbycolumname(to_char('Pono'),$P{LANGUAGE}) when ad_get_docbasetype(c_doctype_id)='POREQUESTOFFER' then zssi_getelementtextbycolumname(to_char('Aono'),$P{LANGUAGE}) else zssi_getelementtextbycolumname(to_char('Sono'),$P{LANGUAGE}) end as dbt,
 
 CASE when c_printout_config.addressheader_isprint='Y' then  COALESCE(NULLIF(c_printout_config.addressheader, ''), NULLIF(zspr.addressheader, '')) else null end AS addressheader,
@@ -316,7 +317,9 @@ CASE when c_printout_config.address2_isprint='Y' then zssi_getlocationline2_new(
 CASE when c_printout_config.city_isprint='Y' then zssi_getlocationcity(tmp_invoice.C_BPARTNER_LOCATION_ID)  else null end as CITY,
 CASE when c_printout_config.land_isprint='Y' then zssi_getlocationcountry(tmp_invoice.C_BPARTNER_LOCATION_ID,$P{LANGUAGE}) else null end as land,
 
-CASE WHEN (c_order.issotrx='N' AND c_order.Deliver2projectadress='Y' AND c_project.c_bpartner_location_id is not null) THEN zssi_getbpartnername(c_project.c_bpartner_location_id) WHEN (c_order.c_doctype_id in  ('B342FD5CA1C64E8BA25A0A6F6C98C7DA', '56913A519BA94EB59DAE5BF9A82F5F7D', '5EED1EFB8BDD4C0491ECCFD7395DA446','EAF34F4237D0488F923F218234509E24','8CF74AC370B04133B54C44A12E084749')  and c_order.Deliver2projectadress='N' ) THEN '' else CASE when shipment_bpartner.deviant_bp_name='' or shipment_bpartner.deviant_bp_name is null then zssi_getbpartnername(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID)) else shipment_bpartner.deviant_bp_name end end as shipment_contactname,
+CASE WHEN c_order.issotrx='Y' and zspr.adddeliverylocation2invoice='Y' then 
+     CASE when shipment_bpartner.deviant_bp_name='' or shipment_bpartner.deviant_bp_name is null then zssi_getbpartnername(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID)) else shipment_bpartner.deviant_bp_name end 
+else null end as shipment_contactname,
 
 
 zssi_getOwnCodeAtPartnerSide(C_ORDER.ad_org_id,C_BPARTNER.c_bpartner_id) as owncodeatpartnersite,
@@ -327,26 +330,14 @@ C_Location_Description(AD_ORGINFO.C_LOCATION_ID) AS LOCATION, C_CURRENCY.ISO_COD
 tmp_invoice.DESCRIPTION, zssi_strDate(tmp_invoice.DATEINVOICED,$P{LANGUAGE}) as DATEORDERED, tmp_invoice.DOCUMENTNO, '' as datepromised, 
 zssi_strDate(current_date,$P{LANGUAGE}) as curdate,
 
-CASE when c_order.issotrx='Y' then zssi_getlocationcity(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID))
-WHEN (c_order.c_doctype_id='EE19ABBDB5A94C519DAB11003320FC8E' and c_order.Deliver2projectadress='N' ) THEN zssi_getlocationcity(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID))
-WHEN (c_order.issotrx='N' AND c_order.Deliver2projectadress='Y' AND c_project.c_bpartner_location_id is not null) THEN zssi_getlocationcity(c_project.c_bpartner_location_id)
-WHEN (c_order.issotrx='N' AND c_order.deliveryviarule='P') THEN null
-else zssi_getcityfromwarehouse(c_order.m_warehouse_id,'Y') end as delcity,
-CASE when c_order.issotrx='Y' then zssi_getlocationcountry(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID),$P{LANGUAGE})
-WHEN (c_order.c_doctype_id='EE19ABBDB5A94C519DAB11003320FC8E' and c_order.Deliver2projectadress='N' ) THEN zssi_getlocationcountry(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID),$P{LANGUAGE})
-WHEN (c_order.issotrx='N' AND c_order.Deliver2projectadress='Y' AND c_project.c_bpartner_location_id is not null) THEN zssi_getlocationcountry(c_project.c_bpartner_location_id,$P{LANGUAGE})
-WHEN (c_order.issotrx='N' AND c_order.deliveryviarule='P') THEN null
-else zssi_getcountryfromwarehouse(c_order.m_warehouse_id,$P{LANGUAGE},'Y') end  as delcountry,
-CASE when c_order.issotrx='Y' then zssi_getlocationline1_new(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID))
-WHEN (c_order.c_doctype_id='EE19ABBDB5A94C519DAB11003320FC8E' and c_order.Deliver2projectadress='N' ) THEN zssi_getlocationline1_new(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID))
-WHEN (c_order.issotrx='N' AND c_order.Deliver2projectadress='Y' AND c_project.c_bpartner_location_id is not null) THEN zssi_getlocationline1_new(c_project.c_bpartner_location_id)
-WHEN (c_order.issotrx='N' AND c_order.deliveryviarule='P') THEN null
-else zssi_getlocline1fromwarehouse(c_order.m_warehouse_id,'Y') end  as deladdr1,
-CASE when c_order.issotrx='Y' then zssi_getlocationline2_new(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID))
-WHEN (c_order.c_doctype_id='EE19ABBDB5A94C519DAB11003320FC8E' and c_order.Deliver2projectadress='N' ) THEN zssi_getlocationline2_new(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID))
-WHEN (c_order.issotrx='N' AND c_order.Deliver2projectadress='Y' AND c_project.c_bpartner_location_id is not null) THEN zssi_getlocationline2_new(c_project.c_bpartner_location_id)
-WHEN (c_order.issotrx='N' AND c_order.deliveryviarule='P') THEN null
-else zssi_getlocline2fromwarehouse(c_order.m_warehouse_id,'Y') end  as deladdr2,
+CASE when c_order.issotrx='Y' and zspr.adddeliverylocation2invoice='Y' then zssi_getlocationcity(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID))
+else null end as delcity,
+CASE when c_order.issotrx='Y' and zspr.adddeliverylocation2invoice='Y' then zssi_getlocationcountry(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID),$P{LANGUAGE})
+else null end  as delcountry,
+CASE when c_order.issotrx='Y' and zspr.adddeliverylocation2invoice='Y' then zssi_getlocationline1_new(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID))
+else null end  as deladdr1,
+CASE when c_order.issotrx='Y' and zspr.adddeliverylocation2invoice='Y' then zssi_getlocationline2_new(zssi_getDeliveryLocationId(C_ORDER.C_ORDER_ID))
+else null end  as deladdr2,
 
 zssi_getpaymentterm(tmp_invoice.C_PAYMENTTERM_ID,$P{LANGUAGE}) as paymentterm,
 zssi_getexportterm(tmp_invoice.C_BPARTNER_LOCATION_ID, tmp_invoice.c_doctypetarget_id,$P{LANGUAGE}) as exportterm,
@@ -363,8 +354,12 @@ null as trackingno,
 null as shippingto,
 (SELECT COALESCE(ad_image.binarydata, ''::bytea) from ad_image where ad_image.ad_image_id = COALESCE(c_printout_config.ad_image_id, AD_ORGINFO.your_company_document_image)) as logo,
 tmp_invoice.issotrx as issotrx,
-zssi_GetReportTitle(c_printout_config.c_printout_config_id, tmp_invoice.c_doctype_id, $P{POCDOCTYPE_ID}, $P{LANGUAGE})  as title,
+
+-- Stornorechnung
+CASE when tmp_invoice.c_doctype_id = '45A90145C74C44ECB48AC772B05487CA' and tmp_invoice.docstatus = 'VO' and tmp_invoice.grandtotal < 0 then zssi_getText('invoiceCancelledReport', $P{LANGUAGE}) else zssi_GetReportTitle(c_printout_config.c_printout_config_id, tmp_invoice.c_doctype_id, $P{POCDOCTYPE_ID}, $P{LANGUAGE}) end as title,
+
 tmp_invoice.c_doctype_id as doctype_id,
+null as movementtype,
 null as dbt,
 
 CASE when c_printout_config.addressheader_isprint='Y' then  COALESCE(NULLIF(c_printout_config.addressheader, ''), NULLIF(zspr.addressheader, '')) else null end AS addressheader,
@@ -550,6 +545,7 @@ m_inout.shippingto as shippingto,
 (SELECT COALESCE(ad_image.binarydata, ''::bytea) from ad_image where ad_image.ad_image_id = COALESCE(c_printout_config.ad_image_id, AD_ORGINFO.your_company_document_image)) as logo,
 m_inout.issotrx as issotrx,
 zssi_GetReportTitle(c_printout_config.c_printout_config_id, M_INOUT.c_doctype_id, $P{POCDOCTYPE_ID}, $P{LANGUAGE}) as title, m_inout.c_doctype_id as doctype_id,
+m_inout.movementtype as movementtype,
 null as dbt,	
 CASE when c_printout_config.addressheader_isprint='Y' then  COALESCE(NULLIF(c_printout_config.addressheader, ''), NULLIF(zspr.addressheader, '')) else null end AS addressheader,
 CASE when c_printout_config.onelineadr_isprint='Y' then  COALESCE(NULLIF(c_printout_config.onelineadr, ''), NULLIF(zspr.onelineadr, '')) else null end AS onelineadr,
@@ -864,6 +860,9 @@ AND M_INOUT.M_INOUT_ID IN ($P{DOCUMENT_ID})]]>
 	<field name="doctype_id" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="doctype_id"/>
 	</field>
+	<field name="movementtype" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="movementtype"/>
+	</field>
 	<field name="dbt" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dbt"/>
 	</field>
@@ -1100,6 +1099,9 @@ AND M_INOUT.M_INOUT_ID IN ($P{DOCUMENT_ID})]]>
 	</field>
 	<variable name="doctype_id" class="java.lang.String">
 		<variableExpression><![CDATA[$F{doctype_id}]]></variableExpression>
+	</variable>
+	<variable name="movementtype" class="java.lang.String">
+		<variableExpression><![CDATA[$F{movementtype}]]></variableExpression>
 	</variable>
 	<variable name="WahnsinnigttolleFooterGrafik" class="java.io.InputStream" resetType="Page">
 		<variableExpression><![CDATA[$F{ftr_img}]]></variableExpression>
@@ -2103,7 +2105,7 @@ AND M_INOUT.M_INOUT_ID IN ($P{DOCUMENT_ID})]]>
 					<property name="com.jaspersoft.studio.unit.width" value="pixel"/>
 					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
 					<property name="com.jaspersoft.studio.element.name" value="Adressblock_LieferadresseAufAB"/>
-					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1 && ($F{deladdr1} != null||$F{deliverylocationtext}!= null)  && (!$F{shiporder_isprint}.equals("Y")) && (!$F{doctype_id}.equals("EE19ABBDB5A94C519DAB11003320FC8E")))]]></printWhenExpression>
+					<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1 && ($F{deladdr1} != null||$F{deliverylocationtext}!= null)  && (!$F{shiporder_isprint}.equals("Y")) && (!$F{doctype_id}.equals("EE19ABBDB5A94C519DAB11003320FC8E")) && (!$F{movementtype}.equals("C-")))]]></printWhenExpression>
 				</reportElement>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 					<reportElement key="textField-241" positionType="Float" x="0" y="30" width="236" height="14" isRemoveLineWhenBlank="true" uuid="d47b6f63-0d65-4fc0-ad26-b00b715c3b25">

@@ -19,6 +19,7 @@ import javax.servlet.ServletException;
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.erpCommon.utility.ComboTableDataWrapper;
+import org.openz.util.FormatUtils;
 import org.openz.view.*;
 
 public class SelectBoxhelper {
@@ -153,7 +154,7 @@ public class SelectBoxhelper {
     if (! readonly)
       return cdb.select(!vars.getCommand().equals("NEW"));
     else {      
-      cdb.addreadonlyIDselect(currentvalue);
+      cdb.addreadonlyIDselect(FormatUtils.isNix(currentvalue)?"NULL":currentvalue);
       return cdb.select(!vars.getCommand().equals("NEW"));
     }
   }

@@ -49,7 +49,7 @@ public class Login extends HttpBaseServlet {
       String strTheme = SessionLoginData.selectDefaultTheme(this);
       strTheme = "ltr/" + strTheme;
       vars.clearSession(false);
-      printPageIdentificacion(response,request, strTheme,permsession);
+      printPageIdentificacion(response, request, strTheme, permsession);
     } else if (vars.commandIn("BLANK")) {
       printPageBlank(response, vars);
     } else if (vars.commandIn("CHECK")) {
@@ -140,7 +140,7 @@ public class Login extends HttpBaseServlet {
 
   private void printPageIdentificacion(HttpServletResponse response,HttpServletRequest request, String strTheme, String permsession)
       throws IOException, ServletException {
-	XmlDocument xmlDocument;
+    XmlDocument xmlDocument;
 	if (MobileHelper.isMobile(request))
         xmlDocument = xmlEngine.readXmlTemplate("org/openbravo/erpCommon/security/Login_F1_mobile").createXmlDocument();
 	else
@@ -150,9 +150,85 @@ public class Login extends HttpBaseServlet {
     xmlDocument.setParameter("itService", SessionLoginData.selectSupportContact(this));
     xmlDocument.setParameter("versionNo", SessionLoginData.selectVersion(this));
     xmlDocument.setParameter("permsession",permsession);
+
+    String xmloutput = xmlDocument.print();
+
+    final String lang = SessionLoginData.getDefaultLanguage(this);
+
+    // keep me logged in checkbox
+    if(SessionLoginData.isKeepMeLoggedInActivated(this, "").equals("Y")) { // "" -> default orgconfig
+        xmloutput = xmloutput.replaceAll("@keepmeloggedincheckbox@",
+                "                  <tr class=\"Login_emptyline\" style=\"height:15px;\"></tr>\n"
+                + "                <tr>\n"
+                + "                  <td class=\"TextBox_ContentCell_Login\" style=\"text-align: center; vertical-align: middle;\">\n"
+                + "                    <input type=\"checkbox\" id=\"keepLoggedIn\" name=\"keepLoggedIn\">\n"
+                + "                    <label for=\"keepLoggedIn\" style=\"color:white;\">@keepmeloggedinlabel@</label>\n"
+                + "                  </td>\n"
+                + "                </tr>");
+    } else {
+        xmloutput = xmloutput.replaceAll("@keepmeloggedincheckbox@", "");
+    }
+    
+    // Reset button is only visible if mfa is activated
+    xmloutput = xmloutput.replaceAll("@buttons@", 
+            "<div style=\"text-align:center;\">\n"
+            + "                      <button type=\"button\" \n"
+            + "                        id=\"buttonOK\" \n"
+            + "                        class=\"ButtonLink\" \n"
+            + "                        onclick=\"buttonOK_click();\" \n"
+            + "                        onfocus=\"buttonEvent('onfocus', this); window.status='Login'; return true;\" \n"
+            + "                        onblur=\"buttonEvent('onblur', this);\" \n"
+            + "                        onkeyup=\"buttonEvent('onkeyup', this);\" \n"
+            + "                        onkeydown=\"buttonEvent('onkeydown', this);\" \n"
+            + "                        onkeypress=\"buttonEvent('onkeypress', this);\" \n"
+            + "                        onmouseup=\"buttonEvent('onmouseup', this);\" \n"
+            + "                        onmousedown=\"buttonEvent('onmousedown', this);\" \n"
+            + "                        onmouseover=\"buttonEvent('onmouseover', this); window.status='Login'; return true;\" \n"
+            + "                        onmouseout=\"buttonEvent('onmouseout', this);\">\n"
+            + "                        <table class=\"Button hpfrbtn\" id=\"fieldTable\">\n"
+            + "                          <tr>\n"
+            + "                            <td class=\"Button_left Button_left_LI\"><img class=\"Button_Icon Button_Icon_ok\" alt=\"Login\" title=\"Login\" src=\"../web/images/blank.gif\" border=\"0\" id=\"fieldButton\" /></td>\n"
+            + "                            <td class=\"Button_text Button_text_LI Button_width\">@login@</td>\n"
+            + "                            <td class=\"Button_right Button_right_LI\"></td>\n"
+            + "                          </tr>\n"
+            + "                        </table>\n"
+            + "                      </button>\n"
+            + (SessionLoginData.isMFAActivated(this, "").equals("Y") ? 
+              "                      <button type=\"button\" \n"
+            + "                        id=\"buttonReset\" \n"
+            + "                        class=\"ButtonLink\" \n"
+            + "                        onclick=\"buttonReset_click();\" \n"
+            + "                        onfocus=\"buttonEvent('onfocus', this); window.status='Login'; return true;\" \n"
+            + "                        onblur=\"buttonEvent('onblur', this);\" \n"
+            + "                        onkeyup=\"buttonEvent('onkeyup', this);\" \n"
+            + "                        onkeydown=\"buttonEvent('onkeydown', this);\" \n"
+            + "                        onkeypress=\"buttonEvent('onkeypress', this);\" \n"
+            + "                        onmouseup=\"buttonEvent('onmouseup', this);\" \n"
+            + "                        onmousedown=\"buttonEvent('onmousedown', this);\" \n"
+            + "                        onmouseover=\"buttonEvent('onmouseover', this); window.status='Reset'; return true;\" \n"
+            + "                        onmouseout=\"buttonEvent('onmouseout', this);\">\n"
+            + "                        <table class=\"Button hpfrbtn\" id=\"fieldTable\">\n"
+            + "                          <tr>\n"
+            + "                            <td class=\"Button_left Button_left_LI\"><img class=\"Button_Icon Button_Icon_password\" alt=\"Reset\" title=\"Reset\" src=\"../web/images/blank.gif\" border=\"0\" id=\"fieldButtonReset\" /></td>\n"
+            + "                            <td class=\"Button_text Button_text_LI Button_width\">@reset@</td>\n"
+            + "                            <td class=\"Button_right Button_right_LI\"></td>\n"
+            + "                          </tr>\n"
+            + "                        </table>\n"
+            + "                      </button>\n"
+            : "")
+            + "                    </div>");
+    
+    //translation
+    xmloutput = xmloutput
+                 .replaceAll("@keepmeloggedinlabel@", Utility.messageBD(this, "keepmeloggedinlabel", lang))
+                 .replaceAll("@username@", Utility.messageBD(this, "username", lang))
+                 .replaceAll("@password@", Utility.messageBD(this, "password", lang))
+                 .replaceAll("@login@", Utility.messageBD(this, "login", lang))
+                 .replaceAll("@reset@", Utility.messageBD(this, "reset", lang));
+
     response.setContentType("text/html; charset=UTF-8");
     PrintWriter out = response.getWriter();
-    out.println(xmlDocument.print());
+    out.println(xmloutput);
     out.close();
   }
 

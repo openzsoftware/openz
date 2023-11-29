@@ -68,7 +68,8 @@ public class TimeFeedback  extends HttpSecureAppServlet {
      try {
         // Default: MSG: Sucessful
     	vars.setSessionValue("PDCSTATUS","OK");
-        vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_sucessful",vars.getLanguage()));
+        //vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_sucessful",vars.getLanguage()));
+    	vars.removeSessionValue("PDCSTATUSTEXT");
         // Default
         if (vars.commandIn("DEFAULT")) {
         	removesessvars(vars);
@@ -82,8 +83,8 @@ public class TimeFeedback  extends HttpSecureAppServlet {
         	}
         }
         if (!employee.isEmpty())
-        	vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "Employee",vars.getLanguage()) +": " + TimeFeedbackData.getEmployee(this, employee));
-        if (vars.commandIn("RESET")){
+        	vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "Employee",vars.getLanguage()) +": " + TimeFeedbackData.getEmployee(this, employee,vars.getLanguage()));
+        if (vars.commandIn("RESET") && PdcCommonData.hasMenu(this, vars.getRole()).equals("Y")){
     		response.sendRedirect(strDireccion + "/security/Menu.html");
     	}
         // Buttons
@@ -115,7 +116,8 @@ public class TimeFeedback  extends HttpSecureAppServlet {
             } else if (bctype.equals("EMPLOYEE")) {
           		  vars.setSessionValue("pdcEmployeeID",bcid);         		  
   	              employee=vars.getSessionValue("pdcEmployeeID");
-  	              vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "Employee",vars.getLanguage()) +": " + TimeFeedbackData.getEmployee(this, employee));
+  	              BcCommand = "EMPLOYEE";
+  	              vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "Employee",vars.getLanguage()) +": " + TimeFeedbackData.getEmployee(this, employee,vars.getLanguage()));
   	              setEmpstatus(vars,employee);  	              	         
             } else if (bctype.equals("WORKSTEP")) {
             	vars.setSessionValue("pdcWorkstepID",bcid);
@@ -134,7 +136,8 @@ public class TimeFeedback  extends HttpSecureAppServlet {
                 vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_ScanUser",vars.getLanguage()));
         	} else {
         		feedbackresult=TimeFeedbackData.setTimeFeedback(this, vars.getOrg(), workstep, employee, tst,"dd-MM-yyyy HH24:mi:ss", "COMING",description,vars.getLanguage());
-        		vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_coming",vars.getLanguage())+": " + TimeFeedbackData.getEmployee(this, employee) + getPrjMsg(vars));
+        		//vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_coming",vars.getLanguage())+": " + TimeFeedbackData.getEmployee(this, employee) + getPrjMsg(vars) +": "+ UtilsData.getTimestamp(this, vars.getSessionValue("#AD_SQLDATETIMEFORMAT")));
+        		vars.setSessionValue("PDCSTATUSTEXT",feedbackresult +": "+ UtilsData.getTimestamp(this, vars.getSessionValue("#AD_SQLDATETIMEFORMAT")));
         		removesessvars(vars);
         	}
         }
@@ -145,7 +148,8 @@ public class TimeFeedback  extends HttpSecureAppServlet {
                 vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_ScanUser",vars.getLanguage()));
         	} else {
         		feedbackresult=TimeFeedbackData.setTimeFeedback(this, vars.getOrg(), workstep, employee, tst,"dd-MM-yyyy HH24:mi:ss", "LEAVING",description,vars.getLanguage());
-        		vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_leaving",vars.getLanguage())+": " + TimeFeedbackData.getEmployee(this, employee) + getPrjMsg(vars));
+        		//vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_leaving",vars.getLanguage())+": " + TimeFeedbackData.getEmployee(this, employee) + getPrjMsg(vars)+": "+ UtilsData.getTimestamp(this, vars.getSessionValue("#AD_SQLDATETIMEFORMAT")));
+        		vars.setSessionValue("PDCSTATUSTEXT",feedbackresult +": "+ UtilsData.getTimestamp(this, vars.getSessionValue("#AD_SQLDATETIMEFORMAT")));
         		removesessvars(vars);
         	}
         }
@@ -156,8 +160,9 @@ public class TimeFeedback  extends HttpSecureAppServlet {
                 vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_ScanUser",vars.getLanguage()));
         	} else {
         		feedbackresult=TimeFeedbackData.setTimeFeedback(this, vars.getOrg(), workstep, employee, tst,"dd-MM-yyyy HH24:mi:ss", "PROJECT",description,vars.getLanguage());  
-	        	vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_project",vars.getLanguage()) +": " + TimeFeedbackData.getWorkstep(this, workstep) + " (" +TimeFeedbackData.getEmployee(this, employee) + ")");
-	    		removesessvars(vars);
+	        	//vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_project",vars.getLanguage()) +": " + TimeFeedbackData.getWorkstep(this, workstep) + " (" +TimeFeedbackData.getEmployee(this, employee) + ")"+": "+ UtilsData.getTimestamp(this, vars.getSessionValue("#AD_SQLDATETIMEFORMAT")));
+        		vars.setSessionValue("PDCSTATUSTEXT",feedbackresult +": "+ UtilsData.getTimestamp(this, vars.getSessionValue("#AD_SQLDATETIMEFORMAT")));
+        		removesessvars(vars);
         	}
         }
       }
@@ -242,8 +247,11 @@ public class TimeFeedback  extends HttpSecureAppServlet {
         script.enableshortcuts("EDITION");              // Enable shortcut for the servlet
         
         // Refresh after 5 sec. after action was displayed
-        if (BcCommand.equals("COMING")||BcCommand.equals("LEAVING")||BcCommand.equals("PROJECT"))
-        	script.addOnload("setTimeout(function(){submitCommandForm('DEFAULT', false, null, '../org.openz.pdc.ad_forms/TimeFeedback.html', '_self', null, true);},5000);");        
+        Integer iv=5000;
+        if (BcCommand.equals("EMPLOYEE"))
+        	iv=30000;
+        if (BcCommand.equals("COMING")||BcCommand.equals("LEAVING")||BcCommand.equals("PROJECT")||BcCommand.equals("EMPLOYEE"))
+        	script.addOnload("setTimeout(function(){submitCommandForm('DEFAULT', false, null, '../org.openz.pdc.ad_forms/TimeFeedback.html', '_self', null, true);}," + iv.toString() + ");");        
         // Generating final html code including scripts
         strOutput = script.doScript(strOutput, "", this, vars);
         // Generate response
@@ -259,10 +267,10 @@ public class TimeFeedback  extends HttpSecureAppServlet {
         throw new ServletException(e);
       } 
  }
-    private void removesessvars(VariablesSecureApp vars) {
+    private void removesessvars(VariablesSecureApp vars)  throws ServletException {
     	vars.removeSessionValue("pdcWorkstepID");
     	vars.removeSessionValue("pdcEmployeeID");
-    	vars.setSessionValue("pdcIscoming","Y");
+    	vars.setSessionValue("pdcIscoming","N");
     	vars.setSessionValue("pdcLeaving","N");
     	vars.setSessionValue("pdcProject","N");
     }

@@ -243,4 +243,11 @@
       <Parameter name="workstepid"/>
       <Parameter name="mProductId"/>
   </SqlMethod>
+  <SqlMethod name="pdc_addpassingworkstSnrBtchReturn" type="preparedStatement" return="string">
+      <Sql>
+        SELECT pdc_addpassingworkstSnrBtchReturn(?,?) from dual
+      </Sql>
+      <Parameter name="workstepid"/>
+      <Parameter name="internalconsumptionid"/>
+   </SqlMethod>
 </SqlClass>

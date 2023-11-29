@@ -139,7 +139,7 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
     	  vars.setSessionValue("PDCSTATUS","OK");
           vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_DataSelected",vars.getLanguage()));  
         if (!vars.getStringParameter("inp" + BarcodeADName).isEmpty()) {
-          data = PdcMaterialConsumptionData.selectbarcode(this, vars.getStringParameter("inp" + BarcodeADName));
+          data = PdcMaterialConsumptionData.selectbarcode(this, vars.getStringParameter("inp" + BarcodeADName),vars.getRole());
           // In this Servlet CONTROL, EMPLOYEE or PRODUCT or CALCULATION, LOCATOR, WORKSTEP can be scanned,
           // The First found will be used...
           String bctype="UNKNOWN";
@@ -203,7 +203,7 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
 	            setLocalSessionVariable(vars, QuantityADName,qty);
 	            if (!GlobalLocatorID.isEmpty()) {
 	            	String assproduct=PdcCommonData.getProductFromDurchreicheWorkstep(this,  GlobalWorkstepID);
-	            	if (assproduct!=null && assproduct.equals(bcid) && bctype.equals("KOMBI") && vars.getSessionValue( this.getServletInfo() + "|plannedserialorbatch").isEmpty())
+	            	if (assproduct!=null && assproduct.equals(bcid) && bctype.equals("KOMBI") && vars.getSessionValue( this.getServletInfo() + "|plannedserialorbatch").isEmpty() && UtilsData.getOrgConfigOption(this, "serialbomstrict", vars.getOrg()).equals("Y"))
 	            		vars.setSessionValue( this.getServletInfo() + "|plannedserialorbatch",snrbnr);
 	            	BcCommand = "NEXT";
 	                vars.setSessionValue("PDCSTATUS","OK");
@@ -264,8 +264,9 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
         } else { 
           vars.setSessionValue("PDCSTATUS","OK");
           vars.setSessionValue("PDCSTATUSTEXT","");
-          upperGridData = PdcMaterialConsumptionData.selectupper(this, vars.getLanguage(),getLocalSessionVariable(vars, "pdcproductionquantity"),PdcCommonData.getQtyLeftFromWorkstep(this, GlobalWorkstepID),vars.getSessionValue("pdcAssemblySerialOrBatchNO"),GlobalConsumptionID, getLocalSessionVariable(vars, WorkstepIDADName));
-          if (GlobalConsumptionID.equals("") && upperGridData.length>0) {
+          upperGridData = PdcMaterialConsumptionData.selectupper(this, vars.getLanguage(),getLocalSessionVariable(vars, "pdcproductionquantity"),vars.getSessionValue("pdcAssemblySerialOrBatchNO"),GlobalConsumptionID, getLocalSessionVariable(vars, WorkstepIDADName));
+          if (GlobalConsumptionID.equals("") && upperGridData.length>0
+                  && !(PdcMaterialConsumptionData.getProduceContinuously(this, GlobalWorkstepID).equals("Y") && getLocalSessionVariable(vars, "pdcproductionquantity").equals(""))) {
             GlobalConsumptionID = UtilsData.getUUID(this);
             PdcMaterialConsumptionData.insertConsumption(
                 this,
@@ -283,7 +284,7 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
 	            } else {
 	              // Impl. Partly Production
 	              String qty;
-	              if (!getLocalSessionVariable(vars, "pdcproductionquantity").equals(PdcCommonData.getQtyLeftFromWorkstep(this, GlobalWorkstepID))) {
+	              //if (!getLocalSessionVariable(vars, "pdcproductionquantity").equals(PdcCommonData.getQtyLeftFromWorkstep(this, GlobalWorkstepID))) {
 	            	if (PdcCommonData.isProducedSerial(this, GlobalWorkstepID, getLocalSessionVariable(vars, "plannedserialorbatch")).equals("Y"))
 	            	  qty="";
 	            	else {
@@ -301,8 +302,8 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
 	            		  }
 	            	  }
 	            	}
-	              }else 
-	            	  qty=PdcMaterialConsumptionData.getQty(this, GlobalConsumptionID, GlobalWorkstepID, upperGridData[i].getField("m_product_id"), upperGridData[i].getField("m_locator_id"));
+	              //}else 
+	              //	  qty=PdcMaterialConsumptionData.getQty(this, GlobalConsumptionID, GlobalWorkstepID, upperGridData[i].getField("m_product_id"), upperGridData[i].getField("m_locator_id"));
 	              if (! qty.isEmpty()) {
 	                if (new BigDecimal(qty).compareTo(BigDecimal.ZERO)==1) {
 	                  PdcCommonData.insertMaterialLine( this, vars.getClient(), vars.getOrg(), 
@@ -323,7 +324,7 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
           }
         }
       }
-      if (vars.commandIn("PRODUCTION") && qtySerOK(vars,GlobalWorkstepID)) {
+      if ((vars.commandIn("PRODUCTION")||vars.commandIn("REJECT")) && qtySerOK(vars,GlobalWorkstepID)) {
     	  Connection con=this.getTransactionConnection();	
     	  try {
 	    	  // Start internal Consumption Post Process directly - Process Internal Consumption
@@ -348,8 +349,13 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
 			    	  String ptrxID=commons.prepareProduction(vars,null,GlobalWorkstepID,null,PdcUserID,getLocalSessionVariable(vars, ProductIDADName),vars.getSessionValue("pdcLocatorID"),this,con);
 			    	  if (!FormatUtils.isNix(ptrxID)) {
 			    		  vars.setSessionValue("PDCFORMERDIALOGUE","/org.openz.pdc.ad_forms/PdcMainDialogue.html");
+			    		  String rejectmsg="";
+			    		  if (vars.commandIn("REJECT"))
+			    			  rejectmsg=PdcCommonData.doRejection(con, this, ptrxID, vars.getLanguage());
 			    		  commons.finishProduction(response, ptrxID,GlobalWorkstepID, BcCommand,PdcUserID,vars,this,con);
 			    		  strpdcFormerDialogue=vars.getSessionValue("PDCFORMERDIALOGUE");
+			    		  if (!rejectmsg.isEmpty())
+			    			  vars.setSessionValue("PDCSTATUSTEXT",rejectmsg);
 			    	  } 
 		          }
 	          }
@@ -358,6 +364,9 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
 	          else
 	        	  con.commit();
 	    	  con.close();
+	    	  // Autoprint bei vordef. SNR/CNR
+	    	  if (!FormatUtils.isNix(psnrbnr) && !vars.getSessionValue("PDCSTATUS").equals("ERROR") && PdcCommonData.isConsumptionAutoprint(this, GlobalWorkstepID).equals("Y"))
+	    		  vars.setSessionValue("AUTOPRINTASSEMBLYINPDC", "Y");
 	      } catch (Exception e) { 
 	    	  con.rollback();
 	    	  try {con.close();}catch (Exception ign) {}
@@ -373,8 +382,29 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
       }
       
       if (vars.commandIn("DONE")||BcCommand.equals("DONE")) {
-		  if (qtySerOK(vars,GlobalWorkstepID))
+          if(PdcMaterialConsumptionData.getPdconlyreceivecomplete(this, vars.getOrg()).equals("Y")) {
+              // es dürfen nur genau die Materialien für die eingebene zu produzierende Menge entnommen werden
+              // upper grid ist nicht leer -> zu wenig entnommen
+              upperGridData = PdcMaterialConsumptionData.selectupper(this, vars.getLanguage(),getLocalSessionVariable(vars, "pdcproductionquantity"),vars.getSessionValue("pdcAssemblySerialOrBatchNO"),GlobalConsumptionID, getLocalSessionVariable(vars, WorkstepIDADName));
+              if(upperGridData.length > 0) {
+                  throw new ServletException(Utility.messageBD(this, "pdc_consumtionCompleteError" ,vars.getLanguage()));
+              }
+              lowerGridData = PdcMaterialConsumptionData.selectlower(this, vars.getLanguage(),GlobalConsumptionID);
+              for(FieldProvider fp : lowerGridData) {
+                  // entnommene Menge != zu produzierende Menge * Menge an Materialien für einen Artikel -> zu viel entnommen
+                  if(Float.parseFloat(fp.getField("pdcmaterialconsumptionreceivedqty")) != (Float.parseFloat(getLocalSessionVariable(vars,"pdcproductionquantity")) * Float.parseFloat(PdcMaterialConsumptionData.getQtyForOne(this, GlobalWorkstepID, fp.getField("m_product_id"))))) {
+                      throw new ServletException(Utility.messageBD(this, "pdc_consumtionCompleteError" ,vars.getLanguage()));
+                  }
+              }
+          }
+		  if (qtySerOK(vars,GlobalWorkstepID)) {
 			  commons.setInternalConsumptionDone(GlobalConsumptionID,GlobalWorkstepID, PdcUserID,strpdcFormerDialogue,"/org.openz.pdc.ad_forms/PdcMaterialConsumption.html",vars, response ,this);
+			  // Autoprint bei vordef. SNR/CNR
+	    	  if (!FormatUtils.isNix(getLocalSessionVariable(vars,"plannedserialorbatch")) && 
+	    			  !vars.getSessionValue("PDCSTATUS").equals("ERROR") && 
+	    			  PdcCommonData.isConsumptionAutoprint(this, GlobalWorkstepID).equals("Y"))
+	    		  vars.setSessionValue("AUTOPRINTASSEMBLYINPDC", "Y");
+		  }
       }
       
       if (vars.commandIn("CANCEL")||BcCommand.equals("CANCEL")) {
@@ -449,8 +479,13 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
     	  if (test!=null && !test.equals("N")) {
     		  vars.setSessionValue("pdcAssemblySimplyfied","Y");
     		  setLocalSessionVariable(vars, "pdcproductionquantity", test);
-    	  } else
+    		  // Ausschuss
+    		  if (PdcCommonData.isTestingWorkstep(this, GlobalWorkstepID).equals("Y"))
+    			  vars.setSessionValue("pdcIsTestingWorkstep","Y");
+    	  } else {
     		  vars.setSessionValue("pdcAssemblySimplyfied","N");
+    		  vars.setSessionValue("pdcIsTestingWorkstep","N");
+    	  }
       }
       //vars.setSessionValue("pdcConsumptionID", GlobalConsumptionID);
       
@@ -459,7 +494,7 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
       vars.setSessionValue(getServletInfo() + "|STATUSTEXT",vars.getSessionValue("PDCSTATUSTEXT"));
       // Load grid structure
       EditableGrid uppergrid = new EditableGrid("PdcMaterialConsumptionUpperGrid", vars, this);  // Load upper grid structure from AD (use AD name)
-      upperGridData = PdcMaterialConsumptionData.selectupper(this, vars.getLanguage(),vars.getNumericParameter("inppdcproductionquantity"),PdcCommonData.getQtyLeftFromWorkstep(this, GlobalWorkstepID),vars.getSessionValue("pdcAssemblySerialOrBatchNO"),GlobalConsumptionID, getLocalSessionVariable(vars, WorkstepIDADName));   // Load upper grid date with language for translation
+      upperGridData = PdcMaterialConsumptionData.selectupper(this, vars.getLanguage(),getLocalSessionVariable(vars, "pdcproductionquantity"),vars.getSessionValue("pdcAssemblySerialOrBatchNO"),GlobalConsumptionID, getLocalSessionVariable(vars, WorkstepIDADName));   // Load upper grid date with language for translation
       strUpperGrid = uppergrid.printGrid(this, vars, script, upperGridData);                    // Generate upper grid html code
       
       
@@ -521,7 +556,12 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
 		  setLocalSessionVariable(vars, "pdcproductionquantity", "1");
 		  vars.setSessionValue("QTYROPROD", "Y");
 	  } else {
-		  setLocalSessionVariable(vars, "pdcproductionquantity", PdcCommonData.getQtyLeftFromWorkstep(this, workstepID));
+	      // dont set production quantity when produce continouosly is checked
+	      if(PdcMaterialConsumptionData.getProduceContinuously(this, workstepID).equals("Y")) {
+	          setLocalSessionVariable(vars, "pdcproductionquantity", "");
+	      }else {
+	          setLocalSessionVariable(vars, "pdcproductionquantity", PdcCommonData.getQtyLeftFromWorkstep(this, workstepID));
+	      }
 		  vars.setSessionValue("QTYROPROD", "N");
 	  }
 	  if (prodId!=null && PdcCommonData.isSerialOrBatch(this,  prodId).equals("Y"))

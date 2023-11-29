@@ -39,7 +39,10 @@
                '' as movementqty,
                '' as currOnhandQty,
                '' as causetext,
-               '' as lottext
+               '' as lottext,
+               '' as dirin,
+               '' as dirout,
+               '' as filename
 </Sql>
   </SqlMethod> 
   <SqlMethod name="selectgrid" type="preparedStatement" return="multiple">
@@ -135,6 +138,13 @@
     <SqlMethodComment></SqlMethodComment>
     <Sql>
       select count(*) from ZSSM_PRODUCTIONRUN where c_project_id is null and pinstance = ?
+    </Sql>
+    <Parameter name="pInstanceID"/>
+  </SqlMethod>
+  <SqlMethod name="selectfiles2copy" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      select p_dirin as dirin,p_dirout as dirout,p_filename as filename from zsmf_copyDocsToProdOrder(?)
     </Sql>
     <Parameter name="pInstanceID"/>
   </SqlMethod>

@@ -1038,9 +1038,10 @@ Further Checks on AProve, COmplete, PRocess
                   WHERE C_Order_ID=v_Record_ID;
                   -- Generate all lines
                   select get_uuid() into v_nexpinstance;
-                    insert into c_generateminoutmanual(C_GENERATEMINOUTMANUAL_ID, C_ORDERLINE_ID, C_ORDER_ID, AD_CLIENT_ID, AD_ORG_ID, CREATEDBY, UPDATEDBY, QTY, M_LOCATOR_ID,pinstance_id,MovementDate)
+                    insert into c_generateminoutmanual(C_GENERATEMINOUTMANUAL_ID, C_ORDERLINE_ID, C_ORDER_ID, AD_CLIENT_ID, AD_ORG_ID, CREATEDBY, UPDATEDBY, QTY, M_LOCATOR_ID,pinstance_id,MovementDate,m_product_id)
                          select get_uuid(),ol.C_ORDERLINE_ID, ol.C_ORDER_ID, ol.AD_CLIENT_ID, ol.AD_ORG_ID, ol.CREATEDBY, ol.UPDATEDBY, ol.qtyordered, 
-                                m_gettransactionlocator(ol.m_product_id,o.m_warehouse_id,case when o.c_doctypetarget_id='F2080E63E5F04B4D8B30D8016B0983BB' then 'N' else o.issotrx end,ol.qtyordered),v_nexpinstance,o.dateordered
+                                m_gettransactionlocator(ol.m_product_id,o.m_warehouse_id,case when o.c_doctypetarget_id='F2080E63E5F04B4D8B30D8016B0983BB' then 'N' else o.issotrx end,ol.qtyordered),
+                                v_nexpinstance,o.dateordered,ol.m_product_id
                          from c_order o,c_orderline ol,m_product p where ol.c_order_id=o.c_order_id and p.m_product_id=ol.m_product_id
                               and case when  c_getconfigoption('deliveryofservices',o.ad_org_id) = 'N' then  p.producttype!='S' else 1=1 end                                          
                               and o.C_Order_ID=v_Record_ID;
@@ -2969,7 +2970,7 @@ BEGIN
                        priceactual=v_cur_line.priceactual,pricelimit=v_cur_line.pricelimit,discount=v_cur_line.discount,c_tax_id=v_cur_line.c_tax_id,m_attributesetinstance_id=v_cur_line.m_attributesetinstance_id,
                        isdescription=v_cur_line.isdescription,quantityorder=v_cur_line.quantityorder,m_product_uom_id=v_cur_line.m_product_uom_id,pricestd=v_cur_line.pricestd,cancelpricead=v_cur_line.cancelpricead ,
                        c_project_id=v_cur_line.c_project_id,c_projecttask_id=v_cur_line.c_projecttask_id,a_asset_id=v_cur_line.a_asset_id,issummaryitem=v_cur_line.issummaryitem,isonetimeposition=v_cur_line.isonetimeposition,
-                       textposition=v_cur_line.textposition
+                       textposition=v_cur_line.textposition,datepromised=v_cur_line.datepromised,scheddeliverydate=v_cur_line.scheddeliverydate
             where c_orderline.c_order_id = v_COrder_ID and c_orderline.line=v_cur_line.line;
         end if;
     END LOOP;
@@ -2992,6 +2993,31 @@ BEGIN
     RETURN v_Message; 
 END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
+
+
+CREATE OR REPLACE FUNCTION c_generateorderfromoffer_userexit(v_order_id varchar, v_Record_ID varchar)
+  RETURNS varchar AS
+$BODY$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***********************************************************************************************+*****************************************
+User-Exit for c_generateorderfromoffer
+**/
+DECLARE
+v_return varchar:='';
+BEGIN
+RETURN v_return;
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
   COST 100;
 
 select zsse_dropfunction('c_generateorderfromoffer');
@@ -3073,6 +3099,7 @@ BEGIN
     -- Mark the Accepted Variant of the Proposal 
     update c_order set generatetemplate='Y',DocStatus='CL',processed='Y',Processing='N',proposalstatus='AC',Updated=now(),updatedby=p_User 
                        where c_order_id=p_Record_ID;
+    PERFORM c_generateorderfromoffer_userexit(v_COrder_ID, p_Record_ID);
     RETURN v_Message; 
 END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE
@@ -3164,6 +3191,28 @@ END ; $BODY$
   COST 100;
 
 
+CREATE OR REPLACE FUNCTION c_generateoffervariant_userexit(v_offer_id varchar)
+  RETURNS varchar AS
+$BODY$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***********************************************************************************************+*****************************************
+User-Exit for c_generateoffervariant
+**/
+DECLARE
+v_return varchar:='';
+BEGIN
+RETURN v_return;
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
 
 CREATE OR REPLACE FUNCTION c_generateoffervariant(p_Record_ID character varying,p_user character varying)
   RETURNS character varying AS
@@ -3235,6 +3284,7 @@ BEGIN
     v_dummy:= c_copyordertextmodules(p_Record_ID,v_COrder_ID,p_User);
     v_Message:=zsse_htmldirectlink('../SalesOrder/Header_Relation.html','document.frmMain.inpcOrderId',v_COrder_ID,v_DocumentNo||coalesce(v_variantsuffix,''));
     --  Update AD_PInstance
+    PERFORM c_generateoffervariant_userexit(v_COrder_ID);
     RETURN v_Message; 
 END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE
@@ -3911,7 +3961,7 @@ BEGIN
     if v_count=1 then
        select zssi_getVALUE4ordercomplete(new.c_order_id) into v_ordervalue;
     end if;
-    select sum(coalesce(p.weight,0)*l.qtyordered) into v_weight from c_orderline l,m_product p where p.m_product_id=l.m_product_id and l.c_order_id=new.c_order_id;
+    select sum(coalesce(m_product_weight(p.m_product_id),0)*l.qtyordered) into v_weight from c_orderline l,m_product p where p.m_product_id=l.m_product_id and l.c_order_id=new.c_order_id;
     if TG_OP = 'UPDATE' then
         if old.qtyordered= new.qtyordered and old.m_product_id=new.m_product_id then
             select weight into v_weight from c_order where c_order_id=new.c_order_id;
@@ -3934,7 +3984,7 @@ BEGIN
     if v_count=1 then
        select zssi_getVALUE4ordercomplete(old.c_order_id) into v_ordervalue;
     end if;
-    select sum(coalesce(p.weight,0)*l.qtyordered) into v_weight from c_orderline l,m_product p where p.m_product_id=l.m_product_id and l.c_order_id=old.c_order_id;
+    select sum(coalesce(m_product_weight(p.m_product_id),0)*l.qtyordered) into v_weight from c_orderline l,m_product p where p.m_product_id=l.m_product_id and l.c_order_id=old.c_order_id;
     update c_order set weight=v_weight,completeordervalue=v_ordervalue,Iscompletelyinvoiced=c_isorderCompletelyInvoiced(old.c_order_id),deliverycomplete=c_isorderCompletelyDelivered(old.c_order_id) where c_order_id=old.c_order_id;
     RETURN OLD;
   END IF;
@@ -6943,6 +6993,28 @@ END ; $BODY$
   COST 100;
     
 
+CREATE OR REPLACE FUNCTION c_createDocumentFromOrder_userexit(v_order_id varchar)
+  RETURNS varchar AS
+$BODY$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***********************************************************************************************+*****************************************
+User-Exit for c_createDocumentFromOrder0 + c_createDocumentFromOrderPO
+**/
+DECLARE
+v_return varchar:='';
+BEGIN
+RETURN v_return;
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
 
 CREATE OR REPLACE FUNCTION c_createDocumentFromOrder0(p_targettype varchar, p_srcorder_id varchar, p_user varchar)
   RETURNS varchar AS
@@ -7191,6 +7263,7 @@ BEGIN
        v_Message:= v_Message || '@ProformaCreated@' ||zsse_htmlLinkDirectKey(v_linkWindow, v_orderid,v_docno) || '</br>';
         
     end if;
+    PERFORM c_createDocumentFromOrder_userexit(v_orderid);
   RETURN v_Message;
 END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE
@@ -7273,6 +7346,7 @@ BEGIN
         v_cur_line.updatedby:=p_user;
         v_cur_line.qtydelivered:=0;
         v_cur_line.qtyinvoiced:=0;
+        v_cur_line.invoicedamt:=0;
         v_cur_line.ignoreresidue:='N';
         v_cur_line.ignoreresiduedate:=null;
         v_cur_line.deliverycomplete:='N';
@@ -7290,6 +7364,7 @@ BEGIN
         insert into zssi_order_textmodule select v_curtm.*;
     END LOOP;
     v_Message:= v_Message || '@OfferFromOrderCreated@' || zsse_htmldirectlink(v_linkWindow,'document.frmMain.inpcOrderId', v_orderid, v_docno) || '</br>';
+    PERFORM c_createDocumentFromOrder_userexit(v_orderid);
   RETURN v_Message;
 END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE

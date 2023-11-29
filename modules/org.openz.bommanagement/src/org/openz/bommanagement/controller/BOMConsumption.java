@@ -90,7 +90,7 @@ public class BOMConsumption  extends HttpSecureAppServlet {
        // If a barcode was scanned, look at the result
        if (vars.commandIn("SAVE_NEW_NEW") && (!strBarcode.isEmpty() || ! strQty.isEmpty())) {
          if (!strBarcode.isEmpty()) {
-           data = PdcCommonData.selectbarcode(this, strBarcode);
+           data = PdcCommonData.selectbarcode(this, strBarcode,vars.getRole());
            // In this Servlet CONTROL, EMPLOYEE or PRODUCT or CALCULATION, LOCATOR, WORKSTEP can be scanned,
            // The First found will be used...
            String bctype="UNKNOWN";
@@ -307,7 +307,7 @@ public class BOMConsumption  extends HttpSecureAppServlet {
        //Configuring the Structure                                                
        // Load UPPER grid structure only when Workstep is set.
        EditableGrid uppergrid = new EditableGrid("PdcMaterialConsumptionUpperGrid", vars, this);  // Load upper grid structure from AD (use AD name)
-       upperGridData = PdcMaterialConsumptionData.selectupper(this, vars.getLanguage(),"1","1","",strConsumptionid, strpdcWorkstepID);   // Load upper grid date with language for translation
+       upperGridData = PdcMaterialConsumptionData.selectupper(this, vars.getLanguage(),"1","",strConsumptionid, strpdcWorkstepID);   // Load upper grid date with language for translation
        String strUpperGrid = "";
        if (!strpdcWorkstepID.isEmpty())
          strUpperGrid =uppergrid.printGrid(this, vars, script, upperGridData);                    

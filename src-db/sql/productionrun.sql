@@ -149,9 +149,13 @@ BEGIN
     --raise notice '%','TPstart:'||v_tp||'-Plan:'||v_plan;
     -- Loop through BOM
     for v_cur in (select b.m_product_id,sum(b.quantity) as quantity,p.production from zspm_projecttaskbom b,m_product p where b.m_product_id=p.m_product_id and b.c_projecttask_id in  
-                         (select c_projecttask_id from zssm_productionplan_task_v where zssm_productionplan_v_id=v_plan and assembly='Y')
+                         (select c_projecttask_id from zssm_productionplan_task_v where zssm_productionplan_v_id=v_plan)
                          group by b.m_product_id,p.production order by p.production desc)
     LOOP
+      -- Keine Zeit kalkulieren -> Artikel wird in diesem Plan mit produziert (Kalk ist dann auf dem Prd-AG für den Artikel)
+      if (select count(*) from c_projecttask where assembly='Y' and m_product_id=v_cur.m_product_id and 
+            c_projecttask_id in (select c_projecttask_id from zssm_productionplan_task_v where zssm_productionplan_v_id=v_plan))=0
+      then
         -- On Hand?
         v_EstStock:=mrp_estimated_stockqty(v_cur.m_product_id,v_wh, trunc(zssm_workhours2workcalendardaybackward(dateneeded,v_tp,v_org,v_precise)));
         --if v_cur.m_product_id='798A448E359A435687D6F08602B21B4E' then
@@ -215,6 +219,7 @@ BEGIN
             end if;
             v_tp:=(v_trz+v_qty*v_tst+v_tpvl);
         end if; --On Hand
+      end if; -- Keine Zeit kalkulieren
     END LOOP;
    -- raise notice '%','SUM of TIMES:'||v_tp+v_pleadtime;
     RETURN v_tp+v_pleadtime;
@@ -764,10 +769,15 @@ BEGIN
                          tv.c_projecttask_id=bom.c_projecttask_id and p.m_product_id=bom.m_product_id and 
                          (p.isactive='N' or (p.production='N' and p.ispurchased='N')))
     loop
+       --  Artikel wird in diesem Plan mit produziert. Solche Artikel brauchen keinen eigenen P-Plan und können i.d.R auch nicht eingekauft werden.
+      if (select count(*) from c_projecttask where assembly='Y' and m_product_id=v_cur.m_product_id and 
+            c_projecttask_id in (select c_projecttask_id from zssm_productionplan_task_v where zssm_productionplan_v_id=v_cur.zssm_productionplan_v_id))=0
+      then
          pzssm_productionplan_v_id:=v_cur.zssm_productionplan_v_id;
          pm_product_id:=v_cur.m_product_id;
          pcause:='Product not active or has no Purchasing or Production Data'||v_cur.prod;
         RETURN NEXT;
+      end if;
     end loop;
 END;
 $_$  LANGUAGE 'plpgsql' VOLATILE
@@ -1018,6 +1028,9 @@ BEGIN
          v_cause:=v_cur.cause;
          select m_locator_id,typeofproduct into v_reclocator,v_type from m_product where m_product_id=v_cur.m_product_id;
          -- if configured, set the Locators from Product Data, not from Base-Workstep
+         -- Bildet Verkettungen bei automatischer Auslösung.
+         -- Der Entnahme-Lagerort einer Baugruppe in der BOM ist der Rückgabe(Produktions-Lagerort) einer Aufgabe die zuvor produziert wurde
+         -- Die Lagerorte für Entnahme/Rückgabe im Kopf UND in der BOM berechnen sich vollständig aus den Artikel-Daten (Lagerort)
          if c_getconfigoption('productionlocatorfromproductdata',v_cur.ad_org_id)='Y' and v_reclocator is not null then
             update c_projecttask set receiving_locator = v_reclocator, issuing_locator = v_reclocator where c_project_id= v_ProductionOrder_id and m_product_id=v_cur.m_product_id;
             for v_cur2 in (select * from  zspm_projecttaskbom where c_projecttask_id in (select c_projecttask_id from c_projecttask where c_project_id= v_ProductionOrder_id 
@@ -1033,6 +1046,25 @@ BEGIN
             update c_projecttask set issuing_locator=coalesce(v_cur.issuing_locator,v_reclocator) where c_project_id= v_ProductionOrder_id;
             -- Select the receiving locator of current product in order to Update the following products issuing locator.
             --select min(receiving_locator) into v_locator from c_projecttask where c_project_id= v_ProductionOrder_id  and m_product_id=v_cur.m_product_id;
+         end if;
+         -- Die Lagerorte reiner BOM-Positionen berechnen sich aus den Artikeldaten.
+         -- Bei zusammengesetzten Produktionsplänen berechnen sie sich bei im Plan produzierten BG aus den vorangegangenen AG
+         if c_getconfigoption('Bomlocatorfromproductdata',v_cur.ad_org_id)='Y' then
+            for v_cur2 in (select * from  zspm_projecttaskbom where c_projecttask_id in (select c_projecttask_id from c_projecttask where c_project_id= v_ProductionOrder_id))
+            LOOP
+                select m_locator_id,typeofproduct into v_reclocator2,v_type from m_product where m_product_id=v_cur2.m_product_id;
+                if (select count(*) from c_projecttask where assembly='Y' and m_product_id=v_cur2.m_product_id and c_project_id= v_ProductionOrder_id)=0 then 
+                     -- In diesem Plan benötigtes Material (ST.-Art und BG, die nicht im Plan produziert werden) werden am Lagerort des Artikels entnommen und zurückgegeben.
+                    update zspm_projecttaskbom set receiving_locator = v_reclocator2,  
+                       issuing_locator =  v_reclocator2 
+                       where zspm_projecttaskbom_id=v_cur2.zspm_projecttaskbom_id;
+                else  -- In diesem Plan produzierte Baugruppen werden bei MAT-Rückgabe da zurückgegeben, wo diese herkommen. Dazu dient der Entnahme Lagerort der aktuellen Aufgabe
+                    select receiving_locator into v_reclocator2 from c_projecttask where c_projecttask_id=v_cur2.c_projecttask_id;
+                    update zspm_projecttaskbom set   
+                       issuing_locator =  v_reclocator2,receiving_locator=v_reclocator2
+                     where zspm_projecttaskbom_id=v_cur2.zspm_projecttaskbom_id;  
+                end if;
+            END LOOP;
          end if;
          if c_getconfigoption('BomIssuinglocatorIdentical2workstep',v_cur.ad_org_id)='Y' then
                 -- Set All BOM-Psitions issuing-locator to issuing-locator of the Task
@@ -1109,6 +1141,8 @@ DECLARE
     v_attributeset varchar;
     v_value varchar;
     v_locator varchar;
+    v_prdval varchar;
+    v_attrbinst varchar;
     v_task               c_projecttask%ROWTYPE;
 BEGIN
     if p_product_id is null then 
@@ -1116,7 +1150,7 @@ BEGIN
     end if;
     select * into v_task from c_projecttask where c_project_id=p_porder_id and assembly='Y' and m_product_id=p_product_id limit 1;
     update c_projecttask set m_attributesetinstance_id=p_attrsetinstance_id where c_projecttask_id=v_task.c_projecttask_id;
-    update c_project set note=note||chr(10)||(select description from m_attributesetinstance where m_attributesetinstance_id=p_attrsetinstance_id) where c_project_id=p_porder_id;
+    update c_project set note=note||coalesce(chr(10)||(select description from m_attributesetinstance where m_attributesetinstance_id=p_attrsetinstance_id),'') where c_project_id=p_porder_id;
     select m_attributeset_id into v_attributeset from m_attributesetinstance where m_attributesetinstance_id=p_attrsetinstance_id;
     v_i:=1;
     for v_cur in (select m_attribute_id  from m_attributeuse where m_attributeset_id=v_attributeset order by seqno)
@@ -1151,15 +1185,20 @@ BEGIN
     for v_cur in (select * from c_projecttask where c_project_id=p_porder_id)
     LOOP
         -- Dyn. Durchreichen (Erste Pos. Stkl. ist zu produzierendes Gut) 
-        -- @ToDo
-        /*
-        if v_cur.assembly='N' and (select count(*) from  zspm_projecttaskbom where c_projecttask_id=v_cur.c_projecttask_id)=0 then
-            insert into zspm_projecttaskbom( zspm_projecttaskbom_id, c_projecttask_id, ad_client_id, ad_org_id, createdby, updatedby, m_product_id, quantity, date_plan, line,
-                                issuing_locator,receiving_locator)
+        if v_cur.assembly='N' then
+            select m_product_id,m_attributesetinstance_id into v_prdval,v_attrbinst from c_projecttask where c_project_id=p_porder_id and seqno<v_cur.seqno and m_product_id is not null and assembly='Y' order by seqno desc limit 1;
+            select count(*) into v_line from  zspm_projecttaskbom where c_projecttask_id=v_cur.c_projecttask_id and m_product_id=v_prdval;
+            if v_line=0 and v_prdval is not null then
+                select min(line) into v_line from zspm_projecttaskbom where c_projecttask_id=v_cur.c_projecttask_id;
+                if v_line is null then v_line:=10; end if;
+                v_line:=v_line-10;
+                insert into zspm_projecttaskbom( zspm_projecttaskbom_id, c_projecttask_id, ad_client_id, ad_org_id, createdby, updatedby, m_product_id, quantity, date_plan, line,
+                                issuing_locator,receiving_locator,m_attributesetinstance_id,isreturnafteruse)
                     values (get_uuid(),v_cur.c_projecttask_id,v_task.ad_client_id, v_cur.ad_org_id, v_task.createdby, v_task.updatedby,
-                            p_product_id,v_task.qty,v_cur.startdate,10,v_cur.issuing_locator,v_cur.receiving_locator);
+                            v_prdval,v_task.qty,v_cur.startdate,v_line,v_cur.issuing_locator,v_cur.receiving_locator,v_attrbinst,'Y');
+            end if;
         end if;
-        */
+        -- Weitere Positionen direkt aus der Stückliste es Artikels (Namenangabe Arbeitsgang)
         for v_cur2 in (select * from m_product_bom where m_product_id=p_product_id)
         LOOP
             if v_cur2.workstepname=v_cur.name then

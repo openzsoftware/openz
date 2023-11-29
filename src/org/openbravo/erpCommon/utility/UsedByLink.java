@@ -106,45 +106,47 @@ public class UsedByLink extends HttpSecureAppServlet {
     if (data != null && data.length > 0) {
       final Vector<Object> vecTotal = new Vector<Object>();
       for (int i = 0; i < data.length; i++) {
-        if (log4j.isDebugEnabled())
-          log4j.debug("***Referenced tab: " + data[i].adTabId);
-        final UsedByLinkData[] dataRef = UsedByLinkData.windowRef(this, data[i].adTabId);
-        if (dataRef == null || dataRef.length == 0 )
-          continue;
-        String strWhereClause = getWhereClause(vars, strWindow, dataRef[0].whereclause);
-        if (log4j.isDebugEnabled())
-          log4j.debug("***   Referenced where clause (1): " + strWhereClause);
-        strWhereClause += getAditionalWhereClause(vars, strWindow, data[i].adTabId,
-            data[i].tablename, keyColumn, data[i].columnname, UsedByLinkData.getTabTableName(this,
-                tableId));
-        if (log4j.isDebugEnabled())
-          log4j.debug("***   Referenced where clause (2): " + strWhereClause);
-        if (!nonAccessible) {
-          final String strNonAccessibleWhere = strWhereClause + " AND AD_ORG_ID NOT IN ("
-              + vars.getUserOrg() + ")";
-          if (!UsedByLinkData.countLinks(this, data[i].tablename, data[i].columnname, keyId,
-              strNonAccessibleWhere).equals("0"))
-            nonAccessible = true;
-        }
-        strWhereClause += " AND AD_ORG_ID IN (" + vars.getUserOrg() + ") AND AD_CLIENT_ID IN ("
-            + vars.getUserClient() + ")";
-        // How to Find out long running querys
-        //  long millis = System.currentTimeMillis();
-        int total = Integer.valueOf(
-            UsedByLinkData.countLinks(this, data[i].tablename, data[i].columnname, keyId,
-                strWhereClause)).intValue();
-        long millis2 = System.currentTimeMillis();
-        //  if (millis2-millis >1000) 
-        //  	System.out.print(data[i].tablename);
-        if (log4j.isDebugEnabled())
-          log4j.debug("***   Count: " + total);
-        data[i].total = Integer.toString(total);
-
-        if (data[i].accessible.equals("N") && total > 0) {
-          nonAccessible = true;
-        } else if (total > 0) {
-          vecTotal.addElement(data[i]);
-        }
+    	if (!data[i].tablename.startsWith("zssi_onhanqty") && !data[i].tablename.startsWith("mrp_inoutplan")) {
+	        if (log4j.isDebugEnabled())
+	          log4j.debug("***Referenced tab: " + data[i].adTabId);
+	        final UsedByLinkData[] dataRef = UsedByLinkData.windowRef(this, data[i].adTabId);
+	        if (dataRef == null || dataRef.length == 0 )
+	          continue;
+	        String strWhereClause = getWhereClause(vars, strWindow, dataRef[0].whereclause);
+	        if (log4j.isDebugEnabled())
+	          log4j.debug("***   Referenced where clause (1): " + strWhereClause);
+	        strWhereClause += getAditionalWhereClause(vars, strWindow, data[i].adTabId,
+	            data[i].tablename, keyColumn, data[i].columnname, UsedByLinkData.getTabTableName(this,
+	                tableId));
+	        if (log4j.isDebugEnabled())
+	          log4j.debug("***   Referenced where clause (2): " + strWhereClause);
+	        if (!nonAccessible) {
+	          final String strNonAccessibleWhere = strWhereClause + " AND AD_ORG_ID NOT IN ("
+	              + vars.getUserOrg() + ")";
+	          if (!UsedByLinkData.countLinks(this, data[i].tablename, data[i].columnname, keyId,
+	              strNonAccessibleWhere).equals("0"))
+	            nonAccessible = true;
+	        }
+	        strWhereClause += " AND AD_ORG_ID IN (" + vars.getUserOrg() + ") AND AD_CLIENT_ID IN ("
+	            + vars.getUserClient() + ")";
+	        // How to Find out long running querys
+	        //  long millis = System.currentTimeMillis();
+	        int total = Integer.valueOf(
+	            UsedByLinkData.countLinks(this, data[i].tablename, data[i].columnname, keyId,
+	                strWhereClause)).intValue();
+	        long millis2 = System.currentTimeMillis();
+	        //  if (millis2-millis >1000) 
+	        //  	System.out.print(data[i].tablename);
+	        if (log4j.isDebugEnabled())
+	          log4j.debug("***   Count: " + total);
+	        data[i].total = Integer.toString(total);
+	
+	        if (data[i].accessible.equals("N") && total > 0) {
+	          nonAccessible = true;
+	        } else if (total > 0) {
+	          vecTotal.addElement(data[i]);
+	        }
+	      }
       }
       data = new UsedByLinkData[vecTotal.size()];
       vecTotal.copyInto(data);

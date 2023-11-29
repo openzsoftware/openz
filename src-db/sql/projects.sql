@@ -3593,7 +3593,8 @@ SELECT
         m_internal_consumption.updatedby,
         m_internal_consumption.m_internal_consumption_id,
         m_internal_consumptionline.description,
-        m_internal_consumptionline.m_locator_id
+        m_internal_consumptionline.m_locator_id,
+        m_internal_consumption.plannedserialnumber
         
 FROM 
         m_internal_consumptionline
@@ -3621,7 +3622,8 @@ GROUP BY
         m_internal_consumption.m_internal_consumption_id,
         m_internal_consumptionline.description,
         m_internal_consumptionline.m_locator_id,
-        m_internal_consumption.movementtype;
+        m_internal_consumption.movementtype,
+        m_internal_consumption.plannedserialnumber;
         
 select zsse_DropView ('zspm_recharge_view');
 

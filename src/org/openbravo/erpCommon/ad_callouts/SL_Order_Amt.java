@@ -373,6 +373,10 @@ public class SL_Order_Amt  extends ProductTextHelper  {
         vars.setSessionValue("MESSAGE_AMT", messageBuffer);
     }
 
+    // Check Callout from SL_Order_Product.java to prevent duplicated message
+    if(vars.getSessionValue("MESSAGE_PROD_TEXT", "").contains(Utility.messageBD(this, "ZSMP_PurchaseDefault", vars.getLanguage()))) {
+        messageBuffer = messageBuffer.replace("ZSMP_PurchaseDefault_PLACEHOLDER", "");
+    }
     messageBuffer = messageBuffer.replace(",", "")
                                  .replace("ZSMP_PurchaseDefault_Excec_PLACEHOLDER", FormatUtilities.replaceJS(Utility.messageBD(this, "ZSMP_PurchaseDefault_Excec", vars.getLanguage())) + "<br>")
                                  .replace("ZSMP_PurchaseDefault_PLACEHOLDER", FormatUtilities.replaceJS
