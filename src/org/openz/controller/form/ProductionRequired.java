@@ -100,7 +100,7 @@ public class ProductionRequired  extends HttpSecureAppServlet {
            if (vars.commandIn("SAVE")) {              
                 EditableGrid grid = new EditableGrid("ProdDataGrid", vars, this);
                 retval=grid.getSelectedIds(null, vars, "zssm_productionrequired_v_id");
-                String prodline,prodlineProduct,prodlineQty,strStartDate,strCausetext,strEndDate,strAttr;
+                String prodline,prodlineProduct,prodlineQty,strStartDate,strCausetext,strEndDate,strAttr,strPlan;
                 String msg="";
                 for (int i = 0; i < retval.size(); i++) {
 	              conn= this.getTransactionConnection();
@@ -116,7 +116,8 @@ public class ProductionRequired  extends HttpSecureAppServlet {
 	              prodlineProduct=grid.getValue(this, vars, retval.elementAt(i), "m_product_id");
 	              strCausetext=grid.getValue(this, vars, retval.elementAt(i), "causetext");
 	              strAttr=grid.getValue(this, vars, retval.elementAt(i), "m_attributesetinstance_id");
-                                
+	              strPlan= grid.getValue(this, vars, retval.elementAt(i), "zssm_productionplan_v_id");  
+	              
 	                ProductionRequiredData.insert(conn,this,prunId,
 	                     vars.getClient(),
 	                     vars.getOrg(),
@@ -126,7 +127,7 @@ public class ProductionRequired  extends HttpSecureAppServlet {
 	                     strStartDate,
 	                     prodlineProduct,
 	                     pinstance,
-	                     strCausetext,strEndDate,strAttr); 
+	                     strCausetext,strEndDate,strAttr,strPlan); 
                             
                     msg=msg+ProductionRequiredData.productionrun(conn,this,pinstance);
                     releaseCommitConnection(conn);

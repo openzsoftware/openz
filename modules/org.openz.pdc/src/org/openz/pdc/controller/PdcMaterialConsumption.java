@@ -392,9 +392,10 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
               lowerGridData = PdcMaterialConsumptionData.selectlower(this, vars.getLanguage(),GlobalConsumptionID);
               for(FieldProvider fp : lowerGridData) {
                   // entnommene Menge != zu produzierende Menge * Menge an Materialien für einen Artikel -> zu viel entnommen
-                  if(Float.parseFloat(fp.getField("pdcmaterialconsumptionreceivedqty")) != (Float.parseFloat(getLocalSessionVariable(vars,"pdcproductionquantity")) * Float.parseFloat(PdcMaterialConsumptionData.getQtyForOne(this, GlobalWorkstepID, fp.getField("m_product_id"))))) {
-                      throw new ServletException(Utility.messageBD(this, "pdc_consumtionCompleteError" ,vars.getLanguage()));
-                  }
+                  if (PdcMaterialConsumptionData.isQtyFittingOnReceivecomplete(this, fp.getField("pdcmaterialconsumptionreceivedqty"), 
+                			  getLocalSessionVariable(vars,"pdcproductionquantity"), 
+                			  PdcMaterialConsumptionData.getQtyForOne(this, GlobalWorkstepID, fp.getField("m_product_id"))).equals("N"))
+                	  throw new ServletException(Utility.messageBD(this, "pdc_consumtionCompleteError" ,vars.getLanguage()));
               }
           }
 		  if (qtySerOK(vars,GlobalWorkstepID)) {

@@ -162,10 +162,35 @@ Contributor(s): ______________________________________.
   <SqlMethod name="getProductDescription" type="preparedStatement" return="String" default="">
     <SqlMethodComment></SqlMethodComment>
     <Sql>
-        SELECT description  
-            FROM m_product
-            WHERE m_product_id = ?
+        SELECT CASE WHEN
+        (SELECT trl.description
+            FROM m_product_trl trl
+            WHERE trl.m_product_id = ?
+              AND trl.ad_language = ?) IS NOT NULL
+        THEN
+        (SELECT trl.description
+            FROM m_product_trl trl
+            WHERE trl.m_product_id = ?
+              AND trl.ad_language = ?)
+        ELSE
+        (SELECT p.description
+            FROM m_product p
+            WHERE p.m_product_id = ?)
+        END FROM dual
      </Sql>
-     <Parameter name="mProductId"/>  
+     <Parameter name="mProductId"/>
+     <Parameter name="lang"/>
+     <Parameter name="mProductId"/>
+     <Parameter name="lang"/>
+     <Parameter name="mProductId"/>
+  </SqlMethod>
+  <SqlMethod name="getCustomerLanguage" type="preparedStatement" return="String" default="">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT coalesce(ad_language, 'de_DE')
+            FROM c_bpartner
+            WHERE c_bpartner_id = ?
+     </Sql>
+     <Parameter name="cBpartnerId"/>
   </SqlMethod>
 </SqlClass>

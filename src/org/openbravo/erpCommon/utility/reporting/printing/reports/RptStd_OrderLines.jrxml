@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.1.1  -->
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RptStd_OrderLines" language="groovy" pageWidth="515" pageHeight="802" columnWidth="515" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="392f4557-426d-4ec6-89ad-df5f8a44ccfc">
 	<property name="ireport.scriptlethandling" value="0"/>
 	<property name="ireport.encoding" value="UTF-8"/>
@@ -68,8 +68,9 @@
        CASE WHEN C_orderline.isgrossprice='N' THEN (select zssi_strNumber(sum_linenetamt,$P{LANGUAGE}) from zssi_getorderlinecombinedsums(c_orderline.c_order_id, c_orderline.line)) 
        else (select zssi_strNumber(sum_linegrossamt,$P{LANGUAGE}) from zssi_getorderlinecombinedsums(c_orderline.c_order_id, c_orderline.line)) end end as sum_linenetamt,
        (select isonlyone from zssi_getorderlinecombinedsums(c_orderline.c_order_id, c_orderline.line)) as isonlyone,
-  (select cursymbol from c_currency, ad_client where c_currency.c_currency_id=ad_client.c_currency_id) as cur,
-CASE WHEN ($P{LANGUAGE}='de_DE') then 'STD' else 'h' end as hh
+       (select cursymbol from c_currency, ad_client where c_currency.c_currency_id=ad_client.c_currency_id) as cur,
+       CASE WHEN ($P{LANGUAGE}='de_DE') then 'STD' else 'h' end as hh,
+       (select printTransferInReport(c_order.c_order_id)) as printtransferinreport
 from c_orderline 
 			     left join C_TAX on c_orderline.c_tax_id=c_tax.c_tax_id
                  left join C_currency on c_orderline.c_currency_id=c_currency.c_currency_id
@@ -79,6 +80,9 @@ from c_orderline
 where c_orderline.c_order_id=($P{C_ORDER_ID})
 order by c_orderline.line]]>
 	</queryString>
+	<field name="printtransferinreport" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="printtransferinreport"/>
+	</field>
 	<field name="qtyordered" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="qtyordered"/>
 	</field>
@@ -342,7 +346,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 	</title>
 	<pageHeader>
 		<band height="16" splitType="Stretch">
-			<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
+			<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1 && $F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
 			<staticText>
 				<reportElement key="staticText-6" x="293" y="0" width="124" height="16" uuid="bd97c6cc-7673-4319-b9eb-37cfc9993bff"/>
 				<box leftPadding="2">
@@ -1571,7 +1575,9 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 				<reportElement key="line-1" x="0" y="0" width="515" height="1" uuid="a4778348-00e9-43e9-bb13-bcadfacca670"/>
 			</line>
 			<staticText>
-				<reportElement key="staticText-1" x="293" y="0" width="140" height="16" uuid="68c942f7-4867-443f-afa8-478c243daba7"/>
+				<reportElement key="staticText-1" x="293" y="0" width="140" height="16" uuid="68c942f7-4867-443f-afa8-478c243daba7">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
 				<box leftPadding="2">
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -1583,7 +1589,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 			</staticText>
 			<textField pattern="" isBlankWhenNull="false">
 				<reportElement key="textField-8" x="433" y="0" width="82" height="16" uuid="569d7543-2bb6-4864-9b9d-43f525370403">
-					<printWhenExpression><![CDATA[new java.lang.Boolean(!$P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749"))]]></printWhenExpression>
+					<printWhenExpression><![CDATA[new java.lang.Boolean(!$P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749") && $F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
 				</reportElement>
 				<box leftPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">

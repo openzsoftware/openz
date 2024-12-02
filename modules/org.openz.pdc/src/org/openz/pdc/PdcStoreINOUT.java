@@ -105,6 +105,7 @@ public class PdcStoreINOUT extends HttpSecureAppServlet {
     			  GlobalINOUTID=dscr;	
     			  PdcINOUTData.setTrxPicking(this,  GlobalUserID,GlobalINOUTID);
     			  bctype="IOTRX";
+    			  PdcINOUTData.setServiceProductsScanned(this, GlobalINOUTID);
     		  }
     	  }
           //Time Feedback/Employee not applicable
@@ -223,25 +224,30 @@ public class PdcStoreINOUT extends HttpSecureAppServlet {
           boolean iserror=false;
           String msgtext="\n";
           if (!GlobalINOUTID.equals("")) {
-            // Start internal Consumption Post Process directly - Process Internal Consumption
-            ProcessUtils.startProcessDirectly(GlobalINOUTID, "109", vars, this); 
-            // PdcCommonData.doConsumptionPost(this, strConsumptionid);
-            vars.setSessionValue("PDCSTATUS","OK");
-            if (getLocalSessionVariable(vars, "pdcdirection").equals("C-"))
-            	vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_deliverysucessful",vars.getLanguage())+msgtext);
-            else //V+
-            	vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_receiptsucessful",vars.getLanguage())+msgtext);
-            
-            // If the Process brings an error, stay in this servlet and diplay the message to the user
-            mymess=vars.getMessage(getServletInfo());
-            if (mymess!=null) {
-              if (mymess.getType().equals("Error")) {
-                iserror=true;
-                vars.setSessionValue("PDCSTATUS","ERROR");
-                vars.setSessionValue("PDCSTATUSTEXT",mymess.getMessage());
-              }
-              vars.setMessage(getServletInfo(), null);
-            }
+        	if (PdcINOUTData.isDraft(this, GlobalINOUTID).equals("1")) {
+	            // Start internal Consumption Post Process directly - Process Internal Consumption
+	            ProcessUtils.startProcessDirectly(GlobalINOUTID, "109", vars, this); 
+	            // PdcCommonData.doConsumptionPost(this, strConsumptionid);
+	            vars.setSessionValue("PDCSTATUS","OK");
+	            if (getLocalSessionVariable(vars, "pdcdirection").equals("C-"))
+	            	vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_deliverysucessful",vars.getLanguage())+msgtext);
+	            else //V+
+	            	vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_receiptsucessful",vars.getLanguage())+msgtext);
+	            
+	            // If the Process brings an error, stay in this servlet and diplay the message to the user
+	            mymess=vars.getMessage(getServletInfo());
+	            if (mymess!=null) {
+	              if (mymess.getType().equals("Error")) {
+	                iserror=true;
+	                vars.setSessionValue("PDCSTATUS","ERROR");
+	                vars.setSessionValue("PDCSTATUSTEXT",mymess.getMessage());
+	              }
+	              vars.setMessage(getServletInfo(), null);
+	            }
+        	} else {
+	            	vars.setSessionValue("PDCSTATUS","ERROR");
+	                vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_DocNotInDraft",vars.getLanguage()));
+	            }
           } else {
             vars.setSessionValue("PDCSTATUS","OK");
             vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_NoData",vars.getLanguage()));

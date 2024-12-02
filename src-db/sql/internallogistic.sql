@@ -807,7 +807,7 @@ BEGIN
         select string_agg(serialnumber, ', ') into v_snrs from snr_minoutline where m_inoutline_id=old.m_inoutline_id;
         select ils_orderreference into v_orderref from m_inoutline where m_inoutline_id=old.m_inoutline_id;
         select snr_masterdata_id  into v_snrmaster from snr_minoutline where m_inoutline_id=old.m_inoutline_id and snr_masterdata_id is not null limit 1;
-        update ils_snrsinoutflat set serialstext=v_snrs,snr_masterdata_id=v_snrmaster where m_inoutline_id=old.m_inoutline_id;
+        update ils_snrsinoutflat set serialstext=substr(v_snrs,1,2000),snr_masterdata_id=v_snrmaster where m_inoutline_id=old.m_inoutline_id;
     ELSE
     
         select string_agg(serialnumber, ', ') into v_snrs from snr_minoutline where m_inoutline_id=new.m_inoutline_id;

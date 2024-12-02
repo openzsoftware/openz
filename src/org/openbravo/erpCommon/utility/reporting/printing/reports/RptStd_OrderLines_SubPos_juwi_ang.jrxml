@@ -41,6 +41,8 @@
           CASE WHEN C_orderline.isgrossprice='N' THEN zssi_strNumber(c_orderline.linenetamt,$P{LANGUAGE}) else  zssi_strNumber(c_orderline.linegrossamt,$P{LANGUAGE}) end end as linenetamt,
        zssi_strNumber(c_orderline.linegrossamt,$P{LANGUAGE}) as linegrossamt,
        zssi_strNumber(c_orderline.linetaxamt,$P{LANGUAGE}) as taxtotal,
+       c_order.printcompleteordervalue,
+       zssi_getText('runningcosttotal_report', $P{LANGUAGE}) as runningcosttotal_t,
        c_orderline.linenetamt as numbernetamt,
        c_orderline.linegrossamt as numbergrossamt,
        c_orderline.linetaxamt as numbertaxamt,
@@ -75,7 +77,8 @@
        CASE WHEN c_order.subscriptionchangedate IS NOT NULL THEN zssi_strDate(c_order.subscriptionchangedate, $P{LANGUAGE}) ELSE zssi_strDate(c_order.contractdate, $P{LANGUAGE}) END as contractdate,
        zssi_strDate(c_order.enddate, $P{LANGUAGE}) as enddate,
        zssi_strNumber(c_order.completeordervalue, $P{LANGUAGE}) as completeordervalue,
-       zssi_strNumber(c_order.completeordervalue - c_order.totallinesonetime, $P{LANGUAGE}) as runningcoststotal
+       zssi_strNumber(c_order.completeordervalue - c_order.totallinesonetime, $P{LANGUAGE}) as runningcoststotal,
+       (select printTransferInReport(c_order.c_order_id)) as printtransferinreport
 
 
 from c_orderline left join C_TAX on c_orderline.c_tax_id=c_tax.c_tax_id
@@ -86,6 +89,9 @@ from c_orderline left join C_TAX on c_orderline.c_tax_id=c_tax.c_tax_id
 where c_orderline.c_order_id=($P{C_ORDER_ID}) and c_orderline.isonetimeposition='N'
 order by c_orderline.line]]>
 	</queryString>
+	<field name="printtransferinreport" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="printtransferinreport"/>
+	</field>
 	<field name="qtyordered" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="qtyordered"/>
 	</field>
@@ -115,6 +121,12 @@ order by c_orderline.line]]>
 	</field>
 	<field name="taxtotal" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="taxtotal"/>
+	</field>
+	<field name="printcompleteordervalue" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="printcompleteordervalue"/>
+	</field>
+	<field name="runningcosttotal_t" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="runningcosttotal_t"/>
 	</field>
 	<field name="numbernetamt" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="numbernetamt"/>
@@ -214,7 +226,7 @@ order by c_orderline.line]]>
 	</variable>
 	<group name="Total Cost Stretch">
 		<groupFooter>
-			<band height="25">
+			<band height="40">
 				<textField pattern="" isBlankWhenNull="true">
 					<reportElement key="textField-31" positionType="Float" stretchType="RelativeToTallestObject" x="433" y="0" width="68" height="16" isPrintWhenDetailOverflows="true" uuid="56364222-4c3a-4ef1-b693-fcf0fb99b576">
 						<printWhenExpression><![CDATA[new java.lang.Boolean(!$P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749"))]]></printWhenExpression>
@@ -278,6 +290,54 @@ order by c_orderline.line]]>
 						<font size="10" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA["Running costs " + $F{frequence} + " Total:"]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement key="staticText-5" positionType="Float" x="0" y="16" width="433" height="16" printWhenGroupChanges="Total Cost Stretch" uuid="f3c60396-11d6-4e63-917b-81f45f26a0b4">
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{printcompleteordervalue}.equals("Y"))]]></printWhenExpression>
+					</reportElement>
+					<box leftPadding="2">
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.0"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None" markup="none">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{runningcosttotal_t} + ":"]]></textFieldExpression>
+				</textField>
+				<textField pattern="" isBlankWhenNull="true">
+					<reportElement key="textField-31" positionType="Float" stretchType="RelativeToTallestObject" x="433" y="16" width="68" height="16" isPrintWhenDetailOverflows="true" uuid="0ab993a8-cd78-4e16-9060-c5e4d821442e">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{printcompleteordervalue}.equals("Y"))]]></printWhenExpression>
+					</reportElement>
+					<box leftPadding="2">
+						<pen lineWidth="0.0" lineStyle="Solid"/>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{runningcoststotal}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="false">
+					<reportElement key="textField-32" positionType="Float" stretchType="RelativeToTallestObject" x="501" y="16" width="14" height="16" uuid="9b5e20c1-2e74-4036-8b2f-3e0840373535">
+						<printWhenExpression><![CDATA[new java.lang.Boolean($F{printcompleteordervalue}.equals("Y"))]]></printWhenExpression>
+					</reportElement>
+					<box leftPadding="2">
+						<pen lineWidth="0.0" lineStyle="Double"/>
+						<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Double"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{cursymbol}]]></textFieldExpression>
 				</textField>
 			</band>
 		</groupFooter>
@@ -386,7 +446,7 @@ order by c_orderline.line]]>
 	</title>
 	<pageHeader>
 		<band height="16" splitType="Stretch">
-			<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
+			<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1 && $F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
 			<staticText>
 				<reportElement key="staticText-6" x="0" y="0" width="433" height="16" uuid="07e68f3c-b057-4a8e-b521-d059bf824dbf"/>
 				<box leftPadding="0">
@@ -1468,7 +1528,9 @@ order by c_orderline.line]]>
 				<reportElement key="line-1" x="0" y="0" width="515" height="1" uuid="9ede7343-bf1f-4f01-89b3-eb679cd2b0fd"/>
 			</line>
 			<staticText>
-				<reportElement key="staticText-1" x="0" y="0" width="433" height="16" uuid="19c394f3-ec69-4897-8fba-1093d7a73bc4"/>
+				<reportElement key="staticText-1" x="0" y="0" width="433" height="16" uuid="19c394f3-ec69-4897-8fba-1093d7a73bc4">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
 				<box leftPadding="0">
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
@@ -1480,7 +1542,7 @@ order by c_orderline.line]]>
 			</staticText>
 			<textField isBlankWhenNull="false">
 				<reportElement key="textField-8" x="433" y="0" width="68" height="16" uuid="086a5396-1afd-41cf-b424-c1c9af356d7f">
-					<printWhenExpression><![CDATA[new java.lang.Boolean(!$P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749"))]]></printWhenExpression>
+					<printWhenExpression><![CDATA[new java.lang.Boolean(!$P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749") && $F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
 				</reportElement>
 				<box leftPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
@@ -1489,7 +1551,9 @@ order by c_orderline.line]]>
 				<textFieldExpression><![CDATA[$P{LANGUAGE}.equals("en_US")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue()).replace(",", "x").replace(".", ",").replace("x", "."):$P{LANGUAGE}.equals("de_DE")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue()):$V{SUM_LINENETAMT}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="false">
-				<reportElement key="textField-9" x="501" y="0" width="14" height="16" uuid="a2ac88eb-b3cc-4429-a870-8f364df0040b"/>
+				<reportElement key="textField-9" x="501" y="0" width="14" height="16" uuid="a2ac88eb-b3cc-4429-a870-8f364df0040b">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<bottomPen lineWidth="0.0"/>
 				</box>

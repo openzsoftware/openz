@@ -1506,6 +1506,7 @@ v_guid                    varchar;
 v_sc                      varchar:='';
 v_i numeric;
 v_master varchar;
+v_cnt varchar:='Y';
 BEGIN
   IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
   END IF;
@@ -1519,22 +1520,32 @@ BEGIN
         for v_cur in (select * from m_product where m_product_category_id=new.m_product_category_id and issold='Y'
                       and not exists (select 0 from zse_product_shop s where s.zse_shop_id=new.zse_shop_id and s.m_product_id = m_product.m_product_id))
         LOOP
-            select get_uuid() into v_guid;
-            select case when count(*)=0 then 'Y' else 'N' end into v_master from zse_product_shop where m_product_id=v_cur.m_product_id and ismaster='Y';
-            insert into zse_product_shop (zse_product_shop_id, ad_client_id, ad_org_id, created,  createdby,  updated,  updatedby, zse_shop_id, m_product_id,ismaster)
-            values (v_guid,new.ad_client_id, new.ad_org_id, new.created,  new.createdby,  new.updated,  new.updatedby, new.zse_shop_id,v_cur.m_product_id,v_master);
-            for v_cur2 in (select distinct mc.zse_webshopcategory_id from m_product_category_shopcategory mc,zse_webshopcategory wc where wc.zse_webshopcategory_id=mc.zse_webshopcategory_id 
-                          and wc.zse_shop_id=new.zse_shop_id and mc.m_product_category_id=new.m_product_category_id) 
-            LOOP
-                insert into zse_webshopcategory_product(zse_webshopcategory_product_id, ad_client_id, ad_org_id, created,  createdby,  updated,  updatedby, zse_webshopcategory_id,zse_shop_id,zse_product_shop_id)
-                values (get_uuid(),new.ad_client_id, new.ad_org_id, new.created,  new.createdby,  new.updated,  new.updatedby, v_cur2.zse_webshopcategory_id,new.zse_shop_id,v_guid);
-            END LOOP;
-            for v_cur2 in (select distinct mc.zse_tag_id from m_product_category_shoptag mc,zse_tag wc where wc.zse_tag_id=mc.zse_tag_id 
-                          and wc.zse_shop_id=new.zse_shop_id and mc.m_product_category_id=new.m_product_category_id) 
-            LOOP
-                insert into zse_tag_product(zse_tag_product_id, ad_client_id, ad_org_id, created,  createdby,  updated,  updatedby, zse_tag_id,zse_shop_id,zse_product_shop_id)
-                values (get_uuid(),new.ad_client_id, new.ad_org_id, new.created,  new.createdby,  new.updated,  new.updatedby, v_cur2.zse_tag_id,new.zse_shop_id,v_guid);
-            END LOOP;
+            -- for xml api, fields only active with module
+            if(exists(select * from ad_module where name='OpenZ-XML-API') and (select isactive='Y' from ad_module where name='OpenZ-XML-API')) then
+              if(select xapi_parentproduct is not null from m_product where m_product_id=v_cur.m_product_id) then
+                v_cnt:='N'; -- prevent insertion of variants
+              else
+                v_cnt:='Y';
+              end if;
+            end if;
+            if v_cnt='Y' then 
+              select get_uuid() into v_guid;
+              select case when count(*)=0 then 'Y' else 'N' end into v_master from zse_product_shop where m_product_id=v_cur.m_product_id and ismaster='Y';
+              insert into zse_product_shop (zse_product_shop_id, ad_client_id, ad_org_id, created,  createdby,  updated,  updatedby, zse_shop_id, m_product_id,ismaster)
+              values (v_guid,new.ad_client_id, new.ad_org_id, new.created,  new.createdby,  new.updated,  new.updatedby, new.zse_shop_id,v_cur.m_product_id,v_master);
+              for v_cur2 in (select distinct mc.zse_webshopcategory_id from m_product_category_shopcategory mc,zse_webshopcategory wc where wc.zse_webshopcategory_id=mc.zse_webshopcategory_id 
+                            and wc.zse_shop_id=new.zse_shop_id and mc.m_product_category_id=new.m_product_category_id) 
+              LOOP
+                  insert into zse_webshopcategory_product(zse_webshopcategory_product_id, ad_client_id, ad_org_id, created,  createdby,  updated,  updatedby, zse_webshopcategory_id,zse_shop_id,zse_product_shop_id)
+                  values (get_uuid(),new.ad_client_id, new.ad_org_id, new.created,  new.createdby,  new.updated,  new.updatedby, v_cur2.zse_webshopcategory_id,new.zse_shop_id,v_guid);
+              END LOOP;
+              for v_cur2 in (select distinct mc.zse_tag_id from m_product_category_shoptag mc,zse_tag wc where wc.zse_tag_id=mc.zse_tag_id 
+                            and wc.zse_shop_id=new.zse_shop_id and mc.m_product_category_id=new.m_product_category_id) 
+              LOOP
+                  insert into zse_tag_product(zse_tag_product_id, ad_client_id, ad_org_id, created,  createdby,  updated,  updatedby, zse_tag_id,zse_shop_id,zse_product_shop_id)
+                  values (get_uuid(),new.ad_client_id, new.ad_org_id, new.created,  new.createdby,  new.updated,  new.updatedby, v_cur2.zse_tag_id,new.zse_shop_id,v_guid);
+              END LOOP;
+            end if; -- v_cnt
         END LOOP;
         RETURN NEW;
   END IF;

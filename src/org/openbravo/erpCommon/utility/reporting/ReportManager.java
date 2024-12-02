@@ -39,8 +39,12 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.design.JRDesignParameter;
 import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import net.sf.jasperreports.export.SimpleXlsReportConfiguration;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
@@ -187,9 +191,36 @@ public class ReportManager {
     if (!report.getTargetDirectory().toString().endsWith("/")) {
       separator = "/";
     }
-    final String target = report.getTargetDirectory() + separator + report.getFilename();
+    String target = report.getTargetDirectory() + separator + report.getFilename();
     try {
-      JasperExportManager.exportReportToPdfFile(jasperPrint, target);
+        TemplateData templates[] = report.getTemplate();
+        TemplateInfo usedTemplate = report.getTemplateInfo();
+        for(TemplateData td : templates) {
+            if(td.cPocDoctypeTemplateId.equals(usedTemplate.getPocDocTypeId())) {
+                if(td.name.contains("EXCEL")) {
+                    target = target.replace(".pdf", ".xls");
+                    report.setFilename(report.getFilename().replace(".pdf", ".xls")); // is used to move file
+                }
+            }
+        }
+        if(target.contains(".xls")) {
+            JRXlsExporter exporter = new JRXlsExporter();
+            exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+            exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(target));
+            SimpleXlsReportConfiguration configuration = new SimpleXlsReportConfiguration();
+            configuration.setOnePagePerSheet(false);
+            configuration.setDetectCellType(true);
+            configuration.setRemoveEmptySpaceBetweenRows(true);
+            configuration.setWhitePageBackground(false);
+            configuration.setIgnoreCellBackground(true);
+            String[] sheetNames = new String[1];
+            sheetNames[0] = "1"; // only one sheet
+            configuration.setSheetNames(sheetNames);
+            exporter.setConfiguration(configuration);
+            exporter.exportReport();
+        }else {
+            JasperExportManager.exportReportToPdfFile(jasperPrint, target);
+        }
     } catch (final JRException e) {
       e.printStackTrace();
     }

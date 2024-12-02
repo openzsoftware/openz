@@ -630,6 +630,7 @@ BEGIN
               Processing='N',
               Processed='N',
               generatetemplate='N',
+              completeordervalue= case when c_doctype_id in ('ABE2033C7A74499A9750346A83DE3307','EAF34F4237D0488F923F218234509E24') then 0 else completeordervalue end, -- set 0 from subscriptions
               Updated=TO_DATE(NOW())
             WHERE C_Order_ID=v_Record_ID;
           -- Reverse Direct Shipment 
@@ -1129,6 +1130,11 @@ Further Checks on AProve, COmplete, PRocess
           Updated=TO_DATE(NOW())
         WHERE C_Order_ID=v_Record_ID;
     END IF; --V_DOCTYPE_ID 
+
+    -- trigger completeordervalue calculation AFTER activation
+    if v_doctype_id in ('ABE2033C7A74499A9750346A83DE3307','EAF34F4237D0488F923F218234509E24') then
+        update c_order set completeordervalue = zssi_getVALUE4ordercomplete(v_Record_ID) where c_order_id=v_Record_ID;
+    end if;
 
 	
 /*******************************************************************************
@@ -1699,7 +1705,7 @@ BEGIN
                       coalesce(min(c_order.iscompletelyinvoiced),'N'),
                       max(c_order.transactiondate),
                       min(c_order.datepromised),
-                      coalesce(sum(c_order.totallines),0),
+                      zssi_getVALUE4ordercomplete(new.orderselfjoin),
                       coalesce(sum(c_order.invoicedamt),0)
                       --coalesce(sum(c_order.grandtotalonetime),0)
                       --coalesce(sum(c_order.totallinesonetime),0)
@@ -1993,6 +1999,17 @@ BEGIN
     
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
     END IF;
+
+    IF(NEW.issotrx = 'Y') THEN -- bp has to be customer
+      IF(SELECT iscustomer = 'N' FROM c_bpartner WHERE c_bpartner_id = NEW.c_bpartner_id) THEN
+        RAISE EXCEPTION '@BPartnerHasToBeCustomer@';
+      END IF;
+    ELSE -- bp has to be vendor
+      IF(SELECT isvendor = 'N' FROM c_bpartner WHERE c_bpartner_id = NEW.c_bpartner_id) THEN
+        RAISE EXCEPTION '@BPartnerHasToBeVendor@';
+      END IF;
+    END IF;
+
   IF TG_OP = 'INSERT' THEN
     new.c_doctype_id=new.c_doctypetarget_id;
   END IF;
@@ -3127,7 +3144,7 @@ Part of Order Process
   v_cur record;
 BEGIN 
     -- nach unten
-    for v_cur in (select c_order_id from c_order where orderselfjoin=p_order_id and DocStatus!='CL' and createdbycopy='N' and
+    for v_cur in (select c_order_id from c_order where orderselfjoin=p_order_id and DocStatus not in ('CL','VO') and createdbycopy='N' and
                     ad_get_docbasetype(c_doctype_id) in ('POREQUESTOFFER','SALESOFFER'))
     LOOP
         update c_order set generatetemplate='Y',DocStatus='CL',processed='Y',Processing='N',proposalstatus='CL',Updated=now(),updatedby=p_user 
@@ -3135,7 +3152,7 @@ BEGIN
         PERFORM c_closeallrelatedoffers(v_cur.c_order_id,p_user);
     END LOOP;
     -- nach oben
-    select o.orderselfjoin into v_relevantoffer from c_order o, c_order r where r.c_order_id=o.orderselfjoin and o.c_order_id=p_order_id  and r.DocStatus!='CL'  and
+    select o.orderselfjoin into v_relevantoffer from c_order o, c_order r where r.c_order_id=o.orderselfjoin and o.c_order_id=p_order_id  and r.DocStatus not in ('CL','VO')  and
                    o.createdbycopy='N' and r.createdbycopy='N' and ad_get_docbasetype(r.c_doctype_id) in ('POREQUESTOFFER','SALESOFFER');   
     if v_relevantoffer is not null then
         update c_order set generatetemplate='Y',DocStatus='CL',processed='Y',Processing='N',proposalstatus='CL',Updated=now(),updatedby=p_user 
@@ -3892,14 +3909,28 @@ Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
   v_begin timestamp;
   v_contractdate timestamp;
   v_interval interval;
+  v_docstatus character varying;
 BEGIN
-    select c_doctypetarget_id,invoicefrequence,contractdate,enddate into v_doctype,v_frequence,v_contractdate,v_enddate from c_order where c_order_id=p_order_id;
+    select c_doctypetarget_id,invoicefrequence,contractdate,enddate,docstatus into v_doctype,v_frequence,v_contractdate,v_enddate,v_docstatus from c_order where c_order_id=p_order_id;
     select coalesce(sum(linenetamt),0) into v_amt from c_orderline where c_order_id=p_order_id and isonetimeposition='N';
     select coalesce(sum(linenetamt),0) into v_amtonetime from c_orderline where c_order_id=p_order_id and isonetimeposition='Y';
     if v_doctype not in  ('7DE8D4B1B8824D36974E8064BBED5095','ABE2033C7A74499A9750346A83DE3307','EAF34F4237D0488F923F218234509E24')  then 
        v_numberofcycles:=1;
     else
-        select c_getnumberofsubscriptionintervals (p_order_id, trunc(v_contractdate),v_frequence,trunc(v_enddate)) into v_numberofcycles;
+        if v_doctype = '7DE8D4B1B8824D36974E8064BBED5095' then -- Subscription Proposal
+            select c_getnumberofsubscriptionintervals (p_order_id, trunc(v_contractdate),v_frequence,trunc(v_enddate)) into v_numberofcycles;
+        else -- Subscription Order or Purchase Subscription
+            -- return sum of subscription intervals
+            if(v_docstatus = 'CO') then
+                return coalesce(sum(c_order.totallines),0)
+                    from c_order
+                    where c_order.orderselfjoin = p_order_id
+                      and c_order.docstatus = 'CO'
+                      and c_doctypetarget_id != '7DE8D4B1B8824D36974E8064BBED5095'; -- ignore subscription proposal for sum
+            else
+                return 0;
+            end if;
+        end if;
     end if;
     return coalesce(v_numberofcycles,0)*coalesce(v_amt,0)+coalesce(v_amtonetime,0);
 END;
@@ -3930,7 +3961,22 @@ BEGIN
     if p_doctype not in  ('7DE8D4B1B8824D36974E8064BBED5095','ABE2033C7A74499A9750346A83DE3307','EAF34F4237D0488F923F218234509E24') then 
        v_numberofcycles:=1;
     else
-        select c_getnumberofsubscriptionintervals(p_order_id, trunc(p_contractdate),p_frequence,trunc(p_enddate)) into v_numberofcycles;
+        if p_doctype = '7DE8D4B1B8824D36974E8064BBED5095' then -- Subscription Proposal
+            select c_getnumberofsubscriptionintervals (p_order_id, trunc(p_contractdate),p_frequence,trunc(p_enddate)) into v_numberofcycles;
+        else -- Subscription Order or Purchase Subscription
+            -- return sum of subscription intervals
+            if(select docstatus = 'CO' from c_order where c_order_id = p_order_id) then
+                return coalesce(sum(c_order.totallines),0)
+                    from c_order
+                    where c_order.orderselfjoin = p_order_id
+                      and c_order.docstatus = 'CO'
+                      and trunc(c_order.contractdate) >= trunc(p_contractdate)
+                      and trunc(c_order.enddate) <= trunc(p_enddate)
+                      and c_doctypetarget_id != '7DE8D4B1B8824D36974E8064BBED5095'; -- ignore subscription proposal for sum
+            else
+                return 0;
+            end if;
+        end if;
     end if;
     return coalesce(v_numberofcycles,0)*coalesce(v_amt,0)+coalesce(v_amtonetime,0);
 END;
@@ -7048,6 +7094,7 @@ v_issotrx varchar;
 BEGIN
     if p_srcorder_id is null then return 'NULL'; end if;
     select * into v_cur from c_order where c_order_id=p_srcorder_id;
+    v_cur.subscriptionchangedate := case when p_targettype = 'CHANGEORDER' then v_cur.subscriptionchangedate else null end; -- dont copy subscriptionchangedate field (except CHANGEORDER)
     select issotrx into v_issotrx from c_doctype where c_doctype_id=v_cur.c_doctype_id;
     if v_issotrx ='N' then
         if p_targettype='PROPOSAL' then

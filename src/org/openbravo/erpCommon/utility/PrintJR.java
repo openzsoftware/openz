@@ -189,6 +189,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
    }  
    
    }
+   //compileReport2FileHelper();
    if(strProcessId.equals("06AAB5B7859B45DAAAF4B70F96771014")&& (!parentryoutput.equals("pdf")))
 	   renderJR(vars, response, strReportName, strOutputType, parameters, null, null); 
    if(!strProcessId.equals("06AAB5B7859B45DAAAF4B70F96771014"))
@@ -511,6 +512,22 @@ throws IOException, ServletException {
       os.close();
        
  }
+
+public void compileReport2FileHelper()
+ {
+	  // Wenn ECLIPSE beim jasper compile wieder zickt....
+      String strReportName="/home/openz/tomcat/webapps/openz//src-loc/design/org/openbravo/zsoft/smartui/printing/Bom_Lines_excel.jrxml";
+      String strBaseDesign="/home/openz/tomcat/webapps/openz//src-loc/design"; 
+      String strLanguage="de_DE";
+      try {
+      final JasperReport jasperReport = Utility.getTranslatedJasperReport(this, strReportName,
+    	        strLanguage, strBaseDesign);
+      }catch (Exception e) {
+          log4j.error(e);
+      }
+ }
+
+
 
 public String getServletInfo() {
     return "Servlet that generates the output of a JasperReports report.";

@@ -558,19 +558,17 @@
             </tr>
 
             <tr>
-
-              <td class="TitleCell"><span class="LabelText">Account</span></td>
-              <td class="Combo_ContentCell" colspan="2">
-                <select name="inpcBankaccountId" id="inpcBankaccountId" class="Combo Combo_TwoCells_width">
-                  <option value=""></option>
-                  <div id="reportC_BankAccount_ID"></div></select></td>
-              </td>
-              <td class="TitleCell"></td>
               <td class="TitleCell"><span class="LabelText">Organization</span></td>
               <td class="Combo_ContentCell">
                 <select name="inpadOrgId" id="inpadOrgId" class="Combo Combo_OneCell_width">
                 <option value=""></option>
                 <div id="reportAD_Org_ID"></div></select>
+              </td>
+              <td class="TitleCell"><span class="LabelText">Currency</span></td>
+              <td class="Combo_ContentCell">
+                <select name="inpcCurrencyId" id="inpcCurrencyId" class="Combo Combo_OneCell_width">
+                <option value=""></option>
+                <div id="reportC_Currency_ID"></div></select>
               </td>
             </tr>
 
@@ -631,9 +629,6 @@
               <td class="TextBox_ContentCell">
                 <input type="text" dojotype="openbravo:ValidationTextBox" class="TextBox_OneCell_width" name="inpBpOrderNo" id="inpBpOrderNo" value="" ><script>djConfig.searchIds.push("inpBpOrderNo");</script>
               </td>
-              <td class="TitleCell"><span class="LabelText">Only Applied</span> </td>
-              <td class="Radio_Check_ContentCell"> 
-                <span class="Checkbox_container_NOT_Focused"><input type="checkbox" name="inpCharge" value="Y" id="paramCharge"></input></span></td>
               <td class="TitleCell"><span class="LabelText">Only Approved</span> </td>
               <td class="Radio_Check_ContentCell"> 
                 <span class="Checkbox_container_NOT_Focused"><input type="checkbox" name="inpIsapproved" value="Y" id="paramIsapproved"></input></span></td>
@@ -727,7 +722,7 @@
               <th class="DataGrid_Header_LineNoCell DataGrid_Body_Cell_CheckBox"><span class="Checkbox_container_NOT_Focused"><input type="checkbox" name="inpTodos" onclick="markAllPersonal(document.frmMain.inpcPaymentId, this.checked);return true;"></input></span></th>
 			  <th colspan="3" class="DataGrid_Header_Cell">Payment</th>
 			  <th class="DataGrid_Header_Cell">Invoice</th>
-			  <th colspan="5" class="DataGrid_Header_Cell">Account</th>
+			  <th colspan="5" class="DataGrid_Header_Cell">Currency</th>
             </tr>
 
             <tr class="DataGrid_Body_Row">

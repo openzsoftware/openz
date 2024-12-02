@@ -24,6 +24,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -55,6 +56,12 @@ import javax.xml.transform.TransformerException;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.export.JRXlsExporter;
+import net.sf.jasperreports.export.OutputStreamExporterOutput;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import net.sf.jasperreports.export.SimpleXlsReportConfiguration;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.pdfbox.exceptions.COSVisitorException;
@@ -287,6 +294,8 @@ public class PrintController extends HttpSecureAppServlet {
        */
       archivedReports = true;
       Report report = null;
+      JasperPrint jasperPrint = null;
+      Collection<JasperPrint> jrPrintReports = new ArrayList<JasperPrint>();
       final Collection<Report> savedReports = new ArrayList<Report>();
       for (int index = 0; index < documentIds.length; index++) {
         String documentId = documentIds[index];
@@ -294,14 +303,15 @@ public class PrintController extends HttpSecureAppServlet {
             OutputTypeEnum.ARCHIVE);
         buildReport(response, vars, documentId, reports, reportManager);
         try {
-          reportManager.processReport(report, vars,"");
+            jasperPrint = reportManager.processReport(report, vars,"");
+            jrPrintReports.add(jasperPrint);
         } catch (final ReportingException e) {
           log4j.error(e);
         }
         reportManager.saveTempReport(report, vars);
         savedReports.add(report);
       }
-      printReports(request,response, null, savedReports,requestdoctype);
+      printReports(request,response, jrPrintReports, savedReports,requestdoctype);
     } else {
       if (vars.commandIn("DEFAULT")) {
         // Fix 
@@ -412,24 +422,53 @@ public class PrintController extends HttpSecureAppServlet {
     try {
       
       os = response.getOutputStream();
-      response.setContentType("application/pdf");
+      response.setContentType("application/pdf"); // default pdf
 
       if (!multiReports && !archivedReports) {
         for (Iterator<Report> iterator = reports.iterator(); iterator.hasNext();) {
           Report report = iterator.next();
           filename = report.getFilename();
+
+          // get name of template to check for excel substring
+          TemplateData templates[] = report.getTemplate();
+          TemplateInfo usedTemplate = report.getTemplateInfo();
+          for(TemplateData td : templates) {
+              if(td.cPocDoctypeTemplateId.equals(usedTemplate.getPocDocTypeId())) {
+                  if(td.name.contains("EXCEL")) {
+                      filename = filename.replace(".pdf", ".xls");
+                      response.setContentType("application/xls");
+                  }
+              }
+          }
         }
+
         response.setHeader("Content-disposition", "attachment" + "; filename=" + filename);
         for (Iterator<JasperPrint> iterator = jrPrintReports.iterator(); iterator.hasNext();) {
           JasperPrint jasperPrint = (JasperPrint) iterator.next();
-          JasperExportManager.exportReportToPdfStream(jasperPrint, os);
           
-          log4j.info("pdf "+filename);
-
+          if(filename.contains(".xls")) {
+              JRXlsExporter exporter = new JRXlsExporter();
+              exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+              exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(os));
+              SimpleXlsReportConfiguration configuration = new SimpleXlsReportConfiguration();
+              configuration.setOnePagePerSheet(false);
+              configuration.setDetectCellType(true);
+              configuration.setRemoveEmptySpaceBetweenRows(true);
+              configuration.setWhitePageBackground(false);
+              configuration.setIgnoreCellBackground(true);
+              String[] sheetNames = new String[1];
+              sheetNames[0] = "1"; // only one sheet
+              configuration.setSheetNames(sheetNames);
+              exporter.setConfiguration(configuration);
+              exporter.exportReport();
+              log4j.info("xls "+filename);
+          } else {
+              JasperExportManager.exportReportToPdfStream(jasperPrint, os);
+              log4j.info("pdf "+filename);
+          }
         }
       } else {
-        response.setContentType("application/pdf");
-        concatReport(reports.toArray(new Report[] {}), response);
+          concatReport(reports.toArray(new Report[] {}), jrPrintReports.toArray(new JasperPrint[] {}), response);
       }
     } catch (IOException e) {
       log4j.error(e.getMessage());
@@ -684,7 +723,7 @@ public class PrintController extends HttpSecureAppServlet {
    * This code is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
    * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
    */
-  private void concatReport(Report[] reports, HttpServletResponse response) throws Exception{
+  private void concatReport(Report[] reports, JasperPrint[] jasperPrints, HttpServletResponse response) throws Exception{
       int pageOffset = 0;
       // ArrayList master = new ArrayList();
       int f = 0;
@@ -708,6 +747,17 @@ public class PrintController extends HttpSecureAppServlet {
             filename = outFile.getFilename();
           }
         }
+        // get name of template to check for excel substring
+        TemplateData templates[] = reports[0].getTemplate();
+        TemplateInfo usedTemplate = reports[0].getTemplateInfo();
+        for(TemplateData td : templates) {
+            if(td.cPocDoctypeTemplateId.equals(usedTemplate.getPocDocTypeId())) {
+                if(td.name.contains("EXCEL")) {
+                    filename = filename.replace(".pdf", ".xls");
+                    response.setContentType("application/xls");
+                }
+            }
+        }
         // Implementing eInvoices
         // X-Rechnung - Print Button
         if (archivedReports && (reports[0].getdefaultTemplate().equals("38D81133009C4C9CB8B378EF4EA31DE3") || reports[0].getdefaultTemplate().equals("C6D78C6A518F420B897DB1E933133EF5"))) {
@@ -718,37 +768,61 @@ public class PrintController extends HttpSecureAppServlet {
         	return;
         }	
         response.setHeader("Content-disposition", "attachment" + "; filename=" + filename);
-        // we create a reader for a certain document
-        PdfReader reader = new PdfReader(reports[f].getTargetLocation());
-        reader.consolidateNamedDestinations();
-        // we retrieve the total number of pages
-        int n = reader.getNumberOfPages();
-        pageOffset += n;
 
-        if (f == 0) {
-          // step 1: creation of a document-object
-          document = new Document(reader.getPageSizeWithRotation(1));
-          // step 2: we create a writer that listens to the document
-          writer = new PdfCopy(document, response.getOutputStream());
-          // step 3: we open the document
-          document.open();
-        }
-        // step 4: we add content
-        PdfImportedPage page;
-        for (int i = 0; i < n;) {
-          ++i;
-          page = writer.getImportedPage(reader, i);
-          writer.addPage(page);
-        }
-        if (reports[f].isDeleteable()) {
-          File file = new File(reports[f].getTargetLocation());
-          if (file.exists() && !file.isDirectory()) {
-            file.delete();
-          }
+        if(filename.contains(".xls")) {
+            JRXlsExporter exporter = new JRXlsExporter();
+            // all exports in on xls-file, multiple sheets
+            exporter.setExporterInput(SimpleExporterInput.getInstance(Arrays.asList(jasperPrints)));
+            exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(response.getOutputStream()));
+            SimpleXlsReportConfiguration configuration = new SimpleXlsReportConfiguration();
+            configuration.setOnePagePerSheet(false);
+            configuration.setDetectCellType(true);
+            configuration.setRemoveEmptySpaceBetweenRows(true);
+            configuration.setWhitePageBackground(false);
+            configuration.setIgnoreCellBackground(true);
+            String[] sheetNames = new String[jasperPrints.length];
+            for(int i = 0; i < jasperPrints.length; i++) {
+                sheetNames[i] = i+1 + "";
+            }
+            configuration.setSheetNames(sheetNames);
+            exporter.setConfiguration(configuration);
+            exporter.exportReport();
+            break; //break loop, everything already printed
+        }else {
+            // we create a reader for a certain document
+            PdfReader reader = new PdfReader(reports[f].getTargetLocation());
+            reader.consolidateNamedDestinations();
+            // we retrieve the total number of pages
+            int n = reader.getNumberOfPages();
+            pageOffset += n;
+
+            if (f == 0) {
+              // step 1: creation of a document-object
+              document = new Document(reader.getPageSizeWithRotation(1));
+              // step 2: we create a writer that listens to the document
+              writer = new PdfCopy(document, response.getOutputStream());
+              // step 3: we open the document
+              document.open();
+            }
+            // step 4: we add content
+            PdfImportedPage page;
+            for (int i = 0; i < n;) {
+              ++i;
+              page = writer.getImportedPage(reader, i);
+              writer.addPage(page);
+            }
+            if (reports[f].isDeleteable()) {
+              File file = new File(reports[f].getTargetLocation());
+              if (file.exists() && !file.isDirectory()) {
+                file.delete();
+              }
+            }
         }
         f++;
       }
-      document.close();
+      if(document!=null) {
+          document.close();
+      }
   }
 
   private Report buildReport(HttpServletResponse response, VariablesSecureApp vars,
@@ -957,16 +1031,9 @@ public class PrintController extends HttpSecureAppServlet {
     }
 
     // Replace special tags
+    emailSubject = PrintControllerData.resolveSpecialTags(this, documentId, emailSubject);
 
-    emailSubject = emailSubject.replaceAll("@cus_ref@", cusReference);
-    emailSubject = emailSubject.replaceAll("@our_ref@", ourReference);
-    emailSubject = emailSubject.replaceAll("@cus_nam@", contactName);
-    emailSubject = emailSubject.replaceAll("@sal_nam@", salesrepName);
-
-    emailBody = emailBody.replaceAll("@cus_ref@", cusReference);
-    emailBody = emailBody.replaceAll("@our_ref@", ourReference);
-    emailBody = emailBody.replaceAll("@cus_nam@", contactName);
-    emailBody = emailBody.replaceAll("@sal_nam@", salesrepName);
+    emailBody = PrintControllerData.resolveSpecialTags(this, documentId, emailBody);
 
     try {
       EmailManager mailman = new EmailManager(); 
@@ -1128,7 +1195,15 @@ public class PrintController extends HttpSecureAppServlet {
       else
         actualdoctype=PrintControllerData.getDocTypeId(myPool, documentType.getTableName(), documentType.getTableName()+"_id", strDocumentId.substring(2, 34) );
       vars.setSessionValue("#C_DOCTYPE_ID", actualdoctype);
-      vars.setSessionValue(this.getClass().getName() + "|FIRSTLANGUAGE",vars.getLanguage());
+
+      // set default language in print popup to bpartner language
+      String defaultLanguage = "";
+      defaultLanguage = PrintControllerData.getLangOfBpartner(myPool, documentType.getTableName(), documentType.getTableName()+"_id", strDocumentId.substring(2, 34) );
+
+      if(defaultLanguage == null || defaultLanguage.isEmpty()) {
+          defaultLanguage = vars.getLanguage();
+      }
+      vars.setSessionValue(this.getClass().getName() + "|FIRSTLANGUAGE",defaultLanguage);
       // Show Option for Multi-Language
       if (PrintControllerData.IsMultilanguage(myPool, vars.getClient()).equals("Y") && documentType.isMultiLanguage())
         vars.setSessionValue(this.getClass().getName() + "|ISMULTILANGUAGE", "Y");
@@ -1513,7 +1588,10 @@ public class PrintController extends HttpSecureAppServlet {
     xmlDocument.setParameter("multSalesRepCount", String.valueOf(numberOfSalesReps));
     response.setContentType("text/html; charset=UTF-8");
     final PrintWriter out = response.getWriter();
-    out.println(xmlDocument.print());
+    
+    String output = xmlDocument.print();
+    output = output.replaceAll("@specialTagsPlaceholder@", EmailOptionsData.getSpecialTagsDescriptionTable(this, firstlang.equals("") ? vars.getLanguage() : firstlang));
+    out.println(output);
     out.close();
   }
 

@@ -221,6 +221,9 @@ public class PdcStoreInventory extends HttpSecureAppServlet {
 	          PInstanceProcessData.insertPInstance(this, pinstance, "105", GlobalInventoryID, "N", vars.getUser(), vars.getClient(), vars.getOrg());
 	          PInstanceProcessData.insertPInstanceParam(this, pinstance, "5", "M_Locator_ID", GlobalLocatorID, vars.getClient(), vars.getOrg(), vars.getUser());
 	          PInstanceProcessData.insertPInstanceParam(this, pinstance, "30", "regularization", "N", vars.getClient(), vars.getOrg(), vars.getUser());
+	          PInstanceProcessData.insertPInstanceParam(this, pinstance, "10", "ProductValue", "%", vars.getClient(), vars.getOrg(), vars.getUser());
+	          PInstanceProcessData.insertPInstanceParam(this, pinstance, "15", "M_Product_Category_ID", null, vars.getClient(), vars.getOrg(), vars.getUser());
+	          PInstanceProcessData.insertPInstanceParam(this, pinstance, "20", "QtyRange", "N", vars.getClient(), vars.getOrg(), vars.getUser());
 	          ProcessBundle bundle = ProcessBundle.pinstance(pinstance, vars, this);
 	          new ProcessRunner(bundle).execute(this);
 	          PInstanceProcessData[] pinstanceData = PInstanceProcessData.select(this, pinstance);
@@ -245,7 +248,7 @@ public class PdcStoreInventory extends HttpSecureAppServlet {
           vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_ProductScannedCorrectly",vars.getLanguage()));
           if (Float.parseFloat(qty)>1 && Float.parseFloat(PdcStoreInventoryData.getQtyCount(this, BatchNo, GlobalInventoryID, productId, GlobalLocatorID))>0 )
         	  throw new Exception(Utility.messageBD(this, "ProductIsCounted",vars.getLanguage()));
-          PdcStoreInventoryData.updateline(this, GlobalInventoryID, GlobalLocatorID,productId, qty);
+          PdcStoreInventoryData.updateline(this, GlobalInventoryID, GlobalLocatorID,productId,serialNo, BatchNo, qty);
           PdcStoreInventoryData.lineSNRBNRUpdate(this, GlobalInventoryID, productId, qty, weight, serialNo, BatchNo);
         }
       }

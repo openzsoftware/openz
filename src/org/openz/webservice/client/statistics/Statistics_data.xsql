@@ -27,4 +27,24 @@ Contributor(s): ______________________________________.
       ]]></Sql>
         
   </SqlMethod>
+  
+  <SqlMethod name="getNumberOfTransactions" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+       SELECT count(*) FROM c_order where created_by_webservice = 'Y'
+      ]]></Sql>
+  </SqlMethod>
+  <SqlMethod name="getNumberOfUsers" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+       SELECT count(*) FROM ad_user u where u.isactive = 'Y' and u.username is not null and (select count(*) from ad_user_roles ur where ur.ad_user_id = u.ad_user_id and ur.ad_role_id != 'F40C4966BEFC414B918BF89430167B41') > 0
+      ]]></Sql>
+  </SqlMethod>
+  <SqlMethod name="getNumberOfUsersTimeservice" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+       SELECT count(*) FROM ad_user u where u.isactive = 'Y' and u.username is not null and (select count(*) from ad_user_roles ur where ur.ad_user_id = u.ad_user_id and ur.ad_role_id = 'F40C4966BEFC414B918BF89430167B41') = 1
+                                                                                        and (select count(*) from ad_user_roles ur where ur.ad_user_id = u.ad_user_id and ur.ad_role_id != 'F40C4966BEFC414B918BF89430167B41') = 0
+      ]]></Sql>
+  </SqlMethod>
   </SqlClass>

@@ -220,7 +220,7 @@ BEGIN
                             end if;
                             -- Attributes on a Serial number must match if stocktracking is active
                             if coalesce(v_attrstocked,'N')='Y' then
-                                if (select count(*) from SNR_Serialnumbertracking where snr_masterdata_id=v_masterdata and coalesce(m_attributesetinstance_id,'#')=coalesce(v_attrset,'#'))=0  then
+                                if (select count(*) from SNR_Serialnumbertracking where snr_masterdata_id=v_masterdata and coalesce(m_attributesetinstance_id,'0')=coalesce(v_attrset,'0'))=0  then
                                     return '@AttributeIsNotCorrectAssigned@: '||v_cur.serialnumber;
                                 end if;
                             end if;
@@ -245,7 +245,7 @@ BEGIN
                         if v_movtype = 'IVT' then
                             -- Attributes on a Serial number must match if stocktracking is active
                             if coalesce(v_attrstocked,'N')='Y' then
-                                if (select count(*) from SNR_Serialnumbertracking where snr_masterdata_id=v_masterdata and coalesce(m_attributesetinstance_id,'#')=coalesce(v_attrset,'#'))=0  then
+                                if (select count(*) from SNR_Serialnumbertracking where snr_masterdata_id=v_masterdata and coalesce(m_attributesetinstance_id,'0')=coalesce(v_attrset,'0'))=0  then
                                     return '@AttributeIsNotCorrectAssigned@: '||v_cur.serialnumber;
                                 end if;
                             end if;
@@ -411,7 +411,7 @@ BEGIN
                    where l.m_internal_consumptionline_id=new.m_internal_consumptionline_id 
                    and l.m_internal_consumption_id=c.m_internal_consumption_id;
              -- All Calc?
-             if (select count(*) from m_internal_consumption c,c_project p where p.c_project_id=c.c_project_id and p.projectcategory='PRO' and c.c_projecttask_id=v_task and c.plannedserialnumber is null)>0 then
+             if (select count(*) from m_internal_consumption c,c_project p where p.c_project_id=c.c_project_id and p.projectcategory='PRO' and c.c_projecttask_id=v_task and c.plannedserialnumber is null and c.processed='Y')>0 then
                 v_allcalc:='Y';                
              end if;
              -- check Snrs
@@ -855,19 +855,26 @@ BEGIN
         end if;
     END LOOP;
     CLOSE v_cursor;
-    -- Stücklisten von Gerätren prüfen, bei + Trxes müssen die SNR da raus sein.
-    If  instr(v_type,'+')>0 and v_isserial='Y' then
+    -- Stücklisten von Geräten prüfen, bei + Trxes müssen die SNR da raus sein.
+    If  instr(coalesce(v_type,''),'+')>0 then
+      if p_table='inventory' then
         select count(*),string_agg(s.serialnumber,',') into v_count,v_msg from snr_inventoryline s,m_inventoryline ml, m_inventory m, snr_currentbom_serials bs
                where ml.m_inventory_id=m.m_inventory_id and ml.m_inventoryline_id=s.m_inventoryline_id 
                and bs.snr_masterdata_id=s.snr_masterdata_id and m.m_inventory_id=p_id;
-        if (v_count)=0 then
-            select count(*),string_agg(s.serialnumber,',') into v_count,v_msg from snr_minoutline s,m_inoutline ml, m_inout m , snr_currentbom_serials bs
-               where ml.m_inout_id=m.m_inout_id and ml.m_inoutline_id=s.m_inoutline_id 
-               and  bs.snr_masterdata_id=s.snr_masterdata_id and m.m_inout_id=p_id and ml.movementqty>0;
-        end if;
-        if (v_count)>0 then
-                raise exception '%', '@snr_isinSnrBOM@'||coalesce(v_msg,'SNRNULL!')||'@snr_cannotstockagain@';
-        end if;
+      end if;
+      if p_table='inout'  then
+        select count(*),string_agg(s.serialnumber,',') into v_count,v_msg from snr_minoutline s,m_inoutline ml, m_inout m , snr_currentbom_serials bs
+            where ml.m_inout_id=m.m_inout_id and ml.m_inoutline_id=s.m_inoutline_id 
+            and  bs.snr_masterdata_id=s.snr_masterdata_id and m.m_inout_id=p_id and ml.movementqty>0;
+      end if;
+      if p_table='internal_consumption' then
+            select count(*),string_agg(s.serialnumber,',') into v_count,v_msg from snr_internal_consumptionline s,m_internal_consumptionline ml, m_internal_consumption m , snr_currentbom_serials bs
+               where ml.m_internal_consumption_id=m.m_internal_consumption_id and ml.m_internal_consumptionline_id=s.m_internal_consumptionline_id
+               and  bs.snr_masterdata_id=s.snr_masterdata_id and m.m_internal_consumption_id=p_id and ml.movementqty> 0 and ml.snr_masterdata_id is null;
+      end if;
+      if (v_count)>0 then
+            raise exception '%', '@snr_isinSnrBOM@'||coalesce(v_msg,'SNRNULL!')||'@snr_cannotstockagain@';
+      end if;
     end if;
 END;
 $BODY$
@@ -1208,7 +1215,7 @@ Copyright (C) 2012 Stefan Zimmermann All Rights Reserved.
 Contributor(s): ______________________________________.
 ***************************************************************************************************************************************************
 */
-
+    v_attr varchar;
 BEGIN
  IF TG_OP = 'INSERT' THEN
     if (select  isserialtracking from m_product where m_product_id=new.m_product_id)='N' then
@@ -1216,6 +1223,10 @@ BEGIN
     end if;
     if NEW.movementtype is null then
         NEW.m_locator_id=null;
+    end if;
+    if NEW.movementtype='P+' and new.c_projecttask_id is not null then
+        select m_attributesetinstance_id into v_attr from c_projecttask where c_projecttask_id=new.c_projecttask_id;
+        new.m_attributesetinstance_id:=v_attr;
     end if;
  end if;
  IF TG_OP = 'DELETE' THEN
@@ -1512,7 +1523,7 @@ The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan
 Copyright (C) 2014 Stefan Zimmermann All Rights Reserved.
 Contributor(s): ______________________________________.
 
- Empty Function due to Backwarsd Compat.
+ Empty Function due to Backwarsd Compat. - In Admin Folder is new one
 ***************************************************************************************************************************************************
 */
 
@@ -1567,13 +1578,15 @@ v_othertaskqty numeric;
 v_ptqty numeric:=1;
 v_prodqty numeric:=1;
 v_allcalc varchar:='N';
+v_attribute varchar;
 BEGIN 
     -- 1. hole weitere Informationen über diese Position ein 
     select m.movementtype,ml.c_projecttask_id,p.isserialtracking, p.isbatchtracking,ml.movementqty,m.updatedby,m.ad_org_id,m.plannedserialnumber, p.m_product_id, m.description,m.c_project_id
         into v_type,v_task,v_serial,v_batch,v_qty,v_user,v_org,v_plannedsnrbnr , v_prd,v_dscr, v_prj
         from m_internal_consumption m, m_internal_consumptionline ml, m_product p where m.m_internal_consumption_id=ml.m_internal_consumption_id and  p.m_product_id=ml.m_product_id and ml.m_internal_consumptionline_id=p_minconsline_id; 
     -- Alle Mat-Bewegungen für entweder die gegebene SNR/BtchNo oder, wenn einmal keine geplante SNR/BNR verwendet wurde für den ganzen Produktionsauftrag
-    if (select count(*) from m_internal_consumption c,c_project p where p.c_project_id=c.c_project_id and p.projectcategory='PRO' and c.c_project_id=v_prj and c.plannedserialnumber is null)>0 then
+    if (select count(*) from m_internal_consumption c,c_project p where p.c_project_id=c.c_project_id and p.projectcategory='PRO' and c.c_project_id=v_prj and c.c_projecttask_id=v_task 
+        and c.plannedserialnumber is null and c.processed='Y')>0 then
         --select coalesce(qty,1) into v_ptqty from c_projecttask where c_projecttask_id=v_task;
         --select prodqty into v_prodqty from snr_batchmasterdata  where snr_batchmasterdata_id = (select snr_batchmasterdata_id from snr_internal_consumptionline where m_internal_consumptionline_id=p_minconsline_id limit 1);
         if v_prodqty is null then v_prodqty:=1; end if;
@@ -1588,8 +1601,13 @@ BEGIN
         loop
         if (select count(*) from snr_currentbom where snr_masterdata_id=v_cur.snr_masterdata_id)>0  OR 
            (select count(*) from snr_currentbom where snr_batchmasterdata_id = v_cur.snr_batchmasterdata_id and c_getconfigoption('serialbomstrict',v_cur.ad_org_id)='Y')>0 then
-                raise exception '%','@prodNotPossibleBOMnotEmpty@';
+                raise exception '%','@prodNotPossibleBOMnotEmpty@'||v_cur.snr_masterdata_id;
         end if;
+        -- Bei Produktion mit Attributen, Attribut eintragen
+        select p.m_attributesetinstance_id into  v_attribute  from  c_projecttask p,m_internal_consumptionline l where l.c_projecttask_id=p.c_projecttask_id and l.m_internal_consumptionline_id=p_minconsline_id;
+        if v_attribute is not null then
+            update snr_masterdata set m_attributesetinstance_id=v_attribute where snr_masterdata_id=v_cur.snr_masterdata_id;
+        end if;        
         -- Produzierte CNR Menge eintragen
         if v_batch='Y' then
             update snr_batchmasterdata set prodqty=qtyonhand where snr_batchmasterdata_id = v_cur.snr_batchmasterdata_id;
@@ -2262,4 +2280,23 @@ $body$
 LANGUAGE 'plpgsql'
 COST 100;
 
+CREATE OR REPLACE FUNCTION snr_attributeselector(p_masterdata_id in varchar)  RETURNS varchar AS
+$BODY$ DECLARE 
+    v_snrmaster varchar;
+    v_btchmaster varchar;
+    v_attr varchar;
+BEGIN
+    select snr_masterdata_id into v_snrmaster from snr_masterdata where snr_masterdata_id=p_masterdata_id;
+    if v_snrmaster is not null then
+        select m_attributesetinstance_id into v_attr from snr_serialnumbertracking  where snr_masterdata_id=v_snrmaster order by created  limit 1;
+    end if;
+    select snr_batchmasterdata_id into v_btchmaster from snr_batchmasterdata where snr_batchmasterdata_id=p_masterdata_id;
+    if v_btchmaster is not null and v_snrmaster is null then
+        select m_attributesetinstance_id into v_attr from snr_serialnumbertracking  where snr_batchmasterdata_id=v_btchmaster order by created limit 1;
+    end if;
+    return v_attr;
+END;
+  $BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.16.0.final using JasperReports Library version 6.1.1  -->
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="BOMReport" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="50" uuid="4ae85bcc-3268-431e-83b6-37a4d3cfb777">
 	<property name="ireport.zoom" value="1.0"/>
 	<property name="ireport.x" value="0"/>
@@ -67,6 +67,8 @@
 	</parameter>
 	<parameter name="SUBREP_Bom_Lines" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 	<parameter name="ONLYONELEVEL" class="java.lang.String"/>
+	<parameter name="ONLYPURCHASE" class="java.lang.String"/>
+	<parameter name="ONLYPRODUCTION" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[SELECT  zssi_strDate(current_date,$P{AD_LANGUAGE}) as curdate,
         ad_image.binarydata as logo,
@@ -214,6 +216,12 @@ FROM    zspr_printinfo zspr
 					</subreportParameter>
 					<subreportParameter name="ONLYONELEVEL">
 						<subreportParameterExpression><![CDATA[$P{ONLYONELEVEL}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ONLYPURCHASE">
+						<subreportParameterExpression><![CDATA[$P{ONLYPURCHASE}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="ONLYPRODUCTION">
+						<subreportParameterExpression><![CDATA[$P{ONLYPRODUCTION}]]></subreportParameterExpression>
 					</subreportParameter>
 					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 					<subreportExpression><![CDATA[$P{SUBREP_Bom_Lines}

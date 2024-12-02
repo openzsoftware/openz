@@ -90,6 +90,7 @@ function validateMandantoryFields(){
   return true;    
 }
 
+
                
 /* Funktion für Checkbox - Value ändern N=checked Y=unchecked */
  function yn(id){
@@ -947,4 +948,16 @@ function crAction(event) {
   if ((event.key=="Enter") || (event.key=="Tab")) {
      executeWindowButton('linkButtonSave_New',true); 
   }
+}
+
+// Scanner: Funktion, die den Fokus auf ein bestimmtes Feld setzt
+function setFocusOnField(fieldId, interval) {
+    // Setzt den Fokus initial auf das Feld
+    document.getElementById(fieldId).focus();
+    
+    // Wiederholt das Fokussieren des Feldes in regelmäßigen Abständen
+    setInterval(function() {
+       if (!document.getElementById(fieldId).hasFocus())       
+             document.getElementById(fieldId).focus();
+    }, interval);
 }

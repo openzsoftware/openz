@@ -45,7 +45,8 @@
               C.COLUMNNAME,
               '' AS URL,
               '' AS ID,
-              '' AS NAME
+              '' AS NAME,
+              A.alert_order
          FROM AD_ALERT     A,
               AD_ALERTRECIPIENT RE,
               AD_ALERTRULE R LEFT JOIN AD_TAB T ON T.AD_TAB_ID = R.AD_TAB_ID
@@ -64,7 +65,7 @@
               (RE.AD_USER_ID IS NULL AND RE.AD_ROLE_ID = ?)) 
           AND A.AD_ALERTRULE_ID = ?
           AND 1=1 AND 2=2
-          ORDER BY R.AD_ALERTRULE_ID, A.AD_ALERT_ID
+          ORDER BY A.alert_order
           
      ]]>
      </Sql>

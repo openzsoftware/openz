@@ -4261,7 +4261,10 @@ BEGIN
       v_form_access.createdby := v_user_id;
       v_form_access.updated := v_now;
       v_form_access.updatedby := v_user_id;
-      INSERT INTO ad_form_access SELECT v_form_access.*; -- %rowtype
+      -- check before insert bacause of ad_role trigger
+      IF(SELECT COUNT(*) FROM ad_form_access WHERE ad_role_id = v_form_access.ad_role_id AND ad_form_id = v_form_access.ad_form_id) = 0 THEN
+        INSERT INTO ad_form_access SELECT v_form_access.*; -- %rowtype
+      END IF;
     END LOOP;
 
  -- part 7/12: ad_workflow_access / Workflows
@@ -5806,4 +5809,38 @@ EXCEPTION
 WHEN OTHERS THEN
     RETURN '0';
 END ; $BODY$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION ad_role_trg()
+  RETURNS trigger LANGUAGE plpgsql AS
+$_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2024 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************/
+BEGIN
+  -- mfa_change_password
+  INSERT INTO ad_form_access (ad_form_access_id, ad_form_id, ad_role_id, ad_client_id, ad_org_id, isactive, created, createdby, updated, updatedby, isreadwrite)
+                      VALUES (get_uuid(), '3CB031AF8FB44970B8F4BA700B32CA61', NEW.ad_role_id, NEW.ad_client_id, NEW.ad_org_id, 'Y', NEW.created, NEW.createdby, NEW.updated, NEW.updatedby, 'Y');
+  -- mfa_email_code
+  INSERT INTO ad_form_access (ad_form_access_id, ad_form_id, ad_role_id, ad_client_id, ad_org_id, isactive, created, createdby, updated, updatedby, isreadwrite)
+                      VALUES (get_uuid(), '6C8E9DB1B51E4D34A754D9E0D4374199', NEW.ad_role_id, NEW.ad_client_id, NEW.ad_org_id, 'Y', NEW.created, NEW.createdby, NEW.updated, NEW.updatedby, 'Y');
+  -- mfa_logout
+  INSERT INTO ad_form_access (ad_form_access_id, ad_form_id, ad_role_id, ad_client_id, ad_org_id, isactive, created, createdby, updated, updatedby, isreadwrite)
+                      VALUES (get_uuid(), 'F275D9DD482844309E4B3271D18E4C7E', NEW.ad_role_id, NEW.ad_client_id, NEW.ad_org_id, 'Y', NEW.created, NEW.createdby, NEW.updated, NEW.updatedby, 'Y');
+  RETURN NEW;
+END; $_$;
+
   
+select zsse_droptrigger('ad_role_trg','ad_role');
+
+CREATE TRIGGER ad_role_trg
+  AFTER INSERT
+  ON ad_role
+  FOR EACH ROW
+  EXECUTE PROCEDURE ad_role_trg();

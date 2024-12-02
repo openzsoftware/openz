@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.3.1.final using JasperReports Library version 6.3.1  -->
-<!-- 2017-10-16T15:05:14 -->
+<!-- Created with Jaspersoft Studio version 6.17.0.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="BOMReport_excel" language="groovy" pageWidth="1000" pageHeight="595" orientation="Landscape" columnWidth="1000" leftMargin="0" rightMargin="0" topMargin="20" bottomMargin="20" uuid="4ea2ad53-266b-4b7b-bf2a-000afc45fd8e">
 	<property name="ireport.zoom" value="1.5"/>
 	<property name="ireport.x" value="0"/>
@@ -93,7 +92,8 @@
 		<![CDATA[SELECT
         zssi_getproductname($P{M_PRODUCT_ID},$P{AD_LANGUAGE}) as assembly,
         zssi_getelementtextbycolumname('bom_title',$P{AD_LANGUAGE}) as title,
-        zssi_getproductkey($P{M_PRODUCT_ID}) as productkey
+        zssi_getproductkey($P{M_PRODUCT_ID}) as productkey,
+        elr_initbomcalc() as dummy
 FROM    zspr_printinfo zspr
         LEFT JOIN AD_ORGINFO on  zspr.ad_org_id=AD_ORGINFO.ad_org_id
   WHERE zspr.ad_org_id=$P{AD_ORG_ID}]]>
@@ -101,6 +101,7 @@ FROM    zspr_printinfo zspr
 	<field name="assembly" class="java.lang.String"/>
 	<field name="title" class="java.lang.String"/>
 	<field name="productkey" class="java.lang.String"/>
+	<field name="dummy" class="java.lang.String"/>
 	<variable name="TOTAL_LINENETAMT" class="java.math.BigDecimal"/>
 	<variable name="TOTAL_TAXAMT" class="java.math.BigDecimal"/>
 	<group name="Product">

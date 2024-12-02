@@ -77,7 +77,7 @@ public class TimeFeedback  extends HttpSecureAppServlet {
         workstep=vars.getSessionValue("pdcWorkstepID");
         employee=vars.getSessionValue("pdcEmployeeID");
         if (employee.isEmpty()) {
-        	if (PdcCommonData.isAutologin(this, vars.getUser()).equals("N")) {
+        	if (PdcCommonData.isEmployeeLoggedIn(this, vars.getUser()).equals("Y")) {
         		employee=vars.getUser();
         		setEmpstatus(vars,employee);  	          
         	}
@@ -176,7 +176,7 @@ public class TimeFeedback  extends HttpSecureAppServlet {
       try {
         // Prepare the GUI
     	// Terminal Mode or Login..
-    	if (PdcCommonData.isAutologin(this, vars.getUser()).equals("N")) {
+    	if (PdcCommonData.isEmployeeLoggedIn(this, vars.getUser()).equals("Y")) {
       		employee=vars.getUser();
       		setEmpstatus(vars,employee);  	          
       	}
@@ -245,6 +245,7 @@ public class TimeFeedback  extends HttpSecureAppServlet {
         script.addHiddenfield("inpadOrgId", vars.getOrg());
         script.addHiddenShortcut("linkButtonSave_New"); // Adds shortcut for save & new
         script.enableshortcuts("EDITION");              // Enable shortcut for the servlet
+        script.addOnload("setFocusOnField('pdcmaterialconsumptionbarcode', 5000);");
         
         // Refresh after 5 sec. after action was displayed
         Integer iv=5000;

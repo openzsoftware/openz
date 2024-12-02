@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.16.0.final using JasperReports Library version 6.1.1  -->
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Bom_Lines" language="groovy" pageWidth="802" pageHeight="100" orientation="Landscape" columnWidth="802" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="81d9be37-b478-47b4-a516-870a85bdccd2">
 	<property name="ireport.scriptlethandling" value="0"/>
 	<property name="ireport.encoding" value="UTF-8"/>
@@ -43,7 +43,8 @@
 	<parameter name="ONLYPURCHASE" class="java.lang.String"/>
 	<parameter name="ONLYPRODUCTION" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[WITH RECURSIVE temp1 (m_productbom_id, m_product_id, bomqty, product_value, description, PATH ) AS (
+		<![CDATA[SELECT * FROM
+		(WITH RECURSIVE temp1 (m_productbom_id, m_product_id, bomqty, product_value, description, PATH ) AS (
 	SELECT m_product_bom.m_productbom_id, m_product_bom.m_product_id, m_product_bom.bomqty, m_product_bom.product_value, m_product_bom.description, 
 	        CAST(elr_getchildcount(m_productbom_id) || case when m_product_bom.line<100 then ('00' || m_product_bom.line) else ('0' || m_product_bom.line) end || left(m_product_bom.m_productbom_id,5) AS VARCHAR (390)) as PATH, 
 	        CAST('1-'|| m_product_bom.line AS VARCHAR (390)) as POSLEVEL
@@ -61,6 +62,8 @@
        		null as line2sort,
 		zssi_getproductname(m_product.m_product_id,$P{LANGUAGE}) as assembly,
 		m_product.name as product,
+		bom_lines_userexit() as printCustomField,
+		bom_lines_userexit_data(m_product.m_product_id) as customFieldData,
 		temp1.PATH,  (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1 as level, temp1.description as p_description,
 		temp1.poslevel,
 		    -- T2.constuctivemeasure as conmeasure,
@@ -71,8 +74,10 @@
 		    sum(zssi_onhanqty_overview.qtyoutflow) as sumab,
 		    m_product_po.deliverytime_promised as deliverytime,
 		    ROUND(temp1.bomqty,3) * elr_getlevelmultiplier(temp1.m_productbom_id,temp1.poslevel,temp1.bomqty)  as bomqty,
-		    case when m_product_po.c_currency_id is not null then  c_currency_convert(m_product_po.pricepo,m_product_po.c_currency_id,zsfi_getorgCurrency('0'),trunc(now())) else m_product_po.pricepo end   * elr_getproductuomdiv(m_product.m_product_id,$P{AD_ORG_ID})  as nettotal,
-		    zssi_strnumber(case when m_product_po.c_currency_id is not null then  c_currency_convert(m_product_po.pricepo,m_product_po.c_currency_id,zsfi_getorgCurrency('0'),trunc(now())) else m_product_po.pricepo end * elr_getproductuomdiv(m_product.m_product_id,$P{AD_ORG_ID}),$P{LANGUAGE}) as p_pricepo,
+		                   case when m_product_po.c_currency_id is not null then c_currency_convert(m_product_po.pricepo,m_product_po.c_currency_id,zsfi_getorgCurrency('0'),trunc(now())) else m_product_po.pricepo end * elr_getproductuomdiv(m_product.m_product_id,$P{AD_ORG_ID})               as nettotal,
+		    zssi_strnumber(case when m_product_po.c_currency_id is not null then c_currency_convert(m_product_po.pricepo,m_product_po.c_currency_id,zsfi_getorgCurrency('0'),trunc(now())) else m_product_po.pricepo end * elr_getproductuomdiv(m_product.m_product_id,$P{AD_ORG_ID}),$P{LANGUAGE}) as p_pricepo,
+            case when m_product.typeofproduct in ('AS','CD') and m_product.production='Y' then null else zssi_strnumber(m_get_product_cost(m_product.m_product_id,to_date(now()),null,$P{AD_ORG_ID}),$P{LANGUAGE}) end as calcvalue,
+            case when m_product.typeofproduct in ('AS','CD') and m_product.production='Y' then null else                m_get_product_cost(m_product.m_product_id,to_date(now()),null,$P{AD_ORG_ID})               end as calcvalue_total,
             (select c.cursymbol from c_currency c,ad_client a  where a.c_currency_id=c.c_currency_id and  a.ad_client_id='C726FEC915A54A0995C568555DA5BB3C')  as a_eurosymbol,
 		   (case m_product.issparepart when 'Y' then 'X' END)  as ET,
        		   (case m_product.isconsumable when 'Y' then 'X' END) as VT,
@@ -96,16 +101,15 @@
 													left join c_bpartner on (c_bpartner.c_bpartner_id=m_product_po.c_bpartner_id)
 															left join zssi_onhanqty_overview on (zssi_onhanqty_overview.m_product_id=m_product.m_product_id)
 															   where 
-															   case when $P{ONLYONELEVEL}='Y' then (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=1 else 1=1 end and
-																   case when $P{ONLYPURCHASE}='Y' then m_product.ispurchased='Y' and m_product.production='N' else 1=1 end and
-																	    case when $P{ONLYPRODUCTION}='Y' then m_product.ispurchased='N' and m_product.production='Y' else 1=1 end and
-																	    case when $P{ISSPAREPART}='Y' then m_product.issparepart='Y'  else 1=1 end and
-																	    case when $P{ISCONSUMABLE}='Y' then m_product.isconsumable='Y' else 1=1 end 
+															   case when $P{ONLYONELEVEL}='Y' then (SELECT COUNT(*)  FROM regexp_matches(temp1.path, '-', 'g'))+1=1 else 1=1 end
 																		    
-GROUP BY PATH,  ID, PID, p_value, assembly, product, p_description, pnumber, vendor, deliverytime, bomqty, p_pricepo,nettotal, a_eurosymbol, ET, VT, p_uom, t_product, t_net_total, t_price, t_lagmenge, t_sumzu, 
+GROUP BY PATH,  ID, PID, p_value, assembly, product, p_description, pnumber, vendor, deliverytime, bomqty, p_pricepo, calcvalue, calcvalue_total, nettotal, a_eurosymbol, ET, VT, p_uom, t_product, t_net_total, t_price, t_lagmenge, t_sumzu, 
 t_sumab, t_vendor_no, t_position, t_quantity, t_description, t_deliverytime,poslevel,c_currency_id,pricepo,m_product_po_id,m_product.m_product_id
-order by path
-]]>
+order by path) AS result_set
+  where case when $P{ONLYPURCHASE}='Y' then (select m_product.ispurchased='Y' and m_product.production='N' from m_product where m_product_id = result_set.ID) else 1=1 end
+    and case when $P{ONLYPRODUCTION}='Y' then (select m_product.typeofproduct in ('AS','CD','UA') from m_product where m_product_id = result_set.ID) else 1=1 end
+    and case when $P{ISSPAREPART}='Y' then (select m_product.issparepart='Y' from m_product where m_product_id = result_set.ID) else 1=1 end
+    and case when $P{ISCONSUMABLE}='Y' then (select m_product.isconsumable='Y' from m_product where m_product_id = result_set.ID) else 1=1 end]]>
 	</queryString>
 	<field name="id" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.name" value="id"/>
@@ -191,6 +195,14 @@ order by path
 		<property name="com.jaspersoft.studio.field.name" value="p_pricepo"/>
 		<property name="com.jaspersoft.studio.field.label" value="p_pricepo"/>
 	</field>
+	<field name="calcvalue" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="calcvalue"/>
+		<property name="com.jaspersoft.studio.field.label" value="calcvalue"/>
+	</field>
+	<field name="calcvalue_total" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="calcvalue_total"/>
+		<property name="com.jaspersoft.studio.field.label" value="calcvalue_total"/>
+	</field>
 	<field name="a_eurosymbol" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.name" value="a_eurosymbol"/>
 		<property name="com.jaspersoft.studio.field.label" value="a_eurosymbol"/>
@@ -255,8 +267,19 @@ order by path
 		<property name="com.jaspersoft.studio.field.name" value="t_deliverytime"/>
 		<property name="com.jaspersoft.studio.field.label" value="t_deliverytime"/>
 	</field>
+	<field name="printCustomField" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="printCustomField"/>
+		<property name="com.jaspersoft.studio.field.label" value="printCustomField"/>
+	</field>
+	<field name="customFieldData" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="customFieldData"/>
+		<property name="com.jaspersoft.studio.field.label" value="customFieldData"/>
+	</field>
 	<variable name="grandtotal" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{nettotal}*$F{bomqty}]]></variableExpression>
+	</variable>
+	<variable name="grandtotal_calc" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{calcvalue_total}*$F{bomqty}]]></variableExpression>
 	</variable>
 	<background>
 		<band splitType="Stretch"/>
@@ -284,7 +307,7 @@ order by path
 				<text><![CDATA[Qty]]></text>
 			</staticText>
 			<staticText>
-				<reportElement key="staticText-2" style="Detail_Header" x="0" y="0" width="30" height="17" uuid="9b41a4fa-5d7c-4a49-8977-94cb22367322"/>
+				<reportElement key="staticText-2" style="Detail_Header" x="0" y="0" width="80" height="17" uuid="9b41a4fa-5d7c-4a49-8977-94cb22367322"/>
 				<box leftPadding="5" rightPadding="7">
 					<pen lineWidth="0.0" lineStyle="Solid"/>
 					<topPen lineWidth="0.0" lineStyle="Solid"/>
@@ -298,7 +321,9 @@ order by path
 				<text><![CDATA[Lev.]]></text>
 			</staticText>
 			<staticText>
-				<reportElement key="staticText-6" style="Detail_Header" x="120" y="0" width="292" height="17" uuid="33454e2f-bd9b-4e39-92fa-426d4cd92545"/>
+				<reportElement key="staticText-6" style="Detail_Header" x="120" y="0" width="72" height="17" uuid="33454e2f-bd9b-4e39-92fa-426d4cd92545">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.0" lineStyle="Solid"/>
 					<topPen lineWidth="0.0" lineStyle="Solid"/>
@@ -312,7 +337,7 @@ order by path
 				<text><![CDATA[Product]]></text>
 			</staticText>
 			<staticText>
-				<reportElement key="staticText-8" style="Detail_Header" x="30" y="0" width="50" height="17" uuid="27a5f13a-6511-4b7c-800a-eecad40c0d45"/>
+				<reportElement key="staticText-3" style="Detail_Header" x="332" y="0" width="90" height="17" uuid="c53012d0-8608-497a-971f-95fca43807f7"/>
 				<box>
 					<pen lineWidth="0.0" lineStyle="Solid"/>
 					<topPen lineWidth="0.0" lineStyle="Solid"/>
@@ -323,24 +348,12 @@ order by path
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<text><![CDATA[Line]]></text>
+				<text><![CDATA[Ven. Prod. No.]]></text>
 			</staticText>
 			<staticText>
-				<reportElement key="staticText-3" style="Detail_Header" x="412" y="0" width="90" height="17" uuid="c53012d0-8608-497a-971f-95fca43807f7"/>
-				<box>
-					<pen lineWidth="0.0" lineStyle="Solid"/>
-					<topPen lineWidth="0.0" lineStyle="Solid"/>
-					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
-					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
-					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
-				</box>
-				<textElement textAlignment="Left" verticalAlignment="Middle">
-					<font size="9"/>
-				</textElement>
-				<text><![CDATA[Number]]></text>
-			</staticText>
-			<staticText>
-				<reportElement key="staticText-10" style="Detail_Header" x="502" y="0" width="140" height="17" uuid="0d211e32-c369-4d4e-be8f-767609f16b8a"/>
+				<reportElement key="staticText-10" style="Detail_Header" x="422" y="0" width="100" height="17" uuid="0d211e32-c369-4d4e-be8f-767609f16b8a">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.0" lineStyle="Solid"/>
 					<topPen lineWidth="0.0" lineStyle="Solid"/>
@@ -354,7 +367,10 @@ order by path
 				<text><![CDATA[Vendor]]></text>
 			</staticText>
 			<staticText>
-				<reportElement key="staticText-10" style="Detail_Header" x="722" y="0" width="80" height="17" uuid="99e269ae-b7e1-43cb-b653-bc38931a6133"/>
+				<reportElement key="staticText-10" style="Detail_Header" x="587" y="0" width="65" height="17" uuid="99e269ae-b7e1-43cb-b653-bc38931a6133">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.0" lineStyle="Solid"/>
 					<topPen lineWidth="0.0" lineStyle="Solid"/>
@@ -365,10 +381,13 @@ order by path
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<text><![CDATA[Net-Total]]></text>
+				<text><![CDATA[Pur. Net-Total]]></text>
 			</staticText>
 			<staticText>
-				<reportElement key="staticText-10" style="Detail_Header" x="642" y="0" width="80" height="17" uuid="57357461-219a-4db4-86ee-9042a40a2d5b"/>
+				<reportElement key="staticText-10" style="Detail_Header" x="522" y="0" width="65" height="17" uuid="57357461-219a-4db4-86ee-9042a40a2d5b">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<pen lineWidth="0.0" lineStyle="Solid"/>
 					<topPen lineWidth="0.0" lineStyle="Solid"/>
@@ -379,7 +398,144 @@ order by path
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<text><![CDATA[Price]]></text>
+				<text><![CDATA[Pur. Price]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-6" style="Detail_Header" x="192" y="0" width="140" height="17" uuid="c3dec29c-ffa2-4db9-99fc-69e94d44556d">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-10" style="Detail_Header" x="652" y="0" width="65" height="17" uuid="87b9462b-799a-4f71-af88-3e55b205e118">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Calc. Value]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-10" style="Detail_Header" x="717" y="0" width="65" height="17" uuid="8d80547a-a99e-4255-a0a4-8192c5d3d03f">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Calc. Total]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-6" style="Detail_Header" x="782" y="0" width="20" height="17" uuid="6596c58a-25bf-4644-8e98-9fb430821ddc">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<property name="com.jaspersoft.studio.unit.x" value="pixel"/>
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Cu.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-10" style="Detail_Header" x="522" y="0" width="70" height="17" uuid="1c578221-d447-4720-bce9-9e6ac2535845">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Pur. Price]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-10" style="Detail_Header" x="592" y="0" width="70" height="17" uuid="602e969e-01d1-4349-a0a0-8bd2198f54c7">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Pur. Net-Total]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-10" style="Detail_Header" x="662" y="0" width="70" height="17" uuid="bba5eaf0-4f7b-4feb-90f7-854163014411">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Calc. Value]]></text>
+			</staticText>
+			<staticText>
+				<reportElement key="staticText-10" style="Detail_Header" x="732" y="0" width="70" height="17" uuid="609aee37-7f27-4d63-ac2f-75bd945668f1">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Calc. Total]]></text>
 			</staticText>
 		</band>
 	</columnHeader>
@@ -392,7 +548,7 @@ order by path
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<leftPen lineWidth="1.0" lineStyle="Solid" lineColor="#000000"/>
 					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
-					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Left" verticalAlignment="Middle">
 					<font size="8"/>
@@ -404,7 +560,7 @@ order by path
 				<box leftPadding="5">
 					<pen lineWidth="0.0"/>
 					<topPen lineWidth="0.0"/>
-					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#EFF0F1"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					<bottomPen lineWidth="0.0"/>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
@@ -414,7 +570,7 @@ order by path
 				<textFieldExpression><![CDATA[$F{bomqty}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement key="textField" style="Detail_Line" stretchType="RelativeToTallestObject" x="212" y="0" width="200" height="16" uuid="ce4b437d-9cc1-4325-9164-35b8d4e389b9"/>
+				<reportElement key="textField" style="Detail_Line" stretchType="RelativeToTallestObject" x="192" y="0" width="140" height="16" uuid="ce4b437d-9cc1-4325-9164-35b8d4e389b9"/>
 				<box leftPadding="5">
 					<pen lineWidth="0.0"/>
 					<topPen lineWidth="0.0"/>
@@ -428,7 +584,7 @@ order by path
 				<textFieldExpression><![CDATA[$F{product}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement key="textField" style="Detail_Line" stretchType="RelativeToTallestObject" x="412" y="0" width="90" height="16" uuid="5aa7a783-a2e6-4ada-baab-8634d13c5a7e"/>
+				<reportElement key="textField" style="Detail_Line" stretchType="RelativeToTallestObject" x="332" y="0" width="90" height="16" uuid="5aa7a783-a2e6-4ada-baab-8634d13c5a7e"/>
 				<box leftPadding="5">
 					<pen lineWidth="0.0"/>
 					<topPen lineWidth="0.0"/>
@@ -442,7 +598,7 @@ order by path
 				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{pnumber} : "" )]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="502" y="0" width="140" height="16" uuid="3c81a2b2-bb30-4662-895a-0d5f2a70f706"/>
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="422" y="0" width="100" height="16" uuid="3c81a2b2-bb30-4662-895a-0d5f2a70f706"/>
 				<box leftPadding="5">
 					<pen lineWidth="0.0"/>
 					<topPen lineWidth="0.0"/>
@@ -456,7 +612,7 @@ order by path
 				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{vendor} : "" )]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
-				<reportElement key="textField" style="Detail_Line" stretchType="RelativeToTallestObject" x="120" y="0" width="92" height="16" isPrintWhenDetailOverflows="true" uuid="478feae4-8c4e-4b86-baa4-9040395664b3"/>
+				<reportElement key="textField" style="Detail_Line" stretchType="RelativeToTallestObject" x="120" y="0" width="72" height="16" isPrintWhenDetailOverflows="true" uuid="478feae4-8c4e-4b86-baa4-9040395664b3"/>
 				<box leftPadding="5">
 					<pen lineWidth="0.0"/>
 					<topPen lineWidth="0.0"/>
@@ -470,7 +626,9 @@ order by path
 				<textFieldExpression><![CDATA[$F{p_value}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="642" y="0" width="66" height="16" uuid="50aff7cb-c1d3-431f-bf0d-ce8ffc7f2bac"/>
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="522" y="0" width="51" height="16" uuid="50aff7cb-c1d3-431f-bf0d-ce8ffc7f2bac">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
 				<box leftPadding="5">
 					<pen lineWidth="0.0"/>
 					<topPen lineWidth="0.0"/>
@@ -484,7 +642,9 @@ order by path
 				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ?$F{p_pricepo}  : "" )]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
-				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="722" y="0" width="66" height="16" uuid="c05e1b2e-892b-4f92-9ae7-a00b0d7c50f1"/>
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="587" y="0" width="51" height="16" uuid="c05e1b2e-892b-4f92-9ae7-a00b0d7c50f1">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
 				<box leftPadding="5">
 					<pen lineWidth="0.0"/>
 					<topPen lineWidth="0.0"/>
@@ -498,7 +658,9 @@ order by path
 				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{nettotal}*$F{bomqty} : "" )]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="788" y="0" width="14" height="16" uuid="37047139-b76c-481f-9858-853f587298ec"/>
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="638" y="0" width="14" height="16" uuid="37047139-b76c-481f-9858-853f587298ec">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
 				<box leftPadding="5">
 					<pen lineWidth="0.0"/>
 					<topPen lineWidth="0.0"/>
@@ -512,7 +674,218 @@ order by path
 				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{a_eurosymbol} : "" )]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="708" y="0" width="14" height="16" uuid="b94e1c19-d92a-457e-948f-c3a8be78a515"/>
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="573" y="0" width="14" height="16" uuid="b94e1c19-d92a-457e-948f-c3a8be78a515">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{a_eurosymbol} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="652" y="0" width="51" height="16" uuid="f07d627b-0a8b-4c92-a1f0-bb471be7d2b5">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{calcvalue} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="703" y="0" width="14" height="16" uuid="6176e2eb-def1-49c9-a74e-71167b0897ca">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{a_eurosymbol} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="717" y="0" width="51" height="16" uuid="2a5dfb1c-ae61-4a79-852f-d02b44ee2e43">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ?$F{calcvalue_total}*$F{bomqty}: "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="768" y="0" width="14" height="16" uuid="6238427a-308a-43a2-83bb-f25d75ac1634">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{a_eurosymbol} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField" style="Detail_Line" stretchType="RelativeToTallestObject" x="782" y="0" width="20" height="16" uuid="fa5704b0-9a6c-449a-9250-d95bf80be19e">
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{customFieldData}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="522" y="0" width="56" height="16" uuid="2f3fc184-b56d-405f-9a57-0bec72e6a179">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ?$F{p_pricepo}  : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="578" y="0" width="14" height="16" uuid="025faa03-fb6f-4079-a5c2-ec7878ca5014">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{a_eurosymbol} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="592" y="0" width="56" height="16" uuid="c58bffe6-58cb-4080-a33b-4f4bf3495b76">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{nettotal}*$F{bomqty} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="648" y="0" width="14" height="16" uuid="3bca8133-279f-4a3e-a199-9d94a6918823">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{a_eurosymbol} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="662" y="0" width="56" height="16" uuid="f8467f01-64a0-47c0-a44f-a2631c390f41">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{calcvalue} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="718" y="0" width="14" height="16" uuid="a04d0aef-8528-48c0-adba-d7f4c8830958">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{a_eurosymbol} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="732" y="0" width="56" height="16" uuid="814849f9-db47-477c-a091-5071c4fa9f4c">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ?$F{calcvalue_total}*$F{bomqty}: "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" style="Detail_Line" stretchType="RelativeToTallestObject" x="788" y="0" width="14" height="16" uuid="7e6376f5-cec1-43dd-ad61-1b58d62ada51">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
 				<box leftPadding="5">
 					<pen lineWidth="0.0"/>
 					<topPen lineWidth="0.0"/>
@@ -528,12 +901,14 @@ order by path
 		</band>
 	</detail>
 	<columnFooter>
-		<band height="17" splitType="Stretch">
+		<band height="21" splitType="Stretch">
 			<line>
 				<reportElement x="0" y="0" width="802" height="1" uuid="5a8c0a16-683c-4b89-9eee-6220f4f787d5"/>
 			</line>
 			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
-				<reportElement key="textField-1" x="722" y="1" width="66" height="16" uuid="2dc0c957-64bf-451c-89f3-fca0a46f0538"/>
+				<reportElement key="textField-1" x="587" y="0" width="51" height="16" uuid="2dc0c957-64bf-451c-89f3-fca0a46f0538">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
 				<box leftPadding="5">
 					<pen lineWidth="0.0"/>
 					<topPen lineWidth="0.0" lineStyle="Double"/>
@@ -547,7 +922,105 @@ order by path
 				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $V{grandtotal} : "" )]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement key="textField-1" x="788" y="0" width="14" height="16" uuid="1f6123fc-884a-4ebe-850e-0e7437f3d8c8"/>
+				<reportElement key="textField-1" x="638" y="0" width="14" height="16" uuid="1f6123fc-884a-4ebe-850e-0e7437f3d8c8">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0" lineStyle="Double"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{a_eurosymbol} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-1" x="717" y="0" width="51" height="16" uuid="0643d1c0-0414-4c84-9d55-5516ff0994dd">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0" lineStyle="Double"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $V{grandtotal_calc} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" x="768" y="0" width="14" height="16" uuid="e52e4464-57b2-47a3-a969-67fdebdeeb32">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("Y")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0" lineStyle="Double"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{a_eurosymbol} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-1" x="592" y="0" width="56" height="16" uuid="eef089ee-04cc-4cea-8ef3-6f313b420eb4">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0" lineStyle="Double"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $V{grandtotal} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" x="648" y="0" width="14" height="16" uuid="eff03018-8567-4c9b-9bbb-862032c7dabc">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0" lineStyle="Double"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $F{a_eurosymbol} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="#,##0.00;-#,##0.00" isBlankWhenNull="true">
+				<reportElement key="textField-1" x="732" y="0" width="56" height="16" uuid="4b1a0870-8bd3-46c7-9055-2e644b8191ac">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="5">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0" lineStyle="Double"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($P{ISINTERNAL}.equals("Y")) ? $V{grandtotal_calc} : "" )]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-1" x="788" y="0" width="14" height="16" uuid="9c0073d8-95e5-47a1-a069-dd4d345e1823">
+					<printWhenExpression><![CDATA[$F{printCustomField}.equals("N")]]></printWhenExpression>
+				</reportElement>
 				<box leftPadding="5">
 					<pen lineWidth="0.0"/>
 					<topPen lineWidth="0.0" lineStyle="Double"/>

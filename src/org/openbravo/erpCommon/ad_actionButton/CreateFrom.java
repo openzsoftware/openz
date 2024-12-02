@@ -277,6 +277,7 @@ public class CreateFrom extends HttpSecureAppServlet {
     final String isSOTrx = Utility.getContext(this, vars, "isSOTrx", strWindowId);
     final String strBankAccount = vars.getStringParameter("inpcBankaccountId");
     final String strOrg = vars.getStringParameter("inpadOrgId");
+    final String strCurrency = vars.getStringParameter("inpcCurrencyId");
     final String strCharge = vars.getStringParameter("inpCharge");
     final String strIsapproved = vars.getStringParameter("inpIsapproved");
     String strPlannedDate = vars.getDateParameter("inpplanneddate", this);
@@ -317,13 +318,13 @@ public class CreateFrom extends HttpSecureAppServlet {
      data = CreateFromBankData.select(this, vars.getLanguage(), strBdtID, strStatementDate,Utility
     	          .getContext(this, vars, "#User_Client", strWindowId), Utility.getContext(this, vars,
     	          "#User_Org", strWindowId), strcBPartner, strPaymentRule, strPlannedDateFrom,
-    	          strPlannedDateTo, strAmountFrom, strAmountTo, strIsReceipt, strBank, strOrg, strCharge, strIsapproved,
+    	          strPlannedDateTo, strAmountFrom, strAmountTo, strIsReceipt, strBank, strOrg, strCurrency, strCharge, strIsapproved,
     	          strDocumentNo, strBpOrderNo,String.valueOf(maxRows));
     } else {
       data = CreateFromBankData.select(this, vars.getLanguage(), strKey, strStatementDate,Utility
           .getContext(this, vars, "#User_Client", strWindowId), Utility.getContext(this, vars,
           "#User_Org", strWindowId), strcBPartner, strPaymentRule, strPlannedDateFrom,
-          strPlannedDateTo, strAmountFrom, strAmountTo, strIsReceipt, strBank, strOrg, strCharge, strIsapproved,
+          strPlannedDateTo, strAmountFrom, strAmountTo, strIsReceipt, strBank, strOrg, strCurrency, strCharge, strIsapproved,
           strDocumentNo, strBpOrderNo,String.valueOf(maxRows));
     }
     String read=CreateFromBankData.readable(this,strBank,strDocumentNo);
@@ -395,13 +396,14 @@ public class CreateFrom extends HttpSecureAppServlet {
     xmlDocument.setParameter("isreceiptPago", strIsReceipt);
     xmlDocument.setParameter("isreceiptCobro", strIsReceipt);
     xmlDocument.setParameter("adOrgId", strOrg);
+    xmlDocument.setParameter("cCurrencyId", strCurrency);
     xmlDocument.setParameter("charge", strCharge);
     xmlDocument.setParameter("isapproved", strIsapproved);
 
     try {
       ComboTableData comboTableData = new ComboTableData(vars, this, "TABLEDIR",
-          "C_BankAccount_ID", "", "", Utility.getContext(this, vars, "#AccessibleOrgTree",
-              strWindowId), Utility.getContext(this, vars, "#User_Client", strWindowId), 0);
+          "C_BankAccount_ID", "", "", Utility.getContext(this, vars, "#AccessibleOrgTree", strWindowId),
+          Utility.getContext(this, vars, "#User_Client", strWindowId), 0);
       Utility.fillSQLParameters(this, vars, null, comboTableData, strWindowId, strBank);
       xmlDocument.setData("reportC_BankAccount_ID", "liststructure", comboTableData.select(false)); 
       comboTableData = null;
@@ -410,15 +412,26 @@ public class CreateFrom extends HttpSecureAppServlet {
     }
 
     try {
-      ComboTableData comboTableData = new ComboTableData(vars, this, "TABLEDIR", "AD_Org_ID", "",
-          "", Utility.getContext(this, vars, "#AccessibleOrgTree", strWindowId), Utility
-              .getContext(this, vars, "#User_Client", strWindowId), 0);
+      ComboTableData comboTableData = new ComboTableData(vars, this, "TABLEDIR",
+              "AD_Org_ID", "", "", Utility.getContext(this, vars, "#AccessibleOrgTree", strWindowId),
+              Utility.getContext(this, vars, "#User_Client", strWindowId), 0);
       Utility.fillSQLParameters(this, vars, null, comboTableData, strWindowId, strOrg);
       xmlDocument.setData("reportAD_Org_ID", "liststructure", comboTableData.select(false));
       comboTableData = null;
     } catch (final Exception ex) {
       throw new ServletException(ex);
     }
+
+    try {
+        ComboTableData comboTableData = new ComboTableData(vars, this, "TABLEDIR",
+                "C_Currency_ID", "", "", Utility.getContext(this, vars, "#AccessibleOrgTree", strWindowId),
+                Utility.getContext(this, vars, "#User_Client", strWindowId), 0);
+        Utility.fillSQLParameters(this, vars, null, comboTableData, strWindowId, strOrg);
+        xmlDocument.setData("reportC_Currency_ID", "liststructure", comboTableData.select(false));
+        comboTableData = null;
+      } catch (final Exception ex) {
+        throw new ServletException(ex);
+      }
 
     xmlDocument.setData("structure1", data);
     response.setContentType("text/html; charset=UTF-8");

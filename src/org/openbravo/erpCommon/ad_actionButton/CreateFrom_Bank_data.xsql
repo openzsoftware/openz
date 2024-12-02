@@ -27,7 +27,7 @@
              ELSE to_char(Ad_Column_Identifier(to_char('C_Debt_Payment'), to_char(C_DEBT_Payment_ID), to_char(?)))
            END)||(CASE WHEN IsReceipt='Y' then '' WHEN a.isapproved='Y' and IsReceipt='N' THEN '- genehmigt' WHEN a.isapproved='N' and IsReceipt='N' THEN ' - nicht genehmigt' ELSE '' END) AS DEBT_PAYMENT,
           Ad_Column_Identifier(to_char('C_Invoice'), to_char(C_INVOICE_ID), to_char(?)) AS INVOICE,
-          Ad_Column_Identifier(to_char('C_BankAccount'), to_char(C_BankAccount_ID), to_char(?)) ||' - '||(SELECT cur.description from c_currency cur, c_bankaccount bank where cur.c_currency_id=bank.c_currency_id and bank.c_bankaccount_id=a.c_bankaccount_id) AS BANK,
+          (SELECT cur.description from c_currency cur, c_bankaccount bank where cur.c_currency_id=bank.c_currency_id and bank.c_bankaccount_id=a.c_bankaccount_id) AS BANK,
           (CASE IsReceipt WHEN 'Y' THEN (p_amount - p_woamount - p_discountamt- p_cashdiscountamt) ELSE (p_amount - p_woamount - p_discountamt - p_cashdiscountamt)*(-1) END) AS AMOUNT,
           C_Currency_Convert((CASE IsReceipt WHEN 'Y' THEN (p_amount) ELSE (p_amount)*(-1) END),a.C_Currency_ID,
           	(select c.c_currency_id from c_bankaccount c,c_bankstatement s  where s.c_bankaccount_id=c.c_bankaccount_id and s.c_bankstatement_id = ?),
@@ -83,7 +83,6 @@
     <Parameter name="adLanguage"/>
     <Parameter name="adLanguage"/>
     <Parameter name="adLanguage"/>
-    <Parameter name="adLanguage"/>
     <Parameter name="cBankstatementID"/>
     <Parameter name="statementdate"/>
     <Parameter name="cBankstatementID"/>
@@ -100,6 +99,7 @@
     <Parameter name="isreceipt" optional="true" after="AND NOT EXISTS (SELECT * FROM C_BankStatementLine l WHERE p.C_DEBT_Payment_ID=l.C_DEBT_PAYMENT_ID)" text=" AND p.ISRECEIPT = ? "/>
     <Parameter name="cBankaccountId" optional="true" after="AND NOT EXISTS (SELECT * FROM C_BankStatementLine l WHERE p.C_DEBT_Payment_ID=l.C_DEBT_PAYMENT_ID)" text=" AND p.C_BankAccount_ID = ? "/>
     <Parameter name="adOrgId" optional="true" after="AND NOT EXISTS (SELECT * FROM C_BankStatementLine l WHERE p.C_DEBT_Payment_ID=l.C_DEBT_PAYMENT_ID)" text=" AND p.AD_ORG_ID = ? "/>
+    <Parameter name="cCurrencyId" optional="true" after="AND NOT EXISTS (SELECT * FROM C_BankStatementLine l WHERE p.C_DEBT_Payment_ID=l.C_DEBT_PAYMENT_ID)" text=" AND p.C_CURRENCY_ID = ? "/>
     <Parameter name="ischarge" optional="true" after="AND NOT EXISTS (SELECT * FROM C_BankStatementLine l WHERE p.C_DEBT_Payment_ID=l.C_DEBT_PAYMENT_ID)" text=" AND p.ISPAID = ? "/>
     <Parameter name="isapproved" optional="true" after="AND NOT EXISTS (SELECT * FROM C_BankStatementLine l WHERE p.C_DEBT_Payment_ID=l.C_DEBT_PAYMENT_ID)" text=" AND p.ISAPPROVED = ? "/>
     <Parameter name="invoice" optional="true" after="AND NOT EXISTS (SELECT * FROM C_BankStatementLine l WHERE p.C_DEBT_Payment_ID=l.C_DEBT_PAYMENT_ID)" text=" AND EXISTS (SELECT 1 FROM C_INVOICE WHERE p.C_INVOICE_ID = C_INVOICE.C_INVOICE_ID AND DOCUMENTNO LIKE TO_CHAR(?))"/>

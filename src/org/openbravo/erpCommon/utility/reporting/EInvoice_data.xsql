@@ -42,6 +42,16 @@
         <Parameter name="cInvoiceId" />
          <Parameter name="Lang" />
     </SqlMethod>
-     
+
+   <SqlMethod name="selectPDFFilenameFromXML" type="preparedStatement" connection="true" return="string">
+      <SqlMethodComment>get pdf for download from given xml file</SqlMethodComment>
+      <Sql> <![CDATA[
+            select f.name from c_file f where f.line+10 = (select ff.line from c_file ff where ff.c_file_id = ?)
+            and f.ad_record_id = (select ff.ad_record_id from c_file ff where ff.c_file_id = ?)
+            and f.c_datatype_id = '103';
+      ]]></Sql>
+        <Parameter name="fileID"/>
+        <Parameter name="fileID"/>
+   </SqlMethod>
 </SqlClass>
 

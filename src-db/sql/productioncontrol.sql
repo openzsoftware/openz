@@ -554,6 +554,11 @@ v_proj    character varying;
 v_count   numeric;
 v_category  varchar;
 v_message varchar:='ERROR';
+v_timestamp_now timestamp:=now();
+v_timestamp timestamp:='0001-01-01 00:00:00 BC'::timestamp   -- nur ab Stunden speichern, Tag ist immer 01.01.0001 -> Einheitlich mit Datum aus der GUI
+                         + (extract(hour from v_timestamp_now)) * interval '1 hour'
+                         + (extract(minute from v_timestamp_now)) * interval '1 minute'
+                         + (extract(second from v_timestamp_now)) * interval '1 second';
 BEGIN
 if (select count(*) from c_projecttask where c_projecttask_id=p_workstep)=1 then
     v_message:=zssi_getText('pdc_WokstepClosed',p_language);
@@ -569,7 +574,7 @@ if (select count(*) from c_projecttask where c_projecttask_id=p_workstep)=1 then
     
      SELECT count(*) into v_count FROM zspm_ptaskfeedbackline fbl  WHERE fbl.c_projecttask_id = p_workstep and fbl.hour_to is null;
     if v_count>0 and v_category='PRO' then
-     UPDATE zspm_ptaskfeedbackline fbl SET hour_to = now(), updatedby = p_user,updated = now() WHERE  fbl.c_projecttask_id = p_workstep and fbl.hour_to is null;
+     UPDATE zspm_ptaskfeedbackline fbl SET hour_to = v_timestamp, updatedby = p_user,updated = now() WHERE  fbl.c_projecttask_id = p_workstep and fbl.hour_to is null;
       v_message:=v_message||'-'||zssi_getText('TimeFeedbackFinished',p_language);
     end if;
 end if;

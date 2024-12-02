@@ -55,6 +55,7 @@
 <PARAMETER id="paramIsReceiptCobro" name="paramIsReceiptCobro" default="Y"/>
 <PARAMETER id="fieldIsReceiptCobro" name="isreceiptCobro" boolean="selected" withId="paramIsReceiptCobro"/>
 <PARAMETER id="paramADOrgID" name="adOrgId"/>
+<PARAMETER id="paramCCurrencyID" name="cCurrencyId"/>
 <PARAMETER id="paramPaymentRule" name="paymentRule"/>
 <PARAMETER id="paramTotalGoal" name="paramTotalGoal" default="0"/>
 <PARAMETER id="paraminpTotalGoal" name="paraminpTotalGoal" attribute="value" default="0"/>
@@ -78,6 +79,9 @@
 
 <SUBREPORT id="reportAD_Org_ID" name="reportAD_Org_ID" report="org/openbravo/erpCommon/reference/List">
 <ARGUMENT name="parameterListSelected" withId="paramADOrgID"/></SUBREPORT>
+
+<SUBREPORT id="reportC_Currency_ID" name="reportC_Currency_ID" report="org/openbravo/erpCommon/reference/List">
+<ARGUMENT name="parameterListSelected" withId="paramCCurrencyID"/></SUBREPORT>
 
 
 

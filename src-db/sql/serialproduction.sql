@@ -887,8 +887,6 @@ BEGIN
             select c_project_id into v_prj from zssm_productionplan_task where c_projecttask_id=new.c_projecttask_id;
             select sum(timeperpiece),sum(setuptime) into v_timpp,v_settim from c_projecttask where c_projecttask_id in (select c_projecttask_id from zssm_productionplan_task where c_project_id=v_prj and c_projecttask_id!=new.c_projecttask_id);
             update  c_project set timeperpiece=new.timeperpiece+coalesce(v_timpp,0),setuptime=new.setuptime+coalesce(v_settim,0),isautotriggered=new.isautotriggered  where c_project_id=v_prj;
-        else
-            raise exception '%', '@zssm_taskisinmultipleplansNoAutoGenerate@';
         end if;
     end if;
   else
@@ -3224,8 +3222,8 @@ BEGIN
            into p_workstepid,p_planid,p_warehouse ,p_setuptime,p_timeperpiece,p_ad_org_id,p_mimimumqty,p_multipleofmimimumqty
     from c_projecttask pt,c_project p ,m_locator l, zssm_productionplan_task tt where tt.c_project_id=p.c_project_id and tt.c_projecttask_id=pt.c_projecttask_id and l.m_locator_id=pt.receiving_locator and 
     p.projectcategory='PRP' and pt.m_product_id=p_productid and pt.assembly='Y' and pt.isactive='Y' 
-                        and p.isactive='Y' and p.projectstatus='OR'  and p.isdefault='Y' and p.ad_org_id=p_org_id
-                        order by p.created limit 1;
+                        and p.isactive='Y' and p.projectstatus='OR'  and p.ad_org_id=p_org_id
+                        order by p.isdefault='Y' desc limit 1;
     if p_workstepid is  null then        
         RAISE exception '%', coalesce((select shortcut from ad_org where ad_org_id=p_org_id),'NO ORG!')||':@zssm_simulationnotpossibleworkstepundefined@'||zssi_getproductnamewithvalue(p_productid,'de_DE');
     end if;

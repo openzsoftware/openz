@@ -42,7 +42,8 @@
                '' as lottext,
                '' as dirin,
                '' as dirout,
-               '' as filename
+               '' as filename,
+               '' as zssm_productionplan_v_id
 </Sql>
   </SqlMethod> 
   <SqlMethod name="selectgrid" type="preparedStatement" return="multiple">
@@ -68,7 +69,8 @@
 			   m_product_id,
                zssi_getElementTextByColumname(CAUSE,?) as CAUSE ,
                zssi_getElementTextByColumname(CAUSETEXT,?) as CAUSETEXT     ,
-               lottext
+               lottext,
+               (select zssm_productionplan_v_id from zssm_getproductionplanofproduct(M_PRODUCT_ID,AD_ORG_ID) limit 1) as zssm_productionplan_v_id
       FROM ZSSM_PRODUCTIONREQUIRED_V
        where 1=1
        AND 2=2 
@@ -98,7 +100,7 @@
   <Sql>
   INSERT INTO ZSSM_PRODUCTIONRUN   (ZSSM_PRODUCTIONRUN_ID,AD_CLIENT_ID,AD_ORG_ID,ISACTIVE,CREATED,CREATEDBY,UPDATED,UPDATEDBY,REQUIREDQTY,NEEDBYDATE,M_PRODUCT_ID,ISAUTOTRIGGERED,PINSTANCE,cause,enddate,m_attributesetinstance_id,productionplan_id)
   VALUES                           (?           , ?          , ?       , 'Y'    , NOW() , ?       ,NOW()  , ?      ,TO_NUMBER(?),TO_DATE(?), ?          , 'N',?    ,?  ,to_date(?),? ,
-                                   (select  zssm_productionplan_v_id from   zssm_getproductionplanofproduct(?,?) limit 1)  )
+                                   ?  )
     </Sql>
        <Parameter name="PrunID"/>
        <Parameter name="adClientId"/>
@@ -112,8 +114,7 @@
        <Parameter name="cause"/>
        <Parameter name="enddate"/>
        <Parameter name="attribute"/>
-       <Parameter name="product"/>
-       <Parameter name="adOrgId"/>
+       <Parameter name="planid"/>
       </SqlMethod> 
       <SqlMethod name="productionrun" type="preparedStatement" connection="true" return="string">
       <Sql>

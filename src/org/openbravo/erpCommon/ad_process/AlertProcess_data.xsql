@@ -104,13 +104,13 @@
          ISACTIVE, CREATED, CREATEDBY, 
          UPDATED, UPDATEDBY, 
          AD_ALERTRULE_ID, RECORD_ID, REFERENCEKEY_ID, 
-         DESCRIPTION, AD_USER_ID, AD_ROLE_ID)
+         DESCRIPTION, AD_USER_ID, AD_ROLE_ID, ALERT_ORDER)
         VALUES
          (?,?,?,
           'Y',TO_DATE(?),?,
           now(),0,
           ?,?,?,
-          ?,?,?)
+          ?,?,?,TO_NUMBER(?))
     ]]></Sql>
     <Parameter name="alertId"/>
     <Parameter name="clientId"/>
@@ -126,6 +126,8 @@
     <Parameter name="description"/>
     <Parameter name="user"/>
     <Parameter name="role"/>
+
+    <Parameter name="alert_order"/>
    </SqlMethod>
    
    <SqlMethod name="updateAlert" type="preparedStatement" return="rowcount"> 

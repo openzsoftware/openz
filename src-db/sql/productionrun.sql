@@ -181,7 +181,7 @@ BEGIN
                                                                     ORDER BY COALESCE(po.deliverytime_promised,1) DESC, updated DESC LIMIT 1;
                 end if;
                 */
-                if v_tpvlt is null then
+                if v_tpvlt is null and (select count(*) from m_product where m_product_id=v_cur.M_Product_ID and typeofproduct='SF')=0 then -- Halbzeuge brauchen keinen EK Satz
                     RAISE EXCEPTION '%','@zssm_nopurchasedefined4product@'||zssi_getproductnamewithvalue(v_cur.m_product_id,'de_DE');
                 end if;
                 --raise notice '%','PurchseTime:'||v_tpvlt;
@@ -1153,6 +1153,21 @@ BEGIN
     update c_project set note=note||coalesce(chr(10)||(select description from m_attributesetinstance where m_attributesetinstance_id=p_attrsetinstance_id),'') where c_project_id=p_porder_id;
     select m_attributeset_id into v_attributeset from m_attributesetinstance where m_attributesetinstance_id=p_attrsetinstance_id;
     v_i:=1;
+    -- Wenn der produzierende Basis-AG eine leere Stückliste hat und der Artikel einen Optionalen, Lagergeführten Attributsatz, handelt es sich um einen Ausrüstungs AG.
+    -- In diesem Fall wird der Artikel ohne Atrtribut vom Lager genommen, und als erste Stücklistenposition eingeführt. 
+    if (select count(*) from  zspm_projecttaskbom where c_projecttask_id=v_task.c_projecttask_id)=0 and
+       (select count(*) from m_product p, m_attributeset a where a.m_attributeset_id=p.m_attributeset_id and p.m_product_id=v_task.m_product_id and a.ismandatory='N' and a.isstocktracking='Y')=1
+    then
+        select m_locator_id into v_locator from m_product_org where m_product_id=v_task.m_product_id and ad_org_id=v_task.ad_org_id and (isvendorreceiptlocator='Y' or isproduction='Y') and isactive='Y';
+        if v_locator is null then
+            select m_locator_id into v_locator from m_product where m_product_id=v_task.m_product_id;
+        end if;
+        insert into zspm_projecttaskbom( zspm_projecttaskbom_id, c_projecttask_id, ad_client_id, ad_org_id, createdby, updatedby, m_product_id, quantity, description,date_plan, line,
+                                issuing_locator,receiving_locator)
+                    values (get_uuid(),v_task.c_projecttask_id,v_task.ad_client_id, v_task.ad_org_id, v_task.createdby, v_task.updatedby,
+                            v_task.m_product_id,v_task.qty,'Ausrüsten',v_task.startdate,0,v_locator,v_locator);
+    end if;
+    -- Stücklisten-Anteile über die Attribute erstellen. (Produzierender AG)
     for v_cur in (select m_attribute_id  from m_attributeuse where m_attributeset_id=v_attributeset order by seqno)
     LOOP
         select  m_attributevalue_id into v_value from m_attributevalue where m_attribute_id=v_cur.m_attribute_id and name=m_attributesetgetInstanceValue(p_attrsetinstance_id,v_i);
@@ -1180,7 +1195,7 @@ BEGIN
             end if;
         END LOOP;
     END LOOP;
-    -- AG mit Dyn. Stückliste
+    -- AG mit Dyn. Stückliste (Durchreicher)
     -- Dyn. Stücklistenteile werden dem AG über Namensgleichheit zugewiesen
     for v_cur in (select * from c_projecttask where c_project_id=p_porder_id)
     LOOP

@@ -54,6 +54,90 @@ $_$
   COST 100;
 
 
+select zsse_dropfunction('zsmf_explode_serial_or_batch');
+CREATE or replace FUNCTION zsmf_explode_serial_or_batch(p_snrMasterdataId varchar, p_parentId varchar, p_poslevel int, p_startWithSerial boolean) RETURNS table (poslevel int,
+	                                                                                                                                              m_product_id varchar,
+	                                                                                                                                              m_product varchar,
+	                                                                                                                                              m_product_value varchar,
+	                                                                                                                                              snr_masterdata_id varchar,
+	                                                                                                                                              serialnumber varchar,
+	                                                                                                                                              snr_batchmasterdata_id varchar,
+	                                                                                                                                              batchnumber varchar,
+	                                                                                                                                              parent_id varchar
+)
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2021 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+
+The result of this functon is already ordered to show a tree structure of related batch/serialnumbers.
+
+Explodes a Serialnumber or Batchnumber
+When starting with a batchnumber only batchnumbers will be explored.
+When starting with a serialnumebr both will be explored. However serialnumbers have the higher priority and will be chosen over the other.
+
+Paremeter p_parentId needs to be initialised with ''
+Parameter p_poslevel needs to be initialised with 0
+Parameter p_startWithSerial needs to be initialised with null
+
+*****************************************************/
+DECLARE
+  v_cur RECORD;
+  v_product_id varchar;
+  v_serial_id varchar;
+  v_serial varchar;
+  v_batch_id varchar;
+  v_batch varchar;
+  v_startWithSerial boolean := p_startWithSerial;
+BEGIN
+  -- only use serialnumbers when algorithm starts with serialnumber
+  -- on first run v_startWithSerial is null. Check if first entry is serialnumber or batchnumber
+  if(v_startWithSerial is null or v_startWithSerial) then
+    select snr.m_product_id, snr.snr_masterdata_id, snr.serialnumber into v_product_id, v_serial_id, v_serial from snr_masterdata snr where snr.snr_masterdata_id = p_snrMasterdataId;
+    if(v_startWithSerial is null and v_serial_id is null) then
+      v_startWithSerial := false;
+    else
+      v_startWithSerial := true;
+    end if;
+  end if;
+  -- serial has higher priority
+  if(v_serial_id is null) then
+    select snr.m_product_id, snr.snr_batchmasterdata_id, snr.batchnumber into v_product_id, v_batch_id, v_batch from snr_batchmasterdata snr where snr.snr_batchmasterdata_id = p_snrMasterdataId;
+  end if;
+  if(v_serial is not null or v_batch is not null) then
+    return query select p_poslevel, v_product_id, (select p.name from m_product p where p.m_product_id = v_product_id), (select p.value from m_product p where p.m_product_id = v_product_id), v_serial_id, v_serial, v_batch_id, v_batch, p_parentId;
+
+    -- traverse via serialnumber
+    for v_cur in (
+      select * from snr_builtinserials_v snrs where snrs.snr_currentbom_v_id in (select snrcb.snr_currentbom_v_id from snr_currentbom_v snrcb where snrcb.snr_masterdata_id = p_snrMasterdataId)
+      union
+      select * from snr_builtinbatches_v snrv where snrv.snr_batchcurrentbom_v_id in (select snrcb.snr_currentbom_v_id from snr_currentbom_v snrcb where snrcb.snr_masterdata_id = p_snrMasterdataId)
+    ) loop
+      return query select * from zsmf_explode_serial_or_batch(coalesce(v_cur.serial, v_cur.snr_batchmasterdata_id), p_snrMasterdataId, p_poslevel+1, v_startWithSerial);
+    end loop;
+
+    -- traverse via batchnumber
+    for v_cur in (
+      select * from snr_builtinbatches_v snrv where snrv.snr_batchcurrentbom_v_id in (select snrbcb.snr_batchcurrentbom_v_id from snr_batchcurrentbom_v snrbcb where snrbcb.snr_batchmasterdata_id = p_snrMasterdataId)
+      union
+      select * from snr_builtinserials_v snrs where snrs.snr_currentbom_v_id in (select snrbcb.snr_batchcurrentbom_v_id from snr_batchcurrentbom_v snrbcb where snrbcb.snr_batchmasterdata_id = p_snrMasterdataId)
+    ) loop
+      return query select * from zsmf_explode_serial_or_batch(coalesce(v_cur.snr_masterdata_id, v_cur.batch), p_snrMasterdataId, p_poslevel+1, v_startWithSerial);
+    end loop;
+  end if;
+
+END;
+$_$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
+
 CREATE OR REPLACE FUNCTION zsmf_product_bom_trg()
   RETURNS trigger AS
 $BODY$ 
@@ -188,13 +272,15 @@ $BODY$
 
 DECLARE
 v_calc numeric;
+v_calc_pre numeric;
 BEGIN
     if ( select count(*) from m_product where m_product_id=v_product and typeofproduct in ('AS','CD') and production='Y')>0 then
+        select sum(bomqty) into v_calc_pre from bomcalc where v_path like bompath||'%'; -- get sum before inserting new line
         select bomqty into v_calc from bomcalc where v_path = bompath;
         if v_calc is null and v_qty>1 then
             insert into bomcalc (bompath,bomqty) values (v_path,v_qty);
         end if;
-        return 1;
+        v_calc := coalesce(v_calc_pre, 1);
     else
         select sum(bomqty) into v_calc from bomcalc where v_path like bompath||'%' ;
     end if;
@@ -1234,7 +1320,12 @@ BEGIN
       end if; 
       select m_product_id,name into v_product,v_value from c_projecttask where c_projecttask_id=new.c_projecttask_id and assembly='Y';
       if coalesce(v_product,'')=new.m_product_id then
-         RAISE EXCEPTION '%', '@zsmf_BOMHasRecoursion@ in Workstep:'||v_value;
+        -- Ausnahme: Ein Optionaler, Lagergeführter Atttributsatz ist gegeben,.
+        -- Nur in diesem Fall ist ein Ausrüstungs-Arbeitsgang mit Hinzufügen von Attributen erlaubt-
+        if (select count(*) from m_product p,m_attributeset a where p.m_product_id=v_product and a.m_attributeset_id=p.m_attributeset_id and a.isstocktracking='Y' and a.ismandatory='N')=0 or
+           (SELECT COUNT(*) FROM c_projecttask WHERE m_attributesetinstance_id is not null AND c_projecttask_id = NEW.c_projecttask_id)=0 then
+          RAISE EXCEPTION '%', '@zsmf_BOMHasRecoursion@ in Workstep:'||v_value;
+        end if;
       end if;
       PERFORM zsmf_CheckProductBOMRecursive(v_product,new.m_product_id);
       -- Calculate actual planned amt
@@ -2200,6 +2291,8 @@ v_prd varchar;
 v_prodtsk varchar;
 v_qty numeric;
 v_rc snr_internal_consumptionline%rowtype;
+v_linecounter numeric := 1;
+v_product m_product%rowtype;
 BEGIN
   IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; END IF;
   IF TG_OP != 'DELETE' then
@@ -2221,7 +2314,28 @@ BEGIN
           RAISE EXCEPTION '%', 'Document processed/posted' ;
           RETURN OLD; 
       end if;
-  end if; 
+  end if;
+
+  -- semi finished product, insert bom of SF
+  IF TG_OP = 'INSERT' then
+    if (select typeofproduct='SF' from m_product where m_product_id = NEW.m_product_id) then
+      -- loop bom
+      for v_cur in (select * from m_product_bom where m_product_id = NEW.m_product_id) loop
+        select * into v_product from m_product where m_product_id = v_cur.m_productbom_id;
+
+        INSERT INTO m_internal_consumptionline (m_internal_consumptionline_id, ad_client_id, ad_org_id, isactive, created, createdby, updated, updatedby,
+                                                m_internal_consumption_id, m_locator_id, m_product_id, line, movementqty, description, m_attributesetinstance_id,
+                                                m_product_uom_id, quantityorder, c_uom_id, c_project_id,  c_projecttask_id, a_asset_id,
+                                                cost2project, reinvoicedby_id, wasprereserved, zspm_projecttaskbom_id, snr_masterdata_id, text1, text2, weight)
+                                        VALUES (get_uuid(), NEW.ad_client_id, NEW.ad_org_id, NEW.isactive, now(), NEW.createdby, now(), NEW.updatedby,
+                                                NEW.m_internal_consumption_id, v_product.m_locator_id, v_product.m_product_id, NEW.line+v_linecounter, NEW.movementqty*v_cur.bomqty, 'Semi finished product', v_product.m_attributesetinstance_id,
+                                                NEW.m_product_uom_id, NEW.quantityorder, v_product.c_uom_id, null, null, NEW.a_asset_id,
+                                                NEW.cost2project, NEW.reinvoicedby_id, NEW.wasprereserved, NULL, NULL, NULL, NULL, NULL);
+      v_linecounter := v_linecounter + 1;
+      end loop;
+    end if;
+  END IF;
+
   -- Passing Workstep (Durchreiche AG mit SNR/CNR Verfolgung) -> Geplante SNR in Zeile einfügen
   IF TG_OP = 'INSERT' then 
     select m.plannedserialnumber,ml.c_project_id,ml.m_product_id,ml.movementqty into v_plannedsnr,v_prj,v_prd,v_qty from m_internal_consumption m,m_internal_consumptionline ml,c_project p,c_projecttask pt 
@@ -2333,4 +2447,26 @@ $BODY$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;
 
+-- print custom column in bomreport.jrxml when Y
+CREATE OR REPLACE FUNCTION bom_lines_userexit()
+  RETURNS varchar AS
+$BODY$
+DECLARE
+BEGIN
+    return 'N';
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
 
+-- the data for the custom column
+CREATE OR REPLACE FUNCTION bom_lines_userexit_data(v_product varchar)
+  RETURNS varchar AS
+$BODY$
+DECLARE
+BEGIN
+    return '';
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;

@@ -822,7 +822,7 @@ Execute individual Statements for the Custom Instance
 
 BEGIN 
   
-  RETURN '<a href="#" onclick="submitCommandFormParameter('||chr(39)||'DIRECT'||chr(39)||','||p_fieldid||','||chr(39)||p_key||chr(39)||', false, document.frmMain, '||chr(39)||p_targetwindowurl||chr(39)||', null, false, true);return false;" class="LabelLink">'||p_text||' </a>';
+  RETURN '<a href="#" onclick="submitCommandFormParameter('||chr(39)||'DIRECT'||chr(39)||','||p_fieldid||','||chr(39)||p_key||chr(39)||', false, document.frmMain, '||chr(39)||p_targetwindowurl||chr(39)||', null, false, true);return false;" class="LabelLink_white">'||p_text||' </a>';
 END;
 $_$  LANGUAGE 'plpgsql' VOLATILE
   COST 100;
@@ -844,7 +844,7 @@ Execute individual Statements for the Custom Instance
 
 BEGIN 
   
-  RETURN '<a href="#" onclick="submitCommandFormParameter('||chr(39)||'DIRECT'||chr(39)||',document.frmMain.inpDirectKey,'||chr(39)||p_key||chr(39)||', false, document.frmMain, '||chr(39)||p_targetwindowurl||chr(39)||', null, false, true);return false;" class="LabelLink">'||p_text||' </a>';
+  RETURN '<a href="#" onclick="submitCommandFormParameter('||chr(39)||'DIRECT'||chr(39)||',document.frmMain.inpDirectKey,'||chr(39)||p_key||chr(39)||', false, document.frmMain, '||chr(39)||p_targetwindowurl||chr(39)||', null, false, true);return false;" class="LabelLink_white">'||p_text||' </a>';
 END;
 $_$  LANGUAGE 'plpgsql' VOLATILE
   COST 100;
@@ -943,7 +943,7 @@ Execute individual Statements for the Custom Instance
 
 BEGIN 
   
-  RETURN '<INPUT type="hidden" name="'||p_fieldid||'"></INPUT><a href="#" onclick="submitCommandFormParameter('||chr(39)||'DIRECT'||chr(39)||',document.frmMain.'||p_fieldid||','||chr(39)||p_key||chr(39)||', false, document.frmMain, '||chr(39)||p_targetwindowurl||chr(39)||', null, false, true);return false;" class="LabelLink">'||p_text||' </a>';
+  RETURN '<INPUT type="hidden" name="'||p_fieldid||'"></INPUT><a href="#" onclick="submitCommandFormParameter('||chr(39)||'DIRECT'||chr(39)||',document.frmMain.'||p_fieldid||','||chr(39)||p_key||chr(39)||', false, document.frmMain, '||chr(39)||p_targetwindowurl||chr(39)||', null, false, true);return false;" class="LabelLink_white">'||p_text||' </a>';
 END;
 $_$  LANGUAGE 'plpgsql' VOLATILE
   COST 100;

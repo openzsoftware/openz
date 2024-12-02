@@ -685,6 +685,135 @@ $_$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;
 
+  -- Chat GPT, 19.06.2024
+CREATE OR REPLACE FUNCTION sum_hours_minutes(hours_input numeric, minutes_input numeric)
+RETURNS VARCHAR AS $_$
+DECLARE
+    total_minutes numeric;
+    total_hours numeric;
+    remaining_minutes numeric;
+    str_total_hours varchar;
+BEGIN
+  if hours_input is null then hours_input:=0; end if;
+  if minutes_input is null then minutes_input:=0; end if;
+    -- negativer stand: Stunden<0 --> minuten<0
+    --if hours_input<0 and minutes_input>=0 then minutes_input:=minutes_input*-1; end if;
+    -- Gesamtminuten berechnen
+    total_minutes := hours_input * 60 + minutes_input;
+    -- Gesamtstunden und verbleibende Minuten berechnen
+    if(total_minutes < 0) then
+      -- bei negativen Betrag muss aufgerundet werden, sonst Übertragfehler zb: sum_hours_minutes(887,-75)
+      total_hours := ceil(total_minutes / 60);
+    else
+      total_hours := floor(total_minutes / 60);
+    end if;
+    remaining_minutes := abs(total_minutes % 60);
+    if total_minutes<0 and total_hours=0 then 
+      str_total_hours:='-'||to_char(total_hours);
+    else
+      str_total_hours:=to_char(total_hours);
+    end if;
+    if length(str_total_hours)<2 then
+      str_total_hours:=lpad(str_total_hours,2,'0');
+    end if;
+    -- Ergebnis im Format hh24:mi zurückgeben
+    RETURN str_total_hours|| ':' || TO_CHAR(remaining_minutes, 'FM00');
+END;
+$_$ LANGUAGE plpgsql;  
+  
+CREATE or replace FUNCTION zssi_getMinutes(v_timestr varchar) RETURNS character varying
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+Part of Smartprefs
+Decimal Time to hh24:mm
+7,5 -> 07:30
+*****************************************************/
+DECLARE
+  v_hours varchar;
+  v_min varchar;
+BEGIN
+    v_hours:=split_part(v_timestr, ':', 1);
+    v_min:=split_part(v_timestr, ':', 2);
+    if instr(v_hours,'-')>0 then v_min:='-'||v_min; end if;
+    RETURN v_min;
+END;
+$_$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+  
+  
+CREATE or replace FUNCTION zssi_strTime(v_time numeric) RETURNS character varying
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+Part of Smartprefs
+Decimal Time to hh24:mm
+7,5 -> 07:30
+*****************************************************/
+DECLARE
+  v_negative boolean := false;
+  v_return varchar;
+BEGIN
+    if v_time < 0 then
+      v_negative:= true;
+      v_time := v_time * (-1);
+    end if;
+    v_return:=(case when v_negative then '-' else '' end) ||
+           -- hours
+           (case when floor(v_time) > 9 then floor(v_time)::text else '0' || floor(v_time)::text end)
+           || ':' ||
+           -- minutes, round to nearest minute
+           (case when round((v_time - floor(v_time))*60) > 9 then round((v_time - floor(v_time))*60)::text else '0' || round((v_time - floor(v_time))*60)::text end);
+    -- Überlauf...
+    if substr(v_return,instr(v_return,':')+1,2)='60' then
+      v_return:=(case when floor(v_time+1) > 9 then floor(v_time+1)::text else '0' || floor(v_time+1)::text end)|| ':00';
+    end if;
+    RETURN v_return;
+END;
+$_$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+  
+CREATE or replace FUNCTION zssi_getworkplace(v_projecttask varchar) RETURNS character varying
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+Stundenzettel Baustelle/Projekt
+*****************************************************/
+DECLARE
+  
+  v_return varchar;
+BEGIN
+   
+    select p.value||'-'||p.name into v_return from c_project p,c_projecttask t where t.c_project_id=p.c_project_id and t.c_projecttask_id=v_projecttask;
+    RETURN v_return;
+END;
+$_$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
 CREATE or replace FUNCTION zssi_strCurrencyNumber(v_num numeric, lang character varying) RETURNS character varying
 AS $_$
 /***************************************************************************************************************************************************
@@ -1011,7 +1140,7 @@ BEGIN
   LOOP
     v_line:=coalesce(v_line,'')||chr(32)||'-'||zssi_strint(to_number(v_cur.v_bomqty),v_lang)||' '||zssi_getproductname(v_cur.v_bomproduct,v_lang)||'<br/>';
   END LOOP;
-  return substr(coalesce(v_line,''),1,length(coalesce(v_line,''))-5);
+  return substr(coalesce(v_line,''),1,case when length(coalesce(v_line,'')) >5 then length(coalesce(v_line,''))-5 else length(coalesce(v_line,'')) end);
 END; $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;
@@ -2828,11 +2957,14 @@ BEGIN
             if v_count=1 then
               select o.documentno,coalesce(to_char(o.contractdate,'dd.mm.yyyy'),''), coalesce(to_char(o.enddate,'dd.mm.yyyy'),''),to_char(ol.qtyordered-coalesce(ol.calloffqty,0)),to_char(ol.qtyordered) 
               into v_docno,v_begin,v_end,v_remains,v_frameqty from c_order o,c_orderline ol where ol.c_order_id=o.c_order_id and ol.c_orderline_id=v_frameline_id;
-              if p_language='de_DE' then
-              v_return:='<br/>Abruf aus Rahmenvertrag Nr.'||v_docno||'<br/>Zeitraum: '||v_begin||' bis '||v_end||'<br/>Vereinbarter Rahmen: '||v_frameqty||'<br/>Nach diesem Abruf verbleibende Menge: '||v_remains;
-              else
-              v_return:='<br/>Call from frame contract no.'||v_docno||'<br/>Period: '||v_begin||' bis '||v_end||'<br/>Agreed framework: '||v_frameqty||'<br/>Quantity left after this calling: '||v_remains;
-              end if;
+
+              v_return := zssi_getText('callfromframecontract' , p_language);
+              v_return := REPLACE(v_return, '@v_docno@', v_docno);
+              v_return := REPLACE(v_return, '@v_begin@', v_begin);
+              v_return := REPLACE(v_return, '@v_end@', v_end);
+              v_return := REPLACE(v_return, '@v_frameqty@', v_frameqty);
+              v_return := REPLACE(v_return, '@v_remains@', v_remains);
+
             end if;
       end if;
 RETURN v_return;
@@ -4380,10 +4512,8 @@ BEGIN
                 v_cusnameso:=(select coalesce(a.name,'') from ad_user a, c_order o where o.c_order_id=v_cur2.orderselfjoin and o.ad_user_id=a.ad_user_id);
                 --raise notice '%', coalesce(v_salman,'nüscht')||coalesce(v_cusref,'nüscht')||coalesce(v_cusname,'nüscht')||coalesce(v_docref,'nüscht');
             end if;
-            v_return:=replace(v_return,'@cus_ref@',v_cusref);
-            v_tempp:=replace(v_return,'@cus_nam@',v_cusname); 
-            v_return:=replace(v_tempp,'@our_ref@',v_docref); 
-            v_return:=replace(v_return,'@sal_nam@',v_salman); 
+            v_return:=resolveSpecialEmailTags(v_record_id, v_return);
+            -- old tags, not used anymore
             v_return:=replace(v_return,'@dsso_cusref@',v_cusrefso);
             v_tempp:=replace(v_return,'@dsso_cusnam@',v_cusnameso); 
             v_return:=replace(v_tempp,'@dsso_ourref@',v_docrefso); 
@@ -6381,6 +6511,128 @@ BEGIN
         end if;
       end LOOP;
 RETURN coalesce(v_return,'');
+END;
+$_$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
+
+CREATE or replace FUNCTION printTransferInReport(v_record_id character varying) RETURNS character varying
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 OpenZ Software GmbH All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************/
+DECLARE
+BEGIN
+      -- do not print transfer when at least one orderline/invoiceline has suppressed price
+      IF(
+        (SELECT COUNT(*) > 0 FROM c_orderline WHERE c_order_id = v_record_id AND ispricesuppressed = 'Y')
+        OR
+        (SELECT COUNT(*) > 0 FROM c_invoiceline WHERE c_invoice_id = v_record_id AND ispricesuppressed = 'Y')
+        ) THEN
+          RETURN 'N';
+      END IF;
+      RETURN 'Y';
+END;
+$_$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
+
+-- resolves special email-tags like @cus_ref@ in a given text
+CREATE or replace FUNCTION resolveSpecialEmailTags(p_record_id character varying, p_text character varying) RETURNS character varying
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 OpenZ Software GmbH All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************/
+DECLARE
+  v_record record;
+  v_record_order c_order%rowtype; -- only for tag @ref_ord@
+  v_text character varying;
+BEGIN
+  select * into v_record from c_order where c_order_id = p_record_id;
+  select * into v_record_order from c_order where c_order_id = p_record_id; -- only for tag @ref_ord@ for field orderselfjoin
+
+  if(v_record is null) then
+    select * into v_record from c_invoice where c_invoice_id = p_record_id;
+  end if;
+  if(v_record is null) then
+    select * into v_record from m_inout where m_inout_id = p_record_id;
+  end if;
+
+  -- @cus_ref@
+  v_text := replace(p_text, '@cus_ref@', coalesce(v_record.poreference, ''));
+  -- @our_ref@
+  v_text := replace(v_text, '@our_ref@', coalesce(v_record.documentno, ''));
+  -- @cus_nam@
+  v_text := replace(v_text, '@cus_nam@', coalesce((select name from ad_user where ad_user_id = v_record.ad_user_id), ''));
+  -- @sal_nam@
+  v_text := replace(v_text, '@sal_nam@', coalesce((select name from ad_user where ad_user_id = v_record.salesrep_id), ''));
+  -- @proj_num@
+  v_text := replace(v_text, '@proj_num@', coalesce((select value from c_project where c_project_id = v_record.c_project_id), ''));
+  -- @proj_nam@
+  v_text := replace(v_text, '@proj_nam@', coalesce((select name from c_project where c_project_id = v_record.c_project_id), ''));
+  -- @ref_ord@
+  v_text := replace(v_text, '@ref_ord@', coalesce((case when v_record_order is null then '' else (select documentno from c_order where c_order_id = v_record_order.orderselfjoin)end), ''));
+  -- @doc_date@
+  v_text := replace(v_text, '@doc_date@', coalesce((select to_char(dateordered,'dd.mm.yyyy') from c_order where c_order_id=p_record_id),
+                                                   (select to_char(dateinvoiced,'dd.mm.yyyy') from c_invoice where c_invoice_id=p_record_id), 
+                                                   (select to_char(movementdate,'dd.mm.yyyy') from m_inout where m_inout_id=p_record_id),'')
+                   );
+
+  -- ADD NEW TAGS HERE AND IN DESCRIPTION FUNCTION getEmailOptionsSpecialTagsTable BELOW
+
+  return v_text;
+
+END;
+$_$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
+
+-- returns a HTML-ul with a description of the available special tags for emails
+CREATE or replace FUNCTION getEmailOptionsSpecialTagsTable(p_language character varying) RETURNS character varying
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 OpenZ Software GmbH All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************/
+DECLARE
+  v_output character varying;
+BEGIN
+  v_output := '<ul class=\"LabelText\"  style=\"list-style: none; padding-left: 10px;\" >';
+  v_output := v_output || '<li>' || zssi_getText('EMailOptionsReplace', p_language) || '</li>';
+  v_output := v_output || '<li>' || '@cus_ref@: ' || zssi_getText('EMailOptionsReplaceCusRef', p_language) || '</li>';
+  v_output := v_output || '<li>' || '@our_ref@: ' || zssi_getText('EMailOptionsReplaceOurRef', p_language) || '</li>';
+  v_output := v_output || '<li>' || '@cus_nam@: ' || zssi_getText('EMailOptionsReplaceCusNam', p_language) || '</li>';
+  v_output := v_output || '<li>' || '@sal_nam@: ' || zssi_getText('EMailOptionsReplaceSalNam', p_language) || '</li>';
+  v_output := v_output || '<li>' || '@proj_num@: ' || zssi_getText('EMailOptionsReplaceProjNum', p_language) || '</li>';
+  v_output := v_output || '<li>' || '@proj_nam@: ' || zssi_getText('EMailOptionsReplaceProjNam', p_language) || '</li>';
+  v_output := v_output || '<li>' || '@ref_ord@: ' || zssi_getText('EMailOptionsReplaceRefOrd', p_language) || '</li>';
+  v_output := v_output || '<li>' || '@doc_date@: ' || zssi_getText('EMailOptionsReplaceDocDate', p_language) || '</li>';
+
+  -- add new tag-descriptions here with translation ad_message
+  v_output := v_output || '</ul>';
+
+  return v_output;
+
 END;
 $_$
   LANGUAGE 'plpgsql' VOLATILE

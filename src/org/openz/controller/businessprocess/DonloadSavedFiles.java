@@ -83,9 +83,9 @@ private String processRequest(ProcessBundle bundle) throws Exception {
       fi = new File(fileDir + "/tmp/content/" + BprocessCommonData.getTableName(connp, bundle.getContext().getLanguage(), data[i].adTableId)+ "/deleted/");
       if (! fi.exists())
         fi.mkdirs();
-      fi = new File(fileDir + "/tmp/content/" + BprocessCommonData.getTableName(connp, bundle.getContext().getLanguage(), data[i].adTableId) + "/deleted/" + BprocessCommonData.getIdentifierfromTabIdr(connp, data[i].adTableId, data[i].adRecordId,lang) + "-" + data[i].name );
+      fi = new File(fileDir + "/tmp/content/" + BprocessCommonData.getTableName(connp, bundle.getContext().getLanguage(), data[i].adTableId) + "/deleted/" + BprocessCommonData.getIdentifierfromTabIdr(connp, data[i].adTableId, data[i].adRecordId,lang).replace("/", "-") + "-" + data[i].name );
       if (fi.exists())
-        fi = new File(fileDir + "/tmp/content/" + BprocessCommonData.getTableName(connp, bundle.getContext().getLanguage(), data[i].adTableId) + "/deleted/" + BprocessCommonData.getIdentifierfromTabIdr(connp, data[i].adTableId, data[i].adRecordId,lang) + "-" + UtilsData.getUUID(connp) + "_" + data[i].name );
+        fi = new File(fileDir + "/tmp/content/" + BprocessCommonData.getTableName(connp, bundle.getContext().getLanguage(), data[i].adTableId) + "/deleted/" + BprocessCommonData.getIdentifierfromTabIdr(connp, data[i].adTableId, data[i].adRecordId,lang).replace("/", "-") + "-" + UtilsData.getUUID(connp) + "_" + data[i].name );
       fo= new File (fileDir + "/" + data[i].adTableId + "-" + data[i].adRecordId + "/" + data[i].name);
       if (fo.exists()) {
         from= new FileInputStream(fo);

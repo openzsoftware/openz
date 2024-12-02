@@ -88,22 +88,25 @@ CREATE TRIGGER c_project_value_trg
 select zsse_DropView ('mrp_deliveries_expected');
 create view mrp_deliveries_expected as
 select mrp_deliveries_expected_id,created,createdby,updated,updatedby,isactive,ad_client_id,ad_org_id,
-       c_order_id,line,dateordered,datepromised,datedelivered,m_product_id,qtyordered,qtydelivered,
-       c_project_id,c_projecttask_id ,a_asset_id,overdue,description,salesrep_id,scheddeliverydate,c_bpartner_id,image
+       c_order_id,line,c_orderline_id,dateordered,datepromised,datedelivered,m_product_id,qtyordered,qtydelivered,
+       c_project_id,c_projecttask_id ,a_asset_id,overdue,description,salesrep_id,scheddeliverydate,c_bpartner_id,image,
+       m_product_category_id,m_locator_id
 from
 ( 
 select c_orderline.c_orderline_id as mrp_deliveries_expected_id,c_orderline.created,c_orderline.createdby,c_orderline.updated,c_orderline.updatedby,c_orderline.isactive,c_orderline.ad_client_id,c_orderline.ad_org_id,
-       c_order.c_order_id,line,c_orderline.dateordered,c_orderline.datepromised,c_orderline.datedelivered,c_orderline.m_product_id,c_orderline.qtyordered,sum(coalesce(m_matchpo.qty,0)) as qtydelivered,
+       c_order.c_order_id,line,c_orderline.c_orderline_id,c_orderline.dateordered,c_orderline.datepromised,c_orderline.datedelivered,c_orderline.m_product_id,c_orderline.qtyordered,c_orderline.qtydelivered,
        c_orderline.c_project_id,c_orderline.c_projecttask_id ,c_orderline.a_asset_id,c_orderline.description,c_order.salesrep_id,c_orderline.scheddeliverydate,c_order.c_bpartner_id,
        case when coalesce(c_orderline.scheddeliverydate,now()+1)<now() then 'Y'::character(1) else 'N'::character(1) end as overdue,
-       check_Ampel('N'::varchar, trunc(coalesce(c_orderline.scheddeliverydate,now()))-to_date('01.01.1900','dd.mm.yyyy'), trunc(now())-to_date('01.01.1900','dd.mm.yyyy'),trunc(now())+5-to_date('01.01.1900','dd.mm.yyyy')) as image
-from c_order,c_orderline left join m_matchpo on  m_matchpo.c_orderline_id=c_orderline.c_orderline_id and m_matchpo.m_product_id=c_orderline.m_product_id and m_matchpo.c_invoiceline_id is null
+       check_Ampel('N'::varchar, trunc(coalesce(c_orderline.scheddeliverydate,now()))-to_date('01.01.1900','dd.mm.yyyy'), trunc(now())-to_date('01.01.1900','dd.mm.yyyy'),trunc(now())+5-to_date('01.01.1900','dd.mm.yyyy')) as image,
+       m_product.m_product_category_id,m_product.m_locator_id
+from c_order,m_product,c_orderline left join m_matchpo on  m_matchpo.c_orderline_id=c_orderline.c_orderline_id and m_matchpo.m_product_id=c_orderline.m_product_id and m_matchpo.c_invoiceline_id is null
      where c_order.c_order_id=c_orderline.c_order_id  and c_order.docstatus='CO' 
            AND ad_get_docbasetype(C_ORDER.c_DocType_ID) ='POO'
            AND c_orderline.deliverycomplete='N' and c_orderline.qtyordered > c_orderline.qtydelivered
+           AND m_product.m_product_id = c_orderline.m_product_id
      group by c_orderline.c_orderline_id ,c_orderline.created,c_orderline.createdby,c_orderline.updated,c_orderline.updatedby,c_orderline.isactive,c_orderline.ad_client_id,c_orderline.ad_org_id,
               c_order.c_order_id,line,c_orderline.dateordered,c_orderline.datepromised,c_orderline.datedelivered,c_orderline.m_product_id,c_orderline.qtyordered, c_order.salesrep_id,c_orderline.description,
-              c_orderline.c_project_id,c_orderline.c_projecttask_id ,c_orderline.a_asset_id,c_orderline.scheddeliverydate
+              c_orderline.c_project_id,c_orderline.c_projecttask_id ,c_orderline.a_asset_id,c_orderline.scheddeliverydate,m_product.m_product_category_id,m_product.m_locator_id
 ) a
 where qtyordered!=qtydelivered;
 
@@ -1227,6 +1230,7 @@ BEGIN
     
     update c_projecttask set updated=updated where c_projecttask_id=new.c_projecttask_id;
     perform zspm_updateprojectstatus(null,v_project_id);
+    --update c_project set updatedby = NEW.updatedby where c_project_id = v_project_id; -- for audit
     RETURN NEW;
   ELSE
    -- TG_OP = 'DELETE'
@@ -2423,8 +2427,8 @@ BEGIN
                                     marginamt=v_margin,
                                     marginpercent=v_marginperc,
                                     expensesplan=v_expensesplan,
-                                    externalserviceplan=v_extservicecostplan,
-                                    updated=now()
+                                    externalserviceplan=v_extservicecostplan
+                                    --updated=now()
                                     where  c_project_id=v_cur.c_project_id;
              end if;
              --RAISE NOTICE '%','Project updated:'||v_cur.c_project_id;
@@ -3340,7 +3344,9 @@ SELECT	zspm_projecttaskbom.zspm_projecttaskbom_id as zspm_projecttaskbom_view_id
                         WHERE m_internal_consumptionline.c_projecttask_id = zspm_projecttaskbom.c_projecttask_id
                         AND m_internal_consumptionline.m_product_id = zspm_projecttaskbom.m_product_id
                         AND m_internal_consumptionline.m_internal_consumption_id IN (SELECT m_internal_consumption_id FROM m_internal_consumption
-                                WHERE m_internal_consumption.movementtype = 'D+' and m_internal_consumption.processed='N')),0)) as qty_inconsumption
+                                WHERE m_internal_consumption.movementtype = 'D+' and m_internal_consumption.processed='N')),0)) as qty_inconsumption,
+                (select pt.c_project_id from c_projecttask pt where pt.c_projecttask_id=zspm_projecttaskbom.c_projecttask_id),
+                (select p.c_uom_id from m_product p where p.m_product_id=zspm_projecttaskbom.m_product_id)
 FROM 	zspm_projecttaskbom,c_projecttask, c_project    
 where zspm_projecttaskbom.c_projecttask_id = c_projecttask.c_projecttask_id and c_projecttask.c_project_id = c_project.c_project_id;
 
@@ -3845,7 +3851,7 @@ BEGIN
                   select  night as fee, 'night' as ident,nightbegin,nightend,overtimebegin from  c_additionalfees  where c_additionalfees_id=v_addfeeId and night is not null and nightbegin is not null 
                                                    and nightend is not null
                   UNION
-                  select  overtime as fee, 'overtime' as ident,nightbegin,nightend,overtimebegin from  c_additionalfees  where c_additionalfees_id=v_addfeeId and overtime is not null and overtimebegin is not null
+                  select  overtime as fee, 'overtime' as ident,nightbegin,nightend,overtimebegin from  c_additionalfees  where c_additionalfees_id=v_addfeeId and overtime is not null 
                   ORDER BY fee desc)
     LOOP     
         if v_cur.ident='sunday' and coalesce(new.sunday,0)>0 then

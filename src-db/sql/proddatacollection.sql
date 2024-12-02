@@ -458,9 +458,9 @@ LANGUAGE 'plpgsql';
 select zsse_dropview('zspm_workstepdropdown_v');
 CREATE OR REPLACE VIEW zspm_workstepdropdown_v AS
 SELECT pt.c_projecttask_id as zspm_workstepdropdown_v_id,p.ad_org_id,p.ad_client_id,p.updated,p.updatedby,p.created,p.createdby,'Y'::character as isactive, 
-       p.name||'-'||pt.name as name,pt.c_projecttask_id,p.projectstatus
+       coalesce(pt.value,p.value)||case when p.name!=pt.name then '-'||p.name else '' end||'-'||pt.name as name,pt.c_projecttask_id,p.projectstatus
 FROM c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and p.projectstatus in ('OP','OR') and pt.iscomplete='N' and pt.istaskcancelled='N' and p.ishidden='N'
-     and pt.taskbegun='Y' and pt.feedbackfinished='N' and not exists (select 0 from c_bpartner b where b.c_project_id=p.c_project_id);
+     and case when p.projectcategory!='PRO' then pt.taskbegun='Y' else 1=1 end and pt.feedbackfinished='N' and not exists (select 0 from c_bpartner b where b.c_project_id=p.c_project_id);
 
 
 select zsse_DropFunction ('pdc_settimefeedback');
@@ -1228,11 +1228,6 @@ BEGIN
         delete from m_internal_consumption where m_internal_consumption_id=v_cur.m_internal_consumption_id;    
     end loop; 
       
-    for v_cur in (select m_inventory_id from m_inventory where name like '%PDC->%' and  processed='N')  
-    loop 
-        delete from m_inventoryline where m_inventory_id=v_cur.m_inventory_id;     
-        delete from m_inventory where m_inventory_id=v_cur.m_inventory_id;     
-    end loop; 
     return 'Internal Consumptions cleaned Up';  
 END ; 
 $_$ LANGUAGE plpgsql;
@@ -1769,7 +1764,7 @@ BEGIN
 END ; $_$ LANGUAGE plpgsql;
 
 select zsse_dropfunction('pdc_InventoryUpdateLine');
-CREATE OR REPLACE FUNCTION  pdc_InventoryUpdateLine(p_InventoryId varchar,p_locator_id varchar,p_product_id varchar,p_attrsetInstId varchar,p_qtycount numeric) RETURNS varchar AS
+CREATE OR REPLACE FUNCTION  pdc_InventoryUpdateLine(p_InventoryId varchar,p_locator_id varchar,p_product_id varchar,p_serialnumber varchar,p_batchnumber varchar,p_qtycount numeric) RETURNS varchar AS
 $_$ 
 DECLARE 
 /***************************************************************************************************************************************************          
@@ -1792,14 +1787,26 @@ Contributor(s): ______________________________________.
   v_line numeric;
   v_uom     varchar;
   v_batchqty numeric;
+  v_attr varchar;
+  v_attrsetInstId varchar;
+  v_masterdata varchar;
 BEGIN   
     if p_InventoryId is null then return 'COMPILE'; end if;
     if p_qtycount is null then p_qtycount:=1; end if;
+    select isserialtracking,isbatchtracking,c_uom_id,m_attributeset_id into v_isser,v_isbatch,v_uom,v_attr from m_product where m_product_id=p_product_id;
+    if (v_isser='Y' or v_isbatch='Y') and v_attr is not null then
+      if v_isser='Y' then
+        select snr_masterdata_id into v_masterdata from snr_masterdata where m_product_id=p_product_id and serialnumber=p_serialnumber;
+      else
+        select snr_batchmasterdata_id into v_masterdata from snr_batchmasterdata where m_product_id=p_product_id and batchnumber=p_batchnumber;
+      end if;
+      select snr_attributeselector(v_masterdata) into v_attrsetInstId;
+    end if;
     select m_inventoryline_id,ad_org_id,ad_client_id,createdby into v_invklineId ,v_ad_org_id,v_ad_client_id,v_createdby 
            from m_inventoryline where m_inventory_id=p_InventoryId and m_product_id=p_product_id
-           and  coalesce(m_attributesetinstance_id,'0')=coalesce(p_attrsetInstId,'0');
-    select isserialtracking,isbatchtracking,c_uom_id into v_isser,v_isbatch,v_uom from m_product where m_product_id=p_product_id;
+           and  coalesce(m_attributesetinstance_id,'0')=coalesce(v_attrsetInstId,'0');
     if v_invklineId is null then 
+        --raise exception '%','No Line with this Product / Attribute found';
         v_invklineId:=get_uuid();
         select max(line)+10,max(ad_client_id),max(ad_org_id),max(createdby) into v_line,v_ad_client_id,v_ad_org_id,v_createdby 
                from M_InventoryLine where m_inventory_id=p_InventoryId;
@@ -1810,7 +1817,7 @@ BEGIN
         end if;
         INSERT INTO M_InventoryLine( M_InventoryLine_ID, Line, AD_Client_ID, AD_Org_ID,CreatedBy, UpdatedBy, M_Inventory_ID, M_Locator_ID, M_ATTRIBUTESETINSTANCE_ID, M_Product_ID,
               QtyBook, QtyCount, C_UOM_ID)
-        VALUES(v_invklineId,v_line,v_ad_client_id,v_ad_org_id,v_createdby,v_createdby,p_InventoryId,p_locator_id,p_attrsetInstId,p_product_id,0,0,v_uom);
+        VALUES(v_invklineId,v_line,v_ad_client_id,v_ad_org_id,v_createdby,v_createdby,p_InventoryId,p_locator_id,v_attrsetInstId,p_product_id,0,0,v_uom);
     end if;
     -- Batch and Serials are teated in pdc_InventorylineSNRBNRUpdate
     if v_isser='N' and v_isbatch='N' then 
@@ -2200,6 +2207,34 @@ BEGIN
     return zssi_strNumber(p_num,p_lang);
 END ; $_$ LANGUAGE plpgsql;
 
+
+
+select zsse_dropfunction('pdc_isQtyFittingOnReceivecomplete');
+CREATE OR REPLACE FUNCTION  pdc_isQtyFittingOnReceivecomplete(p_receive numeric,p_production numeric,p_qty4one numeric) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+      Entnahme nur Passend....  
+      // entnommene Menge != zu produzierende Menge * Menge an Materialien für einen Artikel -> zu viel entnommen
+*****************************************************/  
+  v_prec numeric;
+BEGIN   
+    select coalesce(qtydecimal,3) into v_prec from ad_client where ad_client_id='C726FEC915A54A0995C568555DA5BB3C';
+    if round(p_receive,v_prec)!=round(p_production,v_prec)*round(p_qty4one,v_prec) then
+      return 'N';
+    else
+      return 'Y';
+    end if;
+END ; $_$ LANGUAGE plpgsql; 
+
+
 -- Open Worksteps...
 select zsse_dropview('pdc_openworkstep_v');
 CREATE OR REPLACE VIEW pdc_openworkstep_v AS
@@ -2207,3 +2242,6 @@ SELECT pt.c_projecttask_id as pdc_openworkstep_v_id,p.ad_org_id,p.ad_client_id,p
        case when coalesce(pt.value,p.value)=p.value then p.value||' - '||p.name||case when p.name!=coalesce(pt.name,p.name) then ' - '||pt.name else '' end else pt.value||' - '||pt.name||' ('||p.name||' - '||p.value||')' end as name,
        pt.c_projecttask_id,p.projectstatus
 FROM c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and p.projectstatus ='OR' and p.projectcategory='PRO' and pt.iscomplete='N' and pt.istaskcancelled='N';
+
+
+

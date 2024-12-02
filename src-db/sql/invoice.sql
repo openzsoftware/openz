@@ -657,10 +657,11 @@ $BODY$ DECLARE
               if v_draftexists>0 then
                     select i.c_invoice_id,documentno into p_Invoice_ID,v_DocumentNo from   c_invoiceline il,c_invoice i where il.c_orderline_id =v_ĺinesrecord.c_orderline_id and il.c_invoice_id=i.c_invoice_id and i.docstatus='DR'; 
                     if Cur_Order.IsSOTrx='Y' then     
-                              v_Message:=v_Message||', '||' Rechnung kann nicht erstellt werden. Es existiert bereits eine Rechnung im Status Entwurf zu diesem Auftrag. Das Dokument muß zuerst verarbeitet werden: ' || zsse_htmldirectlink('../SalesInvoice/Header_Relation.html','document.frmMain.inpcInvoiceId',p_Invoice_ID,v_DocumentNo);
+                              v_Message:=v_Message||', '||' Rechnung kann nicht erstellt werden. Es existiert bereits eine Rechnung im Status Entwurf zu diesem Auftrag. Das Dokument muss zuerst verarbeitet werden: ' || zsse_htmldirectlink('../SalesInvoice/Header_Relation.html','document.frmMain.inpcInvoiceId',p_Invoice_ID,v_DocumentNo);
                     else
-                              v_Message:=v_Message||', '||' Rechnung kann nicht erstellt werden. Es existiert bereits eine Rechnung im Status Entwurf zu diesem Auftrag. Das Dokument muß zuerst verarbeitet werden: ' || zsse_htmldirectlink('../PurchaseInvoice/Header_Relation.html','document.frmMain.inpcInvoiceId',p_Invoice_ID,v_DocumentNo);
+                              v_Message:=v_Message||', '||' Rechnung kann nicht erstellt werden. Es existiert bereits eine Rechnung im Status Entwurf zu diesem Auftrag. Das Dokument muss zuerst verarbeitet werden: ' || zsse_htmldirectlink('../PurchaseInvoice/Header_Relation.html','document.frmMain.inpcInvoiceId',p_Invoice_ID,v_DocumentNo);
                     end if;
+                    v_messtype := 2; -- warning
                     delete from c_generateinvoicemanual where c_generateinvoicemanual_id=v_ĺinesrecord.c_generateinvoicemanual_id;
                     CLOSE Cur_ManualGeneratedLines;
               else
@@ -2890,6 +2891,17 @@ BEGIN
     
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
     END IF;
+
+    IF(NEW.issotrx = 'Y') THEN -- bp has to be customer
+      IF(SELECT iscustomer = 'N' FROM c_bpartner WHERE c_bpartner_id = NEW.c_bpartner_id) THEN
+        RAISE EXCEPTION '@BPartnerHasToBeCustomer@';
+      END IF;
+    ELSE -- bp has to be vendor
+      IF(SELECT isvendor = 'N' FROM c_bpartner WHERE c_bpartner_id = NEW.c_bpartner_id) THEN
+        RAISE EXCEPTION '@BPartnerHasToBeVendor@';
+      END IF;
+    END IF;
+
     IF TG_OP = 'INSERT' THEN
         new.c_doctype_id=new.c_doctypetarget_id;
     END IF;
@@ -4592,11 +4604,15 @@ BEGIN
   -- third priority documentno of the first line/order of the invoice
   -- add dots for multiple orders in invoice
   IF(v_return_val IS NULL) THEN
-      SELECT documentno INTO v_return_val FROM c_order WHERE c_order_id = (
-        SELECT c_order_id FROM c_orderline WHERE c_orderline_id = (
-          SELECT c_orderline_id FROM c_invoiceline WHERE c_invoice_id = v_invoice_id AND c_orderline_id IS NOT NULL ORDER BY line LIMIT 1
-        )
-      );
+      select o.poreference INTO v_return_val FROM c_order o,c_orderline ol,c_invoiceline il 
+        WHERE il.c_invoice_id = v_invoice_id and il.c_orderline_id=ol.c_orderline_id and o.c_order_id=ol.c_order_id and o.poreference is not null ORDER BY il.line LIMIT 1;
+     IF(v_return_val IS NULL) THEN 
+        SELECT documentno INTO v_return_val FROM c_order WHERE c_order_id = (
+          SELECT c_order_id FROM c_orderline WHERE c_orderline_id = (
+            SELECT c_orderline_id FROM c_invoiceline WHERE c_invoice_id = v_invoice_id AND c_orderline_id IS NOT NULL ORDER BY line LIMIT 1
+          )
+        );
+     END IF;
       v_return_val := v_return_val || ', ...';
   END IF;
 

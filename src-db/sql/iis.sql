@@ -40,7 +40,7 @@ DECLARE
   -- EMail Role
   v_alertrole varchar:='8D8B2DCAA1F14836A90F4871FA278B3F';
   */
-  v_org varchar:='D828C1DEDCA74CB09E90C1A194BE6A80';
+  v_org varchar;
   v_bpgroup varchar:='00EAF957DDD740608EB5B85AAA2B5930';
   -- Auslieferstellen (Warenlager ID)
   v_shipNUE varchar:='AF0A6DA9C3E844569DE386E8FF23CD67';
@@ -49,6 +49,12 @@ DECLARE
   -- EMail Role
   v_alertrole varchar:='87142B3C7BD44569B1E74C66BA387EE5';
 BEGIN
+
+    if (select count(*) from ad_org where ad_org_id='D828C1DEDCA74CB09E90C1A194BE6A80')>0 then
+      v_org :='D828C1DEDCA74CB09E90C1A194BE6A80'; -- IIS
+    else
+      v_org:='220A84B3FD8F4FD1809B8101F274397C';  -- AME Geräte
+    end if;
 
     perform zsse_droptable ('iis_ldapimport');
     RAISE NOTICE 'CREATE TABLE iis_ldapimport';

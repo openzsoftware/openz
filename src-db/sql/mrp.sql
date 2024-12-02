@@ -200,6 +200,7 @@ BEGIN
                                                                        m_locator_id in (select m_locator_id from m_locator where m_warehouse_id=p_Warehouse_ID) end
                                                                        LIMIT 1) po ON p.M_PRODUCT_ID = po.M_PRODUCT_ID
                         WHERE (p_product_ID IS NULL OR p.M_PRODUCT_ID = p_Product_ID)
+                          AND p.isactive = 'Y'
                           AND (p_Product_Category_ID IS NULL OR p.M_PRODUCT_CATEGORY_ID = p_Product_Category_ID)
                           AND (p_Planner_ID IS NULL OR COALESCE(po.MRP_PLANNER_ID, p.MRP_Planner_ID) = p_Planner_ID)
                           AND p.AD_ORG_ID in ('0',p_org_id)
@@ -1074,7 +1075,9 @@ $body$
       --select zssi_getText('zssi_vendorproductno',coalesce(default_ad_language,'de_DE'))||vendorproductno||E'\r\n'||documentnote into v_Description from m_product,ad_user where ad_user_id=v_User_ID and m_product_id=Cur_workproposal.M_Product_ID;
       v_Description:=zspr_getproductdocnoteCpyText(Cur_workproposal.ad_org_id,Cur_workproposal.m_product_id,Cur_workproposal.C_BPartner_ID,(select c_uom_id from m_product_uom where m_product_uom_id=Cur_workproposal.m_product_uom_id));
       v_ResultStr:='Insert order line';
-
+      if v_PriceList is null or v_PriceStd is null or v_PriceActual is null then
+        raise exception '%','Artikel:'||(select value from m_product where m_product_id=Cur_workproposal.M_Product_ID)||' Einkaufspreise (Artikel||Einkauf) nicht richtig gepflegt';
+      end if;
       INSERT INTO C_OrderLine
         (C_ORDERLINE_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE,
          CREATED, CREATEDBY, UPDATED, UPDATEDBY,
@@ -1675,8 +1678,8 @@ BEGIN
       v_message:=  i || ' Warenbewegungen geplant.';
       for v_cur in (select sum(b.movementqty) as qty, b.m_product_id,b.m_warehouse_id,b.stockdate,coalesce(b.m_attributesetinstance_id,'0') as m_attributesetinstance_id
                            from mrp_inoutplanbase b 
-                           group by b.m_product_id,b.m_warehouse_id,b.stockdate,coalesce(b.m_attributesetinstance_id,'0')
-                           order by b.m_product_id,b.m_warehouse_id,b.stockdate,coalesce(b.m_attributesetinstance_id,'0'))
+                           group by b.m_product_id,b.m_warehouse_id,coalesce(b.m_attributesetinstance_id,'0'),b.stockdate
+                           order by b.m_product_id,b.m_warehouse_id,coalesce(b.m_attributesetinstance_id,'0'),b.stockdate)
       LOOP
          if v_current!=to_char(v_cur.m_product_id||v_cur.m_warehouse_id||v_cur.m_attributesetinstance_id) then
             -- Current Onhand QTY's

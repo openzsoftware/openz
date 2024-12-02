@@ -5226,3 +5226,104 @@ END;
 $BODY$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;
+
+
+--
+-- Name: c_conversion_rate_trg(); Type: FUNCTION; Schema: public; Owner: tad
+-- Moved from openbravo.sql
+--
+CREATE OR REPLACE FUNCTION c_conversion_rate_trg() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $_$ DECLARE 
+
+    /*************************************************************************
+    * The contents of this file are subject to the Compiere Public
+    * License 1.1 ("License"); You may not use this file except in
+    * compliance with the License. You may obtain a copy of the License in
+    * the legal folder of your Openbravo installation.
+    * Software distributed under the License is distributed on an
+    * "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+    * implied. See the License for the specific language governing rights
+    * and limitations under the License.
+    * The Original Code is  Compiere  ERP &  Business Solution
+    * The Initial Developer of the Original Code is Jorg Janke and ComPiere, Inc.
+    * Portions created by Jorg Janke are Copyright (C) 1999-2001 Jorg Janke,
+    * parts created by ComPiere are Copyright (C) ComPiere, Inc.;
+    * All Rights Reserved.
+    * Contributor(s): Openbravo SL
+    * Contributions are Copyright (C) 2001-2008 Openbravo, S.L.
+    *
+    * Specifically, this derivative work is based upon the following Compiere
+    * file and version.
+    *************************************************************************
+    * $Id: C_Conversion_Rate_Trg.sql,v 1.3 2002/10/08 13:25:46 jjanke Exp $
+    ***
+    * Title: Set ToDate
+    * Description:
+    * If there is no valid ToDate set it to arbitrary end date
+    ************************************************************************/
+      v_Count NUMERIC;
+      
+BEGIN
+    
+    IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
+    END IF;
+
+
+  --RAISE_APPLICATION_ERROR (-20506, 'Cannot modify used rate');
+  IF(new.ValidTo IS NULL) THEN
+    -- If there is no end date, set it to X
+      new.ValidTo:=TO_DATE('31-12-9999', 'DD-MM-YYYY') ;
+  END IF;
+  --Check for invalid dates
+  IF new.ValidTo < new.ValidFrom THEN
+    RAISE EXCEPTION '%', 'Date To is lower than Date From'; --OBTG:-20505--
+  END IF;
+
+  -- Prevent Div by Zero Errors in future calculations
+  IF NEW.MultiplyRate = 0 THEN
+    RAISE EXCEPTION '@ConversionRateCannotBeZero@';
+  END IF;
+
+  IF TG_OP = 'UPDATE' THEN
+     --Check for changes of used rates
+    select count(*)
+    into v_count
+     from fact_acct    f,
+         c_acctschema s
+    where f.c_acctschema_id = s.c_acctschema_id
+      and f.c_currency_id = old.C_Currency_ID
+     and s.c_currency_id = old.C_Currency_ID_TO
+     and f.dateacct between old.ValidFrom and old.ValidTo
+     and ((not (f.dateacct between new.ValidFrom and new.ValidTo))
+          or (new.C_Currency_ID    != old.C_Currency_ID)
+        or (new.C_Currency_ID_To != old.C_Currency_ID_To)
+        or (new.MultiplyRate     != old.MultiplyRate)
+      );
+
+    IF v_count>0 THEN
+      RAISE EXCEPTION '%', 'Cannot modify used rate'; --OBTG:-20506--
+    END IF;
+  END IF;
+  IF TG_OP = 'DELETE' THEN
+   select count(*)
+    into v_count
+     from fact_acct    f,
+         c_acctschema s
+    where f.c_acctschema_id = s.c_acctschema_id
+      and f.c_currency_id = old.C_Currency_ID
+     and s.c_currency_id = old.C_Currency_ID_TO
+     and f.dateacct between old.ValidFrom and old.ValidTo;
+    IF v_count>0 THEN
+      RAISE EXCEPTION '%', 'Cannot modify used rate'; --OBTG:-20506--
+    END IF;
+  END IF;
+
+IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
+
+END 
+
+; $_$;
+
+
+ALTER FUNCTION public.c_conversion_rate_trg() OWNER TO tad;

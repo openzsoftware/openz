@@ -241,6 +241,10 @@ public class FileImport extends HttpSecureAppServlet {
     	  String strAD_Org_ID = vars.getStringParameter("inpadOrgId");
     	  return FileImportData.i_import_productionplan(this, uploadedFilePath,vars.getUser(), strAD_Org_ID,Delimiter);
       }
+      if (strAdImpformatId.equals("114DFDD2E7874A3F80A923B27C4A17D1")){ // Inventory List
+          String strAD_Org_ID = vars.getStringParameter("inpadOrgId");
+          return FileImportData.i_import_inventory(this, uploadedFilePath,vars.getUser(), strAD_Org_ID,Delimiter);
+      }
       // Modules
       if(strAdImpformatId.equals("C772BD1A6E4C477281D19702B115193F")) { // CAMT Import (Module)
     	  String baseDesignPath = getBaseDesignPath(vars.getLanguage());

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.6.0.final using JasperReports Library version 6.6.0  -->
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RptStd_OrderLines" language="groovy" pageWidth="515" pageHeight="802" columnWidth="515" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="ae318b55-4767-4cc3-90a6-cbc62eab9f56">
 	<property name="ireport.scriptlethandling" value="0"/>
 	<property name="ireport.encoding" value="UTF-8"/>
@@ -55,8 +55,9 @@
        zssi_strNumber(c_order.grandtotal + coalesce(c_order.grandtotalonetime, 0),$P{LANGUAGE}) as grandtotal,
        zssi_strNumber(c_orderline.quantityorder,$P{LANGUAGE}) as quantityorder,
        m_attributesetinstance.description as attribute,
-  (select cursymbol from c_currency, ad_client where c_currency.c_currency_id=ad_client.c_currency_id) as cur,
-CASE WHEN ($P{LANGUAGE}='de_DE') then 'STD' else 'h' end as hh
+       (select cursymbol from c_currency, ad_client where c_currency.c_currency_id=ad_client.c_currency_id) as cur,
+       CASE WHEN ($P{LANGUAGE}='de_DE') then 'STD' else 'h' end as hh,
+       (select printTransferInReport(c_orderline.c_order_id)) as printtransferinreport
 from c_orderline left join C_TAX on c_orderline.c_tax_id=c_tax.c_tax_id
                  left join C_currency on c_orderline.c_currency_id=c_currency.c_currency_id
                  left join m_product on c_orderline.m_product_id=m_product.m_product_id
@@ -65,6 +66,9 @@ from c_orderline left join C_TAX on c_orderline.c_tax_id=c_tax.c_tax_id
 where c_orderline.c_order_id=($P{C_ORDER_ID})
 order by c_orderline.line]]>
 	</queryString>
+	<field name="printtransferinreport" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="printtransferinreport"/>
+	</field>
 	<field name="qtyordered" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="qtyordered"/>
 	</field>
@@ -174,7 +178,7 @@ order by c_orderline.line]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None">
-						<font size="9" />
+						<font size="9"/>
 					</textElement>
 					<text><![CDATA[Positions Total:]]></text>
 				</staticText>
@@ -190,7 +194,7 @@ order by c_orderline.line]]>
 						<rightPen lineWidth="0.0" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font fontName="OpenZ Sans" size="8" />
+						<font fontName="OpenZ Sans" size="8"/>
 						<paragraph rightIndent="4"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{totallines}+" "+$F{cursymbol}]]></textFieldExpression>
@@ -207,7 +211,7 @@ order by c_orderline.line]]>
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA[""]]></textFieldExpression>
 				</textField>
@@ -226,7 +230,7 @@ order by c_orderline.line]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font isBold="true" />
+						<font isBold="true"/>
 					</textElement>
 					<text><![CDATA[Grand Total:]]></text>
 				</staticText>
@@ -242,7 +246,7 @@ order by c_orderline.line]]>
 						<rightPen lineWidth="0.0" lineStyle="Double" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font size="9" isBold="true" />
+						<font size="9" isBold="true"/>
 						<paragraph rightIndent="4"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{grandtotal}+" "+$F{cursymbol}]]></textFieldExpression>
@@ -259,7 +263,7 @@ order by c_orderline.line]]>
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font size="9" isBold="true" />
+						<font size="9" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[""]]></textFieldExpression>
 				</textField>
@@ -300,7 +304,7 @@ order by c_orderline.line]]>
 	</title>
 	<pageHeader>
 		<band height="16" splitType="Stretch">
-			<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
+			<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1 && $F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
 			<staticText>
 				<reportElement key="staticText-6" x="293" y="0" width="124" height="16" uuid="dbb5d41f-0c24-4b9f-bab1-25f992968b72"/>
 				<box leftPadding="2">
@@ -308,7 +312,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9" />
+					<font size="9"/>
 				</textElement>
 				<text><![CDATA[Transfer Page]]></text>
 			</staticText>
@@ -318,7 +322,7 @@ order by c_orderline.line]]>
 				</reportElement>
 				<box leftPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph rightIndent="2"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{LANGUAGE}.equals("en_US")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue()).replace(",", "x").replace(".", ",").replace("x", "."):$P{LANGUAGE}.equals("de_DE")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue())+" "+$F{cursymbol}:$V{SUM_LINENETAMT}+" "+$F{cursymbol}]]></textFieldExpression>
@@ -329,7 +333,7 @@ order by c_orderline.line]]>
 					<bottomPen lineWidth="0.25"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>
@@ -337,7 +341,7 @@ order by c_orderline.line]]>
 				<reportElement key="textField-33" x="417" y="0" width="10" height="16" uuid="05bc044d-1516-4da3-a000-585f1f57a120"/>
 				<box leftPadding="2"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="9" />
+					<font size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[new java.lang.Integer($V{PAGE_NUMBER}.intValue() + $P{START_PAGE_SUBREP}.intValue() - 2)]]></textFieldExpression>
 			</textField>
@@ -348,7 +352,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9" />
+					<font size="9"/>
 				</textElement>
 				<text><![CDATA[:]]></text>
 			</staticText>
@@ -366,7 +370,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Quantity]]></text>
 			</staticText>
@@ -380,7 +384,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Unit]]></text>
 			</staticText>
@@ -394,7 +398,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Product]]></text>
 			</staticText>
@@ -408,7 +412,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Tax]]></text>
 			</staticText>
@@ -422,7 +426,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Net-Total]]></text>
 			</staticText>
@@ -436,7 +440,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Price]]></text>
 			</staticText>
@@ -450,7 +454,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Pos.]]></text>
 			</staticText>
@@ -483,7 +487,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
-					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{name} + (($F{DESCRIPTION} == null) ? "" : $F{DESCRIPTION})]]></textFieldExpression>
 			</textField>
@@ -497,7 +501,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph rightIndent="2"/>
 				</textElement>
 				<textFieldExpression><![CDATA["<font size=-8>" + ($P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749") ? "" :  $F{priceactual} + " " + $F{cursymbol}) + "</font>" + ($F{discount}.equals("0") ? "" : $F{discount}.equals("0.00") ? "" : ($F{discprint}.equals("N") ? "" : ("<br/>" + $F{discount} + " %" + "<br/>" + $F{pricestd} + " " + $F{cursymbol})))]]></textFieldExpression>
@@ -512,7 +516,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph rightIndent="0"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{qtyordered} + (($F{quantityorder} == null) ? "" : "<br/>" + $F{quantityorder})]]></textFieldExpression>
@@ -527,7 +531,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{uomid} + (($F{uomid2} == null) ? "" : "<br/>" + $F{uomid2})]]></textFieldExpression>
 			</textField>
@@ -541,7 +545,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749") ? "" : $F{tax})]]></textFieldExpression>
 			</textField>
@@ -555,7 +559,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph rightIndent="2"/>
 				</textElement>
 				<textFieldExpression><![CDATA[($P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749") ? "" : $F{linenetamt})+" "+$F{cursymbol}]]></textFieldExpression>
@@ -570,7 +574,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{line}]]></textFieldExpression>
 			</textField>
@@ -584,7 +588,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[]]></textFieldExpression>
 			</textField>
@@ -598,7 +602,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -611,7 +615,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 			</textField>
 			<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
@@ -624,7 +628,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
-					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -637,7 +641,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph rightIndent="2"/>
 				</textElement>
 			</textField>
@@ -651,7 +655,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -664,7 +668,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -677,7 +681,7 @@ order by c_orderline.line]]>
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 			</textField>
 			<break>
@@ -696,23 +700,25 @@ order by c_orderline.line]]>
 				<reportElement key="line-1" x="0" y="0" width="515" height="1" uuid="7ca9bb27-d699-4282-b6e5-ca66612f07cd"/>
 			</line>
 			<staticText>
-				<reportElement key="staticText-1" x="293" y="0" width="140" height="16" uuid="29ea6d6c-12a8-4eed-bd96-3c4d77d8b2e2"/>
+				<reportElement key="staticText-1" x="293" y="0" width="140" height="16" uuid="29ea6d6c-12a8-4eed-bd96-3c4d77d8b2e2">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
 				<box leftPadding="2">
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9" />
+					<font size="9"/>
 				</textElement>
 				<text><![CDATA[Transfer:]]></text>
 			</staticText>
 			<textField pattern="" isBlankWhenNull="false">
 				<reportElement key="textField-8" x="433" y="0" width="82" height="16" uuid="232c5175-c06e-4a67-9879-259500cec0c1">
-					<printWhenExpression><![CDATA[new java.lang.Boolean(!$P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749"))]]></printWhenExpression>
+					<printWhenExpression><![CDATA[new java.lang.Boolean(!$P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749") && $F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
 				</reportElement>
 				<box leftPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="8" />
+					<font size="8"/>
 					<paragraph rightIndent="2"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{LANGUAGE}.equals("en_US")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue()).replace(",", "x").replace(".", ",").replace("x", "."):$P{LANGUAGE}.equals("de_DE")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue())+" "+$F{cursymbol}:$V{SUM_LINENETAMT}+" "+$F{cursymbol}]]></textFieldExpression>
@@ -723,7 +729,7 @@ order by c_orderline.line]]>
 					<bottomPen lineWidth="0.0"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[""]]></textFieldExpression>
 			</textField>

@@ -63,6 +63,7 @@
       AND C_ORDERLINE.C_UOM_ID = C_UOM.C_UOM_ID
       AND C_ORDER.ISSOTRX = 'N'
       AND C_ORDER.PROCESSED = 'Y'
+      AND C_ORDER.docstatus != 'VO'
       AND ad_get_docbasetype(C_ORDER.c_DocType_ID) not in ('NON','POREQUESTOFFER','SALESOFFER')
       AND 0=0 AND C_ORDER.AD_ORG_ID IN ('1')
       AND C_ORDER.AD_CLIENT_ID IN ('6')
@@ -169,6 +170,7 @@
       AND C_ORDERLINE.C_UOM_ID = C_UOM.C_UOM_ID
       AND C_ORDER.ISSOTRX = 'N'
       AND C_ORDER.PROCESSED = 'Y'
+      AND C_ORDER.docstatus != 'VO'
       AND ad_get_docbasetype(C_ORDER.c_DocType_ID) not in ('NON','POREQUESTOFFER','SALESOFFER')
       AND 0=0 AND C_ORDER.AD_ORG_ID IN ('1')
       AND C_ORDER.AD_CLIENT_ID IN ('6')

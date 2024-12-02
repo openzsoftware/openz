@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2023 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+-->
+
+
+
+
+
+<SqlClass name="GetAttachementSizeData" package="org.openz.webservice.client.statistics" accessModifier="public">
+
+  <SqlMethod name="select" type="preparedStatement" return="multiple">
+    <SqlMethodComment>auch gelöschte dateien werden berücksichtigt</SqlMethodComment>
+      <Sql><![CDATA[
+       SELECT c_file_id, name, ad_table_id, ad_record_id FROM c_file WHERE filesize IS NULL
+       UNION SELECT c_filedeleted_id, name, ad_table_id, ad_record_id FROM c_filedeleted WHERE filesize IS NULL
+      ]]></Sql>
+    <Parameter name="adOrgId" optional="true" after="c_file WHERE filesize IS NULL">AND ad_org_id = ?</Parameter>
+    <Parameter name="adOrgId" optional="true" after="c_filedeleted WHERE filesize IS NULL">AND ad_org_id = ?</Parameter>
+  </SqlMethod>
+
+  <SqlMethod name="selectFilesize" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+       SELECT SUM(filesize)FROM c_file
+      ]]></Sql>
+    <Parameter name="adOrgId" optional="true" after="FROM c_file">WHERE ad_org_id = ?</Parameter>
+  </SqlMethod>
+  
+  <SqlMethod name="selectFilesizeDeleted" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+       SELECT SUM(filesize)FROM c_filedeleted
+      ]]></Sql>
+    <Parameter name="adOrgId" optional="true" after="FROM c_filedeleted">WHERE ad_org_id = ?</Parameter>
+  </SqlMethod>
+
+  <SqlMethod name="updateFilesize" type="preparedStatement" return="rowcount">
+    <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+       UPDATE c_file SET filesize = to_number(?) WHERE c_file_id = ?;
+       UPDATE c_filedeleted SET filesize = to_number(?) WHERE c_filedeleted_id = ?;
+      ]]></Sql>
+    <Parameter name="filesize"/>
+    <Parameter name="cFileId"/>
+    <Parameter name="filesize"/>
+    <Parameter name="cFileId"/>
+  </SqlMethod>
+
+</SqlClass>

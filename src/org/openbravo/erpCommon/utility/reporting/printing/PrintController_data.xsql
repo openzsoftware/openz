@@ -82,4 +82,27 @@
         </Sql>
         <Parameter name="name"/>
     </SqlMethod>
+    <SqlMethod name="resolveSpecialTags" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            select resolveSpecialEmailTags(?,?) from dual
+            ]]>
+        </Sql>
+        <Parameter name="recordId"/>
+        <Parameter name="text"/>
+    </SqlMethod>
+    <SqlMethod name="getLangOfBpartner" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            SELECT bp.ad_language FROM c_bpartner bp where bp.c_bpartner_id =
+            (SELECT c_bpartner_id from c_order
+            WHERE c_order_id = ?)
+            ]]>
+        </Sql>
+        <Parameter name="dummytable" optional="true" type="replace" after="SELECT c_bpartner_id from " text="c_order"/>
+        <Parameter name="dummyfield" optional="true" type="replace" after="WHERE " text="c_order_id"/>
+        <Parameter name="DocumentId"/>
+    </SqlMethod>
 </SqlClass>

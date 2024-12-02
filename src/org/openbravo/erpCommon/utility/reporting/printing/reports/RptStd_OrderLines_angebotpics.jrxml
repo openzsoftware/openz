@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.9.0.final using JasperReports Library version 6.9.0-cb8f9004be492ccc537180b49c026951f4220bf3  -->
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="RptStd_OrderLines" language="groovy" pageWidth="515" pageHeight="802" whenNoDataType="AllSectionsNoDetail" columnWidth="515" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" isIgnorePagination="true" uuid="b4999190-a30f-4dc2-ab6c-268cf816bb28">
 	<property name="ireport.scriptlethandling" value="0"/>
 	<property name="ireport.encoding" value="UTF-8"/>
@@ -68,8 +68,9 @@
        CASE WHEN C_orderline.isgrossprice='N' THEN (select zssi_strNumber(sum_linenetamt,$P{LANGUAGE}) from zssi_getorderlinecombinedsums(c_orderline.c_order_id, c_orderline.line)) 
        else (select zssi_strNumber(sum_linegrossamt,$P{LANGUAGE}) from zssi_getorderlinecombinedsums(c_orderline.c_order_id, c_orderline.line)) end end as sum_linenetamt,
        (select isonlyone from zssi_getorderlinecombinedsums(c_orderline.c_order_id, c_orderline.line)) as isonlyone,
-(select $P{BASE_ATTACH}||'/'||ad_table_id||'-'||ad_record_id||'/'||c_file.name
- from c_file where  lower(right(c_file.name,4)) in ('.jpg','.bmp','.gif','.png') and c_file.isactive='Y' and c_orderline.m_product_id=c_file.ad_record_id order by c_file.seqno limit 1) as filename
+       (select $P{BASE_ATTACH}||'/'||ad_table_id||'-'||ad_record_id||'/'||c_file.name
+       from c_file where  lower(right(c_file.name,4)) in ('.jpg','.bmp','.gif','.png') and c_file.isactive='Y' and c_orderline.m_product_id=c_file.ad_record_id order by c_file.seqno limit 1) as filename,
+       (select printTransferInReport(c_order.c_order_id)) as printtransferinreport
 
 from c_orderline left join C_TAX on c_orderline.c_tax_id=c_tax.c_tax_id
                  left join C_currency on c_orderline.c_currency_id=c_currency.c_currency_id
@@ -79,6 +80,9 @@ from c_orderline left join C_TAX on c_orderline.c_tax_id=c_tax.c_tax_id
 where c_orderline.c_order_id=($P{C_ORDER_ID})
 order by c_orderline.line]]>
 	</queryString>
+	<field name="printtransferinreport" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="printtransferinreport"/>
+	</field>
 	<field name="qtyordered" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="qtyordered"/>
 	</field>
@@ -219,7 +223,7 @@ order by c_orderline.line]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Middle" rotation="None">
-						<font size="9" />
+						<font size="9"/>
 					</textElement>
 					<text><![CDATA[Positions Total:]]></text>
 				</staticText>
@@ -235,7 +239,7 @@ order by c_orderline.line]]>
 						<rightPen lineWidth="0.0" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font fontName="OpenZ Sans" size="8" />
+						<font fontName="OpenZ Sans" size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{totallines}]]></textFieldExpression>
 				</textField>
@@ -251,7 +255,7 @@ order by c_orderline.line]]>
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{cursymbol}]]></textFieldExpression>
 				</textField>
@@ -270,7 +274,7 @@ order by c_orderline.line]]>
 						<rightPen lineWidth="0.0" lineStyle="Solid"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font isBold="true" />
+						<font isBold="true"/>
 					</textElement>
 					<text><![CDATA[Grand Total:]]></text>
 				</staticText>
@@ -286,7 +290,7 @@ order by c_orderline.line]]>
 						<rightPen lineWidth="0.0" lineStyle="Double" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font size="9" isBold="true" />
+						<font size="9" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{grandtotal}]]></textFieldExpression>
 				</textField>
@@ -302,7 +306,7 @@ order by c_orderline.line]]>
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Middle">
-						<font size="9" isBold="true" />
+						<font size="9" isBold="true"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{cursymbol}]]></textFieldExpression>
 				</textField>
@@ -343,7 +347,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 	</title>
 	<pageHeader>
 		<band height="16" splitType="Stretch">
-			<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
+			<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1 && $F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
 			<staticText>
 				<reportElement key="staticText-6" x="293" y="0" width="124" height="16" uuid="0ddf3e59-4db8-411d-8fda-b42fc4bb4a28"/>
 				<box leftPadding="2">
@@ -351,7 +355,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9" />
+					<font size="9"/>
 				</textElement>
 				<text><![CDATA[Transfer Page]]></text>
 			</staticText>
@@ -361,7 +365,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 				</reportElement>
 				<box leftPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{LANGUAGE}.equals("en_US")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue()).replace(",", "x").replace(".", ",").replace("x", "."):$P{LANGUAGE}.equals("de_DE")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue()):$V{SUM_LINENETAMT}]]></textFieldExpression>
 			</textField>
@@ -371,7 +375,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 					<bottomPen lineWidth="0.25"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{cursymbol}]]></textFieldExpression>
 			</textField>
@@ -379,7 +383,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 				<reportElement key="textField-33" x="417" y="0" width="10" height="16" uuid="ee0eb4d0-3367-4319-9209-b5ee7a79879c"/>
 				<box leftPadding="2"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="9" />
+					<font size="9"/>
 				</textElement>
 				<textFieldExpression><![CDATA[new java.lang.Integer($V{PAGE_NUMBER}.intValue() + $P{START_PAGE_SUBREP}.intValue() - 2)]]></textFieldExpression>
 			</textField>
@@ -390,7 +394,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9" />
+					<font size="9"/>
 				</textElement>
 				<text><![CDATA[:]]></text>
 			</staticText>
@@ -408,7 +412,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Quantity Ord-Qty]]></text>
 			</staticText>
@@ -422,7 +426,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Unit Ord-Unit]]></text>
 			</staticText>
@@ -436,7 +440,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Product]]></text>
 			</staticText>
@@ -452,7 +456,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Gross-Total]]></text>
 			</staticText>
@@ -468,7 +472,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Net-Total]]></text>
 			</staticText>
@@ -482,7 +486,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Price]]></text>
 			</staticText>
@@ -496,7 +500,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 					<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Top">
-					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+					<font size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 				</textElement>
 				<text><![CDATA[Pos.]]></text>
 			</staticText>
@@ -538,7 +542,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
-						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{name} + (($F{DESCRIPTION} == null) ? "" : $F{DESCRIPTION})]]></textFieldExpression>
 				</textField>
@@ -552,7 +556,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{cursymbol}]]></textFieldExpression>
 				</textField>
@@ -566,7 +570,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA["<font size=-8>" + ($P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749") ? "" :  $F{priceactual} + " " + $F{cursymbol}) + "</font>" + ($F{discount}.equals("0") ? "" : $F{discount}.equals("0.00") ? "" : ($F{discprint}.equals("N") ? "" : ("<br/>" + $F{discount} + " %" + "<br/>" + $F{pricestd} + " " + $F{cursymbol})))]]></textFieldExpression>
 				</textField>
@@ -582,7 +586,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{qtyordered} + (($F{quantityorder} == null) ? "" : "<br/>" + $F{quantityorder})]]></textFieldExpression>
 				</textField>
@@ -598,7 +602,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{uomid} + (($F{uomid2} == null) ? "" : "<br/>" + $F{uomid2})]]></textFieldExpression>
 				</textField>
@@ -612,7 +616,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA[($P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749") ? "" : $F{linenetamt})]]></textFieldExpression>
 				</textField>
@@ -626,7 +630,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{line}]]></textFieldExpression>
 				</textField>
@@ -642,7 +646,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
-						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -655,7 +659,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -668,7 +672,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
@@ -683,7 +687,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -698,7 +702,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -711,7 +715,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
@@ -724,7 +728,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<image hAlign="Center" vAlign="Middle">
@@ -759,7 +763,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
-						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{name} + (($F{DESCRIPTION} == null) ? "" : $F{DESCRIPTION})]]></textFieldExpression>
 				</textField>
@@ -773,7 +777,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -786,7 +790,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
@@ -801,7 +805,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{qtyordered} + (($F{quantityorder} == null) ? "" : "<br/>" + $F{quantityorder})]]></textFieldExpression>
 				</textField>
@@ -817,7 +821,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{uomid} + (($F{uomid2} == null) ? "" : "<br/>" + $F{uomid2})]]></textFieldExpression>
 				</textField>
@@ -831,7 +835,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
@@ -844,7 +848,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{line}]]></textFieldExpression>
 				</textField>
@@ -860,7 +864,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
-						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -873,7 +877,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -886,7 +890,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
@@ -901,7 +905,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -916,7 +920,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -929,7 +933,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
@@ -942,7 +946,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<image hAlign="Center" vAlign="Middle">
@@ -973,7 +977,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA[$F{cursymbol}]]></textFieldExpression>
 				</textField>
@@ -987,7 +991,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1000,7 +1004,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 					<textFieldExpression><![CDATA[($P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749") ? "" : $F{sum_linenetamt})]]></textFieldExpression>
 				</textField>
@@ -1017,7 +1021,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
-						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
@@ -1032,7 +1036,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1047,7 +1051,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
@@ -1060,7 +1064,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1073,7 +1077,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1086,7 +1090,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1099,7 +1103,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
@@ -1115,7 +1119,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
-						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
@@ -1130,7 +1134,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1145,7 +1149,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
@@ -1158,7 +1162,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<break>
@@ -1184,7 +1188,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
-						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1197,7 +1201,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1210,7 +1214,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
@@ -1225,7 +1229,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1240,7 +1244,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1253,7 +1257,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
@@ -1266,7 +1270,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="" isBlankWhenNull="true">
@@ -1282,7 +1286,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Left" verticalAlignment="Top" markup="html">
-						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" />
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1295,7 +1299,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1308,7 +1312,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="#,##0.00" isBlankWhenNull="true">
@@ -1323,7 +1327,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1338,7 +1342,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top" markup="html">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -1351,7 +1355,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Right" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<textField isStretchWithOverflow="true" pattern="####0" isBlankWhenNull="true">
@@ -1364,7 +1368,7 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 						<rightPen lineWidth="0.25" lineStyle="Solid" lineColor="#000000"/>
 					</box>
 					<textElement textAlignment="Center" verticalAlignment="Top">
-						<font size="8" />
+						<font size="8"/>
 					</textElement>
 				</textField>
 				<break>
@@ -1384,33 +1388,37 @@ $P{BASE_DESIGN} + "/org/openbravo/erpCommon/utility/reporting/printing/reports/R
 				<reportElement key="line-1" x="0" y="0" width="515" height="1" uuid="0d32d8f9-a46a-483a-bbd1-32c9d4c0927b"/>
 			</line>
 			<staticText>
-				<reportElement key="staticText-1" x="293" y="0" width="140" height="16" uuid="8d971d81-57d3-4f61-b85e-bcec1816ab8d"/>
+				<reportElement key="staticText-1" x="293" y="0" width="140" height="16" uuid="8d971d81-57d3-4f61-b85e-bcec1816ab8d">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
 				<box leftPadding="2">
 					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
 				</box>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="9" />
+					<font size="9"/>
 				</textElement>
 				<text><![CDATA[Transfer:]]></text>
 			</staticText>
 			<textField pattern="" isBlankWhenNull="false">
 				<reportElement key="textField-8" x="433" y="0" width="68" height="16" uuid="36b14faf-f5ef-45d8-8123-01685e23939c">
-					<printWhenExpression><![CDATA[new java.lang.Boolean(!$P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749"))]]></printWhenExpression>
+					<printWhenExpression><![CDATA[new java.lang.Boolean(!$P{doctype_id}.equals("8CF74AC370B04133B54C44A12E084749") && $F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
 				</reportElement>
 				<box leftPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{LANGUAGE}.equals("en_US")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue()).replace(",", "x").replace(".", ",").replace("x", "."):$P{LANGUAGE}.equals("de_DE")?new DecimalFormat("#,##0.00").format($V{SUM_LINENETAMT}.doubleValue()):$V{SUM_LINENETAMT}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="false">
-				<reportElement key="textField-9" x="501" y="0" width="14" height="16" uuid="85aad153-d25d-49aa-8090-8b0fa4c2fc99"/>
+				<reportElement key="textField-9" x="501" y="0" width="14" height="16" uuid="85aad153-d25d-49aa-8090-8b0fa4c2fc99">
+					<printWhenExpression><![CDATA[new java.lang.Boolean($F{printtransferinreport}.equals("Y"))]]></printWhenExpression>
+				</reportElement>
 				<box>
 					<bottomPen lineWidth="0.0"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font size="8" />
+					<font size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{cursymbol}]]></textFieldExpression>
 			</textField>

@@ -64,11 +64,13 @@
   <SqlMethod name="updateline" type="preparedStatement" return="string">
     <SqlMethodComment></SqlMethodComment>
     <Sql>
-       select pdc_InventoryUpdateLine(?,?,?,null,to_number(?)) from dual 
+       select pdc_InventoryUpdateLine(?,?,?,?,?,to_number(?)) from dual 
     </Sql>
     <Parameter name="mInventoryId"/>
     <Parameter name="mLocatorId"/>
     <Parameter name="mProductId"/>
+    <Parameter name="serialnumber"/>
+    <Parameter name="batchnumber"/>
     <Parameter name="qtyCount"/>
   </SqlMethod>
  

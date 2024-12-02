@@ -147,6 +147,8 @@ v_bpuom varchar;
 v_lang varchar;
 v_ResultStr varchar;
 v_fieldscontainer varchar;
+v_isactive varchar;
+v_isstocked varchar;
 BEGIN
     if p_filename is null then return 'ERROR'; end if;
     perform zsse_droptable ('i_productimport');
@@ -156,7 +158,7 @@ BEGIN
     LOOP
         if ad_fieldGetVisibleLogic(v_cur.pad_ref_fieldcolumn_id,'')='VISIBLE'  then         
             if v_cmd='' then v_cmd := 'create temporary table i_productimport('; else v_cmd := v_cmd ||' , ';  end if;
-            if v_cur.pname not in ('AD_Org_ID','Value','Name','M_Product_Category_ID','Typeofproduct','C_Uom_ID','Producttype','C_Country_ID','C_Tax_ID','Basepriceunit','M_Locator_ID') then
+            if v_cur.pname not in ('AD_Org_ID','Value','Name','M_Product_Category_ID','Typeofproduct','C_Uom_ID','Producttype','C_Country_ID','C_Tax_ID','Basepriceunit','M_Locator_ID','xapi_parentproduct','xapi_parentproductvalue','xapi_attributeset','xapi_attributesetinstance') then
                 if v_fieldlist!='' then v_fieldlist:=v_fieldlist||','; end if;
                 if (select data_type from information_schema.columns where table_name='m_product' and column_name=lower(v_cur.pname))='numeric' then
                     v_fieldlist:=v_fieldlist||v_cur.pname||'=to_number(a.'||v_cur.pname||')';
@@ -177,8 +179,7 @@ BEGIN
     EXECUTE(v_cmd);
     v_cmd := 'alter table i_productimport add column idds character varying(32) not null default get_uuid()';
     EXECUTE(v_cmd);
-    select ad_language into v_lang from ad_client  where ad_client_id=v_client;
-    
+    select ad_language into v_lang from ad_client  where ad_client_id=v_client;    
     for v_cur2 in (select * from i_productimport)
     LOOP
         /*
@@ -230,6 +231,20 @@ BEGIN
         if  v_ptype is null then
             raise exception '%', 'Type of Product not Found:'||v_cur2.producttype;
         end if;
+        BEGIN -- try catch mandatory field isstocked
+            select coalesce(v_cur2.isstocked, 'Y') into v_isstocked;
+        EXCEPTION
+            -- field not in record
+            WHEN OTHERS THEN
+                v_isstocked := 'Y';
+        END;
+        BEGIN -- try catch mandatory field isactive
+            select coalesce(v_cur2.isactive, 'Y') into v_isactive;
+        EXCEPTION
+            -- field not in record
+            WHEN OTHERS THEN
+                v_isactive := 'Y';
+        END;
         /*
         Checks for NON Mandatory Fields  
         */
@@ -267,9 +282,9 @@ BEGIN
         if v_productid is null then
             v_productid:=get_uuid();
             insert into m_product(ad_org_id ,  value , name ,  m_product_category_id ,typeofproduct , c_uom_id ,  producttype , c_country_id, c_tax_id , basepriceunit,m_locator_id,
-                                  CREATED, CREATEDBY, UPDATED, UPDATEDBY,m_product_ID,ad_client_id)
+                                  CREATED, CREATEDBY, UPDATED, UPDATEDBY,m_product_ID,ad_client_id, isactive, isstocked)
                         values   (v_org, v_cur2.value , v_cur2.name ,v_pcat,v_type,v_uom,v_ptype,v_country , v_tax , v_bpuom,v_locat,
-                                  now(),p_user,now(),p_user,v_productid,v_client);
+                                  now(),p_user,now(),p_user,v_productid,v_client, v_isactive, v_isstocked);
             v_ii:=v_ii+1;
         else
             update m_product set ad_org_id=v_org , value =v_cur2.value, name =v_cur2.name,  m_product_category_id =v_pcat,
@@ -280,13 +295,24 @@ BEGIN
            if (select is_product_unit_read_only(v_productid, 'IMPORT')) = 'N' then
              update m_product set c_uom_id=v_uom  where m_product_id=v_productid;
            end if;
-        end if;
+        end if;        
         update i_productimport set idds=v_productid where idds=v_cur2.idds;
+        -- Dynamic Update rest of fields
+        -- one update per product to catch and display errors
+        v_cmd := 'update m_product set '||v_fieldlist||' from i_productimport a where a.idds=m_product.m_product_id and a.idds='''|| v_productid ||'''';       
+        RAISE notice '%', v_cmd;
+        EXECUTE(v_cmd);
+    
+        -- for xml api, fields only active with module
+        if(exists(select * from ad_module where name='OpenZ-XML-API' and version_label>'3.8.20.506') and (select isactive='Y' from ad_module where name='OpenZ-XML-API')) then
+          -- xapi fields, fieldname != tablename -> Daten müssen erst ermittelt werden
+          update m_product set xapi_parentproduct=(select m_product_id from m_product where value = v_cur2.xapi_parentproductvalue),
+            xapi_attributeset=(select m_attributeset_id from m_attributeset where name = v_cur2.xapi_attributeset),
+            xapi_attributesetinstance=(select i.m_attributesetinstance_id from m_attributesetinstance i,m_attributeset a where a.m_attributeset_id=i.m_attributeset_id and a.name=v_cur2.xapi_attributeset and i.description = v_cur2.xapi_attributesetinstance),
+            xapi_parentproductvalue=v_cur2.xapi_parentproductvalue
+            where m_product_id = v_productid;
+        end if;
     END LOOP;
-    -- Dynamic Update rest of fields
-    v_cmd := 'update m_product set '||v_fieldlist||' from i_productimport a where a.idds=m_product.m_product_id';
-    RAISE notice '%', v_cmd;
-    EXECUTE(v_cmd);
     return v_i||' Artikel importiert, davon '||v_ii||' neu angelegt';  
 EXCEPTION
     WHEN OTHERS THEN
@@ -1359,12 +1385,14 @@ BEGIN
              
              -- Write a new BOM
              if v_product is not null then
+               if  c_getconfigoption('synchronizeworkstepboms',v_org)='Y'  then
                 for v_cur2 in (select m_productbom_id,sum(bomqty) as bomqty,min(line) as line from m_product_bom where m_product_id=v_product and  workstepname is null group by m_productbom_id)
                 LOOP
                      insert into zspm_projecttaskbom(zspm_projecttaskbom_id,ad_client_id,AD_ORG_ID, CREATEDBY, UPDATEDBY,c_projecttask_id,m_product_id,quantity,line,issuing_locator,receiving_locator)
                        values(get_uuid(),v_client,v_org,p_user,p_user,v_ptid,
                        v_cur2.m_productbom_id,v_cur2.bomqty,v_cur2.line,v_issloc,v_recloc);
                 END LOOP;
+               end if;
              else
                 -- Durchreiche-Workstep                
                 select product into v_prdval from i_productionplan where value=currentAssemply and to_number(coalesce(sortno,'0'))<to_number(coalesce(v_cur.sortno,'0')) and product is not null and assembly='Y' order by sortno desc limit 1;
@@ -1424,5 +1452,145 @@ AS $_$
 DECLARE
 BEGIN
     return '';
+END;
+$_$  LANGUAGE 'plpgsql';
+
+
+select zsse_DropView ('i_inventory_v');
+CREATE OR REPLACE VIeW i_inventory_v as
+select
+il.m_inventoryline_id as i_inventory_v_id,
+il.AD_CLIENT_ID,
+il.AD_ORG_ID,
+il.CREATEDBY,
+il.created,
+il.UPDATEDBY,
+il.updated,
+il.isactive,
+i.name as inventory_name,
+il.m_locator_id,
+il.description,
+il.m_attributesetinstance_id,
+il.value,
+il.name,
+il.qtycount
+from m_inventoryline il left join m_inventory i on i.m_inventory_id = il.m_inventory_id
+where i.processed = 'N';
+
+CREATE or replace FUNCTION i_import_inventory(p_filename varchar,p_user varchar, p_org_id varchar, p_delimiter varchar) RETURNS varchar
+AS $_$
+DECLARE
+-- Crazy dynamical import format stuff...
+v_cur RECORD;
+v_cmd varchar:='';
+ 
+v_org varchar;
+v_warehouse varchar;
+v_locator varchar;
+v_inventory varchar;
+v_product varchar;
+v_i numeric:=0;
+v_client character varying:='C726FEC915A54A0995C568555DA5BB3C';
+v_uom varchar;
+v_attribute varchar;
+v_qtybook numeric;
+v_lang varchar;
+BEGIN
+    if p_filename is null then return 'ERROR'; end if;
+    -- Dynamisches allozieren der Felder
+    -- Format anziehen (TAB: Export Physical Inventory)
+    perform zsse_droptable ('i_import_inventory');
+    -- Format anziehen (TAB: Export Offer)
+    for v_cur in (select pname,pad_ref_fieldcolumn_id from ad_selecttabfields('DE_de','BC03487707374AC1973A812133F73359') order by pline)
+    LOOP
+      if ad_fieldGetVisibleLogic(v_cur.pad_ref_fieldcolumn_id,'')='VISIBLE' then
+          if v_cmd='' then
+              v_cmd:='create temporary table i_import_inventory(';
+          else
+              v_cmd := v_cmd ||', ';
+          end if;
+          v_cmd := v_cmd ||v_cur.pname||' text';
+      end if;
+    END LOOP;
+    v_cmd := v_cmd ||' )  ON COMMIT DROP';
+    RAISE notice '%', v_cmd;
+    EXECUTE(v_cmd);
+    -- Datei in Tabelle
+    v_cmd := 'COPY i_import_inventory FROM ''' || p_filename ||''' CSV DELIMITER as '||chr(39)||p_delimiter||chr(39)||' HEADER ;';
+    EXECUTE(v_cmd);
+    v_cmd := 'alter table i_import_inventory add column idds character varying(32) not null default get_uuid()';
+    EXECUTE(v_cmd);
+    select ad_language into v_lang from ad_client  where ad_client_id=v_client;
+
+    if (select count(distinct inventory_name) from i_import_inventory)!=1 then
+        raise exception '%','Es kann nur eine Inventur importiert werden';
+    end if;
+
+    for v_cur in (select * from i_import_inventory)
+    LOOP
+        -- Pflichtfelder
+        v_inventory:=null;
+        select m_inventory_id into v_inventory from m_inventory where m_inventory.name = v_cur.inventory_name and m_inventory.processed = 'N';
+        if v_inventory is null then
+            raise exception '%','Inventur nicht geöffnet: '||v_cur.inventory_name;
+        end if;
+        v_org:=null;
+        select ad_org_id into v_org from m_inventory where m_inventory_id=v_inventory;
+        if v_org is null or v_org='0' then
+            raise exception '%','Organisation existiert nicht (oder nicht erlaubt) '||coalesce(v_cur.ad_org_id,'NULL');
+        end if;
+        v_warehouse:=null;
+        select m_warehouse_id into v_warehouse from m_inventory where m_inventory_id = v_inventory;
+        if v_warehouse is null then
+            raise exception '%','Lager nicht gefunden: '||v_cur.m_warehouse_id;
+        end if;
+        v_locator:=null;
+        if (select count(*) from m_locator where value=v_cur.m_locator_id)=1 then
+            select m_locator_id into v_locator from m_locator where value=v_cur.m_locator_id;
+        end if;
+        if v_locator is null then
+            raise exception '%','Lagerort nicht gefunden: '||v_cur.m_locator_id;
+        end if;
+        v_product:=null;
+        if (select count(*) from m_product where value=v_cur.value)=1 then
+            select m_product_id into v_product from m_product where value=v_cur.value;
+        end if;
+        if v_product is null then
+            raise exception '%','Artikel nicht gefunden: '||v_cur.value;
+        end if;
+        if v_cur.qtycount is null then
+            raise exception '%','Gezählte Menge nicht angegeben: ' || v_cur.value;
+        end if;
+
+        -- weitere Felder
+        v_uom:=null;
+        select c_uom_id into v_uom from m_product where m_product_id = v_product;
+        v_attribute:=null;
+        select m_attributesetinstance_id into v_attribute from m_attributesetinstance where description = v_cur.m_attributesetinstance_id and isactive = 'Y'
+                                                                                       and m_attributeset_id = (select m_attributeset_id from m_product where m_product_id = v_product);
+        if v_attribute is null and v_cur.m_attributesetinstance_id is not null then
+            raise exception '%','Attribut im System unbekannt: ' || v_cur.m_attributesetinstance_id || ' für Artikel ' || v_cur.value;
+        end if;
+        v_qtybook:=null;
+        select qtyonhand into v_qtybook from zssi_onhanqty where m_product_id = v_product and m_locator_id = v_locator;
+
+        -- delete all inventorylines from current inventory
+        delete from m_inventoryline where m_inventory_id = v_inventory and v_i = 0; -- only on first loop
+        -- insert new imported inventorylines
+        insert into m_inventoryline (m_inventoryline_id, ad_client_id, ad_org_id, isactive, created, createdby, updated, updatedby,
+                                     m_inventory_id, m_locator_id, m_product_id, line, qtycount, description, m_attributesetinstance_id, c_uom_id, value, name, qtybook)
+                             values (v_cur.idds, v_client, v_org, 'Y', now(), p_user, now(), p_user,
+                                     v_inventory, v_locator, v_product, 10*(v_i+1), coalesce(v_qtybook,0), v_cur.description, v_attribute, v_uom, v_cur.value, v_cur.name, coalesce(v_qtybook,0));
+        -- insert with qtycount = qtybook and update qtycount
+        -- prevents errors with snr/bnr
+        update m_inventoryline set qtycount = coalesce(to_number(v_cur.qtycount),0) where m_inventoryline_id = v_cur.idds;
+
+        v_i := v_i + 1;
+
+    END LOOP;
+    return v_i||' Inventurzeilen importiert';
+EXCEPTION
+    WHEN OTHERS THEN
+        raise exception '%',' @ERROR=' || SQLERRM;
 END;
 $_$  LANGUAGE 'plpgsql';

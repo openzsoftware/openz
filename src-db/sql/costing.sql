@@ -1314,6 +1314,7 @@ $BODY$ DECLARE
 ******************************************************************************************************************************/
   v_Cost     NUMERIC;
   v_CostType VARCHAR(60) ; 
+  v_cur      RECORD;
   BEGIN
     v_CostType := p_CostType;
     IF(p_Product_ID IS NULL) THEN
@@ -1337,6 +1338,17 @@ $BODY$ DECLARE
            -- Try default
            select cost into v_Cost from M_COSTING where m_product_id=p_product_id  and p_movementdate between datefrom and dateto  and ad_org_id='0' order by created desc LIMIT 1;
        end if;
+    end if;
+    -- Semi Finished (11520) Halbzeug
+    if v_Cost is null or v_Cost=0 then
+      if (select typeofproduct from m_product where m_product_id = p_product_id)='SF' then
+        v_Cost:=0;
+        -- Cost of BOM...
+        for v_cur in (select * from m_product_bom where m_product_id=p_product_id) 
+        LOOP
+          v_Cost:=v_Cost+m_get_product_cost(v_cur.m_productbom_id,p_movementdate,p_costtype,p_org_id)*v_cur.bomqty;
+        END LOOP;
+      end if;
     end if;
     if v_Cost is null then
           v_Cost:=0;

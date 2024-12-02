@@ -52,7 +52,7 @@ public abstract class ProductTextHelper extends HttpSecureAppServlet {
           String element =  (String)it.next();
           field =(String)sorter.get(element);
           if (field.equals("proddescOrdernum"))
-            doctext=doctext+ProductTextData.getProductDescription(connp, mProductId) + "\n";
+            doctext=doctext+ProductTextData.getProductDescription(connp, mProductId, ProductTextData.getCustomerLanguage(connp, cBpartnerID)) + "\n";
           if (field.equals("vendpnumberdnOrdernum")) 
             if (isSOtrx.equalsIgnoreCase("N")){
               if (str2ndUom==null && strMProductPOID==null) {

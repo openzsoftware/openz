@@ -200,6 +200,52 @@ public class ReportInvoiceCustomerDimensionalAnalysesJR extends HttpSecureAppSer
         // TODO Auto-generated catch block
         e.printStackTrace();
       }
+    } else if (vars.commandIn("EDIT_EXCEL", "EDIT_EXCEL_COMPARATIVE")) {
+        String strDateFrom = vars.getDateParameterGlobalVariable("inpDateFrom",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|dateFrom",this);
+            String strDateTo = vars.getDateParameterGlobalVariable("inpDateTo",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|dateTo",this);
+            String strDateFromRef = vars.getDateParameterGlobalVariable("inpDateFromRef",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|dateFromRef",this);
+            String strDateToRef = vars.getDateParameterGlobalVariable("inpDateToRef",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|dateToRef",this);
+            String strPartnerGroup = vars.getRequestGlobalVariable("inpPartnerGroup",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|partnerGroup");
+            String strcBpartnerId = vars.getRequestInGlobalVariable("inpcBPartnerId_IN",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|partner", IsIDFilter.instance);
+            String strProductCategory = vars.getRequestGlobalVariable("inpProductCategory",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|productCategory");
+            String strmProductId = vars.getRequestInGlobalVariable("inpmProductId_IN",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|product", IsIDFilter.instance);
+            // ad_ref_list.value for refercence_id 800087
+            String strNotShown = vars.getInStringParameter("inpNotShown", IsPositiveIntFilter.instance);
+            String strShown = vars.getInStringParameter("inpShown", IsPositiveIntFilter.instance);
+            String strOrg = vars.getRequestGlobalVariable("inpOrg",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|org");
+            String strsalesrepId = vars.getRequestGlobalVariable("inpSalesrepId",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|salesrep");
+            String strcProjectId = vars.getRequestGlobalVariable("inpcProjectId",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|project");
+            String strProducttype = vars.getRequestGlobalVariable("inpProducttype",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|producttype");
+            String strOrder = vars.getRequestGlobalVariable("inpOrder",
+                "ReportSalesDimensionalAnalyze|order");
+            String strMayor = vars.getNumericParameter("inpMayor", "");
+            String strMenor = vars.getNumericParameter("inpMenor", "");
+            String strComparative = vars.getStringParameter("inpComparative", "N");
+            String strPartnerSalesrepId = vars.getRequestGlobalVariable("inpPartnerSalesrepId",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|partnersalesrep");
+            String strCurrencyId = vars.getGlobalVariable("inpCurrencyId",
+                "ReportInvoiceCustomerDimensionalAnalysesJR|currency", strUserCurrencyId);
+            try {
+              printPageHtml(request, response, vars, strComparative, strDateFrom, strDateTo,
+                  strPartnerGroup, strcBpartnerId, strProductCategory, strmProductId, strNotShown,
+                  strShown, strDateFromRef, strDateToRef, strOrg, strsalesrepId, strcProjectId,
+                  strProducttype, strOrder, strMayor, strMenor, strPartnerSalesrepId, strCurrencyId, "xls");
+            } catch (Exception e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
     } else
       pageErrorPopUp(response);
   }

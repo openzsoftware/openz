@@ -127,6 +127,7 @@ BEGIN
   SELECT name INTO v_reserved_product_name FROM m_product WHERE m_product_id = p_product_id;
   FOR v_reservedmovements_cur IN SELECT * FROM m_inout WHERE docstatus = 'RS'
                                 AND (SELECT count(*) FROM m_inoutline WHERE m_inoutline.m_inout_id = m_inout_id
+                                   AND m_inoutline.m_inout_id = m_inout.m_inout_id
                                    AND m_inoutline.m_product_id = p_product_id
                                    AND m_inoutline.m_locator_id = p_locator_id
                                    AND COALESCE(m_inoutline.m_attributesetinstance_id, '0') = COALESCE(p_attributesetinstance_id, '0')
@@ -512,7 +513,8 @@ CREATE OR REPLACE FUNCTION m_inout_post(p_pinstance_id character varying, p_inou
             END IF;
             IF coalesce(v_IsSet,'N')='Y' then
             -- Material Transaction for SET-Items
-            for v_Cur_Set in (select * from m_product_bom where m_product_id=Cur_InOutLine.M_Product_ID)
+            for v_Cur_Set in (select * from m_product_bom b where b.m_product_id=Cur_InOutLine.M_Product_ID and 
+                               exists (select 0 from m_product p where b.m_productbom_id=p.m_product_id and p.isstocked='Y' and p.producttype='I'))
                 LOOP
                   v_ResultStr:='CreateSetItemTransaction';
                   -- Select Locator, If Return from Product, if delivery from stock 
@@ -1423,6 +1425,7 @@ CREATE OR REPLACE FUNCTION m_inventory_listcreate(pinstance_id character varying
   --TYPE RECORD IS REFCURSOR;
     Cur_Parameter RECORD;
     --    Parameter Variables
+    v_User_ID VARCHAR(32);
     v_Record_ID VARCHAR(32); --OBTG:VARCHAR2--
     v_ProductValue VARCHAR(40) ; --OBTG:VARCHAR2--
     v_Locator_ID VARCHAR(32); --OBTG:VARCHAR2--
@@ -1450,6 +1453,7 @@ CREATE OR REPLACE FUNCTION m_inventory_listcreate(pinstance_id character varying
     v_ResultStr:='ReadingParameters';
     FOR Cur_Parameter IN
       (SELECT i.Record_ID,
+        i.ad_user_id,
         p.ParameterName,
         p.P_String,
         p.P_Number,
@@ -1461,6 +1465,7 @@ CREATE OR REPLACE FUNCTION m_inventory_listcreate(pinstance_id character varying
       ORDER BY p.SeqNo
       )
     LOOP
+      v_User_ID:=Cur_Parameter.ad_user_id;
       v_Record_ID:=Cur_Parameter.Record_ID;
       IF(Cur_Parameter.ParameterName='QtyRange') THEN
         v_QtyRange:=Cur_Parameter.P_String;
@@ -1651,8 +1656,8 @@ CREATE OR REPLACE FUNCTION m_inventory_listcreate(pinstance_id character varying
             VALUES
             (
               v_NextNo, v_NextLine, v_Client_ID, v_Org_ID,
-               'Y', TO_DATE(NOW()), '0', TO_DATE(NOW()),
-              '0', v_Record_ID, Cur_Storage.M_Locator_ID, Cur_Storage.M_ATTRIBUTESETINSTANCE_ID,
+               'Y', TO_DATE(NOW()), v_User_ID, TO_DATE(NOW()),
+              v_User_ID, v_Record_ID, Cur_Storage.M_Locator_ID, Cur_Storage.M_ATTRIBUTESETINSTANCE_ID,
               Cur_Storage.M_Product_ID, Cur_Storage.QtyOnHand,Cur_Storage.QtyOnHand, Cur_Storage.C_UOM_ID,(CASE WHEN Cur_Storage.QtyOnHandOrder IS NULL THEN NULL ELSE Cur_Storage.QtyOnHandOrder END), 
               Cur_Storage.QtyOnHandOrder, Cur_Storage.M_Product_UOM_ID
             )
@@ -1670,7 +1675,7 @@ CREATE OR REPLACE FUNCTION m_inventory_listcreate(pinstance_id character varying
             QUANTITYORDERBOOK=Cur_Storage.QtyOnHandOrder,
             M_Product_UOM_ID=Cur_Storage.M_Product_UOM_ID,
             Updated=TO_DATE(NOW()),
-            UpdatedBy='0'
+            UpdatedBy=v_User_ID
           WHERE M_Inventory_ID=v_Record_ID
             AND M_Product_ID=Cur_Storage.M_Product_ID
             AND C_UOM_ID=Cur_Storage.C_UOM_ID
@@ -2200,7 +2205,8 @@ For Manual Shipments a new Function was Created - This one is tooo chaotic.
     v_user varchar;
     v_OrderId varchar:='';
     v_BpartnerId varchar:='';
-     v_draftexists numeric:=0;
+    v_draftexists numeric:=0;
+    v_reservedexists numeric:=0;
     v_org varchar;
     v_order_delivered_count numeric:=0;
     v_lineid varchar;
@@ -2333,21 +2339,21 @@ For Manual Shipments a new Function was Created - This one is tooo chaotic.
                  or (Cur_lines.pendingdeliverycomplete='C' and v_BpartnerId!=Cur_lines.c_bpartner_id) then
                  -- activate just created Transaction.. 
                  if  v_OrderId!='' then 
-                       if v_lines=0 and v_draftexists=0 then -- no lines created.
+                       if v_lines=0 and (v_draftexists=0 and v_reservedexists=0) then -- no lines created.
                           delete from M_INOUT where M_InOut_ID=p_InOut_ID;
                           v_order_delivered_count:=v_order_delivered_count-1;
                        else
-                             if (v_issotrx='Y'  and v_draftexists=0 and c_getconfigoption('activateshipmentautomatically',v_org)='Y') or (v_issotrx='N' and c_getconfigoption('activatereceiptautomatically',v_org)='Y') then
+                             if (v_issotrx='Y'  and (v_draftexists=0 and v_reservedexists=0) and c_getconfigoption('activateshipmentautomatically',v_org)='Y') or (v_issotrx='N' and c_getconfigoption('activatereceiptautomatically',v_org)='Y') then
                                 if v_isserial then
                                    v_Message:='@zssm_MaterialReceivedSerialRegistrationNeccessary@'|| v_Message;
                                 else
                                    PERFORM M_INOUT_POST(NULL, p_InOut_ID) ;
                                 end if;
                              end if;
-                             if v_issotrx='Y' and v_draftexists=0 then
+                             if v_issotrx='Y' and (v_draftexists=0 and v_reservedexists=0) then
                                  v_Message:=v_Message||'@ShipmentCreated@: ' || zsse_htmlLinkDirectKey('../GoodsMovementcustomer/GoodsMovementcustomer_Relation.html',p_InOut_ID,v_DocumentNo)||'<br />';
                              end if;
-                             if v_issotrx='N' and v_draftexists=0 then
+                             if v_issotrx='N' and (v_draftexists=0 and v_reservedexists=0) then
                                  v_Message:=v_Message||'@ReceiptCreated@: ' || zsse_htmlLinkDirectKey('../GoodsMovementVendor/GoodsMovementVendor_Relation.html',p_InOut_ID,v_DocumentNo)||'<br />';
                              end if;
                        end if;
@@ -2362,13 +2368,22 @@ For Manual Shipments a new Function was Created - This one is tooo chaotic.
                  select get_uuid() into p_InOut_ID;
                  select updatedby into v_user from c_generateminoutmanual where c_generateminoutmanual_id=Cur_lines.c_generateminoutmanual_id;
                  -- Check if Draft exist.
-                 select count(*) into v_draftexists from   m_inoutline il,m_inout i where il.c_orderline_id =Cur_lines.c_orderline_id and il.m_inout_id=i.m_inout_id and i.docstatus='DR'; 
+                 select count(*) into v_draftexists from m_inoutline il,m_inout i where il.c_orderline_id =Cur_lines.c_orderline_id and il.m_inout_id=i.m_inout_id and i.docstatus='DR';
+                 -- Check if reserved shipments exist
+                 select count(*) into v_reservedexists from m_inoutline il,m_inout i where il.c_orderline_id =Cur_lines.c_orderline_id and il.m_inout_id=i.m_inout_id and i.docstatus='RS';
                  if v_draftexists>0 then
-                    select i.m_inout_id,documentno into p_InOut_ID,v_DocumentNo from   m_inoutline il,m_inout i where il.c_orderline_id =Cur_lines.c_orderline_id and il.m_inout_id=i.m_inout_id and i.docstatus='DR'; 
-                    if v_issotrx='Y' then     
-                              v_Message:=v_Message||'@DraftExistsCannotGenerate@ :' || zsse_htmlLinkDirectKey('../GoodsMovementcustomer/GoodsMovementcustomer_Relation.html',p_InOut_ID,v_DocumentNo)||'<br />';
+                    select i.m_inout_id,documentno into p_InOut_ID,v_DocumentNo from m_inoutline il,m_inout i where il.c_orderline_id =Cur_lines.c_orderline_id and il.m_inout_id=i.m_inout_id and i.docstatus='DR';
+                    if v_issotrx='Y' then
+                              v_Message:=v_Message||'@DraftExistsCannotGenerate@: ' || zsse_htmlLinkDirectKey('../GoodsMovementcustomer/GoodsMovementcustomer_Relation.html',p_InOut_ID,v_DocumentNo)||'<br />';
                     else
-                              v_Message:=v_Message||'@DraftExistsCannotGenerate@ :' || zsse_htmlLinkDirectKey('../GoodsMovementVendor/GoodsMovementVendor_Relation.html',p_InOut_ID,v_DocumentNo)||'<br />';
+                              v_Message:=v_Message||'@DraftExistsCannotGenerate@: ' || zsse_htmlLinkDirectKey('../GoodsMovementVendor/GoodsMovementVendor_Relation.html',p_InOut_ID,v_DocumentNo)||'<br />';
+                    end if;
+                 elsif v_reservedexists>0 then
+                    select i.m_inout_id,documentno into p_InOut_ID,v_DocumentNo from   m_inoutline il,m_inout i where il.c_orderline_id =Cur_lines.c_orderline_id and il.m_inout_id=i.m_inout_id and i.docstatus='RS';
+                    if v_issotrx='Y' then
+                              v_Message:=v_Message||'@ReservedExistsCannotGenerate@: ' || zsse_htmlLinkDirectKey('../GoodsMovementcustomer/GoodsMovementcustomer_Relation.html',p_InOut_ID,v_DocumentNo)||'<br />';
+                    else
+                              v_Message:=v_Message||'@ReservedExistsCannotGenerate@: ' || zsse_htmlLinkDirectKey('../GoodsMovementVendor/GoodsMovementVendor_Relation.html',p_InOut_ID,v_DocumentNo)||'<br />';
                     end if;
                  else
                        -- Create header
@@ -2409,7 +2424,7 @@ For Manual Shipments a new Function was Created - This one is tooo chaotic.
                          Next_Line:=true;
                       end if;
                 end if;
-                if Next_Line=false and v_draftexists=0 and Cur_lines.pendingqty!=0 then
+                if Next_Line=false and (v_draftexists=0 and v_reservedexists=0) and Cur_lines.pendingqty!=0 then
                    if Cur_lines.m_product_uom_id is not null then
                       v_2ndUOMQty:=Cur_lines.pendingqty*Cur_lines.quantityorder/Cur_lines.qtyordered;
                    else
@@ -2458,11 +2473,11 @@ For Manual Shipments a new Function was Created - This one is tooo chaotic.
                 end if;
             Next_Line:=false;             
         END LOOP; --Cur_lines
-        if v_lines=0 and v_draftexists=0 then -- no lines created.
+        if v_lines=0 and (v_draftexists=0 and v_reservedexists=0) then -- no lines created.
              delete from M_INOUT where M_InOut_ID=p_InOut_ID;
              v_order_delivered_count:=v_order_delivered_count-1;
         else
-          if (v_issotrx='Y' and v_draftexists=0 and c_getconfigoption('activateshipmentautomatically',v_org)='Y') or (v_issotrx='N' and c_getconfigoption('activatereceiptautomatically',v_org)='Y') then
+          if (v_issotrx='Y' and (v_draftexists=0 and v_reservedexists=0) and c_getconfigoption('activateshipmentautomatically',v_org)='Y') or (v_issotrx='N' and c_getconfigoption('activatereceiptautomatically',v_org)='Y') then
                if v_isserial=true then
                    v_Message:='@zssm_MaterialReceivedSerialRegistrationNeccessary@'|| v_Message;
                else
@@ -2474,18 +2489,20 @@ For Manual Shipments a new Function was Created - This one is tooo chaotic.
                    end if;
                end if;
           end if;
-          if v_issotrx='Y' and v_draftexists=0 then
+          if v_issotrx='Y' and (v_draftexists=0 and v_reservedexists=0) then
              v_Message:=v_Message||'@ShipmentCreated@: ' || zsse_htmlLinkDirectKey('../GoodsMovementcustomer/GoodsMovementcustomer_Relation.html',p_InOut_ID,v_DocumentNo)||'<br />';
           end if;
-          if v_issotrx='N' and v_draftexists=0 then
+          if v_issotrx='N' and (v_draftexists=0 and v_reservedexists=0) then
              v_Message:=v_Message||'@ReceiptCreated@: ' || zsse_htmlLinkDirectKey('../GoodsMovementVendor/GoodsMovementVendor_Relation.html',p_InOut_ID,v_DocumentNo)||'<br />';
           end if;
           v_result :=1;
         END IF;
       END IF; -- count>0
-      IF (v_order_delivered_count = 0 and v_draftexists=0) THEN
+      IF (v_order_delivered_count = 0 and (v_draftexists=0 and v_reservedexists=0)) THEN
           v_Message := v_Message||'@ZeroOrdersProcessed@';
           v_result :=1;
+      ELSIF (v_draftexists!=0 or v_reservedexists!=0) THEN
+          v_result :=2; -- set message to level warning
       END IF;
       /*************************************************************************/
       ---- <<FINISH_PROCESS>>
@@ -2678,7 +2695,7 @@ $BODY$ DECLARE
                 VALUES
                 (
                   NextNo, Cur_MoveLine.AD_Client_ID, Cur_MoveLine.AD_Org_ID, 'Y',
-                  TO_DATE(NOW()), '0', TO_DATE(NOW()), '0',
+                  TO_DATE(NOW()), Cur_MoveLine.updatedby, TO_DATE(NOW()), Cur_MoveLine.updatedby,
                   v_movementtype, Cur_MoveLine.M_Locator_ID, Cur_MoveLine.M_Product_ID, 
                   case when coalesce(v_stockedattribute,'N')='Y' then COALESCE(Cur_MoveLine.M_AttributeSetInstance_ID, '0') else '0' end, 
                   v_MoveDate, v_movqty, Cur_MoveLine.M_Internal_ConsumptionLine_ID, Cur_MoveLine.C_UOM_ID, Cur_MoveLine.c_project_id,Cur_MoveLine.c_projecttask_id,
@@ -2726,9 +2743,12 @@ $BODY$ DECLARE
                 else
                         v_bom_id:=  Cur_MoveLine.zspm_projecttaskbom_id;
                 end if;
+
+
                 if v_movementtype!='P+' then
                         update zspm_projecttaskbom set qtyreceived=qtyreceived-v_movqty,
-                                actualcosamount=(m_get_product_cost(Cur_MoveLine.m_product_id,to_date(now()),null,Cur_MoveLine.AD_Org_ID)*(qtyreceived-v_movqty))
+                                actualcosamount=(m_get_product_cost(Cur_MoveLine.m_product_id,to_date(now()),null,Cur_MoveLine.AD_Org_ID)*(qtyreceived-v_movqty)),
+                                updated = now(), updatedby = v_User
                         where zspm_projecttaskbom_id=v_bom_id; 
                         --raise notice '%','--------------------------Ask Cost:'||(select to_char(sum(cost)) from m_costing where m_product_id=Cur_MoveLine.m_product_id);
                 end if;
@@ -3171,7 +3191,7 @@ CREATE OR REPLACE FUNCTION m_inventory_post(pinstance_id character varying) RETU
           VALUES
           (
             NextNo, Cur_InvLine.AD_Client_ID, Cur_InvLine.AD_Org_ID, 'Y',
-            TO_DATE(NOW()), '0', TO_DATE(NOW()), '0',
+            TO_DATE(NOW()), Cur_InvLine.updatedby, TO_DATE(NOW()), Cur_InvLine.updatedby,
             'I+', Cur_InvLine.M_Locator_ID, Cur_InvLine.M_Product_ID, 
             case when coalesce(v_stockedattribute,'N')='Y' then COALESCE(Cur_InvLine.M_AttributeSetInstance_ID, '0') else '0' end, 
             v_InvDate, Cur_InvLine.QtyCount-COALESCE(Cur_InvLine.QtyBook, 0), Cur_InvLine.M_InventoryLine_ID, Cur_InvLine.M_Product_UOM_ID,
@@ -4339,7 +4359,7 @@ BEGIN
     OR(COALESCE(old.CHARGEAMT, 0) <> COALESCE(new.CHARGEAMT, 0))
     OR(COALESCE(old.AD_ORGTRX_ID, '0') <> COALESCE(new.AD_ORGTRX_ID, '0'))
     OR(COALESCE(old.USER1_ID, '0') <> COALESCE(new.USER1_ID, '0'))
-    OR(COALESCE(old.M_SHIPPER_ID, '0') <> COALESCE(new.M_SHIPPER_ID, '0'))
+    --OR(COALESCE(old.M_SHIPPER_ID, '0') <> COALESCE(new.M_SHIPPER_ID, '0'))
     OR(COALESCE(old.SALESREP_ID, '0') <> COALESCE(new.SALESREP_ID, '0'))
     OR(COALESCE(old.M_WAREHOUSE_ID, '0') <> COALESCE(new.M_WAREHOUSE_ID, '0'))
     OR(COALESCE(old.USER2_ID, '0') <> COALESCE(new.USER2_ID, '0'))
@@ -5358,7 +5378,12 @@ BEGIN
     END LOOP; -- Get Parameter
     if v_Record_ID is null then
         select ad_user_id,record_id into v_p_User,v_Record_ID from ad_pinstance where ad_pinstance_id= PInstance_ID;
+        if v_Record_ID is null then
+          v_Record_ID:=pinstance_id;
+          v_p_User:='0';
+        end if;
     end if;
+    
     RAISE NOTICE '%','  Record_ID=' || v_Record_ID ;
     -- Reading Movement
     SELECT MovementDate,
@@ -5383,22 +5408,20 @@ BEGIN
     END IF;--END_PROCESS
     IF(NOT END_PROCESS) THEN
       v_ResultStr:='CheckingRestrictions';
+        
       SELECT COUNT(*), MAX(M.line)
       INTO v_Count, v_line
       FROM M_MovementLine M,
-        M_Product P
+        M_Product P,m_attributeset a
       WHERE M.M_PRODUCT_ID=P.M_PRODUCT_ID
         AND P.M_ATTRIBUTESET_ID IS NOT NULL
         AND P.M_ATTRIBUTESETINSTANCE_ID IS NULL
+        and a.m_attributeset_id = p.m_attributeset_id
+        and a.ismandatory = 'Y'
         AND COALESCE(M.M_ATTRIBUTESETINSTANCE_ID, '0') = '0'
         AND M.M_Movement_ID=v_Record_ID;
       -- Prevent Movement for aticles with mandatory attributes, where no attribute is specified
-      IF v_Count<>0 AND (
-          SELECT a.ismandatory = 'Y' FROM m_attributeset a, m_product p, m_movementline m
-          where a.m_attributeset_id = p.m_attributeset_id
-            and p.m_product_id = m.m_product_id
-            and m.m_movement_id = v_Record_ID
-        ) THEN
+      IF v_Count<>0 THEN
         RAISE EXCEPTION '%', '@Inline@ '||v_line||' '||'@productWithoutAttributeSet@' ; --OBTG:-20000--
       END IF;
     END IF;--END_PROCESS
@@ -5421,8 +5444,7 @@ BEGIN
       SELECT AD_ORG_CHK_DOCUMENTS('M_MOVEMENT', 'M_MOVEMENTLINE', v_Record_ID, 'M_MOVEMENT_ID', 'M_MOVEMENT_ID') INTO v_is_included FROM dual;
       IF (v_is_included=-1) THEN
         RAISE EXCEPTION '%', '@LinesAndHeaderDifferentLEorBU@'; --OBTG:-20000--
-      END IF;
-      
+      END IF;  
       -- Check the period control is opened (only if it is legal entity with accounting)
       -- Gets the BU or LE of the document
       SELECT AD_GET_DOC_LE_BU('M_MOVEMENT', v_Record_ID, 'M_MOVEMENT_ID', 'LE')
@@ -5471,7 +5493,7 @@ BEGIN
             VALUES
             (
               NextNo, Cur_MoveLine.AD_Client_ID, Cur_MoveLine.AD_Org_ID, 'Y',
-              TO_DATE(NOW()), '0', TO_DATE(NOW()), '0',
+              TO_DATE(NOW()), Cur_MoveLine.updatedby, TO_DATE(NOW()), Cur_MoveLine.updatedby,
               'M-', Cur_MoveLine.M_Locator_ID, Cur_MoveLine.M_Product_ID, COALESCE(Cur_MoveLine.M_AttributeSetInstance_ID, '0'),
               v_MoveDate, (Cur_MoveLine.MovementQty * -1), Cur_MoveLine.M_MovementLine_ID, Cur_MoveLine.M_Product_UOM_ID,
               (Cur_MoveLine.QuantityOrder * -1), Cur_MoveLine.C_UOM_ID,Cur_MoveLine.weight
@@ -5491,7 +5513,7 @@ BEGIN
             VALUES
             (
               NextNo, Cur_MoveLine.AD_Client_ID, Cur_MoveLine.AD_Org_ID, 'Y',
-              TO_DATE(NOW()), '0', TO_DATE(NOW()), '0',
+              TO_DATE(NOW()), Cur_MoveLine.updatedby, TO_DATE(NOW()), Cur_MoveLine.updatedby,
               'M+', Cur_MoveLine.M_LocatorTo_ID, Cur_MoveLine.M_Product_ID, COALESCE(Cur_MoveLine.M_AttributeSetInstance_ID, '0'),
               v_MoveDate, Cur_MoveLine.MovementQty, Cur_MoveLine.M_MovementLine_ID, Cur_MoveLine.M_Product_UOM_ID,
               Cur_MoveLine.QuantityOrder, Cur_MoveLine.C_UOM_ID,Cur_MoveLine.weight

@@ -158,11 +158,15 @@ public class Report {
     if (log4j.isDebugEnabled())
       log4j.debug("target report filename: " + reportFilename);
 
-    if (multiReports && outputType.equals(OutputTypeEnum.PRINT)) {
-      reportFilename = UUID.randomUUID().toString() + "_" + reportFilename;
-      setDeleteable(true);
+    if (multiReports) {
+        if(outputType.equals(OutputTypeEnum.PRINT)) {
+            setDeleteable(true);
+        }
+        if(outputType.equals(OutputTypeEnum.PRINT) || outputType.equals(OutputTypeEnum.ARCHIVE)) {
+            reportFilename = UUID.randomUUID().toString() + "_" + reportFilename;
+        }
     }
-
+    reportFilename = reportFilename.replaceAll("/", "-");
     return reportFilename;
   }
 

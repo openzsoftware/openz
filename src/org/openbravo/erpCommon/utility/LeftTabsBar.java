@@ -126,7 +126,7 @@ text.append("></a>\n");
     text.append("  </tr>\n");
     text.append("  <tr class=\"Main_LeftTabsBar_bg_empty_cell\">\n");
     text.append("    <td class=\"Main_LeftTabsBar_bg_empty_cell\">\n");
-    text.append("    <a class=\"Main_NavBar_RightButton\" href=\"#\" onclick=\"openNewBrowser('http://openz.de/index.php/oonlinehilfem/sonlinehandbm.html', 'OpenZ');return false;\" onmouseout=\"window.status='';return true;\" id=\"buttonHelp\"><IMG src=\"")
+    text.append("    <a class=\"Main_NavBar_RightButton\" href=\"#\" onclick=\"openNewBrowser('https://openz.de/handbuch-openz/', 'OpenZ');return false;\" onmouseout=\"window.status='';return true;\" id=\"buttonHelp\"><IMG src=\"")
         .append(base_direction)
         .append(
             "/images/blank.gif\" class=\"Main_NavBar_RightButton_Icon Main_NavBar_RightButton_Icon_help\" border=\"0\"");
@@ -221,7 +221,7 @@ text.append("></a>\n");
     text.append("  </tr>\n");
     text.append("  <tr class=\"Main_LeftTabsBar_bg_empty_cell\">\n");
     text.append("    <td class=\"Main_LeftTabsBar_bg_empty_cell\">\n");
-    text.append("    <a class=\"Main_NavBar_RightButton\" href=\"#\" onclick=\"openNewBrowser('http://openz.de/index.php/oonlinehilfem/sonlinehandbm.html', 'OpenZ');return false;\" border=\"0\" onmouseover=\"window.status='");
+    text.append("    <a class=\"Main_NavBar_RightButton\" href=\"#\" onclick=\"openNewBrowser('https://openz.de/handbuch-openz/', 'OpenZ');return false;\" border=\"0\" onmouseover=\"window.status='");
     auxText = Utility.messageBD(conn, "Help", language);
     text
         .append(auxText)

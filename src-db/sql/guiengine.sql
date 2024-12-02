@@ -358,6 +358,7 @@ v_colsum numeric:=0;
 v_nextcolsameline varchar;
 v_nextcolsamelineInd varchar;
 v_nextcolcount varchar;
+v_icreated date;
 BEGIN
   for v_cur in (SELECT f.ad_fieldgroup_id ,c.ad_element_id, c.columnname as NAME,'' as NAME2,
                 (select case when mo.MappingName is null then null else 'reloadCallout(this.name,'||chr(39)||'..'||mo.MappingName||chr(39)||');' end from ad_model_object_mapping mo, ad_model_object m,ad_callout co where co.ad_callout_id=coalesce(f.ad_callout_id,c.ad_callout_id) and co.ad_callout_id=m.ad_callout_id and mo.ad_model_object_id=m.ad_model_object_id limit 1) as ONCHANGEEVENT, 
@@ -459,14 +460,17 @@ BEGIN
      pleadingemptycols:=0;
     -- Determin Leading Empty Cols (We have 6 Columns- 2nd field needs leading of 1 If  1st field has 2 columns and no 3rd field with 2 columns follows) 
      if v_colsum = 2  then -- First field has 2 columns - we are in the 2nd field of a line
-            select ad_field_v.issameline,ad_fieldinstance.issameline,coalesce(ad_fieldinstance.colstotal,ad_field_v.colstotal) into v_nextcolsameline,v_nextcolsamelineInd,v_nextcolcount
+            select ad_field_v.issameline,ad_fieldinstance.issameline,coalesce(ad_fieldinstance.colstotal,ad_field_v.colstotal),coalesce(trunc(ad_fieldinstance.created),trunc(now())) 
+                   into v_nextcolsameline,v_nextcolsamelineInd,v_nextcolcount,v_icreated
                               from ad_field_v left join ad_fieldinstance on ad_fieldinstance.ad_field_v_id=ad_field_v.ad_field_v_id
                                where ad_tab_id=in_tab_id and  coalesce(ad_fieldinstance.line,ad_field_v.seqno)>pline 
                                order by coalesce(ad_fieldinstance.line,ad_field_v.seqno)  limit 1;
             -- After the current 2-column field anoter field  with 2 columns may folow. In this cace we do not need a leading empty col.
             -- Prop. Fix in Whereclause
             -- and (case when coalesce(ad_fieldinstance.visiblesetting,'NON')='VISIBLE' then 'Y' when coalesce(ad_fieldinstance.visiblesetting,'NON')='HIDDEN' then 'N' else ad_field_v.isdisplayed end) = 'Y'  
-            if  (v_nextcolsameline='Y'  or v_nextcolsamelineInd='Y')  and to_number(pCOLSTOTAL)=2 and to_number(v_nextcolcount)=2 then
+            -- Ticket 11221
+            if  ((coalesce(v_nextcolsamelineInd,v_nextcolsameline)='Y')  and to_number(pCOLSTOTAL)=2 and to_number(v_nextcolcount)=2 and v_icreated>=to_date('26.09.2023','dd.mm.yyyy')) or
+                ((v_nextcolsameline='Y'  or v_nextcolsamelineInd='Y')  and to_number(pCOLSTOTAL)=2 and to_number(v_nextcolcount)=2 and v_icreated<to_date('26.09.2023','dd.mm.yyyy')) then
                      null;
             else
                 pleadingemptycols:=1;

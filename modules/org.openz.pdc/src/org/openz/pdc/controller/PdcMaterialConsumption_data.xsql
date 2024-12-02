@@ -325,5 +325,14 @@
     <Parameter name = "workstep"/>
     <Parameter name = "productid"/>
   </SqlMethod>
+  <SqlMethod name="isQtyFittingOnReceivecomplete" type="preparedStatement" return="String">
+  <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        select pdc_isQtyFittingOnReceivecomplete(to_number(?),to_number(?),to_number(?)) as result from dual
+    </Sql>
+    <Parameter name = "p_receive"/>
+    <Parameter name = "p_production"/>
+    <Parameter name = "p_qty4one"/>
+  </SqlMethod>
 
 </SqlClass>

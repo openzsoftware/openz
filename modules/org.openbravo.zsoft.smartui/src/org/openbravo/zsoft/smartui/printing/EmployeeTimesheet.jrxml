@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.11.0.final using JasperReports Library version 6.1.1  -->
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="EmployeeTimesheet.jrxml" language="groovy" pageWidth="873" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="871" leftMargin="1" rightMargin="1" topMargin="0" bottomMargin="0" isFloatColumnFooter="true" whenResourceMissingType="Key" uuid="82139160-956f-48d8-b876-cc1626aa209a">
 	<property name="ireport.zoom" value="1.331000000000001"/>
 	<property name="ireport.x" value="0"/>
@@ -18,6 +18,12 @@
 	<parameter name="DOCUMENT_ID" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
+	<parameter name="DATEFROM" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATETO" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
 	<queryString>
 		<![CDATA[SELECt
 -- Columns of Report
@@ -27,8 +33,10 @@
  zssi_getElementTextByColumname(mday,$P{LANGUAGE}) as mday,
  zssi_getElementTextByColumname('actualbalance',$P{LANGUAGE}) as actbalance,
  zssi_getElementTextByColumname('remaining',$P{LANGUAGE}) as remainingdays,
-zssi_getworktimeaccountbalance($P{DOCUMENT_ID} , $P{MONTH}, $P{YEAR}) as balancenumnumeric,
-  zssi_strnumber(zssi_getworktimeaccountbalance($P{DOCUMENT_ID} , $P{MONTH}, $P{YEAR}),$P{LANGUAGE}) as balancenum,
+ zssi_getworktimeaccountbalance($P{DOCUMENT_ID} , $P{MONTH}, $P{YEAR}, $P{DATEFROM}, $P{DATETO}, 'balance') as balancenumnumeric,
+ zssi_getworktimeaccountbalanceashhmm($P{DOCUMENT_ID} , $P{MONTH}, $P{YEAR}, $P{DATEFROM}, $P{DATETO}, 'balancestart') as balanceatstartdate,
+ zssi_getworktimeaccountbalanceashhmm($P{DOCUMENT_ID} , $P{MONTH}, $P{YEAR}, $P{DATEFROM}, $P{DATETO}, 'balance') as balancenum,
+ zssi_getElementTextByColumname('actualbalancestartdate',$P{LANGUAGE}) as actbalancestartdate,
  zssi_getElementTextByColumname(Replace(mm,' ',''),$P{LANGUAGE}) as mm,
  zssi_getElementTextByColumname('sumtotal_plus_paidbreak', $P{LANGUAGE}) as sumtotal_plus_paidbreak, 
  my,
@@ -37,45 +45,81 @@ zssi_getworktimeaccountbalance($P{DOCUMENT_ID} , $P{MONTH}, $P{YEAR}) as balance
  dfrom,
  dto,
  dbreak,
- zssi_strnumber(dbreak,$P{LANGUAGE}) as dbreaks,
+ dbreak_hours,
+ dbreak_minutes,
+ case when dbreak_hours > 9 then dbreak_hours::text else '0' || dbreak_hours end || ':' || case when dbreak_minutes > 9 then dbreak_minutes::text else '0' || dbreak_minutes end as dbreaks,
  dpaidbreak,
- zssi_strnumber(dpaidbreak,$P{LANGUAGE}) as dpaidbreaks,
+ dpaidbreak_hours,
+ dpaidbreak_minutes,
+ case when dpaidbreak_hours > 9 then dpaidbreak_hours::text else '0' || dpaidbreak_hours end || ':' || case when dpaidbreak_minutes > 9 then dpaidbreak_minutes::text else '0' || dpaidbreak_minutes end as dpaidbreaks,
  dtravel,
- zssi_strnumber(dtravel,$P{LANGUAGE}) as dtravels,
+ dtravel_hours,
+ dtravel_minutes,
+ case when dtravel_hours > 9 then dtravel_hours::text else '0' || dtravel_hours end || ':' || case when dtravel_minutes > 9 then dtravel_minutes::text else '0' || dtravel_minutes end as dtravels,
  dtotal,
- zssi_strnumber(dtotal,$P{LANGUAGE}) as dtotals,
+ dtotal_hours,
+ dtotal_minutes,
+ case when dtotal_hours > 9 then dtotal_hours::text else '0' || dtotal_hours end || ':' || case when dtotal_minutes > 9 then dtotal_minutes::text else '0' || dtotal_minutes end as dtotals,
  wdate,
  dsoll,
- zssi_strnumber(dsoll,$P{LANGUAGE}) as dsolls,
+ dsoll_hours,
+ dsoll_minutes,
+ case when dsoll_hours > 9 then dsoll_hours::text else '0' || dsoll_hours end || ':' || case when dsoll_minutes > 9 then dsoll_minutes::text else '0' || dsoll_minutes end as dsolls,
  dnorm,
- zssi_strnumber(dnorm,$P{LANGUAGE}) as dnorms,
+ dnorm_hours,
+ dnorm_minutes,
+ case when dnorm_hours > 9 then dnorm_hours::text else '0' || dnorm_hours end || ':' || case when dnorm_minutes > 9 then dnorm_minutes::text else '0' || dnorm_minutes end as dnorms,
  dnight,
- zssi_strnumber(dnight,$P{LANGUAGE}) as dnights,
+ dnight_hours,
+ dnight_minutes,
+ case when dnight_hours > 9 then dnight_hours::text else '0' || dnight_hours end || ':' || case when dnight_minutes > 9 then dnight_minutes::text else '0' || dnight_minutes end as dnights,
  dsat,
- zssi_strnumber(dsat,$P{LANGUAGE}) as dsats,
+ dsat_hours,
+ dsat_minutes,
+ case when dsat_hours > 9 then dsat_hours::text else '0' || dsat_hours end || ':' || case when dsat_minutes > 9 then dsat_minutes::text else '0' || dsat_minutes end as dsats,
  dsun,
- zssi_strnumber(dsun,$P{LANGUAGE}) as dsuns,
+ dsun_hours,
+ dsun_minutes,
+ case when dsun_hours > 9 then dsun_hours::text else '0' || dsun_hours end || ':' || case when dsun_minutes > 9 then dsun_minutes::text else '0' || dsun_minutes end as dsuns,
  dholi,
- zssi_strnumber(dholi,$P{LANGUAGE}) as dholis,
+ dholi_hours,
+ dholi_minutes,
+ case when dholi_hours > 9 then dholi_hours::text else '0' || dholi_hours end || ':' || case when dholi_minutes > 9 then dholi_minutes::text else '0' || dholi_minutes end as dholis,
  dover,
- zssi_strnumber(dover,$P{LANGUAGE}) as dovers,
+ dover_hours,
+ dover_minutes,
+ case when dover_hours > 9 then dover_hours::text else '0' || dover_hours end || ':' || case when dover_minutes > 9 then dover_minutes::text else '0' || dover_minutes end as dovers,
  dspec,
- zssi_strnumber(dspec,$P{LANGUAGE}) as dspecs,
+ dspec_hours,
+ dspec_minutes,
+ case when dspec_hours > 9 then dspec_hours::text else '0' || dspec_hours end || ':' || case when dspec_minutes > 9 then dspec_minutes::text else '0' || dspec_minutes end as dspecs,
  dvacanc,
- zssi_strnumber(dvacanc,$P{LANGUAGE}) as dvacancs,
+ dvacanc_hours,
+ dvacanc_minutes,
+ case when dvacanc_hours > 9 then dvacanc_hours::text else '0' || dvacanc_hours end || ':' || case when dvacanc_minutes > 9 then dvacanc_minutes::text else '0' || dvacanc_minutes end as dvacancs,
  dill,
- zssi_strnumber(dill,$P{LANGUAGE}) as dills,
+ dill_hours,
+ dill_minutes,
+ case when dill_hours > 9 then dill_hours::text else '0' || dill_hours end || ':' || case when dill_minutes > 9 then dill_minutes::text else '0' || dill_minutes end as dills,
 --new
 dspec2 as dspec_s,
- zssi_strnumber(dspec2,$P{LANGUAGE}) as dspec_ss,
+dspec2_hours as dspec_s_hours,
+dspec2_minutes as dspec_s_minutes,
+case when dspec2_hours > 9 then dspec2_hours::text else '0' || dspec2_hours end || ':' || case when dspec2_minutes > 9 then dspec2_minutes::text else '0' || dspec2_minutes end as dspec_ss,
 dspec3 as dspec_3,
-zssi_strnumber(dspec3,$P{LANGUAGE}) as dspec_3s,
+dspec3_hours as dspec_3_hours,
+dspec3_minutes as dspec_3_minutes,
+case when dspec3_hours > 9 then dspec3_hours::text else '0' || dspec3_hours end || ':' || case when dspec3_minutes > 9 then dspec3_minutes::text else '0' || dspec3_minutes end as dspec_3s,
 dspecial4 as dspec_4,
-zssi_strnumber(dspecial4,$P{LANGUAGE}) as dspecial_4s,
+dspecial4_hours as dspec_4_hours,
+dspecial4_minutes as dspec_4_minutes,
+case when dspecial4_hours > 9 then dspecial4_hours::text else '0' || dspecial4_hours end || ':' || case when dspecial4_minutes > 9 then dspecial4_minutes::text else '0' || dspecial4_minutes end as dspecial_4s,
 1.0 as dspec_ot,
 1.0 as dspec_st,
 dtrigger as dtrigger,
- zssi_strnumber(dtrigger,$P{LANGUAGE}) as dtriggers,
+dtrigger_hours as dtrigger_hours,
+dtrigger_minutes as dtrigger_minutes,
+zssi_strnumber(dtrigger, $P{LANGUAGE}) as dtriggers,
 -- Header Co
 zssi_getElementTextByColumname('Name',$P{LANGUAGE}) as Nameh,
 zssi_getElementTextByColumname('Signature',$P{LANGUAGE}) as signature,
@@ -108,8 +152,8 @@ zssi_getElementTextByColumname('Illness',$P{LANGUAGE}) as Illness,
 zssi_getElementTextByColumname('Page',$P{LANGUAGE}) as Page,
 zssi_getElementTextByColumname('From',$P{LANGUAGE}) as From,
  zssi_getElementTextByColumname('Timesheet',$P{LANGUAGE}) as Timesheet,
-zssi_strnumber((COALESCE(zssi_getHolidayEntitlement($P{DOCUMENT_ID}, $P{MONTH},$P{YEAR}), zssi_calculatevacationaccountbalance($P{DOCUMENT_ID},$P{MONTH},$P{YEAR}), 0)) ,$P{LANGUAGE}) as remdays
-FROM zssi_getdayset($P{DOCUMENT_ID},$P{MONTH},$P{YEAR},$P{LANGUAGE}), c_bpartner
+zssi_strnumber((COALESCE(zssi_getHolidayEntitlement($P{DOCUMENT_ID}, $P{MONTH},$P{YEAR},$P{DATEFROM},$P{DATETO}), zssi_calculatevacationaccountbalance($P{DOCUMENT_ID},$P{MONTH},$P{YEAR},$P{DATEFROM},$P{DATETO}), 0)) ,$P{LANGUAGE}) as remdays
+FROM zssi_getdayset($P{DOCUMENT_ID},$P{MONTH},$P{YEAR},$P{LANGUAGE},$P{DATEFROM},$P{DATETO}), c_bpartner
 where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 	</queryString>
 	<field name="id" class="java.lang.String">
@@ -127,6 +171,9 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 	<field name="actbalance" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="actbalance"/>
 	</field>
+	<field name="actbalancestartdate" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="actbalancestartdate"/>
+	</field>
 	<field name="remainingdays" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="remainingdays"/>
 	</field>
@@ -135,6 +182,9 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 	</field>
 	<field name="balancenum" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="balancenum"/>
+	</field>
+	<field name="balanceatstartdate" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.label" value="balanceatstartdate"/>
 	</field>
 	<field name="mm" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="mm"/>
@@ -160,11 +210,23 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 	<field name="dbreak" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dbreak"/>
 	</field>
+	<field name="dbreak_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dbreak_hours"/>
+	</field>
+	<field name="dbreak_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dbreak_minutes"/>
+	</field>
 	<field name="dbreaks" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dbreaks"/>
 	</field>
 	<field name="dpaidbreak" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dpaidbreak"/>
+	</field>
+	<field name="dpaidbreak_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dpaidbreak_hours"/>
+	</field>
+	<field name="dpaidbreak_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dpaidbreak_minutes"/>
 	</field>
 	<field name="dpaidbreaks" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dpaidbreaks"/>
@@ -172,11 +234,23 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 	<field name="dtravel" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dtravel"/>
 	</field>
+	<field name="dtravel_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dtravel_hours"/>
+	</field>
+	<field name="dtravel_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dtravel_minutes"/>
+	</field>
 	<field name="dtravels" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dtravels"/>
 	</field>
 	<field name="dtotal" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dtotal"/>
+	</field>
+	<field name="dtotal_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dtotal_hours"/>
+	</field>
+	<field name="dtotal_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dtotal_minutes"/>
 	</field>
 	<field name="dtotals" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dtotals"/>
@@ -187,11 +261,23 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 	<field name="dsoll" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dsoll"/>
 	</field>
+	<field name="dsoll_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dsoll_hours"/>
+	</field>
+	<field name="dsoll_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dsoll_minutes"/>
+	</field>
 	<field name="dsolls" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dsolls"/>
 	</field>
 	<field name="dnorm" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dnorm"/>
+	</field>
+	<field name="dnorm_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dnorm_hours"/>
+	</field>
+	<field name="dnorm_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dnorm_minutes"/>
 	</field>
 	<field name="dnorms" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dnorms"/>
@@ -199,11 +285,23 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 	<field name="dnight" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dnight"/>
 	</field>
+	<field name="dnight_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dnight_hours"/>
+	</field>
+	<field name="dnight_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dnight_minutes"/>
+	</field>
 	<field name="dnights" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dnights"/>
 	</field>
 	<field name="dsat" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dsat"/>
+	</field>
+	<field name="dsat_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dsat_hours"/>
+	</field>
+	<field name="dsat_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dsat_minutes"/>
 	</field>
 	<field name="dsats" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dsats"/>
@@ -211,11 +309,23 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 	<field name="dsun" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dsun"/>
 	</field>
+	<field name="dsun_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dsun_hours"/>
+	</field>
+	<field name="dsun_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dsun_minutes"/>
+	</field>
 	<field name="dsuns" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dsuns"/>
 	</field>
 	<field name="dholi" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dholi"/>
+	</field>
+	<field name="dholi_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dholi_hours"/>
+	</field>
+	<field name="dholi_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dholi_minutes"/>
 	</field>
 	<field name="dholis" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dholis"/>
@@ -223,11 +333,23 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 	<field name="dover" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dover"/>
 	</field>
+	<field name="dover_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dover_hours"/>
+	</field>
+	<field name="dover_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dover_minutes"/>
+	</field>
 	<field name="dovers" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dovers"/>
 	</field>
 	<field name="dspec" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dspec"/>
+	</field>
+	<field name="dspec_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dspec_hours"/>
+	</field>
+	<field name="dspec_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dspec_minutes"/>
 	</field>
 	<field name="dspecs" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dspecs"/>
@@ -235,11 +357,23 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 	<field name="dvacanc" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dvacanc"/>
 	</field>
+	<field name="dvacanc_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dvacanc_hours"/>
+	</field>
+	<field name="dvacanc_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dvacanc_minutes"/>
+	</field>
 	<field name="dvacancs" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dvacancs"/>
 	</field>
 	<field name="dill" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dill"/>
+	</field>
+	<field name="dill_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dill_hours"/>
+	</field>
+	<field name="dill_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dill_minutes"/>
 	</field>
 	<field name="dills" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dills"/>
@@ -247,17 +381,35 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 	<field name="dspec_s" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dspec_s"/>
 	</field>
+	<field name="dspec_s_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dspec_s_hours"/>
+	</field>
+	<field name="dspec_s_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dspec_s_minutes"/>
+	</field>
 	<field name="dspec_ss" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dspec_ss"/>
 	</field>
 	<field name="dspec_3" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dspec_3"/>
 	</field>
+	<field name="dspec_3_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dspec_3_hours"/>
+	</field>
+	<field name="dspec_3_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dspec_3_minutes"/>
+	</field>
 	<field name="dspec_3s" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dspec_3s"/>
 	</field>
 	<field name="dspec_4" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dspec_4"/>
+	</field>
+	<field name="dspec_4_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dspec_4_hours"/>
+	</field>
+	<field name="dspec_4_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dspec_4_minutes"/>
 	</field>
 	<field name="dspecial_4s" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dspecial_4s"/>
@@ -270,6 +422,12 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 	</field>
 	<field name="dtrigger" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.label" value="dtrigger"/>
+	</field>
+	<field name="dtrigger_hours" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dtrigger_hours"/>
+	</field>
+	<field name="dtrigger_minutes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.label" value="dtrigger_minutes"/>
 	</field>
 	<field name="dtriggers" class="java.lang.String">
 		<property name="com.jaspersoft.studio.field.label" value="dtriggers"/>
@@ -371,10 +529,22 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 		<property name="com.jaspersoft.studio.field.label" value="remdays"/>
 	</field>
 	<variable name="SUM_BREAK" class="java.math.BigDecimal" calculation="Sum">
-		<variableExpression><![CDATA[]]></variableExpression>
+		<variableExpression><![CDATA[$F{dbreak}]]></variableExpression>
+	</variable>
+	<variable name="SUM_BREAK_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dbreak_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_BREAK_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dbreak_minutes}]]></variableExpression>
 	</variable>
 	<variable name="SUM_PAIDBREAK" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dpaidbreak}]]></variableExpression>
+	</variable>
+	<variable name="SUM_PAIDBREAK_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dpaidbreak_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_PAIDBREAK_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dpaidbreak_minutes}]]></variableExpression>
 	</variable>
 	<variable name="SUM_SPEC" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dspec}]]></variableExpression>
@@ -382,50 +552,146 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 	<variable name="SUM_TRAVEL" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dtravel}]]></variableExpression>
 	</variable>
+	<variable name="SUM_TRAVEL_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dtravel_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_TRAVEL_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dtravel_minutes}]]></variableExpression>
+	</variable>
 	<variable name="SUM_TOTALH" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dtotal}]]></variableExpression>
+	</variable>
+	<variable name="SUM_TOTALH_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dtotal_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_TOTALH_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dtotal_minutes}]]></variableExpression>
 	</variable>
 	<variable name="SUM_NORMAL" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dnorm}]]></variableExpression>
 	</variable>
+	<variable name="SUM_NORMAL_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dnorm_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_NORMAL_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dnorm_minutes}]]></variableExpression>
+	</variable>
 	<variable name="SUM_NIGHT" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dnight}]]></variableExpression>
+	</variable>
+	<variable name="SUM_NIGHT_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dnight_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_NIGHT_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dnight_minutes}]]></variableExpression>
 	</variable>
 	<variable name="SUM_SAT" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dsat}]]></variableExpression>
 	</variable>
+	<variable name="SUM_SAT_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dsat_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_SAT_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dsat_minutes}]]></variableExpression>
+	</variable>
 	<variable name="SUM_SUN" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dsun}]]></variableExpression>
+	</variable>
+	<variable name="SUM_SUN_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dsun_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_SUN_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dsun_minutes}]]></variableExpression>
 	</variable>
 	<variable name="SUM_OVER" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dover}]]></variableExpression>
 	</variable>
+	<variable name="SUM_OVER_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dover_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_OVER_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dover_minutes}]]></variableExpression>
+	</variable>
 	<variable name="SUM_VACA" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dvacanc}]]></variableExpression>
+	</variable>
+	<variable name="SUM_VACA_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dvacanc_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_VACA_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dvacanc_minutes}]]></variableExpression>
 	</variable>
 	<variable name="SUM_HOLI" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dholi}]]></variableExpression>
 	</variable>
+	<variable name="SUM_HOLI_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dholi_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_HOLI_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dholi_minutes}]]></variableExpression>
+	</variable>
 	<variable name="SUM_ILL" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dill}]]></variableExpression>
+	</variable>
+	<variable name="SUM_ILL_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dill_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_ILL_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dill_minutes}]]></variableExpression>
 	</variable>
 	<variable name="SUM_SPEC_1" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dspec}]]></variableExpression>
 	</variable>
+	<variable name="SUM_SPEC_1_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dspec_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_SPEC_1_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dspec_minutes}]]></variableExpression>
+	</variable>
 	<variable name="SUM_SPEC_S" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dspec_s}]]></variableExpression>
+	</variable>
+	<variable name="SUM_SPEC_S_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dspec_s_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_SPEC_S_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dspec_s_minutes}]]></variableExpression>
 	</variable>
 	<variable name="SUM_TRIGGER" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dtrigger}]]></variableExpression>
 	</variable>
+	<variable name="SUM_TRIGGER_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dtrigger_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_TRIGGER_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dtrigger_minutes}]]></variableExpression>
+	</variable>
 	<variable name="SUM_SOLL" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dsoll}]]></variableExpression>
+	</variable>
+	<variable name="SUM_SOLL_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dsoll_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_SOLL_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dsoll_minutes}]]></variableExpression>
 	</variable>
 	<variable name="SUM_SPEC_3" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dspec_3}]]></variableExpression>
 	</variable>
+	<variable name="SUM_SPEC_3_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dspec_3_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_SPEC_3_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dspec_3_minutes}]]></variableExpression>
+	</variable>
 	<variable name="SUM_SPEC_4" class="java.math.BigDecimal" calculation="Sum">
 		<variableExpression><![CDATA[$F{dspec_4}]]></variableExpression>
+	</variable>
+	<variable name="SUM_SPEC_4_HOURS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dspec_4_hours}]]></variableExpression>
+	</variable>
+	<variable name="SUM_SPEC_4_MINUTES" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{dspec_4_minutes}]]></variableExpression>
 	</variable>
 	<pageHeader>
 		<band height="55" splitType="Stretch">
@@ -445,7 +711,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textFieldExpression><![CDATA[$F{nameh}+": "+$F{name}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="0" y="26" width="312" height="13" uuid="6990ee76-097a-4922-939f-0089e2db4023"/>
+				<reportElement x="0" y="26" width="170" height="13" uuid="6990ee76-097a-4922-939f-0089e2db4023"/>
 				<box>
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.0"/>
@@ -841,6 +1107,21 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{special4}]]></textFieldExpression>
 			</textField>
+			<textField>
+				<reportElement x="170" y="26" width="142" height="13" uuid="85fd3b52-43b2-4327-9ca5-d2c57592806e"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font size="8" isBold="true"/>
+					<paragraph leftIndent="2"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{actbalancestartdate}+ ": " + $F{balanceatstartdate}]]></textFieldExpression>
+			</textField>
 		</band>
 	</pageHeader>
 	<detail>
@@ -860,7 +1141,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dtravels}.equals( "0,00" )?"&mdash;":$F{dtravels}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dtravels}.equals( "00:00" )?"&mdash;":$F{dtravels}]]></textFieldExpression>
 			</textField>
 			<textField pattern="HH:mm" isBlankWhenNull="true">
 				<reportElement x="208" y="0" width="33" height="15" uuid="d9f28ceb-cbe3-4f26-9ec4-07ecd8894d8a">
@@ -890,7 +1171,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dsats}.equals( "0,00" )?"&mdash;":$F{dsats}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dsats}.equals( "00:00" )?"&mdash;":$F{dsats}]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement x="769" y="0" width="33" height="15" uuid="a4d4f77c-f5c2-4351-b234-b463defbb64f">
@@ -906,7 +1187,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dvacancs}.equals( "0,00" )?"&mdash;":$F{dvacancs}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dvacancs}.equals( "00:00" )?"&mdash;":$F{dvacancs}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement x="45" y="0" width="163" height="15" uuid="6fdaa073-e0bd-462b-86d6-28d501af4923">
@@ -937,7 +1218,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dnights}.equals( "0,00" )?"&mdash;":$F{dnights}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dnights}.equals( "00:00" )?"&mdash;":$F{dnights}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="25" y="0" width="20" height="15" uuid="06177eeb-7f0a-4c94-8d29-c5cd9f1733ff">
@@ -968,7 +1249,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dtotals}.equals( "0,00" )?"&mdash;":$F{dtotals}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dtotals}.equals( "00:00" )?"&mdash;":$F{dtotals}]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement x="802" y="0" width="33" height="15" uuid="d8f4a171-6f05-4a60-823f-bb88a56ec856">
@@ -984,7 +1265,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dills}.equals( "0,00" )?"&mdash;":$F{dills}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dills}.equals( "00:00" )?"&mdash;":$F{dills}]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement x="274" y="0" width="33" height="15" uuid="52b2c9ce-2601-4bd0-8e70-66054c44b52b">
@@ -1000,7 +1281,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dbreaks}.equals( "0,00" )?"&mdash;":$F{dbreaks}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dbreaks}.equals( "00:00" )?"&mdash;":$F{dbreaks}]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="0" y="0" width="25" height="15" uuid="80a1496d-2b2c-49ee-9615-4c30b873f5b6">
@@ -1032,7 +1313,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dovers}.equals( "0,00" )?"&mdash;":$F{dovers}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dovers}.equals( "00:00" )?"&mdash;":$F{dovers}]]></textFieldExpression>
 			</textField>
 			<textField pattern="HH:mm" isBlankWhenNull="true">
 				<reportElement x="241" y="0" width="33" height="15" uuid="8c189adc-286d-492b-a2ae-2f56e72b38b0">
@@ -1064,7 +1345,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dspecs}.equals( "0,00" )?"&mdash;":$F{dspecs}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dspecs}.equals( "00:00" )?"&mdash;":$F{dspecs}]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement x="571" y="0" width="33" height="15" uuid="2012e335-9f91-4919-8bea-2d6a8a5bfab5"/>
@@ -1078,7 +1359,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dholis}.equals( "0,00" )?"&mdash;":$F{dholis}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dholis}.equals( "00:00" )?"&mdash;":$F{dholis}]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement x="439" y="0" width="33" height="15" uuid="197a4837-1b35-4c46-9cec-2a782c309e77">
@@ -1094,7 +1375,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dnorms}.equals( "0,00" )?"&mdash;":$F{dnorms}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dnorms}.equals( "00:00" )?"&mdash;":$F{dnorms}]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement x="538" y="0" width="33" height="15" uuid="4546ab58-3c1c-461c-a9f7-284268ac155e"/>
@@ -1108,7 +1389,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dsuns}.equals( "0,00" )?"&mdash;":$F{dsuns}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dsuns}.equals( "00:00" )?"&mdash;":$F{dsuns}]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement x="703" y="0" width="33" height="15" uuid="3790988f-632b-4c95-829b-228c7d69b58e">
@@ -1124,7 +1405,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dspec_3s}.equals( "0,00" )?"&mdash;":$F{dspec_3s}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dspec_3s}.equals( "00:00" )?"&mdash;":$F{dspec_3s}]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement x="406" y="0" width="33" height="15" uuid="aeba841f-7e2e-43cb-b25f-83344678a50c">
@@ -1140,7 +1421,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dsolls}.equals( "0,00" )?"&mdash;":$F{dsolls}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dsolls}.equals( "00:00" )?"&mdash;":$F{dsolls}]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement x="835" y="0" width="33" height="15" uuid="c36a67d0-2f88-49b0-90af-91aeca5ab57f">
@@ -1173,7 +1454,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dspec_ss}.equals( "0,00" )?"&mdash;":$F{dspec_ss}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dspec_ss}.equals( "00:00" )?"&mdash;":$F{dspec_ss}]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement x="307" y="0" width="33" height="15" uuid="419eb975-e7ba-48d7-a54f-e235d38351f7">
@@ -1189,7 +1470,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dpaidbreaks}.equals( "0,00" )?"&mdash;":$F{dpaidbreaks}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dpaidbreaks}.equals( "00:00" )?"&mdash;":$F{dpaidbreaks}]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement x="736" y="0" width="33" height="15" uuid="74e8b16d-ce79-4bc3-b92a-144adbbc8375">
@@ -1205,7 +1486,7 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="html">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{dspecial_4s}.equals( "0,00" )?"&mdash;":$F{dspecial_4s}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{dspecial_4s}.equals( "00:00" )?"&mdash;":$F{dspecial_4s}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
@@ -1224,7 +1505,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_TRAVEL}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_TRAVEL_HOURS} + Double.valueOf($V{SUM_TRAVEL_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_TRAVEL_HOURS} + Double.valueOf($V{SUM_TRAVEL_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_TRAVEL_HOURS} + Double.valueOf($V{SUM_TRAVEL_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_TRAVEL_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_TRAVEL_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_TRAVEL_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="505" y="0" width="33" height="16" uuid="b6ddfa3a-5207-4aba-b34e-397066530cb5"/>
@@ -1238,7 +1525,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_SAT}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_SAT_HOURS} + Double.valueOf($V{SUM_SAT_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_SAT_HOURS} + Double.valueOf($V{SUM_SAT_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_SAT_HOURS} + Double.valueOf($V{SUM_SAT_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_SAT_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_SAT_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_SAT_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="769" y="0" width="33" height="16" uuid="afb14363-752a-4349-baa7-da3bd60a712c"/>
@@ -1252,7 +1545,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_VACA}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_VACA_HOURS} + Double.valueOf($V{SUM_VACA_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_VACA_HOURS} + Double.valueOf($V{SUM_VACA_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_VACA_HOURS} + Double.valueOf($V{SUM_VACA_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_VACA_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_VACA_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_VACA_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="472" y="0" width="33" height="16" uuid="32751392-d17f-4920-b7b3-d52d501d3433"/>
@@ -1266,7 +1565,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_NIGHT}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_NIGHT_HOURS} + Double.valueOf($V{SUM_NIGHT_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_NIGHT_HOURS} + Double.valueOf($V{SUM_NIGHT_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_NIGHT_HOURS} + Double.valueOf($V{SUM_NIGHT_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_NIGHT_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_NIGHT_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_NIGHT_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="373" y="0" width="33" height="16" uuid="fe98831c-db01-4a8c-871e-a6f8efe1f59d"/>
@@ -1280,7 +1585,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_TOTALH}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_TOTALH_HOURS} + Double.valueOf($V{SUM_TOTALH_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_TOTALH_HOURS} + Double.valueOf($V{SUM_TOTALH_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_TOTALH_HOURS} + Double.valueOf($V{SUM_TOTALH_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_TOTALH_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_TOTALH_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_TOTALH_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="802" y="0" width="33" height="16" uuid="78a943d3-1e26-45c7-a6ab-c9f344b10997"/>
@@ -1294,7 +1605,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_ILL}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_ILL_HOURS} + Double.valueOf($V{SUM_ILL_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_ILL_HOURS} + Double.valueOf($V{SUM_ILL_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_ILL_HOURS} + Double.valueOf($V{SUM_ILL_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_ILL_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_ILL_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_ILL_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="274" y="0" width="33" height="16" uuid="0e31c025-595d-42f6-90ff-68f376aa8841">
@@ -1310,7 +1627,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_BREAK}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_BREAK_HOURS} + Double.valueOf($V{SUM_BREAK_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_BREAK_HOURS} + Double.valueOf($V{SUM_BREAK_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_BREAK_HOURS} + Double.valueOf($V{SUM_BREAK_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_BREAK_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_BREAK_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_BREAK_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="604" y="0" width="33" height="16" uuid="35c14dc2-08d8-47f6-9fd4-f41f8388cd68"/>
@@ -1324,7 +1647,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_OVER}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_OVER_HOURS} + Double.valueOf($V{SUM_OVER_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_OVER_HOURS} + Double.valueOf($V{SUM_OVER_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_OVER_HOURS} + Double.valueOf($V{SUM_OVER_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_OVER_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_OVER_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_OVER_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="637" y="0" width="33" height="16" uuid="5eb04e03-523b-466b-a3bd-8b8a6798e7b1"/>
@@ -1338,7 +1667,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_SPEC_1}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_SPEC_1_HOURS} + Double.valueOf($V{SUM_SPEC_1_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_SPEC_1_HOURS} + Double.valueOf($V{SUM_SPEC_1_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_SPEC_1_HOURS} + Double.valueOf($V{SUM_SPEC_1_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_SPEC_1_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_SPEC_1_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_SPEC_1_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="571" y="0" width="33" height="16" uuid="1ce4ef92-f11b-4fe4-a83e-c3bd0d8621b5">
@@ -1354,7 +1689,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_HOLI}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_HOLI_HOURS} + Double.valueOf($V{SUM_HOLI_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_HOLI_HOURS} + Double.valueOf($V{SUM_HOLI_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_HOLI_HOURS} + Double.valueOf($V{SUM_HOLI_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_HOLI_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_HOLI_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_HOLI_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="439" y="0" width="33" height="16" uuid="a9944b51-4312-41f2-a974-6c41bf3dbf93"/>
@@ -1368,7 +1709,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_NORMAL}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_NORMAL_HOURS} + Double.valueOf($V{SUM_NORMAL_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_NORMAL_HOURS} + Double.valueOf($V{SUM_NORMAL_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_NORMAL_HOURS} + Double.valueOf($V{SUM_NORMAL_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_NORMAL_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_NORMAL_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_NORMAL_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="538" y="0" width="33" height="16" uuid="0ed1834a-797f-4072-87ed-4ae645356476">
@@ -1384,7 +1731,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_SUN}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_SUN_HOURS} + Double.valueOf($V{SUM_SUN_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_SUN_HOURS} + Double.valueOf($V{SUM_SUN_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_SUN_HOURS} + Double.valueOf($V{SUM_SUN_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_SUN_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_SUN_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_SUN_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="0" y="16" width="50" height="16" uuid="f162f3c3-b745-4f21-a465-ed075c9bcc14"/>
@@ -1415,7 +1768,14 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{sumtotal_plus_paidbreak} + ": " + ($V{SUM_TOTALH} + $V{SUM_PAIDBREAK})]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{sumtotal_plus_paidbreak} + ": " +
+(( ($V{SUM_TOTALH_HOURS} + $V{SUM_PAIDBREAK_HOURS}) + Double.valueOf( ($V{SUM_TOTALH_MINUTES} + $V{SUM_PAIDBREAK_MINUTES}) / 60).intValue()) > 9 ?
+( ($V{SUM_TOTALH_HOURS} + $V{SUM_PAIDBREAK_HOURS}) + Double.valueOf( ($V{SUM_TOTALH_MINUTES} + $V{SUM_PAIDBREAK_MINUTES}) / 60).intValue()) :
+"0" + ( ($V{SUM_TOTALH_HOURS} + $V{SUM_PAIDBREAK_HOURS}) + Double.valueOf( ($V{SUM_TOTALH_MINUTES} + $V{SUM_PAIDBREAK_MINUTES}) / 60).intValue()))
++ ":" +
+(( ($V{SUM_TOTALH_MINUTES} + $V{SUM_PAIDBREAK_MINUTES}).remainder(60)) > 9 ?
+( ($V{SUM_TOTALH_MINUTES} + $V{SUM_PAIDBREAK_MINUTES}).remainder(60)) :
+"0" + ( ($V{SUM_TOTALH_MINUTES} + $V{SUM_PAIDBREAK_MINUTES}).remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="531" y="16" width="337" height="16" uuid="955f87b9-6873-4438-86f7-44a260e8e95e">
@@ -1461,7 +1821,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_SPEC_3}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_SPEC_3_HOURS} + Double.valueOf($V{SUM_SPEC_3_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_SPEC_3_HOURS} + Double.valueOf($V{SUM_SPEC_3_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_SPEC_3_HOURS} + Double.valueOf($V{SUM_SPEC_3_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_SPEC_3_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_SPEC_3_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_SPEC_3_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="406" y="0" width="33" height="16" uuid="1c1eeb1a-15b2-4e90-9228-4559afca7077"/>
@@ -1475,7 +1841,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_SOLL}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_SOLL_HOURS} + Double.valueOf($V{SUM_SOLL_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_SOLL_HOURS} + Double.valueOf($V{SUM_SOLL_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_SOLL_HOURS} + Double.valueOf($V{SUM_SOLL_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_SOLL_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_SOLL_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_SOLL_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="50" y="16" width="40" height="16" uuid="3458bd45-078a-4646-bae4-fcd3d5f3cdcd"/>
@@ -1489,7 +1861,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_SOLL}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_SOLL_HOURS} + Double.valueOf($V{SUM_SOLL_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_SOLL_HOURS} + Double.valueOf($V{SUM_SOLL_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_SOLL_HOURS} + Double.valueOf($V{SUM_SOLL_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_SOLL_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_SOLL_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_SOLL_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="" isBlankWhenNull="true">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="90" y="16" width="111" height="16" forecolor="#000000" uuid="f312e345-d8f2-4881-bee0-57eeacc851e0">
@@ -1554,7 +1932,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_SPEC_S}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_SPEC_S_HOURS} + Double.valueOf($V{SUM_SPEC_S_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_SPEC_S_HOURS} + Double.valueOf($V{SUM_SPEC_S_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_SPEC_S_HOURS} + Double.valueOf($V{SUM_SPEC_S_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_SPEC_S_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_SPEC_S_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_SPEC_S_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="307" y="0" width="33" height="16" uuid="f8ee4d99-307a-4424-bee3-a48eae4d227c">
@@ -1570,7 +1954,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_PAIDBREAK}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_PAIDBREAK_HOURS} + Double.valueOf($V{SUM_PAIDBREAK_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_PAIDBREAK_HOURS} + Double.valueOf($V{SUM_PAIDBREAK_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_PAIDBREAK_HOURS} + Double.valueOf($V{SUM_PAIDBREAK_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_PAIDBREAK_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_PAIDBREAK_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_PAIDBREAK_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 			<textField pattern="###0.00;-###0.00" isBlankWhenNull="true">
 				<reportElement positionType="Float" stretchType="RelativeToBandHeight" x="736" y="0" width="33" height="16" uuid="abf5a92e-c052-4597-9b77-734967b1f0fd"/>
@@ -1584,7 +1974,13 @@ where c_bpartner.c_bpartner_id in ($P{DOCUMENT_ID})]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$V{SUM_SPEC_4}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[(($V{SUM_SPEC_4_HOURS} + Double.valueOf($V{SUM_SPEC_4_MINUTES} / 60).intValue()) > 9 ?
+($V{SUM_SPEC_4_HOURS} + Double.valueOf($V{SUM_SPEC_4_MINUTES} / 60).intValue()) :
+"0" + ($V{SUM_SPEC_4_HOURS} + Double.valueOf($V{SUM_SPEC_4_MINUTES} / 60).intValue()))
++ ":" +
+(($V{SUM_SPEC_4_MINUTES}.remainder(60)) > 9 ?
+($V{SUM_SPEC_4_MINUTES}.remainder(60)) :
+"0" + ($V{SUM_SPEC_4_MINUTES}.remainder(60)))]]></textFieldExpression>
 			</textField>
 		</band>
 	</columnFooter>

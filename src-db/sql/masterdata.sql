@@ -359,6 +359,12 @@ BEGIN
         for v_cur in (select * from m_product_category_shop where m_product_category_id=new.m_product_category_id
                       and not exists (select 0 from zse_product_shop s where s.zse_shop_id=m_product_category_shop.zse_shop_id and s.m_product_id=new.m_product_id)) 
         LOOP
+            -- for xml api, fields only active with module
+            if(exists(select * from ad_module where name='OpenZ-XML-API') and (select isactive='Y' from ad_module where name='OpenZ-XML-API')) then
+              if(select xapi_parentproduct is not null from m_product where m_product_id=new.m_product_id) then
+                RETURN NEW; -- prevent insertion of variants
+              end if;
+            end if;
             select get_uuid() into v_guid;
             select case when count(*)=0 then 'Y' else 'N' end into v_master from zse_product_shop where m_product_id=new.m_product_id and ismaster='Y';
             insert into zse_product_shop (zse_product_shop_id, ad_client_id, ad_org_id, created,  createdby,  updated,  updatedby, zse_shop_id, m_product_id,ismaster)
@@ -915,7 +921,7 @@ BEGIN
       RAISE EXCEPTION '%', '@zssi_OnlyOneUserOnEmp@';
   end if;
 
-  if ((NEW.email is null or NEW.email = '') and NEW.mfa_active = 'Y') then
+  if ((NEW.email is null or NEW.email = '') and NEW.mfa_active = 'Y' and (select count(*) from c_bpartner b,ad_user u where b.isemployee='Y' and u.c_bpartner_id=b.c_bpartner_id and u.ad_user_id=new.ad_user_id)>0) then
       RAISE EXCEPTION '@mfa_ErrorExceptionOrEmail@';
   end if;
 
@@ -957,9 +963,9 @@ v_count          numeric:=1;
 v_cur record;
 BEGIN
   IF AD_isTriggerEnabled()='N' THEN  RETURN NEW; END IF; 
-  if new.password!=old.password or new.isactive!=old.isactive or new.processing='Y' then
+  if coalesce(new.username,'')!=coalesce(old.username,'') or coalesce(new.password,'')!=coalesce(old.password,'')  or new.isactive!=old.isactive or coalesce(new.processing,'')='Y' then
     update ad_user set seqno=null,processing='N' where seqno is not null;
-    for v_cur in (select * from ad_user a where ad_user_id not in ('0','100','DDAA21D11CB04D4D8EC59E39934B27FB') and a.password is not null and a.isactive ='Y' 
+    for v_cur in (select * from ad_user a where ad_user_id not in ('0','100','DDAA21D11CB04D4D8EC59E39934B27FB') and a.username is not null and a.isactive ='Y' 
                         and exists (select 0 from ad_user_roles r where r.ad_user_id=a.ad_user_id) order by created)
     LOOP
         update ad_user set seqno=v_count,processing='N' where ad_user_id=v_cur.ad_user_id;
@@ -1581,6 +1587,17 @@ BEGIN
         end if;
         if instr(new.value,'|')>0 and c_getconfigoption('kombibarcode','0')='Y' then
             raise exception '%', '@invalidcharacter@'||': |';
+        end if;
+        if NEW.typeofproduct = 'SF' then -- semi finished product
+            if NEW.producttype != 'I' then -- product
+                raise exception '@semifinished_mustbeproduct@';
+            end if;
+            if NEW.isstocked = 'Y' then
+                raise exception '@semifinished_mustnotbestocked@';
+            end if;
+            if NEW.isbom = 'N' then
+                raise exception '@semifinished_bomrequired@';
+            end if;
         end if;
    END IF;
    
@@ -2213,6 +2230,11 @@ BEGIN
         if (select count(*) from m_attribute where isnumeric='Y' and m_attribute_id=new.m_attribute_id)>0 then
             new.value:=to_char(to_number(new.value));
         end if;
+
+        -- value has to be unique, name has to be unique for the attribute
+        if(select count(*)>0 from m_attributevalue where (value = NEW.value or name = NEW.name) and m_attribute_id = NEW.m_attribute_id and m_attributevalue_id!=new.m_attributevalue_id) then
+            raise exception '@attributevaluenameunique@';
+        end if;
     IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
 END; $_$;
 
@@ -2222,6 +2244,40 @@ CREATE TRIGGER m_attributevaluebef_trg
   ON m_attributevalue
   FOR EACH ROW
   EXECUTE PROCEDURE m_attributevaluebef_trg();
+
+
+CREATE OR REPLACE FUNCTION m_attributeset_trg() RETURNS trigger LANGUAGE plpgsql   AS $_$ 
+DECLARE 
+BEGIN
+    if(select count(*)>0 from m_attributeset where name = new.name and m_attributeset_id!=new.m_attributeset_id) then
+        raise exception '@attributesetnameunique@';
+    end if;
+    return new;
+END; $_$;
+
+select zsse_DropTrigger ('m_attributeset_trg','m_attributeset');  
+CREATE TRIGGER m_attributeset_trg
+  BEFORE INSERT or UPDATE
+  ON m_attributeset
+  FOR EACH ROW
+  EXECUTE PROCEDURE m_attributeset_trg();
+
+
+CREATE OR REPLACE FUNCTION m_attributeuse_trg() RETURNS trigger LANGUAGE plpgsql   AS $_$ 
+DECLARE 
+BEGIN
+    if(select count(*)>0 from m_attributeuse where seqno = new.seqno and m_attributeset_id = new.m_attributeset_id) then
+        raise exception '@attributeusesetunique@';
+    end if;
+    return new;
+END; $_$;
+
+select zsse_DropTrigger ('m_attributeuse_trg','m_attributeuse');  
+CREATE TRIGGER m_attributeuse_trg
+  BEFORE INSERT or UPDATE
+  ON m_attributeuse
+  FOR EACH ROW
+  EXECUTE PROCEDURE m_attributeuse_trg();
  
  
 CREATE OR REPLACE FUNCTION m_attributesetgetId(p_decription in varchar,p_attributeset_id in varchar) RETURNS varchar LANGUAGE plpgsql   AS $_$ 

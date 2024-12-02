@@ -142,7 +142,7 @@ END ; $BODY$
   COST 100;
  
 select zsse_dropfunction('m_generateinoutcustomer');
-CREATE OR REPLACE FUNCTION m_generateinoutcustomer( v_bpartner varchar, v_datefrom varchar,v_dateto varchar,v_docno varchar,v_project varchar, v_warehouse varchar,v_orgl varchar,v_userorg varchar,v_productlist varchar,v_typeofproduct varchar,v_productcategory varchar,v_option varchar,v_combined varchar,v_partly varchar,v_dateformat varchar,v_lang varchar,
+CREATE OR REPLACE FUNCTION m_generateinoutcustomer( v_bpartner varchar, v_datefrom varchar,v_dateto varchar,v_docno varchar,v_project varchar, v_warehouse varchar, v_locator varchar,v_orgl varchar,v_userorg varchar,v_productlist varchar,v_typeofproduct varchar,v_productcategory varchar,v_option varchar,v_combined varchar,v_partly varchar,v_dateformat varchar,v_lang varchar,
                            ad_client_id OUT varchar, ad_org_id OUT varchar, c_order_id OUT varchar, a_asset_id OUT varchar, c_orderline_id OUT varchar, c_project_id OUT varchar, c_projecttask_id OUT varchar, m_shipper_id OUT varchar, salesrep_id OUT varchar, c_doctype_id OUT varchar, scheddeliverydate out varchar,
                            c_bpartner_id OUT varchar,   businesspartner OUT varchar, m_locator_id OUT varchar,documentno OUT varchar, projectname OUT varchar,  doctypename OUT varchar, dateordered OUT varchar, datepromised OUT varchar, shipper_name OUT varchar, salesrepname OUT varchar, totallines OUT varchar, grandtotal OUT varchar,
                            line OUT varchar,  product_name OUT varchar,  qtyordered OUT varchar, qtydelivered OUT varchar, qtyavailable OUT varchar,qty2deliver OUT varchar, description OUT varchar,  completed OUT varchar,m_attributesetinstance_id OUT varchar,
@@ -200,6 +200,7 @@ BEGIN
                          where o.c_order_id=v.c_order_id  and o.c_bpartner_id=b.c_bpartner_id and v.m_product_id=p.m_product_id
                          and (exists(select 0 from m_storage_detail d,m_locator l, m_warehouse w where l.m_locator_id=d.m_locator_id and v.m_product_id=d.m_product_id and d.qtyonhand>0  
                                       and l.m_warehouse_id=o.m_warehouse_id
+                                      and case when coalesce(v_locator,'')='' then 1=1 else l.m_locator_id = v_locator end
                                       and coalesce(v.m_attributesetinstance_id,'0')=coalesce(d.m_attributesetinstance_id,'0') and w.m_warehouse_id=l.m_warehouse_id and w.isblocked='N')
                                 or (p.issetitem='Y' and m_bom_qty_onhand(p.m_product_id,o.m_warehouse_id,null, null)>0))
                          and case when coalesce(v_bpartner,'')='' then 1=1 else v.C_BPARTNER_ID=v_bpartner end

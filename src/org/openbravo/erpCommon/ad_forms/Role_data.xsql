@@ -33,6 +33,7 @@
         AND AD_ROLE_ORGACCESS.AD_ORG_ID = AD_ORG.AD_ORG_ID
         AND AD_ORG.AD_CLIENT_ID = AD_CLIENT.AD_CLIENT_ID
         AND AD_ROLE.AD_ROLE_ID = AD_ROLE_ORGACCESS.AD_ROLE_ID
+        AND AD_ORG.isactive = 'Y'
      ]]>
      </Sql>
      <Parameter name="adRoleId"/>

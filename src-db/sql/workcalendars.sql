@@ -1379,6 +1379,7 @@ Obacht: date1 in ad user ist Eintritt ins Unternehmen!
   v_target numeric;
   v_work numeric;
   i integer;
+  ii integer;
   v_month numeric;
   v_cmpyear numeric;
   v_cmpmonth numeric;
@@ -1387,8 +1388,14 @@ Obacht: date1 in ad user ist Eintritt ins Unternehmen!
   v_lastdate timestamp;
   v_mo character varying;
   v_ye character varying;
+  v_targetInfo varchar;
+  v_workInfo varchar;
+  v_targetInfoHours int;
+  v_workInfoHours int;
+  v_targetInfoMinutes numeric;
+  v_workInfoMinutes numeric;
 BEGIN 
-   select now()- interval '3 month' into  v_gdate;
+   select trunc(now())- interval '3 month' into  v_gdate;
    select  extract (year from v_gdate) into v_year;
    select extract (month from v_gdate) into v_month;
    select  extract (year from now()) into v_cmpyear;
@@ -1396,34 +1403,39 @@ BEGIN
    
    --DELETE FROM c_empworktimeaccount where wyear >= extract (year from now()) -2;
    DELETE FROM c_empworktimeaccount where wyear >=v_year and wmonth>=v_month;
+   GET DIAGNOSTICS i := ROW_COUNT;
    if v_cmpyear>v_year then
         DELETE FROM c_empworktimeaccount where wyear = v_cmpyear;
+        GET DIAGNOSTICS ii := ROW_COUNT; 
+        i:=i+ii;
    end if;
    
-   GET DIAGNOSTICS i := ROW_COUNT; 
+   
    v_message := i || ' Empworktimeaccounts deleted. - ';
+   i:=0;
         for v_cur in ( select distinct extract (year from wc.workdate) as wyear,
                                    extract (month from wc.workdate) as   wmonth,
                                                                    u.ad_user_id,
                                                                     b.ad_org_id,
-                                                                b.c_bpartner_id,
-                                                             date_trunc('month',
-        to_date('01.'||extract (month from wc.workdate)||'.'||extract (year from wc.workdate),'dd.mm.yyyy' ) ) + interval '1 month' -1 as lastday,
-       to_date('01.'||extract (month from wc.workdate)||'.'||extract (year from wc.workdate),'dd.mm.yyyy' ) as firstday,
+                                                                b.c_bpartner_id,                                            
                                                                         b.value
         from c_workcalender wc,ad_user u,c_bpartner b  
         where u.c_bpartner_id=b.c_bpartner_id and u.isactive='Y' and b.isemployee='Y' and b.isactive='Y' 
         and wc.workdate>= coalesce(u.date1,to_date('01.01.1990','dd.mm.yyyy'))
-        and wc.workdate>= (select min (workdate) from zspm_ptaskfeedbackline) and wc.workdate<now()
         and wc.workdate >= v_gdate
+        and wc.workdate <= now()
+        and exists (select 0 from c_bp_salcategory c where c.c_bpartner_id=b.c_bpartner_id)
         -- and wc.workdate >= to_date('01.01.'||extract (year from now()) -2||',dd.mm.yyyy')
        )
    LOOP     
    v_mo:=substring(to_char(v_cur.wmonth,'09') from 2 for 2);
    v_ye:=to_char(v_cur.wyear,'9999');
    --raise exception '%', length(v_mo);
-    select     sum(dtotal) + sum(dpaidbreak),    sum(dsoll) into v_work,    v_target 
-    from zssi_getdayset(v_cur.c_bpartner_id,to_char(v_cur.wmonth,'99'),to_char(v_cur.wyear,'9999'),'de_DE');
+    select     sum(dtotal) + sum(dpaidbreak),    sum(dsoll),sum(dsoll_hours),sum(dsoll_minutes), sum(dtotal_hours) + sum(dpaidbreak_hours),sum(dtotal_minutes) + sum(dpaidbreak_minutes)
+    into v_work,    v_target , v_targetInfoHours,v_targetInfoMinutes,v_workInfoHours,v_workInfoMinutes
+    from zssi_getdayset(v_cur.c_bpartner_id,to_char(v_cur.wmonth,'99'),to_char(v_cur.wyear,'9999'),'de_DE','','');
+    v_targetInfo:=sum_hours_minutes(v_targetInfoHours,v_targetInfoMinutes);
+    v_workInfo:=sum_hours_minutes(v_workInfoHours,v_workInfoMinutes);
     insert into c_empworktimeaccount(c_empworktimeaccount_id, 
                                                 AD_Client_ID, 
                                                     AD_Org_ID,
@@ -1435,19 +1447,27 @@ BEGIN
                                                     targethours,
                                                     workhours,
                                                     value,
-                                                    holiday_entitlement
+                                                    holiday_entitlement,
+                                                    targethours_info,
+                                                    workhours_info
                                                     )
-    values (get_uuid(),'C726FEC915A54A0995C568555DA5BB3C',v_cur.ad_org_id,'0','0',v_cur.ad_user_id, v_cur.wyear, v_cur.wmonth, v_target,v_work,v_cur.value,coalesce(zssi_getHolidayEntitlement(v_cur.c_bpartner_id ,v_mo,v_ye),zssi_calculatevacationaccountbalance(v_cur.c_bpartner_id ,to_char(v_cur.wmonth,'99'),to_char(v_cur.wyear,'9999'))));
+    values (get_uuid(),'C726FEC915A54A0995C568555DA5BB3C',v_cur.ad_org_id,'0','0',v_cur.ad_user_id, v_cur.wyear, v_cur.wmonth, v_target,v_work,v_cur.value,
+    coalesce(zssi_getHolidayEntitlement(v_cur.c_bpartner_id ,v_mo,v_ye),zssi_calculatevacationaccountbalance(v_cur.c_bpartner_id ,to_char(v_cur.wmonth,'99'),to_char(v_cur.wyear,'9999'))),
+    v_targetInfo,v_workInfo);
     i :=i+1; 
    END LOOP;
-   update c_empworktimeaccount set balance=zssi_calculatetimeaccountbalance(ad_user_id,wmonth,wyear)
-    where wyear >=v_year and wmonth>=v_month;--wyear >= extract (year from now()) -2;
+   /*
+   update c_empworktimeaccount set balance=b.p_balance,balance_info=b.p_infobalance from
+     c_empworktimeaccount a, zssi_calculatetimeaccountbalance(a.ad_user_id,a.wmonth,a.wyear) b
+    where a.wyear >=v_year and a.wmonth>=v_month;--wyear >= extract (year from now()) -2;
+   
    if v_cmpyear>v_year then
         update c_empworktimeaccount set balance=zssi_calculatetimeaccountbalance(ad_user_id,wmonth,wyear)
             where wyear =v_cmpyear and wmonth<=v_cmpmonth;
    end if;
- 
-    -- Finishing
+   */
+   -- Finishing
+   PERFORM zssi_calculatetimeaccountbalance(v_month,v_year,v_cmpyear,v_cmpmonth);
    v_message := 'Aggregate Worktimeaccount finished:' || v_message||' '||i||' Employee Worktime accounts created.';
    RETURN v_message;
 END;
@@ -2090,8 +2110,34 @@ END ; $BODY$
   COST 100;
   
   
+-- dtotal -> Arbeitszeit ungerundet als Dezimalzahl
+-- dtotal_hours -> Arbeitszeit nur Stunden
+-- dtotal_minutes -> Arbeitszeit nur Minuten (Auf/Abgerundet auf nächste volle Minute)
+-- alle anderen Zeiten wie dbreak, etc. analog
 select zsse_dropfunction('zssi_getdayset');
-CREATE OR REPLACE FUNCTION zssi_getdayset(p_employee character varying, p_month varchar, p_year varchar,p_lang varchar, OUT mday character varying,OUT wdate timestamp without time zone,OUT mm character varying,OUT my character varying, OUT mnum character varying, OUT dfrom timestamp, OUT dto timestamp, OUT dbreak numeric, OUT dpaidbreak numeric, OUT dspec numeric, OUT dspec2 numeric,OUT dspec3 numeric, OUT dtrigger numeric, OUT dspecial4 numeric,OUT dspecial5 numeric, OUT dtravel numeric, OUT dtotal numeric, OUT dnorm numeric, OUT dnight numeric, OUT dsat numeric, OUT dsun numeric, OUT dholi numeric, OUT dover numeric, OUT dvacanc numeric, OUT dill numeric, OUT dsoll numeric, OUT dworkplace varchar)
+CREATE OR REPLACE FUNCTION zssi_getdayset(p_employee character varying, p_month varchar, p_year varchar, p_lang varchar, p_datefrom varchar, p_dateto varchar,
+	                                      OUT mday character varying,OUT wdate timestamp without time zone,OUT mm character varying,OUT my character varying, OUT mnum character varying, OUT dfrom timestamp, OUT dto timestamp,
+	                                      OUT dbreak numeric, OUT dbreak_hours numeric, OUT dbreak_minutes numeric,
+	                                      OUT dpaidbreak numeric, OUT dpaidbreak_hours numeric, OUT dpaidbreak_minutes numeric,
+	                                      OUT dspec numeric, OUT dspec_hours numeric, OUT dspec_minutes numeric,
+	                                      OUT dspec2 numeric, OUT dspec2_hours numeric, OUT dspec2_minutes numeric,
+	                                      OUT dspec3 numeric, OUT dspec3_hours numeric, OUT dspec3_minutes numeric,
+	                                      OUT dspecial4 numeric, OUT dspecial4_hours numeric, OUT dspecial4_minutes numeric,
+	                                      OUT dtrigger numeric, OUT dtrigger_hours numeric, OUT dtrigger_minutes numeric,
+	                                      OUT dspecial5 numeric,
+	                                      OUT dtravel numeric, OUT dtravel_hours numeric, OUT dtravel_minutes numeric,
+	                                      OUT dtotal numeric, OUT dtotal_hours numeric, OUT dtotal_minutes numeric,
+	                                      OUT dnorm numeric, OUT dnorm_hours numeric, OUT dnorm_minutes numeric,
+	                                      OUT dnight numeric, OUT dnight_hours numeric, OUT dnight_minutes numeric,
+	                                      OUT dsat numeric, OUT dsat_hours numeric, OUT dsat_minutes numeric,
+	                                      OUT dsun numeric, OUT dsun_hours numeric, OUT dsun_minutes numeric,
+	                                      OUT dholi numeric, OUT dholi_hours numeric, OUT dholi_minutes numeric,
+	                                      OUT dover numeric, OUT dover_hours numeric, OUT dover_minutes numeric,
+	                                      OUT dvacanc numeric, OUT dvacanc_hours numeric, OUT dvacanc_minutes numeric,
+	                                      OUT dill numeric, OUT dill_hours numeric, OUT dill_minutes numeric,
+	                                      OUT dsoll numeric, OUT dsoll_hours numeric, OUT dsoll_minutes numeric,
+	                                      OUT dworkplace varchar
+)
 RETURNS setof record AS
 $_$ 
 /***************************************************************************************************************************************************
@@ -2123,21 +2169,53 @@ v_orgid varchar;
 v_time numeric;
 v_currdate timestamp:='infinity'::timestamp;
 v_userid character varying:='';
-v_sm numeric:=to_number(p_month);
-v_sy numeric:=to_number(p_year);
-v_sdate character varying:=v_sy||'-'||v_sm||'-'||1;
-v_edate date := (select last_dayofmonth(to_date(v_sdate, 'YYYY-MM-DD')));
+v_sm numeric;
+v_sy numeric;
+v_sdate_str varchar;
+v_sdate date;
+v_edate date ;
 v_bre numeric;
 v_ne timestamp; -- Nifght end
+v_id varchar;
+v_issunday varchar;
+v_issaturday varchar;
+v_isholiday  varchar;
+v_absent timestamp;
+v_absentHours numeric;
+v_cur_absent record;
+v_hours numeric;
+v_countabsentasbreak varchar;
+v_oneline varchar;
 BEGIN
-SELECT u.ad_user_id,b.ad_org_id into v_userid,v_orgid from ad_user u,c_bpartner b where u.c_bpartner_id=b.c_bpartner_id and b.c_bpartner_id=p_employee;
 
-for v_curcal in (select workdate as datenow from c_workcalender where workdate between to_date(v_sdate,'YYYY-MM-DD') and v_edate order by workdate)
+if ((p_datefrom is not null and p_datefrom != '') and (p_dateto is not null and p_dateto != '')) then
+    v_sdate := to_date(p_datefrom);
+    v_edate := to_date(p_dateto);
+ELSE
+    v_sm:=to_number(p_month);
+    v_sy:=to_number(p_year);
+    v_sdate_str :=v_sy||'-'||v_sm||'-'||1;
+    v_sdate:= to_date(v_sdate_str,'YYYY-MM-DD');
+    v_edate:= (select last_dayofmonth(v_sdate));
+end if;
+
+SELECT u.ad_user_id,b.ad_org_id into v_userid,v_orgid from ad_user u,c_bpartner b where u.c_bpartner_id=b.c_bpartner_id and b.c_bpartner_id=p_employee;
+select value into v_oneline from ad_preference where attribute='TIMEFEEDBACKONELINEPERDAY';
+
+for v_curcal in (select workdate as datenow from c_workcalender where workdate between v_sdate and v_edate order by workdate)
 LOOP
 select c_getemployeeworktimeNormal(p_employee,v_curcal.datenow) into v_time;
 dsoll:=v_time;
-for v_cur in (select fbl.zspm_ptaskfeedbackline_id, fbl.workdate, to_char(fbl.workdate,'DY') as vdd,to_char(fbl.workdate,'MONTH') as vm, to_char(fbl.workdate,'YYYY') as vy, to_char(fbl.workdate,'DD') as vdn,p.c_project_id,  fbl.hour_from, fbl.hour_to, fbl.hours, fbl.issunday, fbl.issaturday, fbl.isholiday, fbl.dayhours, fbl.breaktime, fbl.paidbreaktime, fbl.zspm_ptaskfeedbackline_id, fbl.traveltime, fbl.specialtime, fbl.specialtime2,fbl.specialtime3,fbl.triggeramt,fbl.special4,fbl.special5,fbl.overtimehours, fbl.c_projecttask_id, fbl.nighthours, fbl.ad_user_id 
-from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_id and p.timekeeping='Y' and fbl.workdate = v_curcal.datenow and fbl.ad_user_id=v_userid order by fbl.hour_from)
+for v_cur in (select  fbl.workdate, to_char(fbl.workdate,'DY') as vdd,to_char(fbl.workdate,'MONTH') as vm, to_char(fbl.workdate,'YYYY') as vy, to_char(fbl.workdate,'DD') as vdn,
+                p.c_project_id,fbl.c_projecttask_id,fbl.ad_user_id, 
+                min(fbl.hour_from) as hour_from, max(fbl.hour_to) as hour_to,  
+                sum(fbl.hours) as hours,
+                sum(fbl.breaktime) as breaktime, sum(fbl.paidbreaktime) as paidbreaktime,  sum(fbl.traveltime) as traveltime, 
+                sum(fbl.specialtime) as specialtime, sum(fbl.specialtime2) as specialtime2,sum(fbl.specialtime3) as specialtime3,sum(fbl.special4) as special4,sum(fbl.special5) as special5,
+                sum(fbl.triggeramt) as triggeramt,sum(fbl.overtimehours) as overtimehours, sum(fbl.nighthours) as  nighthours,
+                case when  fbl.hour_from>fbl.hour_to then 'Y' else case when v_oneline='Y' then 'N' else get_uuid() end end as ckstate -- Overnight single Lines
+              from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_id and p.timekeeping='Y' and fbl.workdate = v_curcal.datenow and fbl.ad_user_id=v_userid 
+              group by p.c_project_id,fbl.c_projecttask_id,fbl.ad_user_id,fbl.workdate,ckstate order by min(fbl.hour_from))
   LOOP
     -- Sollarbeitszeit nur einmal am Tag.
     if v_currdate!=v_curcal.datenow then
@@ -2145,21 +2223,51 @@ from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_i
     else
         dsoll:=0;
     end if;
+    -- Pause: Wenn bei mehrmaligen Stempeln die Abwesenheit größer als die Pausenzeit ist, wird die Abwesenheit als Pausenzeit gewertet. 
+    v_absent:=null;
+    v_absentHours:=0;
+    select value into v_countabsentasbreak from ad_preference where attribute='TIMEFEEDBACKCOUNTABSENTASBREAK';
+    if coalesce(v_countabsentasbreak,'Y')='Y' then
+        for v_cur_absent in (select * from zspm_ptaskfeedbackline where workdate=v_curcal.datenow and ad_user_id=v_userid and c_projecttask_id=v_cur.c_projecttask_id order by hour_from)
+        LOOP
+            if v_absent is not null then
+                v_absentHours := v_absentHours+ (SELECT ((EXTRACT (EPOCH FROM (v_cur_absent.hour_from - v_absent))) / 3600)); -- ::NUMERIC, calculate even leap year
+                -- Work around the nicht into the next day....
+                if v_absentHours < 0 then
+                    v_absentHours:= (24 + v_absentHours);
+                end if;
+            end if;
+            v_absent:=v_cur_absent.hour_to;
+        END LOOP;
+    end if;
+    if v_absentHours>coalesce(v_cur.breaktime,0) and v_cur.ckstate='N' then
+        dbreak:=v_absentHours;
+        v_hours:=coalesce(v_cur.hours,0)+coalesce(v_cur.breaktime,0); -- Die abgezogene Pause zählt nicht mit--> Abwesenheit > Pause!
+        dover:=v_hours-v_time;
+        if dover<0 then dover:=0; end if;
+    else
+        dbreak:=coalesce(v_cur.breaktime,0);
+        v_hours:=coalesce(v_cur.hours,0);
+        dover:=v_cur.overtimehours;
+    end if;
+    -- Sondertage immer auf der ersten Zeit (Nachtarbeit!)
+    select issunday, issaturday,isholiday into v_issunday, v_issaturday,v_isholiday 
+           from zspm_ptaskfeedbackline where workdate=v_curcal.datenow and ad_user_id=v_userid and c_projecttask_id=v_cur.c_projecttask_id order by hour_from limit 1;
     dnorm:=0;
     dnight:=v_cur.nighthours;
-    if v_cur.issunday='Y' or v_cur.issaturday='Y' or v_cur.isholiday='Y' then
-        if (v_cur.issunday='Y') then            
-            dsun:=v_cur.hours;
+    if v_issunday='Y' or v_issaturday='Y' or v_isholiday='Y' then
+        if (v_issunday='Y') then            
+            dsun:=v_hours;
             dsat:=0;
             dholi:=0;
         end if;
-        if (v_cur.issaturday='Y') then
-            dsat:=v_cur.hours;   
+        if (v_issaturday='Y') then
+            dsat:=v_hours;   
             dsun:=0;
             dholi:=0;
         end if;
-        if (v_cur.isholiday='Y')then
-            dholi:=v_cur.hours;
+        if (v_isholiday='Y')then
+            dholi:=v_hours;
             dsat:=0;
             dsun:=0;
         end if;
@@ -2172,7 +2280,7 @@ from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_i
     mnum:=v_cur.vdn;
     dfrom:=v_cur.hour_from;
     dto:=v_cur.hour_to;
-    dbreak:=coalesce(v_cur.breaktime,0);
+    -- Bezahlte Pause
     dpaidbreak:=coalesce(v_cur.paidbreaktime,0);
     dspec:=coalesce(v_cur.specialtime,0);
     dspec2:=coalesce(v_cur.specialtime2,0);
@@ -2181,16 +2289,15 @@ from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_i
     dspecial4:=coalesce(v_cur.special4,0);
     dspecial5:=coalesce(v_cur.special5,0);
     dtravel:=coalesce(v_cur.traveltime,0);
-    dtotal:=coalesce(v_cur.hours,0);
+    dtotal:=coalesce(v_hours,0);
 
     -- Feiertage : Da zählt Soll-Arbeitszeit als gesamt, wenn weniger als soll gearbeitet wurde
-    if (v_cur.isholiday='Y' and dholi<coalesce(dsoll,0)) then
+    if (v_isholiday='Y' and dholi<coalesce(dsoll,0)) then
         dtotal:=coalesce(dsoll,0);
     end if;
     wdate:=v_cur.workdate;
-    dover:=v_cur.overtimehours;
     if dsun=0 and dsat=0 and dholi=0 then 
-        dnorm:=coalesce(v_cur.hours,0)-v_cur.nighthours-v_cur.overtimehours;
+        dnorm:=coalesce(v_hours,0)-v_cur.nighthours-dover;
     end if;
     
     if dnorm < 0 then dnorm:=0; end if;
@@ -2198,17 +2305,19 @@ from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_i
     dill:=0;
     mm:=v_cur.vm;
     my:=v_cur.vy;
-    select p.value||'-'||p.name into dworkplace from c_project p where p.c_project_id=v_cur.c_project_id;
+    dworkplace:=zssi_getworkplace(v_cur.c_projecttask_id);
     
     -- Über Nacht gearbeitet..
     if v_cur.hour_to<v_cur.hour_from then        
         -- Erster Teil der Nacht
-        select p_norm,p_over,p_night,p_sat,p_sun,p_holi into dnorm,dover,dnight,dsat,dsun,dholi from c_getworktimeThisdayOvernight(v_cur.zspm_ptaskfeedbackline_id);
+        select zspm_ptaskfeedbackline_id into v_id from zspm_ptaskfeedbackline where workdate=v_curcal.datenow and ad_user_id=v_userid and c_projecttask_id=v_cur.c_projecttask_id 
+               and hour_to<hour_from order by hour_from limit 1;
+        select p_norm,p_over,p_night,p_sat,p_sun,p_holi into dnorm,dover,dnight,dsat,dsun,dholi from c_getworktimeThisdayOvernight(v_id);
         -- Zweiter Teil der Nacht
-        select p_norm+dnorm,p_over+dover,p_night+dnight,p_sat+dsat,p_sun+dsun,p_holi+dholi,p_ne into dnorm,dover,dnight,dsat,dsun,dholi,v_ne from c_getworktimeNEXTDayOvernight(v_cur.zspm_ptaskfeedbackline_id); 
+        select p_norm+dnorm,p_over+dover,p_night+dnight,p_sat+dsat,p_sun+dsun,p_holi+dholi,p_ne into dnorm,dover,dnight,dsat,dsun,dholi,v_ne from c_getworktimeNEXTDayOvernight(v_id); 
         select greatest(dnorm,dnight,dsat,dsun,dholi) into v_bre;
-        if dnorm>0 then dnorm:=dnorm-coalesce(v_cur.breaktime,0); elsif dnight=v_bre then dnight:=dnight-coalesce(v_cur.breaktime,0); elsif dsat=v_bre then dsat:=dsat-coalesce(v_cur.breaktime,0); 
-           elsif dsun=v_bre then dsun:=dsun-coalesce(v_cur.breaktime,0); elsif dholi=v_bre then dholi:=dholi-coalesce(v_cur.breaktime,0);
+        if dnorm>0 then dnorm:=dnorm-coalesce(dbreak,0); elsif dnight=v_bre then dnight:=dnight-coalesce(dbreak,0); elsif dsat=v_bre then dsat:=dsat-coalesce(dbreak,0); 
+           elsif dsun=v_bre then dsun:=dsun-coalesce(dbreak,0); elsif dholi=v_bre then dholi:=dholi-coalesce(dbreak,0);
         end if;
         -- Nächsten Tag Bez Pause wandert von Nachtschicht auf Überstunden.
         if dpaidbreak>0 and dnight>0 and dsun=0 and dsat=0 and dholi=0 then
@@ -2243,13 +2352,13 @@ from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_i
     if (v_Empevent='2' and coalesce(v_evtWtime,0)=0) then
             dworkplace:=substr(v_Empevname||'-'||dworkplace,1,60);
             dvacanc:=coalesce(v_time,0);
-            dtotal:=coalesce(v_time,0)+coalesce(v_cur.hours,0);
+            dtotal:=coalesce(v_time,0)+coalesce(v_hours,0);
     end if;
     -- Auslöse, Arbeitsstunden bei Krankheit.
     if (v_Empevent='1') then
             dworkplace:=substr(v_Empevname||'-'||dworkplace,1,60);
             dill:=coalesce(v_time,0);
-            dtotal:=coalesce(v_time,0)+coalesce(v_cur.hours,0);        
+            dtotal:=coalesce(v_time,0)+coalesce(v_hours,0);        
     end if;
     if v_cur.hour_to>=v_cur.hour_from then -- Tagschicht
         -- Bezahlte Pause einer Kategorie zuordnen
@@ -2289,6 +2398,45 @@ from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_i
             end if;	
         end if;
     end if;
+    
+    -- Rundungen aus Dezimalzahlen berechnen für Stundenzettel
+    dtotal_hours := split_part(zssi_strTime(dtotal),':',1)::numeric;
+    dtotal_minutes := split_part(zssi_strTime(dtotal),':',2)::numeric;
+    dbreak_hours := split_part(zssi_strTime(dbreak),':',1)::numeric;
+    dbreak_minutes := split_part(zssi_strTime(dbreak),':',2)::numeric;
+    dpaidbreak_hours := split_part(zssi_strTime(dpaidbreak),':',1)::numeric;
+    dpaidbreak_minutes := split_part(zssi_strTime(dpaidbreak),':',2)::numeric;
+    dtravel_hours := split_part(zssi_strTime(dtravel),':',1)::numeric;
+    dtravel_minutes := split_part(zssi_strTime(dtravel),':',2)::numeric;
+    dsoll_hours := split_part(zssi_strTime(dsoll),':',1)::numeric;
+    dsoll_minutes := split_part(zssi_strTime(dsoll),':',2)::numeric;
+    dnorm_hours := split_part(zssi_strTime(dnorm),':',1)::numeric;
+    dnorm_minutes := split_part(zssi_strTime(dnorm),':',2)::numeric;
+    dnight_hours := split_part(zssi_strTime(dnight),':',1)::numeric;
+    dnight_minutes := split_part(zssi_strTime(dnight),':',2)::numeric;
+    dsat_hours := split_part(zssi_strTime(dsat),':',1)::numeric;
+    dsat_minutes := split_part(zssi_strTime(dsat),':',2)::numeric;
+    dsun_hours := split_part(zssi_strTime(dsun),':',1)::numeric;
+    dsun_minutes := split_part(zssi_strTime(dsun),':',2)::numeric;
+    dholi_hours := split_part(zssi_strTime(dholi),':',1)::numeric;
+    dholi_minutes := split_part(zssi_strTime(dholi),':',2)::numeric;
+    dover_hours := split_part(zssi_strTime(dover),':',1)::numeric;
+    dover_minutes := split_part(zssi_strTime(dover),':',2)::numeric;
+    dspec_hours := split_part(zssi_strTime(dspec),':',1)::numeric;
+    dspec_minutes := split_part(zssi_strTime(dspec),':',2)::numeric;
+    dspec2_hours := split_part(zssi_strTime(dspec2),':',1)::numeric;
+    dspec2_minutes := split_part(zssi_strTime(dspec2),':',2)::numeric;
+    dspec3_hours := split_part(zssi_strTime(dspec3),':',1)::numeric;
+    dspec3_minutes := split_part(zssi_strTime(dspec3),':',2)::numeric;
+    dspecial4_hours := split_part(zssi_strTime(dspecial4),':',1)::numeric;
+    dspecial4_minutes := split_part(zssi_strTime(dspecial4),':',2)::numeric;
+    dvacanc_hours := split_part(zssi_strTime(dvacanc),':',1)::numeric;
+    dvacanc_minutes := split_part(zssi_strTime(dvacanc),':',2)::numeric;
+    dill_hours := split_part(zssi_strTime(dill),':',1)::numeric;
+    dill_minutes := split_part(zssi_strTime(dill),':',2)::numeric;
+    dtrigger_hours := split_part(zssi_strTime(dtrigger),':',1)::numeric;
+    dtrigger_minutes := split_part(zssi_strTime(dtrigger),':',2)::numeric;
+
     return next;
   END LOOP;
   
@@ -2372,6 +2520,45 @@ from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_i
             dtotal:=coalesce(v_time,0);
         end if;
     end if;
+    
+    -- Rundungen aus Dezimalzahlen berechnen für Stundenzettel
+    dtotal_hours := split_part(zssi_strTime(dtotal),':',1)::numeric;
+    dtotal_minutes := split_part(zssi_strTime(dtotal),':',2)::numeric;
+    dbreak_hours := split_part(zssi_strTime(dbreak),':',1)::numeric;
+    dbreak_minutes := split_part(zssi_strTime(dbreak),':',2)::numeric;
+    dpaidbreak_hours := split_part(zssi_strTime(dpaidbreak),':',1)::numeric;
+    dpaidbreak_minutes := split_part(zssi_strTime(dpaidbreak),':',2)::numeric;
+    dtravel_hours := split_part(zssi_strTime(dtravel),':',1)::numeric;
+    dtravel_minutes := split_part(zssi_strTime(dtravel),':',2)::numeric;
+    dsoll_hours := split_part(zssi_strTime(dsoll),':',1)::numeric;
+    dsoll_minutes := split_part(zssi_strTime(dsoll),':',2)::numeric;
+    dnorm_hours := split_part(zssi_strTime(dnorm),':',1)::numeric;
+    dnorm_minutes := split_part(zssi_strTime(dnorm),':',2)::numeric;
+    dnight_hours := split_part(zssi_strTime(dnight),':',1)::numeric;
+    dnight_minutes := split_part(zssi_strTime(dnight),':',2)::numeric;
+    dsat_hours := split_part(zssi_strTime(dsat),':',1)::numeric;
+    dsat_minutes := split_part(zssi_strTime(dsat),':',2)::numeric;
+    dsun_hours := split_part(zssi_strTime(dsun),':',1)::numeric;
+    dsun_minutes := split_part(zssi_strTime(dsun),':',2)::numeric;
+    dholi_hours := split_part(zssi_strTime(dholi),':',1)::numeric;
+    dholi_minutes := split_part(zssi_strTime(dholi),':',2)::numeric;
+    dover_hours := split_part(zssi_strTime(dover),':',1)::numeric;
+    dover_minutes := split_part(zssi_strTime(dover),':',2)::numeric;
+    dspec_hours := split_part(zssi_strTime(dspec),':',1)::numeric;
+    dspec_minutes := split_part(zssi_strTime(dspec),':',2)::numeric;
+    dspec2_hours := split_part(zssi_strTime(dspec2),':',1)::numeric;
+    dspec2_minutes := split_part(zssi_strTime(dspec2),':',2)::numeric;
+    dspec3_hours := split_part(zssi_strTime(dspec3),':',1)::numeric;
+    dspec3_minutes := split_part(zssi_strTime(dspec3),':',2)::numeric;
+    dspecial4_hours := split_part(zssi_strTime(dspecial4),':',1)::numeric;
+    dspecial4_minutes := split_part(zssi_strTime(dspecial4),':',2)::numeric;
+    dvacanc_hours := split_part(zssi_strTime(dvacanc),':',1)::numeric;
+    dvacanc_minutes := split_part(zssi_strTime(dvacanc),':',2)::numeric;
+    dill_hours := split_part(zssi_strTime(dill),':',1)::numeric;
+    dill_minutes := split_part(zssi_strTime(dill),':',2)::numeric;
+    dtrigger_hours := split_part(zssi_strTime(dtrigger),':',1)::numeric;
+    dtrigger_minutes := split_part(zssi_strTime(dtrigger),':',2)::numeric;
+
     return next;
    end if;
   END LOOP;
@@ -2530,7 +2717,12 @@ $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;
   
-CREATE or replace FUNCTION zssi_getworktimeaccountbalance(p_employee_id character varying, p_month varchar, p_year varchar) RETURNS numeric
+-- returns decimal
+-- when using datefrom and dateto:
+-- only datefrom set -> get startbalance for the interval
+-- only dateto or both set -> get endbalance for the interval
+select zsse_dropfunction('zssi_getworktimeaccountbalance'); 
+CREATE or replace FUNCTION zssi_getworktimeaccountbalance(p_employee_id character varying, p_month varchar, p_year varchar, p_datefrom varchar, p_dateto varchar, p_operation varchar, p_modus varchar) RETURNS varchar
 AS $_$
 /***************************************************************************************************************************************************
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
@@ -2546,11 +2738,133 @@ Contributor(s): ______________________________________.
 DECLARE
 v_return numeric;
 v_user varchar;
+v_datefrom_day varchar;
+v_datefrom_month varchar;
+v_datefrom_year varchar;
+v_dateto_month varchar;
+v_dateto_year varchar;
+v_minutes numeric;
+v_hours numeric;
+v_minutestmp numeric;
+v_hourstmp numeric;
+v_numtimst numeric;
+v_strhhmm  varchar;
 BEGIN
 select ad_user_id into v_user from ad_user where c_bpartner_id=p_employee_id limit 1;
-select balance into v_return from c_empworktimeaccount where ad_user_id=v_user and wyear=to_number(p_year) 
-       and  wmonth=to_number(p_month); 
-RETURN coalesce(v_return,0);
+
+if ((p_datefrom is not null and p_datefrom != '') or (p_dateto is not null and p_dateto != '')) then
+    -- Initial Variables
+    v_datefrom_month:=extract(month from to_date(p_datefrom));
+    if length(v_datefrom_month)=1 then v_datefrom_month:='0'||v_datefrom_month; end if;
+    v_datefrom_year:=extract(year from to_date(p_datefrom));
+    v_dateto_month := extract(month from to_date(p_dateto));
+    if length(v_dateto_month)=1 then v_dateto_month:='0'||v_dateto_month; end if;
+    v_dateto_year := extract(year from to_date(p_dateto));
+    -- startbalance with datefrom
+    if (p_operation = 'balancestart') then
+      if substr(p_datefrom,1,2)='01' then
+        select newbalance, split_part(zssi_strTime(newbalance), ':', 1),zssi_getMinutes(zssi_strTime(newbalance))
+               into v_return,v_hours,v_minutes from C_Empworktimeaccountbalance where c_bpartner_id=p_employee_id and wmonth=v_dateto_month and wyear=v_dateto_year;
+      end if;
+      if v_return is null then
+        v_return:=zssi_getworktimeaccountbalance(p_employee_id , p_month , p_year , to_char(to_date(p_datefrom) -1), to_char(to_date(p_datefrom)-1),'#', 'NUM');
+        v_strhhmm:=zssi_getworktimeaccountbalance(p_employee_id , p_month , p_year , to_char(to_date(p_datefrom) -1), to_char(to_date(p_datefrom)-1),'#', 'HH:MI');
+        v_hours:=split_part(v_strhhmm, ':', 1);
+        v_minutes:=zssi_getMinutes(v_strhhmm);
+      end if;
+      if p_modus='HH:MI' then
+        return sum_hours_minutes(v_hours, v_minutes);
+      else
+        return to_char(v_return);
+      end if;
+    end if;
+    
+    -- Ist Anfangsstand für diesen Monat eingetragen?
+    select newbalance, split_part(zssi_strTime(newbalance), ':', 1),zssi_getMinutes(zssi_strTime(newbalance)) 
+           into v_return ,v_hourstmp,v_minutestmp from C_Empworktimeaccountbalance where c_bpartner_id=p_employee_id and wmonth=v_dateto_month and wyear=v_dateto_year;
+    if v_return is null then
+        -- Abschluss Vormonat = Anfangsstand dieser Monat
+        select balance, split_part(balance_info, ':', 1),zssi_getMinutes(balance_info) into v_return ,v_hourstmp,v_minutestmp from c_empworktimeaccount where ad_user_id=v_user
+        and case when (to_number(v_dateto_month)-1) = 0 then wyear=to_number(v_dateto_year)-1 else wyear=to_number(v_dateto_year) end
+        and case when (to_number(v_dateto_month)-1) = 0 then wmonth=12 else wmonth=to_number(v_dateto_month)-1 end;
+    end if;
+    -- add individual days until dateto starting at first day of month (ignore datefrom)
+    select (sum(dtotal) + sum(dpaidbreak) - sum(dsoll)),
+           (sum(dtotal_hours) + sum(dpaidbreak_hours) - sum(dsoll_hours)),
+           sum(dtotal_minutes) + sum(dpaidbreak_minutes) - sum(dsoll_minutes)
+           into v_numtimst,v_hours,v_minutes
+           from zssi_getdayset(p_employee_id,null,null,'de_DE','01-'||v_dateto_month||'-'||v_dateto_year,p_dateto);
+    v_return := coalesce(v_return,0) + v_numtimst;
+      --(select (sum(dtotal) + sum(dpaidbreak) - sum(dsoll)) from zssi_getdayset(p_employee_id,null,null,'de_DE','01-'||v_dateto_month||'-'||v_dateto_year,p_dateto));
+    if p_modus='HH:MI' then
+        return sum_hours_minutes(v_hours+coalesce(v_hourstmp,0), v_minutes+coalesce(v_minutestmp,0));
+    else
+        return coalesce(v_return,0);
+    end if;
+end if;
+-- full month
+if(p_operation = 'balancestart') then
+  select newbalance, split_part(zssi_strTime(newbalance), ':', 1),zssi_getMinutes(zssi_strTime(newbalance)) 
+           into v_return ,v_hours,v_minutes from C_Empworktimeaccountbalance where c_bpartner_id=p_employee_id and wmonth=p_month and wyear=p_year;
+  if v_return is null then
+    select balance, split_part(balance_info, ':', 1),zssi_getMinutes(balance_info) into v_return,v_hours,v_minutes from c_empworktimeaccount where ad_user_id=v_user
+        and case when (to_number(p_month)-1) = 0 then wyear=to_number(p_year)-1 else wyear=to_number(p_year) end
+        and case when (to_number(p_month)-1) = 0 then wmonth=12 else wmonth=to_number(p_month)-1 end;
+  end if;
+else
+  select balance, split_part(balance_info, ':', 1),zssi_getMinutes(balance_info) into v_return,v_hours,v_minutes from c_empworktimeaccount where ad_user_id=v_user and wyear=to_number(p_year) 
+         and  wmonth=to_number(p_month); 
+end if;
+if p_modus='HH:MI' then
+    return sum_hours_minutes(v_hours, v_minutes);
+else
+    return to_char(coalesce(v_return,0));
+end if;
+END
+$_$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+  
+-- Overload numeric version
+CREATE or replace FUNCTION zssi_getworktimeaccountbalance(p_employee_id character varying, p_month varchar, p_year varchar, p_datefrom varchar, p_dateto varchar, p_operation varchar) RETURNS numeric 
+AS $_$
+DECLARE
+    v_return numeric;
+BEGIN
+
+    select to_number(zssi_getworktimeaccountbalance(p_employee_id , p_month , p_year , p_datefrom,p_dateto, p_operation,'NUM')) into v_return;
+    return v_return;
+END
+$_$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+    
+    
+-- returns hh24:mm
+-- when using datefrom and dateto:
+-- only datefrom set -> get startbalance for the interval
+-- only dateto or both set -> get endbalance for the interval
+select zsse_dropfunction('zssi_getworktimeaccountbalanceashhmm'); 
+CREATE or replace FUNCTION zssi_getworktimeaccountbalanceashhmm(p_employee_id character varying, p_month varchar, p_year varchar, p_datefrom varchar, p_dateto varchar, p_operation varchar) RETURNS varchar
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2015 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+
+*****************************************************/
+DECLARE
+v_return varchar;
+BEGIN
+
+    select zssi_getworktimeaccountbalance(p_employee_id , p_month , p_year , p_datefrom,p_dateto, p_operation,'HH:MI') into v_return;
+    return v_return;
 END
 $_$
   LANGUAGE plpgsql VOLATILE
@@ -2558,7 +2872,7 @@ $_$
     
   
 select zsse_dropfunction('zssi_calculatetimeaccountbalance'); 
-CREATE or replace FUNCTION zssi_calculatetimeaccountbalance(p_user_id character varying, p_month numeric, p_year numeric) RETURNS numeric
+CREATE or replace FUNCTION zssi_calculatetimeaccountbalance(p_month numeric, p_year numeric, p_cmpyear numeric, p_cmpmonth numeric) RETURNS VOID
 AS $_$
 /***************************************************************************************************************************************************
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
@@ -2573,6 +2887,8 @@ Contributor(s): ______________________________________.
 *****************************************************/
 DECLARE
 v_return numeric:=0;
+v_returnmin numeric:=0;
+v_returnstd numeric:=0;
 v_zwischen numeric:=0;
 v_i numeric;
 v_beginbalance numeric;
@@ -2580,56 +2896,76 @@ v_month numeric;
 v_year numeric;
 v_zuscha numeric;
 v_iswcaccount varchar;
+v_zwischenstd int;
+v_zwischenmin int;
+v_zuschastd int;
+v_zuschamin int;
+v_cur record;
+v_balance numeric;
+v_infobalance varchar;
+v_bpartner varchar;
+v_workdate date;
 BEGIN
-
+   -- Loop durch alle Monate, die angefordert sind
+   -- raise notice '%', to_char(p_month)||'#'||to_char(p_year)||'#'||to_char(p_cmpyear)||'#'||to_char(p_cmpmonth);
+   for v_cur in (select * from 
+                 (select * from  c_empworktimeaccount where wyear >=p_year and wmonth>=p_month
+                 UNION
+                 select * from  c_empworktimeaccount where case when p_cmpyear>p_year then wyear =p_cmpyear else 1=0 end and wmonth<=p_cmpmonth) a
+                order by ad_user_id,wyear,wmonth)
+   LOOP
+    -- Wenn keine Einstellung Stundenkonto im Mitarbeiter->Raus
     select coalesce(workhourswithoutpaidovertime,0),isworktimeaccountactive into v_zuscha,v_iswcaccount from c_bp_salcategory where 
-            c_bpartner_id=(select c_bpartner_id from ad_user where ad_user_id=p_user_id)
-            and datefrom<=to_date('01.'||case when p_month<10 then '0'||to_char(p_month) else to_char(p_month) end||'.'||p_year,'dd.mm.yyyy')
+            c_bpartner_id=(select c_bpartner_id from ad_user where ad_user_id=v_cur.ad_user_id)
+            and datefrom<=to_date('01.'||case when v_cur.wmonth<10 then '0'||to_char(v_cur.wmonth) else to_char(v_cur.wmonth) end||'.'||v_cur.wyear,'dd.mm.yyyy')
             order by datefrom desc limit 1;
-    if  v_iswcaccount='N' then
-        return 0;
-    end if;
-        
+    -- Manuelle Balance für Mitarbeiter (Neuer Kontostand zum Monatsanfang)
     select newbalance,wyear,wmonth into v_beginbalance,v_year,v_month from c_empworktimeaccountbalance 
-        where c_bpartner_id=(select c_bpartner_id from ad_user where ad_user_id=p_user_id)  and wyear<=p_year 
-        and case when wyear=p_year then to_number(wmonth)<=p_month else 1=1 end
-        order by wyear desc,wmonth desc limit 1;
-        -- raise exception '%',v_beginbalance||'#'||v_year||'#'||v_month;
-    if v_beginbalance is null then
-        v_beginbalance:=0;
-    end if;
-    -- Durch die Jahre....
-    if coalesce(v_year,2200) < p_year then
-        for v_i in v_year..p_year-1
-        LOOP
-            if v_i=v_year then
-                select sum(workhours-v_zuscha)-sum(targethours) into v_zwischen  from c_empworktimeaccount where ad_user_id=p_user_id  and wyear=v_i and wmonth>=coalesce(v_month,0);
-            else
-                select sum(workhours-v_zuscha)-sum(targethours) into v_zwischen  from c_empworktimeaccount where ad_user_id=p_user_id  and wyear=v_i;
-            end if;
-            v_return:=v_return+coalesce(v_zwischen,0);
-            v_month:=0;
-        END LOOP;
-    end if;
-           
-    /*           
-    select sum(case when (workhours-targethours-v_zuscha)>=0 then workhours-v_zuscha else workhours end)-sum(targethours) into v_return from c_empworktimeaccount where ad_user_id=p_user_id and wyear<=p_year and wyear>=coalesce(v_year,1900)
-        and case when wyear=p_year then wmonth<=p_month and wmonth>=coalesce(v_month,0) else 1=1 end; 
-    */
-    -- Inclusivstunden immer abziehen...
-    /*
-    select sum(workhours-v_zuscha)-sum(targethours) into v_return from c_empworktimeaccount where ad_user_id=p_user_id and wyear<=p_year and wyear>=coalesce(v_year,1900)
-        and case when wyear=p_year then wmonth<=p_month and wmonth>=coalesce(v_month,0) else 1=1 end; 
-    */
-    select sum(workhours-v_zuscha)-sum(targethours) into v_zwischen  from c_empworktimeaccount where ad_user_id=p_user_id  and wyear=p_year and wmonth<=p_month and wmonth>=coalesce(v_month,0) ;
-    v_return:=v_return+coalesce(v_zwischen,0);
-    RETURN coalesce(v_return,0)+v_beginbalance;
+            where c_bpartner_id=(select c_bpartner_id from ad_user where ad_user_id=v_cur.ad_user_id)  and wyear<=v_cur.wyear 
+            and case when wyear=v_cur.wyear then to_number(wmonth)<=v_cur.wmonth else 1=1 end
+            order by wyear desc,wmonth desc limit 1;
+    if  v_iswcaccount='Y' and v_beginbalance is not null then --Einstellung Stundenkonto im Mitarbeiter und Initialwert Arbeitszeitkonto muß vorhanden sein.        
+        --v_zuschastd:=substr(zssi_strTime(v_zuscha),1,2);
+        --v_zuschamin:=substr(zssi_strTime(v_zuscha),4,2);
+        -- Aggregieren aller Stände ab dem ersten Eintrag in Stammdaten || Mitarbeiter  ||  Arbeitszeitkonto  (Neuer Kontostand zum Monatsanfang) / Startwert
+        select sum(workhours-v_zuscha)-sum(targethours) --,
+        --sum(case when workhours_info is null then to_number(substr(zssi_strTime(workhours-v_zuscha-targethours),1,instr(zssi_strTime(workhours-v_zuscha-targethours),':')-1)) else 
+        --         to_number(substr(workhours_info,1,instr(workhours_info,':')-1))-v_zuschastd-to_number(substr(targethours_info,1,instr(targethours_info,':')-1)) end) ,
+        --sum(case when workhours_info is null then to_number(substr(zssi_strTime(workhours-v_zuscha-targethours),instr(zssi_strTime(workhours-v_zuscha-targethours),':')+1,2)) else
+        --         to_number(substr(workhours_info,instr(workhours_info,':')+1,2))-v_zuschamin-to_number(substr(targethours_info,instr(targethours_info,':')+1,2)) end)
+        into v_zwischen --,v_zwischenstd,v_zwischenmin  
+        from c_empworktimeaccount where ad_user_id=v_cur.ad_user_id  
+                                            and wyear<=v_cur.wyear and wyear>=v_year
+                                            and case when wyear=p_year then to_number(wmonth)<=to_number(v_cur.wmonth) else 1=1 end
+                                            and case when wyear=v_year then to_number(wmonth)>=to_number(v_month) else 1=1 end;
+        --if v_cur.ad_user_id='9A8DD923CDAA4E79BB899DA1A7E197AB' then
+        --raise notice '%',to_char(v_zwischen)||'#'||to_char(v_beginbalance)||'#'||to_char(v_cur.wyear)||'#'||to_char(v_cur.wmonth)||'#'||to_char(coalesce(v_year,0))||'#'||to_char(coalesce(v_month,0))||'#'||to_char(v_zuscha);
+        --end if;
+        --if v_zwischenstd<0 and v_zwischenmin>0 then v_zwischenmin:=v_zwischenmin*-1; end if;
+        v_return:=v_return+coalesce(v_zwischen,0);
+        --v_returnmin:=v_returnmin+coalesce(v_zwischenmin,0)+case when v_beginbalance<0 then -1 else 1 end * to_number(substr(zssi_strTime(v_beginbalance),instr(zssi_strTime(v_beginbalance),':')+1,2));
+        --v_returnstd:=v_returnstd+coalesce(v_zwischenstd,0)+to_number(substr(zssi_strTime(v_beginbalance),1,instr(zssi_strTime(v_beginbalance),':')-1));
+        v_balance:=coalesce(v_return,0)+v_beginbalance;
+        -- Ticket 11617 - Immer noch Abweichungen --> Zurück auf Kalkulation aus Dezimal-Zahlen...
+        --v_infobalance:=sum_hours_minutes(v_returnstd,v_returnmin);
+        --v_infobalance:=zssi_strTime(v_balance);
+        select c_bpartner_id into v_bpartner from ad_user where ad_user_id=v_cur.ad_user_id;
+        SELECT LAST_DAY(TO_DATE(v_cur.wyear||lpad(to_char(v_cur.wmonth),2,'0') ||'01','YYYYMMDD' )) into v_workdate;
+        v_infobalance:=zssi_getworktimeaccountbalanceashhmm(v_bpartner,null,null,to_char(v_workdate,'dd.mm.yyyy'),to_char(v_workdate,'dd.mm.yyyy'),'#');
+        update c_empworktimeaccount set balance=v_balance,balance_info=v_infobalance where c_empworktimeaccount_id=v_cur.c_empworktimeaccount_id;
+        v_balance:=0;
+        v_infobalance:=0;
+        v_return:=0;
+        v_returnmin:=0;
+        v_returnstd:=0;
+    end if; --v_iswcaccount
+   END LOOP;
 END $_$ LANGUAGE plpgsql VOLATILE
 COST 100;  
   
   
 select zsse_dropfunction('zssi_calculatevacationaccountbalance');   
-CREATE or replace FUNCTION zssi_calculatevacationaccountbalance(p_bpartner_id character varying, p_month varchar, p_year varchar) RETURNS numeric
+CREATE or replace FUNCTION zssi_calculatevacationaccountbalance(p_bpartner_id character varying, p_month varchar, p_year varchar, p_datefrom varchar, p_dateto varchar) RETURNS numeric
 AS $_$
 /***************************************************************************************************************************************************
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
@@ -2651,7 +2987,11 @@ v_zuscha numeric;
 v_iswcaccount varchar;
 BEGIN
 
-
+if p_datefrom is not null and p_datefrom!='' and p_dateto is not null and p_dateto!='' then
+       p_month:= substr(p_datefrom,4,2);
+       p_year:=substr(p_datefrom,7,4);
+end if;
+    
 select remaining,wyear,to_number(wmonth) into v_beginbalance,v_year,v_month from c_vacation_account 
        where c_bpartner_id=p_bpartner_id  and wyear<=to_number(p_year) 
        and case when wyear=to_number(p_year) then to_number(wmonth)<=to_number(p_month) else 1=1 end
@@ -2666,7 +3006,28 @@ $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;  
 
+CREATE or replace FUNCTION zssi_calculatevacationaccountbalance(p_bpartner_id character varying, p_month varchar, p_year varchar) RETURNS numeric
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2015 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+Overload for Backward  Comp.
+*****************************************************/
+DECLARE
 
+BEGIN
+RETURN zssi_calculatevacationaccountbalance(p_bpartner_id,p_month,p_year,null,null);
+END
+$_$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;  
+  
 CREATE OR REPLACE FUNCTION zssi_checkIfHolidayOrWeekend(p_date timestamp without time zone, p_org character varying) RETURNS character varying 
 AS $_$ 
 /***************************************************************************************************************************************************
@@ -2766,8 +3127,8 @@ BEGIN
 END;
 $_$  LANGUAGE 'plpgsql';
 
-
-CREATE or replace FUNCTION zssi_getHolidayEntitlement(p_bpartner_id character varying, p_month character varying, p_year character varying) RETURNS NUMERIC
+select zsse_dropfunction('zssi_getHolidayEntitlement');
+CREATE or replace FUNCTION zssi_getHolidayEntitlement(p_bpartner_id character varying, p_month character varying, p_year character varying, p_datefrom varchar,p_dateto varchar) RETURNS NUMERIC
 AS $_$
 /***************************************************************************************************************************************************
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
@@ -2792,7 +3153,11 @@ v_calculation NUMERIC := 0;
 v_lyear varchar;
 BEGIN
 
-
+    if p_datefrom is not null and p_datefrom!='' and p_dateto is not null and p_dateto!='' then
+       p_month:= substr(p_datefrom,4,2);
+       p_year:=substr(p_datefrom,7,4);
+    end if;
+    
   	select COALESCE(number4, 0) into v_holidayEntitlementForYear from ad_user where c_bpartner_id = p_bpartner_id; 
 
 	-- Suche nach dem jüngsten remaining-Wert aus dem selben Jahr
@@ -2818,6 +3183,10 @@ BEGIN
 		-- 3. verrechne den Wert mit den genommenen Urlaubstagen bis zum Ende des aktuellen Monats
 		v_lastDayOfMonth := (p_year || '-' || p_month || '-01')::timestamp without time zone + (INTERVAL '1 month - 1 day');
 		v_firstDayOfSpan := date_trunc('year', v_lastDayOfMonth);
+		if p_datefrom is not null and p_datefrom!='' and p_dateto is not null and p_dateto!='' then
+            v_lastDayOfMonth:=p_dateto;
+            --v_firstDayOfSpan:=p_datefrom;
+		end if;
   		v_remaining := v_calculation - zssi_countSumOfHolidayDaysTaken(p_bpartner_id, v_firstDayOfSpan, v_lastDayOfMonth);
 
 
@@ -2831,6 +3200,10 @@ BEGIN
                 end if;
 		v_firstDayOfSpan := (case when v_tmpWMonth=0 then to_char(to_number(p_year)+1) else p_year end|| '-' || (v_tmpWMonth + 1) || '-01')::timestamp without time zone;
 		v_lastDayOfMonth := (p_year || '-' || p_month || '-01')::timestamp without time zone + (INTERVAL '1 month - 1 day');
+		if p_datefrom is not null and p_datefrom!='' and p_dateto is not null and p_dateto!='' then
+            v_lastDayOfMonth:=p_dateto;
+            --v_firstDayOfSpan:=p_datefrom;
+		end if;
   		v_remaining := v_remaining - zssi_countSumOfHolidayDaysTaken(p_bpartner_id, v_firstDayOfSpan, v_lastDayOfMonth);
 	end if;
 	
@@ -2841,6 +3214,26 @@ $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;  
 
+CREATE or replace FUNCTION zssi_getHolidayEntitlement(p_bpartner_id character varying, p_month character varying, p_year character varying) RETURNS NUMERIC
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2015 Stefan Zimmermann All Rights Reserved.
+Contributor(s): Robert Schardt.
+***************************************************************************************************************************************************
+- Overload (Backward Comp.)
+*****************************************************/
+DECLARE
+BEGIN
+    return zssi_getHolidayEntitlement(p_bpartner_id , p_month , p_year,null,null);
+END
+$_$
+  LANGUAGE plpgsql VOLATILE
+  COST 100; 
   
 CREATE OR REPLACE FUNCTION zssi_closeopentimefeedbacks() RETURNS VARCHAR -- 'SUCCESS'
 AS $body$
@@ -2863,3 +3256,4 @@ END;
 $body$
 LANGUAGE 'plpgsql'
 COST 100;
+

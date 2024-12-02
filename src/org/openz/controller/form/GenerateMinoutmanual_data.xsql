@@ -70,6 +70,7 @@
       <Parameter name="issotrx"/>
       <Parameter name="mProductId"  optional="true" type="argument" after="AND 3=3"><![CDATA[AND  v.M_PRODUCT_ID IN]]></Parameter>
       <Parameter name="paronlyDelivers" optional="true" after="where 5=5"><![CDATA[ AND (m_locator_id is not null or 1=to_number(?))]]></Parameter>
+      <Parameter name="parlocator" optional="true" after="where 5=5"><![CDATA[ AND m_locator_id = ?]]></Parameter>
       </SqlMethod>
   <SqlMethod name="set" type="constant" return="multiple">
       <SqlMethodComment></SqlMethodComment>
@@ -129,6 +130,7 @@
       <Parameter name="issotrx"/>
       <Parameter name="mProductId"  optional="true" type="argument" after="AND 3=3"><![CDATA[AND  v.M_PRODUCT_ID IN]]></Parameter>
       <Parameter name="paronlyDelivers" optional="true" after="where 5=5"><![CDATA[ AND (m_locator_id is not null or 1=to_number(?))]]></Parameter>
+       <Parameter name="parlocator" optional="true" after="where 5=5"><![CDATA[ AND m_locator_id = ?]]></Parameter>
       </SqlMethod>
   
 <SqlMethod name="selectOptions" type="preparedStatement" return="multiple">
@@ -141,7 +143,7 @@
                   line,  product_name,  qtyordered, qtydelivered, qtyavailable, 
                  qty2deliver, 
                   description,  completed,m_attributesetinstance_id,m_product_id
-       FROM m_generateinoutcustomer( ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) order by SequenceNO,SequenceNO2;      
+       FROM m_generateinoutcustomer( ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) order by SequenceNO,SequenceNO2;
       ]]></Sql>
       <Parameter name="bpartner"/>
       <Parameter name="datefrom"/>
@@ -149,6 +151,7 @@
       <Parameter name="documentno"/>
       <Parameter name="parProject"/>
       <Parameter name="parwarehouse"/>
+      <Parameter name="parlocator"/>
       <Parameter name="adOrgId"/>
       <Parameter name="userOrgList"/>
       <Parameter name="ProductList"/>

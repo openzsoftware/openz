@@ -416,12 +416,12 @@ BEGIN
           (C_ORDER_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE, CREATEDBY, UPDATEDBY,
            ISSOTRX, DOCUMENTNO, DOCSTATUS, DOCACTION, PROCESSING, C_DOCTYPE_ID,C_DOCTYPETARGET_ID,
            DATEORDERED, DATEACCT, C_BPARTNER_ID, BILLTO_ID, C_BPARTNER_LOCATION_ID, C_CURRENCY_ID, PAYMENTRULE, C_PAYMENTTERM_ID,AD_USER_ID,
-           INVOICERULE, DELIVERYRULE, DELIVERYVIARULE, M_WAREHOUSE_ID, M_PRICELIST_ID,istaxincluded,freightcostrule,priorityrule, m_shipper_id, c_incoterms_id, salesrep_id, description)
+           INVOICERULE, DELIVERYRULE, DELIVERYVIARULE, M_WAREHOUSE_ID, M_PRICELIST_ID,istaxincluded,freightcostrule,priorityrule, m_shipper_id, c_incoterms_id, salesrep_id, description, created_by_webservice)
          VALUES
            (v_orderid, v_Client, p_org_Id,'Y',v_user,v_user,
            v_issotrx , v_docno,  'DR', 'CO','N','0',v_doctypetarget,
             trunc(now()),trunc(now()),p_bpartner_Id,v_location,v_locationship2,v_currency,v_paymentrule,v_payterm,p_bpcontact_id,
-            v_invrule,v_delrule,p_deliveryviarule,v_warehouse,v_pricelist,'N',v_freightcostrule,'5', v_shipper, v_incoterms, v_salesrep, v_so_description);
+            v_invrule,v_delrule,p_deliveryviarule,v_warehouse,v_pricelist,'N',v_freightcostrule,'5', v_shipper, v_incoterms, v_salesrep, v_so_description, 'Y');
          v_message:=v_orderid;
     end if;
     return v_message;

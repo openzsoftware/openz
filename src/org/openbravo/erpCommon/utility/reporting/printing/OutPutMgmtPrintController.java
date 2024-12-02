@@ -109,15 +109,9 @@ public class OutPutMgmtPrintController {
 
 		    // Replace special tags
 
-		    emailSubject = emailSubject.replaceAll("@cus_ref@", cusReference);
-		    emailSubject = emailSubject.replaceAll("@our_ref@", ourReference);
-		    emailSubject = emailSubject.replaceAll("@cus_nam@", contactName);
-		    emailSubject = emailSubject.replaceAll("@sal_nam@", salesrepName);
+		    emailSubject = PrintControllerData.resolveSpecialTags(connection, documentId, emailSubject);
 
-		    emailBody = emailBody.replaceAll("@cus_ref@", cusReference);
-		    emailBody = emailBody.replaceAll("@our_ref@", ourReference);
-		    emailBody = emailBody.replaceAll("@cus_nam@", contactName);
-		    emailBody = emailBody.replaceAll("@sal_nam@", salesrepName);
+		    emailBody = PrintControllerData.resolveSpecialTags(connection, documentId, emailBody);
 
 		      EmailManager mailman = new EmailManager(); 
 		      final Session session = mailman.newMailSession(connection, vars.getClient(), report.getOrgId());

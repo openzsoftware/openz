@@ -42,6 +42,9 @@ window.onunload = reloadOpener; // reloads opener on closing
 
 function validate() {
   var frm = document.frmMain;
+  // & deletes everything behind it. Replace with space (forbidden character) to trigger error message
+  frm.inpClaveNew.value = frm.inpClaveNew.value.replaceAll('&', ' ');
+  frm.inpClaveNew2.value = frm.inpClaveNew2.value.replaceAll('&', ' ');
   if (frm.inpClaveOld.value==null || frm.inpClaveOld.value=="") {
     setWindowElementFocus(frm.inpClaveOld);
     showJSMessage(7);

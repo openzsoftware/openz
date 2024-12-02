@@ -81,7 +81,7 @@ public class AlertProcess implements Process {
           AlertProcessData.InsertAlert(connection, adAlertId, alert[i].adClientId,
               alert[i].adOrgId, alert[i].created, alert[i].createdby, alertRule.adAlertruleId,
               alert[i].recordId, alert[i].referencekeyId, alert[i].description, alert[i].adUserId,
-              alert[i].adRoleId);
+              alert[i].adRoleId, Integer.toString(10*i));
 
           msg.append("\n\nAlert: " + alert[i].description + "\nRecord: " + alert[i].recordId);
           // Send mail

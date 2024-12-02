@@ -34,6 +34,7 @@ Contributor(s): ______________________________________.
            from m_product p,  m_locator l ,m_inoutline f left join snr_minoutline snr on f.m_inoutline_id=snr.m_inoutline_id
            where f.m_inout_id=?
            and p.m_product_id=f.m_product_id 
+           and p.producttype!='S'
            and f.m_locator_id=l.m_locator_id
            and case when ? = 'SERIAL' then p.isserialtracking='Y' or p.isbatchtracking='Y' else 1=1 end
            group by f.m_inoutline_id,f.m_product_id,p.isserialtracking, p.isbatchtracking,f.movementqty,l.value,p.m_product_id,
@@ -47,6 +48,16 @@ Contributor(s): ______________________________________.
     <Parameter name = "consumptionid"/>
     <Parameter name = "usecase"/>
     <Parameter name = "firstLineID"/>   
+</SqlMethod>
+
+<SqlMethod name="setServiceProductsScanned" type="preparedStatement" return="rowcount">
+<SqlMethodComment></SqlMethodComment>
+    <Sql>
+    <![CDATA[
+      update m_inoutline io set qtycontrolcount = movementqty where m_inout_id = ? and (select prod.producttype = 'S' from m_product prod where prod.m_product_id = io.m_product_id)
+    ]]>
+    </Sql>
+    <Parameter name = "mInoutID"/>
 </SqlMethod>
 
 <SqlMethod name="getFirstLineID" type="preparedStatement" return="string">
@@ -165,6 +176,15 @@ Contributor(s): ______________________________________.
       ]]>  
       </Sql>
       <Parameter name="mInOutLineId"/>
+</SqlMethod>
+
+<SqlMethod name="isDraft" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT count(*) from m_inout where docaction='CO' and docstatus='DR' and m_inout_id=? 
+      ]]>  
+      </Sql>
+      <Parameter name="mInOutId"/>
 </SqlMethod>
 
 <SqlMethod name="getInOutLinefromKombi" type="preparedStatement" return="string">

@@ -96,5 +96,14 @@ Contributor(s): ______________________________________.
         <Parameter name="adTableID"/>
         <Parameter name="adRecordID"/>
     </SqlMethod>
+    <SqlMethod name="getSpecialTagsDescriptionTable" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+            select getEmailOptionsSpecialTagsTable(?) from dual
+            ]]>
+        </Sql>
+        <Parameter name="language"/>
+    </SqlMethod>
    
 </SqlClass>

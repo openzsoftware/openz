@@ -39,7 +39,10 @@ public class Mfa_ChangePassword  extends HttpSecureAppServlet {
 
       try{
         String strpassword = vars.getStringParameter("inppassword");
+        // illegal characters replace with space to trigger error
+        strpassword = strpassword.replaceAll("&", " ").replaceAll("\\+", " ");
         String strpasswordConfirm = vars.getStringParameter("inppasswordconfirm");
+        strpasswordConfirm = strpasswordConfirm.replaceAll("&", " ").replaceAll("\\+", " ");
         
         //Initializing the Fieldgroups
         String strnamefg=""; //Navigation Fieldgroup

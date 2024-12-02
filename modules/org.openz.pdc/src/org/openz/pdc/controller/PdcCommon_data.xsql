@@ -518,6 +518,12 @@ Contributor(s): ______________________________________.
       </Sql>
       <Parameter name="userId"/>
    </SqlMethod>
+   <SqlMethod name="isEmployeeLoggedIn" type="preparedStatement" return="string">
+      <Sql>
+        SELECT  case when count(*)=0 then 'N' else 'Y' end as retval from ad_user u,c_bpartner b where b.c_bpartner_id=u.c_bpartner_id and b.isactive='Y' and u.isactive='Y' and u.ad_user_id = ? 
+      </Sql>
+      <Parameter name="userId"/>
+   </SqlMethod>
    <SqlMethod name="isProducedSerial" type="preparedStatement" return="string">
       <Sql>
         select case when count(*)>0 then 'Y' else 'N' end as retv from  m_internal_consumption where c_projecttask_id=? and processed='Y' and movementtype='P+' and plannedserialnumber=?
