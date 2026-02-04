@@ -59,7 +59,7 @@
    
    <SqlMethod name="getWorkstep" type="preparedStatement" return="string">
       <Sql>
-        SELECT coalesce(value,name) as result from c_projecttask where c_projecttask_id=?
+        select pdc_getfeedbackworkstepname(?) as result from dual
       </Sql>
       <Parameter name="workstepid"/>
    </SqlMethod>

@@ -29,6 +29,7 @@ v_count numeric;
 v_cur RECORD;
 v_cur2 RECORD;
 
+v_invreceiver varchar;
 BEGIN
 
   for v_cur in (select distinct * from zsi_bpartner) 
@@ -84,6 +85,7 @@ BEGIN
         select c_tax_id into v_tax from c_tax where name=v_cur2.tax_key;
         select c_salesregion_id into v_salesregion from c_salesregion where value=v_cur2.salesregion_key;
         select count(*) into v_count from c_bpartner_location where c_bpartner_id=v_bpid and isheadquarter='Y';
+        select c_bpartner_id into v_invreceiver from c_bpartner where value=v_cur2.c_bpartnerinvreceiver;
         if v_count=1 then v_ishead:='N'; else v_ishead:='Y'; end if;
         --RAISE NOTICE '%','Loc'||v_cur2.country_key;
         insert into c_location(c_location_id,AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY,
@@ -92,10 +94,12 @@ BEGIN
                        v_cur2.address1,v_cur2.address2,v_cur2.postal,v_cur2.city,v_country);
         insert into c_bpartner_location(c_bpartner_location_id,c_location_id,c_bpartner_id,c_tax_id,c_salesregion_id,deviant_bp_name,
                                         AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY,
-                                        phone,phone2,fax,isshipto,isbillto,isremitto,istaxlocation,isheadquarter,uidnumber,name)
+                                        phone,phone2,fax,isshipto,isbillto,isheadquarter,uidnumber,name,
+                                        printcontactname,email,ccemail,isinvoicebyemail,eoriidentification,c_bpartnerinvreceiver)
                values(get_uuid(),v_locid,v_bpid,v_tax,v_salesregion,substr(v_cur2.deviantbpartnername,1,60),ad_client,v_org,now(),creator,now(),creator,
-                      v_cur2.phone,v_cur2.phone2,v_cur2.fax,v_cur2.isshipto,v_cur2.isbillto,v_cur2.isremitto,v_cur2.istaxlocation,v_ishead,v_cur2.uidnumber,
-                      substr(coalesce(v_countryneme,'')||','||coalesce(v_cur2.city,'')||','||coalesce(v_cur2.address1,''),1,60));
+                      v_cur2.phone,v_cur2.phone2,v_cur2.fax,coalesce(v_cur2.isshipto,'N'),coalesce(v_cur2.isbillto,'N'),v_ishead,v_cur2.uidnumber,
+                      substr(coalesce(v_countryneme,'')||','||coalesce(v_cur2.city,'')||','||coalesce(v_cur2.address1,''),1,60),
+                      coalesce(v_cur2.printcontactname,'N'),v_cur2.email,v_cur2.ccemail,coalesce(v_cur2.isinvoicebyemail,'N'),v_cur2.eoriidentification,v_invreceiver);
     END LOOP;
     select c_invoiceschedule_id into v_invoiceschedule from c_invoiceschedule where  name=(select invoiceschedule_key from zsi_bp_customer where bp_value_key=v_cur.value);
     select m_pricelist_id into v_pricelist from m_pricelist where  name=(select pricelist_key from zsi_bp_customer where bp_value_key=v_cur.value);

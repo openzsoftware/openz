@@ -260,6 +260,7 @@ BEGIN
     -- Some Checks before...
     select qty,qtyproduced,case when v_Org='0' then ad_org_id else v_Org end,supply2vendor  into v_orig_qty,v_orig_prod,v_Org,v_isvendorsupply from c_projecttask where c_projecttask_id=v_Record_ID;
     if v_orig_qty=0 then v_orig_qty:=1; end if;
+    if v_qty is null then v_qty:=0; end if;
     select count(*) into v_Count from zspm_projecttaskbom where c_projecttask_id=v_Record_ID and (quantity/v_orig_qty)*(v_orig_prod+v_qty)>abs(qtyreceived);
     if v_count>0 then
        RAISE EXCEPTION '%', '@zssm_NotAllMaterialinWorkstepChangeQtys@';

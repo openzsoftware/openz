@@ -662,7 +662,15 @@ $BODY$ DECLARE
                 --RAISE NOTICE '%',p_product_id||'#'|| v_plvid||'#'||coalesce(p_uom_id,'uom');
                 v_Price := m_bom_pricestd(p_product_id, v_plvid,p_uom_id,null);
             else
-               v_Price := m_bom_pricestd(p_product_id, v_plvid,p_uom_id,p_MProductPOID,p_bpartner_id);
+                if(c_getconfigoption('mrplastorderprice',v_orgid)='Y') then
+                    v_Price := m_bom_pricelastpo(p_product_id, v_plvid,p_uom_id,p_MProductPOID,p_bpartner_id);
+                    if(v_Price = 0) then
+                        -- if 0 use default method again
+                        v_Price := m_bom_pricestd(p_product_id, v_plvid,p_uom_id,p_MProductPOID,p_bpartner_id);
+                    end if;
+                else
+                    v_Price := m_bom_pricestd(p_product_id, v_plvid,p_uom_id,p_MProductPOID,p_bpartner_id);
+                end if;
             end if;
     ELSIF coalesce(p_directpurchasecalc,'N')='Y' then
 		IF p_isgrossprice = 'N'  THEN
@@ -797,7 +805,16 @@ $BODY$ DECLARE
         end if;    
         v_Price := Round(C_Currency_Convert(v_Price, v_purcur, v_currency, trunc(now())),2);   
       end if;
-      v_Price := M_Get_Offer_Price(Cur_Offer.M_Offer_ID, v_Price) ;
+      -- for offers, override with last order price
+      if(c_getconfigoption('mrplastorderprice',v_orgid)='Y') then
+          v_Price := m_bom_pricelastpo(p_product_id, v_plvid,p_uom_id,p_MProductPOID,p_bpartner_id);
+          if(v_Price = 0) then
+              -- if 0 use default method again
+              v_Price := M_Get_Offer_Price(Cur_Offer.M_Offer_ID, v_Price) ;
+          end if;
+      else
+          v_Price := M_Get_Offer_Price(Cur_Offer.M_Offer_ID, v_Price);
+      end if;
       if coalesce(Cur_Offer.PRIORITY,0)<100 then
         exit;
       end if;
@@ -1113,6 +1130,84 @@ $BODY$ DECLARE
         --@TODO: Automatically fill m_product_po - Currency from po-Pricelist or move po-Pricelist to m_product_po
        if v_Price is null then
           select pricepo into v_Price  from m_product_po po where m_product_id=p_product_id and c_currency_id is null  and PO.iscurrentvendor='Y' and case when v_org!='0' then PO.AD_ORG_ID in ('0',v_org) else 1=1 end
+                  and case when p_uom_id is not null then coalesce(c_uom_id,'null')=p_uom_id else c_uom_id is null end 
+                   AND case when p_MProductPOID is not null then p_MProductPOID=po.m_product_po_id else 1=1 end
+                  and case when p_bpartner_id is not null then po.c_bpartner_id=p_bpartner_id  else 1=1 end 
+                 order by coalesce(po.qualityrating,0) desc,updated desc limit 1;
+       end if;
+    end if;      
+    --
+    if  v_Price is null then v_Price:=0; end if;
+    --RETURN c_currency_round(v_price, v_currency,null);
+     RETURN round(v_price, 4);
+END ; $BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
+
+-- get the last purchase order price of a product
+-- for configoption mrplastorderprice
+-- same as m_bom_pricestd with changed field name
+CREATE OR REPLACE FUNCTION m_bom_pricelastpo(p_product_id character varying, p_pricelist character varying, p_uom_id varchar,p_MProductPOID varchar, p_bpartner_id varchar)
+  RETURNS numeric AS
+$BODY$ DECLARE 
+/***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, 02/2011, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+* 
+****************************************************************************************************************************************************/
+
+/* Contributions: Purchasing: Get from m_product_po
+         Selling: Get from Pricelist
+                  If no Price in Pricelist, Price=0
+         Removed BOM-Stuff-This is Rubbish
+         Get Currency from Pricelist
+******************************************************************************************************************************/
+  v_Price        NUMERIC;
+  v_currency VARCHAR(32); --OBTG:VARCHAR2--
+  v_issoPL   character varying;
+  v_count numeric;
+  v_org character varying;
+  v_plvid  character varying;
+  v_plist  character varying;
+  BEGIN
+    -- First check if Paranmeter p_pricelist is the Pricelist-Version
+    SELECT M_PRICELIST_VERSION_ID,ad_org_id,M_PRICELIST_ID into v_plvid,v_org,v_plist from M_PRICELIST_VERSION where M_PRICELIST_VERSION_ID=p_pricelist;
+    if v_plvid is null then
+       -- p_pricelist is the  Pricelist itself - Select the relevant Version
+      SELECT M_PRICELIST_VERSION_ID,ad_org_id,M_PRICELIST_ID  INTO v_plvid,v_org,v_plist  FROM M_PRICELIST_VERSION
+            WHERE M_PRICELIST_ID=p_pricelist and  VALIDFROM =    (SELECT max(VALIDFROM)    FROM M_PRICELIST_VERSION   WHERE M_PRICELIST_ID=p_pricelist and VALIDFROM<=TO_DATE(NOW())); 
+    END if;
+
+    SELECT issopricelist,c_currency_id into v_issoPL, v_currency  from m_pricelist where m_pricelist_id=v_plist;
+    
+    -- If Sales - Order get price from PriceList directly
+    if v_issoPL='Y' then
+      SELECT COALESCE(pricestd, 0)
+      INTO v_Price
+      FROM M_ProductPrice
+      WHERE M_PriceList_Version_ID = v_plvid
+        AND M_Product_ID = p_Product_ID
+        and case when p_uom_id is not null then coalesce(c_uom_id,'null')=p_uom_id else c_uom_id is null  end 
+        order by isstandard desc limit 1;
+    else
+    -- In PO get Listprice from m_prpoduct PO 
+        select pricelastpo into v_price
+                   from M_PRODUCT_PO po 
+                   where po.m_product_id=p_product_id and po.c_currency_id=v_currency and PO.iscurrentvendor='Y' and case when v_org!='0' then PO.AD_ORG_ID in ('0',v_org) else 1=1 end 
+                   and case when p_uom_id is not null then coalesce(c_uom_id,'null')=p_uom_id else c_uom_id is null end 
+                   AND case when p_MProductPOID is not null then p_MProductPOID=po.m_product_po_id else 1=1 end
+                   and case when p_bpartner_id is not null then po.c_bpartner_id=p_bpartner_id  else 1=1 end 
+                   order by coalesce(po.qualityrating,0) desc,updated desc limit 1;
+        --@TODO: Automatically fill m_product_po - Currency from po-Pricelist or move po-Pricelist to m_product_po
+       if v_Price is null then
+          select pricelastpo into v_Price  from m_product_po po where m_product_id=p_product_id and c_currency_id is null  and PO.iscurrentvendor='Y' and case when v_org!='0' then PO.AD_ORG_ID in ('0',v_org) else 1=1 end
                   and case when p_uom_id is not null then coalesce(c_uom_id,'null')=p_uom_id else c_uom_id is null end 
                    AND case when p_MProductPOID is not null then p_MProductPOID=po.m_product_po_id else 1=1 end
                   and case when p_bpartner_id is not null then po.c_bpartner_id=p_bpartner_id  else 1=1 end 

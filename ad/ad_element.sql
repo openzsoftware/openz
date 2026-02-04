@@ -22,6 +22,7 @@
 0454EBC54895438F8758EE64231F4EBD	0	0	Y	2013-01-21 15:17:34.118967	100	2013-01-21 15:17:34.118967	100	pdcmaterialconsumptiondonebutton	Done	Done	\N	\N	\N	\N	\N	\N	000CDBE191604F5A835A3EC3213719E8	Y
 04A916FAE2C54376A25424A31B3EB6F5	0	0	Y	2015-11-30 07:52:47	0	2015-11-30 07:53:40.523044	100	Mimimumqty	Minimum Lot Quantity	Mimimumqty	\N	\N	\N	\N	\N	\N	9D31DE7CE403417AA30579195A455E02	N
 04B34A8F295146B49C6227B63E0688DC	0	0	Y	2013-12-19 11:48:08.435919	100	2013-12-19 11:48:08.435919	100	Contactpartner	Contactpartner	\N	\N	\N	\N	\N	\N	\N	0	Y
+04BEF96D524D4F38BDEDAD3591976EC2	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:28:50.212444	100	Workbegintimefriday_Evenweeks	(EW) Friday, Work Begins at	Workbegintimefriday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 04C9482E0EE74DE8AEC103FB014EB913	0	0	Y	2014-03-25 08:12:20.577008	100	2014-03-25 08:12:20.577008	100	wend	Workend	\N	\N	\N	\N	\N	\N	\N	0	Y
 04DA1E63C98D471F8D525432B2A8A3CC	0	0	Y	2015-12-12 12:24:55	0	2015-12-12 12:27:09.822645	100	Smtpport	SMTP Port	Smtpport	\N	\N	\N	\N	\N	\N	0	N
 04DBFB4DC335429790C540EA9AE5F507	0	0	Y	2012-06-15 14:26:21	0	2012-06-15 15:06:49.37351	100	Isuserdefinablelist	User Definable List	Isuserdefinablelist	\N	\N	\N	\N	\N	\N	0	N
@@ -41,6 +42,7 @@
 0626B409451C482CA656D36B2A68A711	0	0	Y	2016-12-07 14:42:55	0	2016-12-07 15:20:18.192752	100	Address2_Org	Address 2	Address2_Org	\N	\N	\N	\N	\N	\N	0	N
 06375D4841A34D3AAC33201DA9D4AA70	0	0	Y	2010-12-08 17:04:07	0	2012-05-09 16:09:59.636967	0	ONLYONELEVEL	First Level only	First Level only	\N	\N	\N	\N	\N	\N	DFC8AA991ADC45BA9CAB2A088B7D4980	N
 0660917573724F42A8B8B94714903725	0	0	Y	2011-07-25 14:02:09	0	2012-05-09 16:09:59.636967	0	Zssi_Tradearea_Country_ID	Zssi_Tradearea_Country_ID	Zssi_Tradearea_Country_ID	\N	\N	\N	\N	\N	\N	2C556DC110134849BF4BB2B657D5B181	N
+0665F3E1FCB845098180E4CDC99F4AAB	0	0	Y	2025-01-03 15:15:01	0	2025-01-03 15:15:01	0	Gridvisibility	Gridvisibility	Gridvisibility	\N	\N	\N	\N	\N	\N	0	N
 0691F9C10BCF41389FB8E652337B0FF5	0	0	Y	2011-03-02 16:14:33	0	2012-05-09 16:09:59.636967	100	Adduid2fact	Add VAT Registration Number to Facts	Adduid2fact	\N	\N	\N	\N	\N	\N	0	N
 069699CB397F4763944D1108E769F3B0	0	0	Y	2013-04-19 13:19:28.928385	100	2013-04-19 13:19:28.928385	100	-50	-50	-50	scan calc	\N	\N	\N	\N	\N	000CDBE191604F5A835A3EC3213719E8	Y
 06D42B5EB4714A6682FED843756CA659	0	0	Y	2019-02-12 17:03:03	0	2019-02-12 17:03:03	0	Text9	Text9	Text9	\N	\N	\N	\N	\N	\N	A4A01396DEC543E6831611C9D0126605	N
@@ -73,6 +75,7 @@
 0A8161888BB643DBA30F1CB7D431C131	0	0	Y	2013-07-24 14:14:44	0	2013-07-24 14:17:02.158194	100	C_Calendarevent_ID	Calendar Event	C_Calendarevent_ID	\N	\N	\N	\N	\N	\N	0	N
 0A8CE53CA236462D94CE66658DA2F877	0	0	Y	2011-09-17 09:46:18	0	2012-05-09 16:09:59.636967	100	allynew	All new Items	All new 	\N	\N	\N	\N	\N	\N	7273882F545D4F79AF3EBAEF9F3F8936	N
 0AC4D7B6F5CD4D1C9F90450699EE1D73	0	0	Y	2024-09-19 12:46:34.755436	100	2024-09-19 12:46:34.755436	100	Install	Install	\N	\N	\N	\N	\N	\N	\N	75AA9467DDC4414D910380CF2AFD72BA	Y
+0AF0274E504A42B7B8F67E2AC0601D71	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:41:02.893021	100	Workbegintimesaturday_Evenweeks	(EW) Saturday, Work Begins at	Workbegintimesaturday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 0B08B176713541C580A303D09D6CA71E	0	0	Y	2013-05-08 15:18:27.198572	100	2013-05-08 15:18:27.198572	100	CONTROL	Control	\N	\N	\N	\N	\N	\N	\N	0	Y
 0B267407752E4EE2A258AB37ED0B4A9A	0	0	Y	2011-07-29 17:57:21	0	2013-05-08 12:18:27.836943	100	Printshipmentdateoninvoicebold	Print Shipment date on Invoice Bold	Printshipmentdateoninvoicebold	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 0B38719C6F584FA4820D92B16C56C6EC	0	0	Y	2013-07-29 12:51:26	0	2013-07-29 14:39:49.496304	100	Worktimeplan	Time (Plan)	Worktimeplan	\N	\N	\N	\N	\N	\N	0	N
@@ -629,6 +632,7 @@
 1606	0	0	Y	2009-11-25 19:39:28.250987	0	2012-05-09 16:09:59.636967	0	ColumnType	Column Type	Column Type	\N	\N	\N	\N	\N	\N	0	N
 161	0	0	Y	2009-11-25 19:39:23.941615	0	2012-05-09 16:09:59.636967	0	AmtAcctCr	Credit	Acct Credit	The amount credited to an account, converted to the organization default currency.	The Account Credit Amount indicates the transaction amount converted to this organization's accounting currency	\N	\N	\N	\N	0	N
 1613	0	0	Y	2009-11-25 19:39:28.256877	0	2012-05-09 16:09:59.636967	0	PA_ReportColumnSet_ID	Report Column Set	Report Column Set	Collection of Columns for Report	The Report Column Set identifies the columns used in a Report.	\N	\N	\N	\N	0	N
+161459C11B594BF79966E5CB90405AAE	0	0	Y	2025-10-07 11:06:38.906622	100	2025-10-07 11:07:14.87747	100	orderdate_short	Ord. date	\N	\N	\N	\N	\N	\N	\N	0	Y
 1615	0	0	Y	2009-11-25 19:39:28.262973	0	2012-05-09 16:09:59.636967	0	PA_ReportLineSet_ID	Report Line Set	Report Line Set	x not implemented	\N	\N	\N	\N	\N	0	N
 161779D97EE3447AA656E57B9E40DF48	0	0	Y	2021-08-11 18:51:52.819684	100	2021-08-11 18:53:03.225006	100	Soll	Target	\N	\N	\N	\N	\N	\N	\N	75AA9467DDC4414D910380CF2AFD72BA	Y
 1618	0	0	Y	2009-11-25 19:39:28.268966	0	2012-05-09 16:09:59.636967	0	RecognizedAmt	Recognized Amount	Recognized Amt	\N	\N	\N	\N	\N	\N	0	N
@@ -731,6 +735,7 @@
 1776	0	0	Y	2009-11-25 19:39:28.861517	0	2012-05-09 16:09:59.636967	0	S_ExpenseType_ID	Expense Type	Expense Type	Expense report type	Expense report type	\N	\N	\N	\N	0	N
 1777	0	0	Y	2009-11-25 19:39:28.867524	0	2012-05-09 16:09:59.636967	0	S_Resource_ID	Resource	Resource	x not implemented	The ID identifies a unique resource	\N	\N	\N	\N	0	N
 1778	0	0	Y	2009-11-25 19:39:28.873553	0	2012-05-09 16:09:59.636967	0	S_ResourceAssignment_ID	Resource Assignment	Assignment	x not implemented	The ID identifies a unique record	\N	\N	\N	\N	0	N
+1778E0F7C979417DA873A8086B1A426E	0	0	Y	2024-10-10 11:02:28	0	2024-10-10 11:04:08.425753	100	mrplastorderprice	Use last purchase order price	mrplastorderprice	\N	\N	\N	\N	\N	\N	0	N
 1779	0	0	Y	2009-11-25 19:39:28.879512	0	2012-05-09 16:09:59.636967	0	S_ResourceType_ID	Resource Type	Resource Type	\N	\N	\N	\N	\N	\N	0	N
 177FD51EECB64718B8D1B295AA166DAB	0	0	Y	2013-02-25 15:40:50	0	2013-02-25 15:40:50	0	Textbox	Textbox	Textbox	\N	\N	\N	\N	\N	\N	3D5CFE4C9CB7438F83F18651900D3D79	N
 178	0	0	Y	2009-11-25 19:39:24.025233	0	2012-05-09 16:09:59.636967	0	C_AcctSchema2_ID	Second Accounting Schema	Second Accounting Schema	Secondary rules for accounting	An Accounting Schema defines the rules used in accounting such as costing method, currency and calendar.	\N	\N	\N	\N	0	N
@@ -981,6 +986,7 @@
 2096	0	0	Y	2009-11-25 19:39:29.80467	0	2012-05-09 16:09:59.636967	0	ChargeName	Charge Name	Charge Name	Name of the Charge	Name of the Charge	\N	\N	\N	\N	0	N
 2097	0	0	Y	2009-11-25 19:39:29.810729	0	2012-05-09 16:09:59.636967	0	ClientValue	New Client Identifier	New Client Identifier	New Client Identifier	New Client Identifier	\N	\N	\N	\N	0	N
 2098	0	0	Y	2009-11-25 19:39:29.81666	0	2012-05-09 16:09:59.636967	0	DocTypeName	Document Type Name	DocType Name	A value defining what sequence and process setup are used to handle this document.	A value defining what sequence and process setup are used to handle this document.	\N	\N	\N	\N	0	N
+20BDB7B05F424617A42E2878C77367AA	0	0	Y	2024-10-15 11:43:48	0	2024-10-15 11:44:25.009741	100	latestorderdatedefaultvendor	Last day to order (default vendor)	latestorderdatedefaultvendor	\N	\N	\N	\N	\N	\N	0	N
 20EF1D5203A04D96B12823F59AEE6674	0	0	Y	2013-02-25 15:40:50	0	2013-02-25 15:40:50	0	Checkbox	Checkbox	Checkbox	\N	\N	\N	\N	\N	\N	3D5CFE4C9CB7438F83F18651900D3D79	N
 210	0	0	Y	2009-11-25 19:39:24.168569	0	2012-05-09 16:09:59.636967	0	C_SalesRegion_ID	Sales Region	Sales Region	A defined section of the world where sales efforts will be focused.	The Sales Region indicates a specific area of sales coverage.	\N	\N	\N	\N	0	N
 2102	0	0	Y	2009-11-25 19:39:29.822689	0	2012-05-09 16:09:59.636967	0	I_BankStatement_ID	Import Bank Statement	Import Bank Statement	Import of the Bank Statement	Import of the Bank Statement	\N	\N	\N	\N	0	N
@@ -1170,6 +1176,7 @@
 2AD21337521F4147BF9B39179AEE3C11	0	0	Y	2017-02-05 10:04:08	0	2017-02-05 10:05:54.445632	100	Alloworderchangesafterdelivery	Allow Order changes after Delivery/Invoice	Alloworderchangesafterdelivery	\N	\N	\N	\N	\N	\N	0	N
 2AF420F865CC4F37A132154D75C61A83	0	0	Y	2010-12-02 10:57:28	0	2012-05-09 16:09:59.636967	0	Overdue	Overdue	Overdue	\N	\N	\N	\N	\N	\N	0	N
 2B312957DE544CD49AFCB9CDB698BB78	0	0	Y	2013-03-21 18:20:42	0	2013-03-21 18:24:03.5256	100	Isstandalone	Standalone Tab - Not Linked to Parent Tab	Isstandalone	\N	\N	\N	\N	\N	\N	0	N
+2B6BE2EDF3C54F319A2809C47392135C	0	0	Y	2025-09-24 12:09:30	0	2025-09-24 12:10:03.57134	100	Startatcpny_Sql	Start at company (personal data)	Startatcpny_Sql	\N	\N	\N	\N	\N	\N	0	N
 2BB1EC0E154D443DB414F3651F343B61	0	0	Y	2013-08-08 13:23:44.132796	100	2013-08-08 13:28:07.302467	100	MARCH	March	\N	\N	\N	\N	\N	\N	\N	0	Y
 2BCBD85C9AA2467385508D81338BCD24	0	0	Y	2013-08-15 15:20:12.252397	100	2013-08-15 15:20:12.252397	100	Fromh	From	\N	\N	\N	\N	\N	\N	\N	0	Y
 2BD3098DAC484F0FBD347D9FA62C843F	0	0	Y	2023-01-09 11:51:52	0	2023-01-09 11:57:39.199697	100	Supply2vendor	Supply to vendor	Supply2vendor	\N	\N	\N	\N	\N	\N	9D31DE7CE403417AA30579195A455E02	N
@@ -1223,6 +1230,7 @@
 317	0	0	Y	2009-11-25 19:39:24.720706	0	2012-05-09 16:09:59.636967	0	HasAlias	Use Account Alias	Alias	Ability to select (partial) account combinations by an Alias	The Alias checkbox indicates that account combination can be selected using a user defined alias or short key.	\N	\N	\N	\N	0	N
 317A51DA0A974033B9F5398EB6475B58	0	0	Y	2024-02-14 11:40:18.766098	100	2024-02-14 11:45:40.396993	100	calctotal_ti	Calc. Total	\N	\N	\N	\N	\N	\N	\N	0	Y
 3196097757CA47FAA394D4EB6066AC87	0	0	Y	2011-02-19 19:51:19	0	2012-05-09 16:09:59.636967	0	ExportType	Export Typ	Export Typ	\N	\N	\N	\N	\N	\N	7273882F545D4F79AF3EBAEF9F3F8936	N
+31AAB7231FAC4BCCBC0E21407F3C29E0	0	0	Y	2025-10-14 09:12:18.563521	100	2025-10-14 09:12:18.563521	100	M_Warehouse_ID_source	Source Warehouse	\N	\N	\N	\N	\N	\N	\N	0	Y
 31BCDDB998E94803947859232F31524F	0	0	Y	2013-01-02 17:15:20	0	2013-01-02 17:21:12.814435	100	Isrowkey	Column is Row Key	Isrowkey	\N	\N	\N	\N	\N	\N	0	N
 31C22107969A49C6AC0FCDD410C07C18	0	0	Y	2012-08-11 20:37:26	0	2012-08-11 20:41:24.142687	100	Popupbigicon	Popup Big ICON	Popupbigicon	\N	\N	\N	\N	\N	\N	0	N
 31FDC5DD628B42608CD13A4A2DFBE085	0	0	Y	2013-12-19 12:10:51.616874	100	2013-12-19 12:11:14.514134	100	sitecontrol	Sightcontrolled	\N	\N	\N	\N	\N	\N	\N	0	Y
@@ -1333,6 +1341,7 @@
 399546EE141048FEBC5BB6B2446BF2E0	0	0	Y	2012-02-20 15:45:43	0	2012-05-09 16:09:59.636967	0	SNR_Movementline_ID	SNR_Movementline_ID	SNR_Movementline_ID	\N	\N	\N	\N	\N	\N	A4A01396DEC543E6831611C9D0126605	N
 39AF96B18D424FE5A8A6E079CC7B1C78	0	0	Y	2014-07-28 11:20:30.67447	100	2014-07-28 14:33:05.865549	100	SEPA_CdtSchmeId	Creditor-ID	\N	Creditor Schema Identification for Sepa Direct Debits (pain.008)	Creditor Schema Identification for Sepa Direct Debits (pain.008)	\N	\N	\N	\N	BE8EF3F74618439CB118911D9BA27C10	N
 39D3B59291714F95959CA0411C23D570	0	0	Y	2012-08-14 16:06:47.386414	100	2012-08-14 16:10:52.179121	100	buttonSearch	Search	Search	\N	\N	\N	\N	\N	\N	0	Y
+39D6EBF090034B358493A3F65C547C4B	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:36:58.161717	100	Useevenweeks	Different values for even weeks (EW)	Useevenweeks	\N	\N	\N	\N	\N	\N	0	N
 3A2A0F191EDD4949A4F797FAE1352E46	0	0	Y	2016-08-09 15:05:32	0	2016-08-09 15:05:32	0	C_Europeantrades_Sell_V_ID	C_Europeantrades_Sell_V_ID	C_Europeantrades_Sell_V_ID	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 3A2FCCC0A2FB4FC8925B80D31455A9D7	0	0	Y	2016-12-07 14:42:55	0	2016-12-08 08:58:55.602267	100	Element13_Orderref	Element 13 Order Reference	Element13_Orderref	\N	\N	\N	\N	\N	\N	0	N
 3A38914398A8413B896B81A869483EDA	0	0	Y	2013-05-27 11:23:54	0	2013-05-27 11:23:54	0	Label	Label	Label	\N	\N	\N	\N	\N	\N	255A37A6E26346C98F91B58F3D3AEAB4	N
@@ -1342,6 +1351,7 @@
 3AD37BEFDCF24F70A62566E407A8A203	0	0	Y	2013-07-28 12:30:07	0	2013-07-28 12:34:14.586995	100	Overtimehours	Hours Overtime	Overtimehours	\N	\N	\N	\N	\N	\N	93A35D1AB66545FC8C7BC3DA79590BC5	N
 3AF07304814E433BB4F67EC21B885042	0	0	Y	2012-07-02 16:27:24	0	2012-07-02 16:28:40.175093	100	Adjusted_Amt	Adjusted Amount	Adjusted_Amt	\N	\N	\N	\N	\N	\N	0	N
 3B49381DF5CD4D8F88C72F81A6D283C3	0	0	Y	2013-10-10 15:02:48	0	2013-10-10 15:02:48	0	Number4	Number4	Number4	\N	\N	\N	\N	\N	\N	0	N
+3B51BA692C9848CCB85B230CDE4198A6	0	0	Y	2024-10-15 11:45:53	0	2024-10-15 11:46:19.273484	100	latestorderdatefastestvendor	Last day to order (fastest vendor)	latestorderdatefastestvendor	\N	\N	\N	\N	\N	\N	0	N
 3B73B7304B124844A2A306AF294400C7	0	0	Y	2020-01-23 14:38:04.949328	100	2020-01-23 14:38:04.949328	100	combinedinvoice	Comined invoice	\N	\N	\N	\N	\N	\N	\N	0	Y
 3B7E116C27EA45CFB30BE7B3B06A1F60	0	0	Y	2017-12-19 16:42:05	0	2017-12-19 16:51:05.256622	100	Footer5_Org_Isprint	print Footer5	Footer5_Org_Isprint	\N	\N	\N	\N	\N	\N	0	N
 3BAA80B83D044F6DB2ED08FB221FB468	0	0	Y	2014-04-14 17:32:23	0	2014-04-14 17:32:23	0	Auxtext2	Auxtext2	Auxtext2	\N	\N	\N	\N	\N	\N	0	N
@@ -1367,6 +1377,7 @@
 3DD3F280A13211DDAEA4BF49C7DAED58	0	0	Y	2009-11-25 19:39:34.691908	0	2012-05-09 16:09:59.636967	0	AD_Model_Object_Para_ID	AD_Model_Object_Para_ID	AD_Model_Object_Para_ID	\N	\N	\N	\N	\N	\N	0	N
 3DD52B00A13211DD826B3BEAC7761F2B	0	0	Y	2009-11-25 19:39:34.697919	0	2012-05-09 16:09:59.636967	0	Object_Type	Object Type	Object Type	Type of model object	\N	\N	\N	\N	\N	0	N
 3DD52B00A13211DDBEFDAF8E46C6A762	0	0	Y	2009-11-25 19:39:34.703836	0	2012-05-09 16:09:59.636967	0	Loadonstartup	Load On StartUp	Load On StartUp	\N	\N	\N	\N	\N	\N	0	N
+3DF64A8AEFFB4CABA6060993B96CA12A	0	0	Y	2025-03-17 11:06:35	0	2025-03-17 11:06:59.72968	100	Calendarweek	Calendar week	Calendarweek	\N	\N	\N	\N	\N	\N	0	N
 3E2829447C63476F8AB2DB1A8FF32041	0	0	Y	2011-10-27 13:36:21	0	2012-05-09 16:09:59.636967	0	Zssi_Qtyoverview_ID	Zssi_Qtyoverview_ID	Zssi_Qtyoverview_ID	\N	\N	\N	\N	\N	\N	2C556DC110134849BF4BB2B657D5B181	N
 3E2D00B3EE5B4AEFB579E60733F69243	0	0	Y	2024-06-13 12:07:35	0	2024-06-13 12:16:03.818163	100	Workhours_Info	Work hours (hh:mm)	Workhours_Info	\N	\N	\N	\N	\N	\N	0	N
 3E32EF8E359947A2BA327716A8145193	0	0	Y	2022-09-19 14:31:02	0	2022-09-19 14:31:02	0	MFA_Onetimepassword_Entered_Manually	MFA_Onetimepassword_Entered_Manually	MFA_Onetimepassword_Entered_Manually	\N	\N	\N	\N	\N	\N	0	N
@@ -1392,6 +1403,7 @@
 402414605B294A72842E4216F229C7D1	0	0	Y	2010-11-24 15:20:47	0	2012-09-26 11:25:55.487612	100	Footer4	Footer 4	Footer 4	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 403	0	0	Y	2009-11-25 19:39:24.985013	0	2012-05-09 16:09:59.636967	0	IsPurchased	Purchase	Purchased	An indication that an item may be purchased by a business partner.	The Purchased check box indicates if this product is purchased by this organization.	\N	\N	\N	\N	0	N
 403AB6BE13A044C98A4082423F2FA03B	0	0	Y	2017-02-02 12:40:04	0	2017-02-06 16:57:14.844	100	Shipmentdate_Ref	Date Reference	Shipmentdate_Ref	\N	\N	\N	\N	\N	\N	0	N
+403FDDFA19054855B21067824FA34CD4	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:42:44.263121	100	Workbegintimewednesday_Evenweeks	(EW) Wednesday, Work Begins at	Workbegintimewednesday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 404	0	0	Y	2009-11-25 19:39:24.99094	0	2012-05-09 16:09:59.636967	0	IsRange	Range	Range	The parameter is a range of values	The Range checkbox indicates that this parameter is a range of values.	\N	\N	\N	\N	0	N
 405	0	0	Y	2009-11-25 19:39:24.997076	0	2014-09-09 08:45:03.819529	100	IsReadOnly	is ReadOnly	IsReadOnly	An object which may only be viewed, not edited.	The Read Only indicates that this field may only be Read.  It may not be updated.	\N	\N	\N	\N	0	N
 406	0	0	Y	2009-11-25 19:39:25.003003	0	2012-05-09 16:09:59.636967	0	IsReadWrite	Editable Field	Read Write	An indication that this field may be viewed.	The Read Write indicates that this field may be read and updated.	\N	\N	\N	\N	0	N
@@ -1478,6 +1490,7 @@
 465	0	0	Y	2009-11-25 19:39:25.195018	0	2012-05-09 16:09:59.636967	0	MsgType	Message Type	Message Type	Type of message (Informational, Menu or Error)	The Message Type indicates the type of message being defined.  Valid message types are Informational, Menu and Error.	\N	\N	\N	\N	0	N
 466	0	0	Y	2009-11-25 19:39:25.20114	0	2012-05-09 16:09:59.636967	0	MultiplyRate	Multiple Rate by	Multiply Rate	The rate by which the base unit will be mutiplied by to create the converted unit.	To convert Source number to Target number, the Source is multiplied by the multiply rate.  If the Multiply Rate is entered, then the Divide Rate will be automatically calculated.	\N	\N	\N	\N	0	N
 468	0	0	Y	2009-11-25 19:39:25.207232	0	2012-05-09 16:09:59.636967	0	NAICS	NAICS/SIC	NAICS/SIC	Standard Industry Code or its successor NAIC - http://www.osha.gov/oshstats/sicser.html	The NAICS/SIC identifies either of these codes that may be applicable to this Business Partner.	\N	\N	\N	\N	0	N
+46803A2E209448D3A450FC38DD9155F4	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:43:09.917302	100	Worktimefriday_Evenweeks	(EW) Friday, Worktime in Hours	Worktimefriday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 4681954165884DF9909336EBD6DA7575	0	0	Y	2014-02-12 11:19:56.583279	100	2017-05-19 11:48:20.933626	100	Productionstart	Productionstart	\N	\N	\N	\N	\N	\N	\N	0	Y
 469	0	0	Y	2009-11-25 19:39:25.21307	0	2012-05-09 16:09:59.636967	0	Name	Name	Name	A non-unique identifier for a record/document often used as a search tool.	A more descriptive identifier (that does need to be unique) of a record/document that is used as a default search option along with the search key (that is unique and mostly shorter). It is up to 60 characters in length.	\N	\N	\N	\N	0	N
 46B286CBF06442168D58903258F1B949	0	0	Y	2012-10-29 15:27:10	0	2012-10-29 15:27:10	0	Ignoreresiduedate	Ignoreresiduedate	Ignoreresiduedate	\N	\N	\N	\N	\N	\N	0	N
@@ -1495,6 +1508,7 @@
 479	0	0	Y	2009-11-25 19:39:25.255135	0	2012-05-09 16:09:59.636967	0	Org_ID	Trx Organization	Trx Organization	Organizational entity within client	An organization is a unit of your client or legal entity - examples are store, department.	\N	\N	\N	\N	0	N
 47C26E1BBA4A4D2A95629B550AF4E43E	0	0	Y	2010-11-24 15:20:47	0	2012-09-26 11:26:10.361536	100	Footer5	Footer 5	Footer 5	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 47D3FEB79158468C8656433140BE51F3	0	0	Y	2012-10-12 17:29:39.470917	100	2012-10-12 17:46:23.057223	100	AD_Process_Name	AD_Process_Name	AD_Process_Name	\N	\N	\N	\N	\N	\N	0	Y
+47F9811D23984C928AD737848D9E43B6	0	0	Y	2024-10-14 10:55:14	0	2024-10-14 11:00:17.385388	100	Totallines_Converted	Net Total Amount default currency	Totallines_Converted	\N	\N	\N	\N	\N	\N	0	N
 47FB56228BD24ACEAAF85AC5CB134DC8	0	0	Y	2019-12-06 08:53:03	0	2019-12-06 08:53:27.249643	100	Stdnewsletteritem	Standard for Newsletter	Stdnewsletteritem	\N	\N	\N	\N	\N	\N	2C556DC110134849BF4BB2B657D5B181	N
 480	0	0	Y	2009-11-25 19:39:25.261091	0	2012-05-09 16:09:59.636967	0	PO_PriceList_ID	Purchase Pricelist	Purchase Pricelist	A catalog of selected products which can be purchased, each with a specified price.	Identifies the price list used by a Vendor for products purchased by this organization.	\N	\N	\N	\N	0	N
 481B2612A9794846981CE8A37BD0CFAC	0	0	Y	2010-10-13 17:24:11	0	2012-05-09 16:09:59.636967	100	Reversetaxamt	Tax Debt Recipient	Tax Debt Recipient	\N	\N	\N	\N	\N	\N	0	N
@@ -1532,6 +1546,7 @@
 4A44BD8FAD114C4EBE6D193A411DE5D0	0	0	Y	2012-09-07 11:30:24	0	2012-09-07 12:04:27.252136	100	Juwimm_Nextaction	Next actions / Deliverables	Next actions / Deliverables	\N	\N	\N	\N	\N	\N	F7E7ED8DF78A49708A990DC4C8A586C7	N
 4A6E5F1B612542F6B3EB329241B395FA	0	0	Y	2013-10-10 15:02:48	0	2013-10-10 15:02:48	0	Number3	Number3	Number3	\N	\N	\N	\N	\N	\N	0	N
 4A94E09AD49145C19E3465F18934F9DC	0	0	Y	2016-12-07 14:42:55	0	2016-12-08 09:48:57.806783	100	Element5_Shipmentref	Element 5 Shipment Reference	Element5_Shipmentref	\N	\N	\N	\N	\N	\N	0	N
+4ADA5259CFDC49F6919D15508F2317AF	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:44:15.032136	100	Worktimethursday_Evenweeks	(EW) Thursday, Worktime in Hours	Worktimethursday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 4AF1D0ED37C8404F955A346CE2DF954D	0	0	Y	2014-05-13 19:16:19.128288	100	2014-05-13 19:16:19.128288	100	AllPositionsPossible	All available	\N	\N	\N	\N	\N	\N	\N	000CDBE191604F5A835A3EC3213719E8	Y
 4B191FC0D4654C4E98DA7AAB46417AD7	0	0	Y	2019-05-28 03:56:43	0	2019-05-28 03:58:44.267365	100	Adressformatpart2	Adressformat Part2	Adressformatpart2	\N	\N	\N	\N	\N	\N	0	N
 4B4F1B6154034C9FAA84E8B404162EF9	0	0	Y	2016-07-25 10:50:37.012604	100	2016-07-25 10:50:37.012604	100	liabilities	liabilities	\N	\N	\N	\N	\N	\N	\N	0	Y
@@ -1586,6 +1601,7 @@
 50385F9F251B40A4BDE7376DCDD078DB	0	0	Y	2012-06-05 08:45:04	0	2012-06-05 08:49:04.176729	100	Namedusers	Currently active Named Users	Namedusers	\N	\N	\N	\N	\N	\N	0	N
 503C9B9CCDBF4918B3AA62F787CF965C	0	0	Y	2012-10-30 15:46:44	0	2012-11-28 17:00:00.851735	100	Zssm_WorkstepBOM_V_ID	Zssm_WorkstepBOM_V_ID	Zssm_WorkstepBOM_V_ID	\N	\N	\N	\N	\N	\N	9D31DE7CE403417AA30579195A455E02	N
 504	0	0	Y	2009-11-25 19:39:25.339597	0	2012-05-09 16:09:59.636967	0	Period_OpenHistory	History Days	History Days	Number of days to be able to post in the past (based on system date)	If Automatic Period Control is enabled, the current period is calculated based on the system date and you can always post to all days in the current period.  History Days enable to post to previous periods.  E.g. today is May 15th and History Days is set to 30, you can post back to April 15th	\N	\N	\N	\N	0	N
+50470880EC3548E8982AEA6F15F18242	0	0	Y	2025-10-07 11:10:50.971042	100	2025-10-07 11:10:50.971042	100	amount_short	Amount	\N	\N	\N	\N	\N	\N	\N	0	Y
 505	0	0	Y	2009-11-25 19:39:25.345192	0	2012-05-09 16:09:59.636967	0	Phone	Phone	Phone	A telephone number for a specified business partner.	The Phone field identifies a telephone number	\N	\N	\N	\N	0	N
 506	0	0	Y	2009-11-25 19:39:25.351181	0	2012-05-09 16:09:59.636967	100	Phone2	Mobile Phone	2nd Phone	A second contact telephone number for a business partner.	The 2nd Phone field identifies an alternate telephone number.	\N	\N	\N	\N	0	N
 508	0	0	Y	2009-11-25 19:39:25.357266	0	2012-05-09 16:09:59.636967	0	PostActual	Post Actual	Post Actual	Actual Values can be posted	The Post Actual indicates if actual values can be posted to this element value.	\N	\N	\N	\N	0	N
@@ -1948,6 +1964,7 @@
 5EFD151821524EFFBF5B34B0C5EBB087	0	0	Y	2015-08-01 14:02:50	0	2016-07-05 14:47:21.826909	100	Typ	Type	Typ	\N	\N	\N	\N	\N	\N	972F04349324494DA6273E5CE3918C9E	N
 5F27BCD1921F494AA37A51DA8F3D6814	0	0	Y	2024-01-22 10:49:40	0	2024-01-22 10:49:57.672954	100	Inventory_Name	Inventory Name	Inventory_Name	\N	\N	\N	\N	\N	\N	0	N
 5F37A1FBE5A84A40BA74C37C74751F75	0	0	Y	2011-06-27 12:38:08	0	2012-05-09 16:09:59.636967	100	SNR_Serialnumbertracking_ID	Serial Number Tracking	SNR_Serialnumbertracking_ID	\N	\N	\N	\N	\N	\N	A4A01396DEC543E6831611C9D0126605	N
+5F4094B649B64A6796BEC3EBB3C4E9C2	0	0	Y	2024-10-14 10:55:14	0	2024-10-14 11:05:06.96843	100	C_Currency_Converted	Default currency	C_Currency_Converted	\N	\N	\N	\N	\N	\N	0	N
 5F49A35B616F40E5B013E763DEDBFA6B	0	0	Y	2013-08-05 12:42:41	0	2013-08-05 12:42:41	0	returnequipmentorall	Return	Return	\N	\N	\N	\N	\N	\N	DFC8AA991ADC45BA9CAB2A088B7D4980	N
 5F80521696DB4C17AB785B41355434B9	0	0	Y	2011-10-28 11:45:15	0	2012-05-09 16:09:59.636967	100	Orderprojectnotnull	Mandantory Project or Cost Center on Orders	Orderprojectnotnull	\N	\N	\N	\N	\N	\N	0	N
 5F834F39F95A43509A46261B13306842	0	0	Y	2013-05-23 15:41:18	0	2013-05-23 15:41:18	0	Batchnumber	Batchnumber	Batchnumber	\N	\N	\N	\N	\N	\N	A4A01396DEC543E6831611C9D0126605	N
@@ -2045,6 +2062,7 @@
 665BE64FCF504616BB7E2223A4DF8A5B	0	0	Y	2013-01-31 11:44:53	0	2013-01-31 11:48:51.656517	100	Juwimm_Lastupdateon	Last update on	Last update on	\N	\N	\N	\N	\N	\N	F7E7ED8DF78A49708A990DC4C8A586C7	N
 667AE26F6635E6A7E040007F01015B98	0	0	Y	2009-11-25 19:39:35.966559	0	2012-05-09 16:09:59.636967	0	CANCELPRICEAD	Don't Apply Price Adjustment	Cancel Price Adjustment	Used to activate or deactive the price adjustment for each line	If the user wants not to apply price adjustment to a specific line should use this check to achieve it	\N	\N	\N	\N	0	N
 668BA198C622421C96AF5A5FF3F83921	0	0	Y	2013-05-23 15:56:47	0	2013-05-23 16:10:47.294322	100	Orderreference	Order Reference	Orderreference	\N	\N	\N	\N	\N	\N	A4A01396DEC543E6831611C9D0126605	N
+66AE9F8D2D884746B40C55AD42201331	0	0	Y	2024-10-14 10:55:14	0	2024-10-14 10:55:14	0	C_Invoice_Currency_Converted_V_ID	C_Invoice_Currency_Converted_V_ID	C_Invoice_Currency_Converted_V_ID	\N	\N	\N	\N	\N	\N	0	N
 66B769FA15D34E9387FD744FBB092885	0	0	Y	2010-09-29 10:24:21	0	2012-05-09 16:09:59.636967	0	Post	Post	Post	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 67299109F3DD4216844E038A4D288BCA	0	0	Y	2021-07-07 16:28:39.736021	100	2021-07-07 16:28:39.736021	100	performanceperiod	Performance period:	\N	\N	\N	\N	\N	\N	\N	0	Y
 675E75366D8F42578D6B6F7FBFC1C31E	0	0	Y	2020-02-12 17:19:22.50277	100	2020-02-12 17:41:38.599832	100	logloutothersession	Deactivate other session	\N	\N	\N	\N	\N	\N	\N	0	Y
@@ -2170,6 +2188,7 @@
 740DCC1FB7E74E4A9073AFCCBE167CA8	0	0	Y	2016-02-13 15:18:10	0	2016-02-13 15:20:08.890404	100	Minstockshown	Min. stock value shown	Minstockshown	\N	\N	\N	\N	\N	\N	972F04349324494DA6273E5CE3918C9E	N
 7413C32B18D24648B8BB48DAD9508858	0	0	Y	2012-01-20 16:17:53	0	2012-05-09 16:09:59.636967	100	Quarterly_Month	Month of Quarter	Month of Quarter	\N	\N	\N	\N	\N	\N	0	N
 742845FED9A6443D97DFAFC88E248B32	0	0	Y	2011-06-27 12:08:20	0	2012-05-09 16:09:59.636967	100	SNR_Minoutline_ID	Seerial Number Control	SNR_Minoutline_ID	\N	\N	\N	\N	\N	\N	A4A01396DEC543E6831611C9D0126605	N
+7455F5AFB0F64DCCA10A92D4956AE20D	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:43:59.935344	100	Worktimesunday_Evenweeks	(EW) Sunday, Worktime in Hours	Worktimesunday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 74674080D275449E8700273BE499BA3A	0	0	Y	2014-10-07 12:31:32.616668	100	2014-10-07 12:31:32.616668	100	Search	Filter	\N	\N	\N	\N	\N	\N	\N	0	Y
 7480BD46DEE942C29B88CB1D6CB41854	0	0	Y	2012-09-07 11:30:24	0	2012-09-07 12:02:02.677284	100	Juwimm_Milestone4	4. Milestone	4. Milestone	\N	\N	\N	\N	\N	\N	F7E7ED8DF78A49708A990DC4C8A586C7	N
 748EA5AF1FEB433594A353AD468A83E9	0	0	Y	2013-07-24 19:43:24	0	2013-07-24 19:43:24	0	C_Machinecalendar_V_ID	C_Machinecalendar_V_ID	C_Machinecalendar_V_ID	\N	\N	\N	\N	\N	\N	0	N
@@ -2194,6 +2213,7 @@
 76E4332CCA234D54BC14570B82A20310	0	0	Y	2017-07-30 13:51:15	0	2017-07-30 14:11:40.37807	100	Maxrowsparam	Max rows Filter	Maxrowsparam	\N	\N	\N	\N	\N	\N	0	N
 771771F787194BBEB442FD5A8A388928	0	0	Y	2014-10-15 15:47:38.962053	100	2014-10-15 15:47:38.962053	100	billable	Billable	\N	\N	\N	\N	\N	\N	\N	0	Y
 7718A6B9E474490BA891E9CAB2576B97	0	0	Y	2019-08-19 16:56:25	0	2019-08-19 16:56:25	0	closetask	Close Task	Close Task	\N	\N	\N	\N	\N	\N	9D31DE7CE403417AA30579195A455E02	N
+771CEBDCAE504617A0F0252A60028C6E	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:29:01.393024	100	Workbegintimemonday_Evenweeks	(EW) Monday, Work Begins at	Workbegintimemonday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 772013AB84EB4C429F22034F81388C77	0	0	Y	2015-04-10 11:23:47.624511	100	2015-04-10 11:30:00.31813	100	datepromisedFrom	Start date from	\N	\N	\N	\N	\N	\N	\N	19A7FD2B075F48B2B52ADBEDC581770C	Y
 773824E7827A4F1D9D2060B50871EDA1	0	0	Y	2013-07-22 10:04:54.669074	100	2013-07-22 10:04:54.669074	100	PrintDocument	Print Document	\N	\N	\N	\N	\N	\N	\N	0	Y
 778C08DE9A254EE08247D5A2807BA5B4	0	0	Y	2013-08-13 11:02:54.012834	100	2013-08-13 11:02:54.012834	100	Cost total	Cost total	\N	\N	\N	\N	\N	\N	\N	0	Y
@@ -2243,6 +2263,7 @@
 7BDD4A89EB444B27892D3822704D4352	0	0	Y	2013-07-22 09:32:00.260957	100	2013-07-22 09:32:00.260957	100	PrintOptionsPrintonlyButton	No, just print it	\N	\N	\N	\N	\N	\N	\N	0	Y
 7C152B5C9EBC4E74B75C469A8A473D34	0	0	Y	2009-11-25 19:39:36.116945	0	2012-05-09 16:09:59.636967	0	Your_Company_Login_Image	Default Your Company Login Image	Default Your Default Company Login Image	\N	\N	\N	\N	\N	\N	0	N
 7C33762483A84E85A761FEA0C5DD9901	0	0	Y	2010-11-08 19:16:29	0	2012-05-09 16:09:59.636967	0	Zspm_Projecttaskdep_ID	Zspm_Projecttaskdep_ID	Zspm_Projecttaskdep_ID	\N	\N	\N	\N	\N	\N	19A7FD2B075F48B2B52ADBEDC581770C	N
+7C5DD886FBFF494EBD5737971B5562E9	0	0	Y	2024-10-17 13:28:13	0	2024-10-17 13:29:15.000822	100	Createdby_Print	Created By	Createdby_Print	\N	\N	\N	\N	\N	\N	0	N
 7C6FF7A2C1F64D4FBB06431AED502919	0	0	Y	2012-10-12 13:57:15	0	2012-10-12 13:57:15	0	Linkcondition	Linkcondition	Linkcondition	\N	\N	\N	\N	\N	\N	0	N
 7C74539856E24244A7B70E9A92B3B4F0	0	0	Y	2013-12-19 11:46:21.45955	100	2013-12-19 11:46:21.45955	100	Delivery Date	Delivery Date	\N	\N	\N	\N	\N	\N	\N	0	Y
 7C858C811D394201B8565EF83B37ADF7	0	0	Y	2014-09-05 14:50:32	0	2014-09-05 14:50:32	0	Iscommissionasmaterial	Iscommissionasmaterial	Iscommissionasmaterial	\N	\N	\N	\N	\N	\N	0	N
@@ -2259,6 +2280,7 @@
 7DB521D4D7524FC89986B7A458ECD910	0	0	Y	2013-06-21 18:19:12	0	2013-06-21 18:19:12	0	Cause	Cause	Cause	\N	\N	\N	\N	\N	\N	9D31DE7CE403417AA30579195A455E02	N
 7DCA6A0118CC4367B0459A6486D165D8	0	0	Y	2012-07-02 16:27:24	0	2012-07-02 16:29:39.960198	100	Adjusted_Enddate	Adjusted End Date	Adjusted_Enddate	\N	\N	\N	\N	\N	\N	0	N
 7DED008398C045D0AF2FD3F2191808CB	0	0	Y	2012-07-03 12:49:22	0	2012-07-09 15:28:03.790448	100	Invoicedamtthirdquarter	Invoiced Amount 3rd. Quarter	Invoicedamtthirdquarter	\N	\N	\N	\N	\N	\N	E096968DF11A412D8134FB5F91CA4240	N
+7DF45ED1E6CB4C188411438C39C71EED	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:43:25.735529	100	Worktimemonday_Evenweeks	(EW) Monday, Worktime in Hours	Worktimemonday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 7E038F2B077B4F70BC641C53EAB80B4C	0	0	Y	2012-02-20 15:39:18	0	2012-05-09 16:09:59.636967	0	Serialnumber	Serialnumber	Serialnumber	\N	\N	\N	\N	\N	\N	A4A01396DEC543E6831611C9D0126605	N
 7E0F2DDBFAD147638F01258FF6E98880	0	0	Y	2016-03-30 16:26:06.598668	100	2016-03-30 16:26:06.598668	100	Person	Persons	\N	\N	\N	\N	\N	\N	\N	0	Y
 7E39EC87D0A34F07AE42008AA5F2941C	0	0	Y	2011-02-24 14:48:18	0	2012-05-09 16:09:59.636967	100	Manualresponse	Manual Response	Manualresponse	Create Servlet Response in Class	\N	\N	\N	\N	\N	0	N
@@ -2883,6 +2905,7 @@
 883	0	0	Y	2009-11-25 19:39:26.133343	0	2012-05-09 16:09:59.636967	0	ExemptReason	Exempt Reason	Exempt reason	Reason for not withholding	The Exempt Reason indicates the reason that monies are not withheld from this employee.	\N	\N	\N	\N	0	N
 883C995D60A64D539DBDA95FC9A10293	0	0	Y	2012-09-07 11:30:24	0	2012-09-07 11:57:10.660452	100	Juwimm_Decisions	Decisions / Actions required 	Decisions / Actions required 	\N	\N	\N	\N	\N	\N	F7E7ED8DF78A49708A990DC4C8A586C7	N
 885	0	0	Y	2009-11-25 19:39:26.139223	0	2012-05-09 16:09:59.636967	0	Fact_Acct_ID	Accounting Fact	Accounting Fact	\N	\N	\N	\N	\N	\N	0	N
+88B6945B60564B828C98A341864395EB	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:43:42.476347	100	Worktimesaturday_Evenweeks	(EW) Saturday, Worktime in Hours	Worktimesaturday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 890	0	0	Y	2009-11-25 19:39:26.145208	0	2012-05-09 16:09:59.636967	0	FixAmt	Fix Amount	Fix Amt	Fix amounted amount to be levied or paid	The Fixed Amount indicates a fixed amount to be levied or paid.	\N	\N	\N	\N	0	N
 890E1BC9CA1444C79AD1BF9567A584EC	0	0	Y	2010-11-24 15:20:47	0	2013-04-26 22:11:55.796628	100	Address8	Address 8	Address 8	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 890F7708FAE74980858B45F44B29A75F	0	0	Y	2011-09-13 17:47:14	0	2012-05-09 16:09:59.636967	0	Klinikkunde	Klinikkunde	Klinikkunde	\N	\N	\N	\N	\N	\N	0	N
@@ -2924,6 +2947,7 @@
 8D1FDA1821E541D19F10507E752BB849	0	0	Y	2011-09-13 17:47:14	0	2012-05-09 16:09:59.636967	0	Kunde	Kunde	Kunde	\N	\N	\N	\N	\N	\N	0	N
 8D6AFC8211CE4AE595F3D0B83AA30D7A	0	0	Y	2020-07-02 13:24:48	0	2020-07-02 13:24:48	0	I_Productionplan_V_ID	I_Productionplan_V_ID	I_Productionplan_V_ID	\N	\N	\N	\N	\N	\N	DFC8AA991ADC45BA9CAB2A088B7D4980	N
 8D7D250268EA4648ACAD40F42131A605	0	0	Y	2015-05-13 12:20:00.579786	100	2015-05-13 12:20:00.579786	100	pcr_StartDate	Start	\N	\N	\N	\N	\N	\N	\N	19A7FD2B075F48B2B52ADBEDC581770C	Y
+8D9467358FFE44B4A5A85A0F8BD360C7	0	0	Y	2025-11-18 09:42:45	0	2025-11-18 09:44:15.577729	100	P_Expense_Acct_Standard_Sql	Standard Product Expense	P_Expense_Acct_Standard_Sql	\N	\N	\N	\N	\N	\N	0	N
 8DC363D02B784CB191B70260F00EB9E9	0	0	Y	2013-07-24 14:14:44	0	2013-07-24 14:17:33.479328	100	Isemployeecalendar	Employee Calendar	Isemployeecalendar	\N	\N	\N	\N	\N	\N	0	N
 8DE437E8E2824A349926BF6579133156	0	0	Y	2011-01-12 14:33:57	0	2012-05-09 16:09:59.636967	100	Sumfrombeginning	Summation	Sumfrombeginning	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 8DF4D8313A00439E8F43D2D148F2D210	0	0	Y	2021-08-25 18:10:06	0	2021-08-25 18:10:27.084729	100	Pricelistname	Pricelist name	Pricelistname	\N	\N	\N	\N	\N	\N	0	N
@@ -2938,6 +2962,7 @@
 8FF1E62E32644E168136639C1EB6301D	0	0	Y	2013-11-20 11:32:16.266643	100	2013-11-20 11:32:16.266643	100	note2	Note 2	\N	\N	\N	\N	\N	\N	\N	0	Y
 8FFFF969824C401384A57E1ECB0C2AC0	0	0	Y	2011-01-10 11:37:00	0	2012-05-09 16:09:59.636967	0	Zsfi_Fact_Error_Log_ID	Zsfi_Fact_Error_Log_ID	Zsfi_Fact_Error_Log_ID	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 901628861E834D3D8B62089A31C1F208	0	0	Y	2016-09-21 16:51:15	0	2016-09-21 16:52:38.984338	100	Isonly4format	Only Formatting (Translation Language required)	Isonly4format	\N	\N	\N	\N	\N	\N	0	N
+90215A6892FA40A78D6DD1D0505E3ECD	0	0	Y	2025-10-21 10:35:13	0	2025-10-21 10:36:20.781262	100	C_Bpartnerinvreceiver_Sepa	Payee SEPA	C_Bpartnerinvreceiver_Sepa	\N	\N	\N	\N	\N	\N	0	N
 903A07DD552643A5A688F94BCD2FA2DB	0	0	Y	2017-02-14 13:50:10.852846	100	2018-01-22 11:31:57.208791	100	shiporder_isprint	Print delivery note (Dropshiporder)	\N	\N	\N	\N	\N	\N	\N	0	Y
 90713258DABE4B2E8732CCD078D377EA	0	0	Y	2014-03-20 12:33:55.447851	100	2014-03-20 12:33:55.447851	100	yourreference	Your Reference No.	\N	\N	\N	\N	\N	\N	\N	0	Y
 90BB688183224B61A9878FEEC124DC64	0	0	Y	2013-12-19 12:10:07.154702	100	2013-12-19 12:10:07.154702	100	datetime	Date, Time	\N	\N	\N	\N	\N	\N	\N	0	Y
@@ -3039,6 +3064,7 @@
 982	0	0	Y	2009-11-25 19:39:26.397754	0	2012-05-09 16:09:59.636967	0	Title	Position	Title	A defined job, title, or ranking within a company.	The Title indicates the name that an entity is referred to as.	\N	\N	\N	\N	0	N
 983	0	0	Y	2009-11-25 19:39:26.403378	0	2012-05-09 16:09:59.636967	0	URL	URL	URL	An address which can be accessed via internet.	The URL defines an online address for this element.	\N	\N	\N	\N	0	N
 9834E25AF51E4EAB983FBC284ADF31D0	0	0	Y	2013-10-10 15:43:52	0	2013-10-10 16:00:29.120699	100	Docnoreadonly	All Document No. Read Only	Docnoreadonly	\N	\N	\N	\N	\N	\N	0	N
+984E9AC96E0C49ACAF231324A619F468	0	0	Y	2025-07-07 12:33:24	0	2025-07-07 12:33:24	0	Zssm_Productionorwithopenbom_V_ID	Zssm_Productionorwithopenbom_V_ID	Zssm_Productionorwithopenbom_V_ID	\N	\N	\N	\N	\N	\N	9D31DE7CE403417AA30579195A455E02	N
 986CEE52038F4C748B07A8CBC7DB96D0	0	0	Y	2012-11-15 12:41:12	0	2014-09-09 08:43:56.251162	100	Onchangeevent	OnChangeEvent	Onchangeevent	\N	\N	\N	\N	\N	\N	0	N
 988B17BDC93C475895A5D8859154FFA5	0	0	Y	2014-04-05 13:55:49	0	2014-04-05 14:07:11.596124	100	Validationrule	Validation	Validationrule	\N	\N	\N	\N	\N	\N	0	N
 98BC1B4154834E99B28E27A6AE452668	0	0	Y	2012-07-13 11:58:39	0	2012-08-08 17:41:09.618079	100	Colorcount	Color Count	Colorcount	\N	\N	\N	\N	\N	\N	0	N
@@ -3070,6 +3096,7 @@
 9B0B51755EF94CDC9016A4486855F53D	0	0	Y	2017-05-29 19:42:18	0	2017-05-29 19:42:18	0	C_Framecalloffoverview_ID	C_Framecalloffoverview_ID	C_Framecalloffoverview_ID	\N	\N	\N	\N	\N	\N	0	N
 9B4854D07BBB46ECABF22082F5E81EF9	0	0	Y	2024-07-09 17:45:18	0	2024-07-09 17:47:13.473419	100	Hour_Toorign	Hour to (sec.)	Hour_Toorign	\N	\N	\N	\N	\N	\N	19A7FD2B075F48B2B52ADBEDC581770C	N
 9B69CC669605479B8297E08F9CBB83AC	0	0	Y	2014-06-16 21:12:29	0	2014-06-16 21:12:29	0	Identsequence	Identsequence	Identsequence	\N	\N	\N	\N	\N	\N	0	N
+9B914CEBF6294669AA293A91ACB420A8	0	0	Y	2025-09-24 12:09:30	0	2025-09-24 12:10:56.712409	100	Vacdays_Sql	Vacation days (personal data)	Vacdays_Sql	\N	\N	\N	\N	\N	\N	0	N
 9BC07734E5DF43FABD27383B85C38822	0	0	Y	2017-01-09 17:46:47.718492	100	2017-01-09 17:46:47.718492	100	AddAttachments	Additional Attachments	\N	\N	\N	\N	\N	\N	\N	0	Y
 9BD65E7145194A36A2B6C6587A919359	0	0	Y	2011-07-20 19:18:18	0	2012-05-09 16:09:59.636967	100	Boxnumber	Box Number	Boxnumber	\N	\N	\N	\N	\N	\N	0	N
 9C066A503CD648C7809A7611E8FE6D53	0	0	Y	2024-01-22 10:49:40	0	2024-01-22 10:49:40	0	I_Inventory_V_ID	I_Inventory_V_ID	I_Inventory_V_ID	\N	\N	\N	\N	\N	\N	0	N
@@ -3093,6 +3120,7 @@
 9DDB74EA910C4A3CBB3D0553991D89C5	0	0	Y	2013-01-30 10:51:58.751297	100	2013-01-30 10:51:58.751297	100	Complete	Complete	Complete	\N	\N	\N	\N	\N	\N	000CDBE191604F5A835A3EC3213719E8	Y
 9DF1D133461344F8832560E39C4DF301	0	0	Y	2013-07-29 12:51:26	0	2013-07-29 14:41:32.959463	100	Projectsplan	Projects Planned	Projectsplan	\N	\N	\N	\N	\N	\N	0	N
 9E02640A437D409CBD41E5DC6CE20AC7	0	0	Y	2019-06-11 15:35:52.84809	100	2019-06-11 15:35:52.84809	100	Next	Next	\N	\N	\N	\N	\N	\N	\N	80CC706C9EA546B08B370401B89B384E	Y
+9E2A13B7E466484382C3E5B1D14C3681	0	0	Y	2024-10-14 10:55:14	0	2024-10-14 10:58:23.474727	100	Grandtotal_Converted	Gross Total Amount default currency	Grandtotal_Converted	\N	\N	\N	\N	\N	\N	0	N
 9E5FA3F359974BA6B0CBD35F28625BB1	0	0	Y	2010-11-05 16:14:51	0	2012-05-09 16:09:59.636967	100	Outsourcing	Outsourced Task	Outsourced Task	\N	\N	\N	\N	\N	\N	0	N
 9E6FDCDD7C56433688A5CF3A75E21A29	0	0	Y	2019-09-17 11:47:41.177028	100	2019-09-17 11:47:41.177028	100	partlydelivery	Partial shipment	\N	\N	\N	\N	\N	\N	\N	0	Y
 9E8C8FE996BA46279C3D7C55574F1742	0	0	Y	2010-11-07 14:51:56	0	2020-07-11 19:58:37.122017	100	Taskbegun	started	Task begun	\N	\N	\N	\N	\N	\N	0	N
@@ -3181,6 +3209,7 @@ A92C853AF2C011DD81C5001D09C4A2FE	0	0	Y	2009-11-25 19:39:36.177885	0	2012-05-09 1
 A9320956F2C011DDB115001D09C4A2FE	0	0	Y	2009-11-25 19:39:36.183329	0	2012-05-09 16:09:59.636967	0	Dependant_Module_Name	Dependant Module Name	Dependant Module Name	Name of the dependent module	The name of the dependent module is stored here because the dependent module can have been removed. In that case it is still relevant to show the module name to detect a broken dependency. 	\N	\N	\N	\N	0	N
 A932369CF2C011DDA8C1001D09C4A2FE	0	0	Y	2009-11-25 19:39:36.189138	0	2012-05-09 16:09:59.636967	0	Name1	Name1	Name1	\N	\N	\N	\N	\N	\N	0	N
 A9648664626C4051A9EF4AE629882AFA	0	0	Y	2011-02-19 19:51:19	0	2012-05-09 16:09:59.636967	0	Zsdv_Datev_Export_ID	Zsdv_Datev_Export_ID	Zsdv_Datev_Export_ID	\N	\N	\N	\N	\N	\N	7273882F545D4F79AF3EBAEF9F3F8936	N
+A964EBE6B4B24254ACDFE5FEF292B07C	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:41:50.663203	100	Workbegintimethursday_Evenweeks	(EW) Thursday, Work Begins at	Workbegintimethursday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 A98C6825C9C2472FBAA2356394B4D2BC	0	0	Y	2011-01-09 20:16:23	0	2012-05-09 16:09:59.636967	100	Dateexp	Export Date	Export Date	\N	\N	\N	\N	\N	\N	7273882F545D4F79AF3EBAEF9F3F8936	N
 A99C7FBF44904785ABF57A13971310F0	0	0	Y	2012-07-30 12:19:29	0	2012-07-30 16:15:24.264886	100	LineUpdatedBy	LineUpdatedBy	LineUpdatedBy	\N	\N	\N	\N	\N	\N	0	N
 A9A1F60F89E14742A416D7778E52A92B	0	0	Y	2013-02-25 15:40:50	0	2013-02-25 15:40:50	0	Image	Image	Image	\N	\N	\N	\N	\N	\N	3D5CFE4C9CB7438F83F18651900D3D79	N
@@ -3305,6 +3334,7 @@ B581FC5B53214AFF8A049E261431885A	0	0	Y	2015-11-30 15:15:12.410355	100	2015-11-30
 B5C3F83DBE364AF5B63F6369B7399816	0	0	Y	2015-11-12 17:23:03.192322	100	2015-11-12 17:23:03.192322	100	Autoaddbatchandserialatreceipt	Add Lotnumber/Batchnumber automatically (Receipt)	\N	\N	\N	\N	\N	\N	\N	0	Y
 B5CA7736F1B44375A612C05D486A5CDA	0	0	Y	2016-12-07 14:42:55	0	2016-12-08 09:48:33.785125	100	Element4_Shipmentref	Element 4 Shipment Reference	Element4_Shipmentref	\N	\N	\N	\N	\N	\N	0	N
 B5D9F055C1884FD88EA7FB0AE986C7A9	0	0	Y	2013-09-17 12:24:26.211131	100	2013-09-17 12:24:42.574284	100	Inventory	Inventory	\N	\N	\N	\N	\N	\N	\N	F2101ADEF06E45CAA2A50B714B738F61	N
+B622F2A1237C40BFB6847A8F9ADDCA98	0	0	Y	2025-06-30 11:59:58	0	2025-06-30 12:00:10.469173	100	Pick_Productionorder	Pick Productionorder	Pick_Productionorder	\N	\N	\N	\N	\N	\N	0	N
 B62C7FE89DFF485EBDC8F6F5F321BECD	0	0	Y	2024-06-27 14:40:03	0	2024-06-27 14:42:21.422926	100	Worktime-Account	Accountbalance	Accountbalance	\N	\N	\N	\N	\N	\N	93A35D1AB66545FC8C7BC3DA79590BC5	N
 B670A9A8786B4DCFB584FAC299EBA04E	0	0	Y	2016-06-25 16:56:30	0	2016-06-25 16:56:58.998905	100	Isnumeric	Numeric	Isnumeric	\N	\N	\N	\N	\N	\N	0	N
 B6CAA20AA5D6443C9BCCF4E7B74571A6	0	0	Y	2013-08-08 13:29:25.715258	100	2013-08-08 13:29:25.715258	100	SEPTEMBER	September	\N	\N	\N	\N	\N	\N	\N	0	Y
@@ -3341,6 +3371,7 @@ BA6F8C481BA24438BA9A068C6A8A92D6	0	0	Y	2011-04-19 03:01:41	0	2012-05-09 16:09:59
 BA76622A9EA54971ADE7E906E952E4CE	0	0	Y	2011-09-17 12:59:21.696099	100	2012-05-09 16:09:59.636967	100	datevkeyvst	Datev Tax Key VST	Datev Taxkey VSt	\N	\N	\N	\N	\N	\N	0	N
 BA99DDE00D91465C87DCCF0FF9C1F229	0	0	Y	2015-05-05 17:47:44	0	2015-05-05 17:47:44	0	DateLaterThan	Created after	Created after	\N	\N	\N	\N	\N	\N	7273882F545D4F79AF3EBAEF9F3F8936	N
 BAA18B21DC304A11A7E5AB13A8AB397A	0	0	Y	2016-04-05 08:23:52.08923	100	2016-04-05 08:23:52.08923	100	CLIENTh	CLIENT	\N	\N	\N	\N	\N	\N	\N	0	Y
+BAEEB18215B943669BAB3DA087951BD3	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:44:45.366397	100	Worktimewednesday_Evenweeks	(EW) Wednesday, Worktime in Hours	Worktimewednesday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 BAFFF7A33B704AEB9AA83A86DF8EFB12	0	0	Y	2014-03-04 15:28:41.677335	100	2014-03-04 15:28:41.677335	100	Plannedbatch	Planned Batch no.	\N	\N	\N	\N	\N	\N	\N	0	Y
 BB124259A4E34245B12EED26EFAEEB60	0	0	Y	2014-10-20 12:35:14	0	2014-10-20 12:35:14	0	CA_Overbookedbulkpositions_V_ID	CA_Overbookedbulkpositions_V_ID	CA_Overbookedbulkpositions_V_ID	\N	\N	\N	\N	\N	\N	FB879B6035554A03960BB0CC601293AA	N
 BB191871607F4D0B9F5CA842BD46E9B7	0	0	Y	2010-11-08 13:40:44	0	2014-09-08 11:34:53.401263	100	IsProcurementManager	is procuerement manager	Procuerement Manager	\N	\N	\N	\N	\N	\N	0	N
@@ -3363,6 +3394,7 @@ BD483F0507E54E98B746262DC60A2526	0	0	Y	2013-12-19 11:50:39.350093	100	2014-01-30
 BD65CB40AED34983A8D0021BE9BE9242	0	0	Y	2013-02-25 15:40:50	0	2013-02-25 15:40:50	0	Listsortersim	Listsortersim	Listsortersim	\N	\N	\N	\N	\N	\N	3D5CFE4C9CB7438F83F18651900D3D79	N
 BD77819EE6C74F2FAB2905FA4E295420	0	0	Y	2021-01-05 15:24:23	0	2021-01-05 15:25:31.850817	100	Pcustominfo_Ordernum	Custominfo sequence	Pcustominfo_Ordernum	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 BE17E9F7B3A9442D965CAF028BD989CA	0	0	Y	2013-01-02 17:15:20	0	2013-01-02 17:21:37.916988	100	Rowkeysuffix	Suffix for Row Key	Rowkeysuffix	\N	\N	\N	\N	\N	\N	0	N
+BE298053C12A4AF185EBACCE11D0DE29	0	0	Y	2025-10-07 11:09:32.000096	100	2025-10-07 11:09:32.000096	100	invoiced_amt_short	Invcd. amt.	\N	\N	\N	\N	\N	\N	\N	0	Y
 BE3E354967CC466B97F6E4F9FEDEF5A0	0	0	Y	2011-09-25 11:38:09	0	2012-05-09 16:09:59.636967	100	Cost2project	Costs are relevant in Project	Cost2project	\N	\N	\N	\N	\N	\N	0	N
 BE5E671E3A48480AB9843F5D23D87E92	0	0	Y	2015-08-23 12:46:18	0	2015-08-23 12:48:10.54282	100	ZSE_Shopdeletelog_ID	Items to delete in Shop	ZSE_Shopdeletelog_ID	\N	\N	\N	\N	\N	\N	972F04349324494DA6273E5CE3918C9E	N
 BEADA4ABFE544524B69FEC20E82F2D95	0	0	Y	2010-03-03 12:50:24.429913	0	2012-05-09 16:09:59.636967	0	System_Status	System_Status	System_Status	\N	\N	\N	\N	\N	\N	0	N
@@ -3389,12 +3421,14 @@ C1A813FAD23D47AC86A06A7B3DE7BCBF	0	0	Y	2013-08-13 11:02:23.675128	100	2013-08-13
 C1C545FB448349EB9D40DE55B315706A	0	0	Y	2015-05-12 09:27:07.63429	100	2015-05-12 09:27:07.63429	100	Assembly	Assembly	\N	\N	\N	\N	\N	\N	\N	0	Y
 C1D001B462B44615991996798A4FEFB7	0	0	Y	2013-07-28 15:23:45	0	2013-07-30 13:04:37.152854	100	Isreturnafteruse	Return after use (Eqipment)	Isreturnafteruse	\N	\N	\N	\N	\N	\N	19A7FD2B075F48B2B52ADBEDC581770C	N
 C1F907DE9994462A83CA965C14D03039	0	0	Y	2010-05-02 21:13:43.849041	0	2012-05-09 16:09:59.636967	0	Followup	Followup	Followup	\N	\N	\N	\N	\N	\N	2C556DC110134849BF4BB2B657D5B181	N
+C1FFB093C549406890D13D798659DEF7	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:44:28.981522	100	Worktimetuesday_Evenweeks	(EW) Tuesday, Worktime in Hours	Worktimetuesday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 C211B7E4F8E340C186ABC05074ECD15A	0	0	Y	2013-04-19 11:15:13	0	2013-04-19 11:17:00.203929	100	Isautotriggered	Triggered automatically	Isautotriggered	\N	\N	\N	\N	\N	\N	9D31DE7CE403417AA30579195A455E02	N
 C25392216C234584B2E4222771BC7F9E	0	0	Y	2016-12-07 14:42:55	0	2016-12-07 15:48:07.616049	100	Address6_Org_Isprint	Print Address 6	Address6_Org_Isprint	\N	\N	\N	\N	\N	\N	0	N
 C257EF2BED26435BB35AECD442D9A3BD	0	0	Y	2013-08-14 13:52:06.846754	100	2013-08-14 13:52:06.846754	100	Num	Tasknumber	\N	\N	\N	\N	\N	\N	\N	0	Y
 C27CA56386A94D8C8A0C080A485E2DB8	0	0	Y	2014-08-04 10:56:18	0	2014-08-04 10:56:18	0	ecommerceorder	ecommerceorder	ecommerceorder	\N	\N	\N	\N	\N	\N	0	N
 C28E477C69A741A795622E964FEDCDA5	0	0	Y	2017-02-14 17:37:12	0	2017-02-14 17:38:07.096833	100	Openqty	Qty open (frame)	Openqty	\N	\N	\N	\N	\N	\N	0	N
 C29BB65EF3044708AB4045AA8F8F4C3A	0	0	Y	2024-04-24 11:46:35.886399	100	2024-04-24 11:46:35.886399	100	semifinished_mustnotbestocked	Semi-finished product must not be stocked	\N	\N	\N	\N	\N	\N	\N	0	Y
+C2CD573B3CC84578A091F4135FE647B7	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:41:29.06026	100	Workbegintimesunday_Evenweeks	(EW) Sunday, Work Begins at	Workbegintimesunday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 C2DDC327D702443787218D0B9DD955B4	0	0	Y	2021-08-18 09:35:00	0	2021-08-18 09:35:30.242269	100	Permsessionid	Permanent Session ID	Permsessionid	\N	\N	\N	\N	\N	\N	0	N
 C2E5EF6B52814070A3CC287EC9361072	0	0	Y	2013-07-24 14:14:44	0	2013-07-24 14:41:56.815088	100	Workbegintimethursday	Thursday, Work Begins at	Workbegintimethursday	\N	\N	\N	\N	\N	\N	0	N
 C2E96094103145F8B8B9453E2BACE07F	0	0	Y	2014-03-08 11:36:24	0	2014-03-08 11:44:28.215079	100	C_Project_Invoice_Overview_ID	Project Invoice Overwiew	C_Project_Invoice_Overview_ID	\N	\N	\N	\N	\N	\N	0	N
@@ -3403,7 +3437,6 @@ C376840C343742D3881EAB6D2D2CDE25	0	0	Y	2017-01-16 16:44:35	0	2017-01-16 16:44:35
 C3B36A37B07C4CD0A1FD4E97B292EA3B	0	0	Y	2019-01-03 20:08:01.70506	100	2019-01-03 20:08:01.70506	100	selecteddoctype	Target Doctype	\N	\N	\N	\N	\N	\N	\N	0	Y
 C3B3BED9437A46B38C03C8851125DC3C	0	0	Y	2016-12-07 14:42:55	0	2017-02-06 16:48:57.84956	100	Juwiorjuwiang_Isprint	disable scheddeliverydate in subscriptions	Juwiorjuwiang_Isprint	Unchecked means print juwi | checked means print juwi_ang	Juwi-Report contains a tax- and scheddeliverydate-Field.\r\nJuwi_ang-Report contains only a tax-Field.	\N	\N	\N	\N	0	N
 C3BBC5C898404FC9B641F7B1AC6202FA	0	0	Y	2012-10-17 16:13:43.001752	100	2012-10-17 16:13:43.001752	100	Style	Style	Style	Style Tags for html	\N	\N	\N	\N	\N	0	Y
-C3EF92EE2F494A06B70FA8D661F12658	0	0	Y	2015-10-28 10:32:53	0	2015-10-28 10:32:53	0	Remaining	Remaining	Remaining	\N	\N	\N	\N	\N	\N	0	N
 C3F1B9547E4D4094AAB7AF7DAAF343D4	0	0	Y	2016-12-07 14:42:55	0	2016-12-07 14:42:55	0	C_Printout_Config_ID	C_Printout_Config_ID	C_Printout_Config_ID	\N	\N	\N	\N	\N	\N	0	N
 C40718021C1A489C8573008E4ABA024A	0	0	Y	2011-05-17 13:15:49	0	2012-05-09 16:09:59.636967	100	Vendpnumberdn_Ordernum	Vendor Prod.-Number in Docnote - Ordernumber	Vendpnumberdn_Ordernum	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 C479535BB0724135890C9CC62E77098D	0	0	Y	2015-06-01 22:18:37	0	2015-06-01 22:18:37	0	SNR_Batchlocator_V_ID	SNR_Batchlocator_V_ID	SNR_Batchlocator_V_ID	\N	\N	\N	\N	\N	\N	A4A01396DEC543E6831611C9D0126605	N
@@ -3438,6 +3471,7 @@ C784C5CE982148F48E8E26C6FD523E97	0	0	Y	2016-10-24 14:15:58.026245	100	2016-10-24
 C79221D34A914252A282F3835D9A8CD8	0	0	Y	2011-10-10 16:27:31	0	2012-05-09 16:09:59.636967	0	ZSE_Shop_Defaultpaymethod_ID	ZSE_Shop_Defaultpaymethod_ID	ZSE_Shop_Defaultpaymethod_ID	\N	\N	\N	\N	\N	\N	972F04349324494DA6273E5CE3918C9E	N
 C79869EE903E40209EEED1775BD71EAE	0	0	Y	2013-10-15 16:35:00.597744	100	2013-10-15 16:35:00.597744	100	loadedwithmachine	on board	\N	\N	\N	\N	\N	\N	\N	0	Y
 C7991D3E4D4B47B398821C6C5743FB95	0	0	Y	2015-11-22 12:12:58.273682	100	2015-11-22 12:13:29.349245	100	personaldata	personal data	\N	\N	\N	\N	\N	\N	\N	0	N
+C79E385929B6459EAEBDCC661214D6FE	0	0	Y	2025-01-03 15:15:01	0	2025-01-03 15:15:01	0	displayname	displayname	displayname	\N	\N	\N	\N	\N	\N	0	N
 C7C123CB493741538E23054DA6757C55	0	0	Y	2016-06-01 13:53:20.811839	100	2016-06-01 13:53:20.811839	100	Address	Address	\N	\N	\N	\N	\N	\N	\N	0	Y
 C7C1EF1C9F9A49FA8425369BD1F690E5	0	0	Y	2019-09-05 18:24:06	0	2019-09-05 18:24:29.1315	100	Ismobile	Is Mobile	Ismobile	\N	\N	\N	\N	\N	\N	0	N
 C7C4DA994849463F9F7B0F10E9A2C3AA	0	0	Y	2013-07-22 09:28:21.25604	100	2013-07-22 09:28:21.25604	100	PrintOptionsHeaderLabel1	Do you want to archive this document after printing?	\N	\N	\N	\N	\N	\N	\N	0	Y
@@ -3478,6 +3512,7 @@ CD1721C317B54D6DB01EE68DD6E03053	0	0	Y	2012-11-21 15:35:26	0	2012-11-21 15:35:26
 CD33D1F975ED4844B78591388C968F50	0	0	Y	2016-12-21 10:25:25	0	2016-12-21 10:25:25	0	Region	Region	Region	\N	\N	\N	\N	\N	\N	0	N
 CD4530C218E74D888340C733A2F365FF	0	0	Y	2013-08-08 13:24:06.069016	100	2013-08-08 13:27:59.097368	100	APRIL	April	\N	\N	\N	\N	\N	\N	\N	0	Y
 CD99AE808A3E4339B61524BEDE42DCD3	0	0	Y	2013-07-25 12:11:47	0	2013-07-25 14:07:40.040679	100	Overtime	Over Time %	Overtime	\N	\N	\N	\N	\N	\N	0	N
+CDAAC32E39C745DCA37D743410B68AF1	0	0	Y	2024-10-17 13:28:13	0	2024-10-17 13:28:41.734069	100	Created_Print	Creation Date	Created_Print	\N	\N	\N	\N	\N	\N	0	N
 CE12D21728514A4BA568B3B77F7472E5	0	0	Y	2017-11-01 18:35:23	0	2017-11-01 18:36:08.658823	100	Isautocloseworkstep	Close Workstep automatically after time exeeds	Isautocloseworkstep	\N	\N	\N	\N	\N	\N	9D31DE7CE403417AA30579195A455E02	N
 CE21547CAECB4A8895AB1D161982720A	0	0	Y	2019-06-18 11:39:06	0	2019-06-18 11:39:06	0	M_Product_Category_Shoptag_ID	M_Product_Category_Shoptag_ID	M_Product_Category_Shoptag_ID	\N	\N	\N	\N	\N	\N	972F04349324494DA6273E5CE3918C9E	N
 CE353471CEBF4FE98DF9D1C0F16BA294	0	0	Y	2019-06-11 15:33:26.668525	100	2019-06-11 15:33:26.668525	100	Back	Back	\N	\N	\N	\N	\N	\N	\N	80CC706C9EA546B08B370401B89B384E	Y
@@ -3489,6 +3524,7 @@ CF084C204DE1459B97E6331A34316FAF	0	0	Y	2020-05-25 10:53:38	0	2020-05-25 10:54:10
 CF10D6D0431845C4A1780AAD208B8366	0	0	Y	2015-10-24 14:21:58	0	2015-10-24 14:22:37.206284	100	Debitdatev	Debit Datev	Debitdatev	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 CF1AE2F1813B4D9689167A6F6A20407F	0	0	Y	2013-08-14 13:53:16.489043	100	2013-08-14 13:53:16.489043	100	needed	needed	\N	\N	\N	\N	\N	\N	\N	0	Y
 CF3252B5595E449F9E17AACF559A15A9	0	0	Y	2014-08-12 10:45:01	0	2014-08-15 08:57:21.783424	100	SepaCollectSetReversed	Set Reversed	SepaCollectSetReversed	\N	\N	\N	\N	\N	\N	0	N
+CF39077A1D4E4E87BB3BB534EB049DB3	0	0	Y	2025-10-07 11:08:31.758042	100	2025-10-07 11:08:31.758042	100	planneddate_short	Plnd. date	\N	\N	\N	\N	\N	\N	\N	0	Y
 CF3E3224E718492381338C63151C6EE4	0	0	Y	2011-05-17 13:15:49	0	2012-05-09 16:09:59.636967	100	CPY_Proddocnote2docnote	Copy Product Docnote to Document Note	CPY_Proddocnote2docnote	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 CF3EB2F57B7849BC86DBA1736C63FA01	0	0	Y	2014-08-12 10:45:01	0	2014-08-12 10:51:49.160729	100	Iscommission	Commission approved	Iscommission	\N	\N	\N	\N	\N	\N	0	N
 CF40389CDBDB42E996D6767AEADACE82	0	0	Y	2016-06-04 15:21:34	0	2016-06-04 15:21:59.027407	100	Specialtime3	Special 3	Specialtime3	\N	\N	\N	\N	\N	\N	93A35D1AB66545FC8C7BC3DA79590BC5	N
@@ -3649,6 +3685,7 @@ E1B427D0C12B4DAF9872C3DA2C9D327A	0	0	Y	2013-08-14 14:04:13.982381	100	2013-08-14
 E1D2DCDC38B74C60807C51E918E76C3A	0	0	Y	2019-06-11 15:33:59.317353	100	2019-06-11 15:33:59.317353	100	Cncl	Cancel	\N	\N	\N	\N	\N	\N	\N	80CC706C9EA546B08B370401B89B384E	Y
 E1F4B5B1D73B4CA483E112036A380A02	0	0	Y	2012-11-15 17:02:54.006423	100	2012-11-15 17:02:54.006423	100	Generate Shipments manual	Generate Shipments manual	Generate Shipments manual	\N	\N	\N	\N	\N	\N	0	Y
 E23D85077EB047388B577EFFDD84CD15	0	0	Y	2020-07-05 12:22:47	0	2022-04-11 18:57:43.548027	100	Prefedineserials	Predefine Serial/Batch in Production	Prefedineserials	\N	\N	\N	\N	\N	\N	0	N
+E23F2918D4104A42BF8B999B9EE30F0C	0	0	Y	2025-01-03 15:15:01	0	2025-01-03 15:15:01	0	Directfilter	Directfilter	Directfilter	\N	\N	\N	\N	\N	\N	0	N
 E25C7E32594A439E9F9745F420DC8E18	0	0	Y	2016-11-01 15:37:29	0	2016-11-01 15:37:29	0	Dateposted	Dateposted	Dateposted	\N	\N	\N	\N	\N	\N	0	N
 E26229E5BF6B4F2DA13BDA231595AAB9	0	0	Y	2013-10-10 15:02:48	0	2013-10-10 15:02:48	0	Number2	Number2	Number2	\N	\N	\N	\N	\N	\N	0	N
 E273BFF1FEF8453CB4339C4BC886EDAF	0	0	Y	2010-03-08 13:04:31	0	2012-05-09 16:09:59.636967	0	DATE_FROM	From	From	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
@@ -3710,6 +3747,8 @@ E81B915FD8214A86A9DF638A50E89042	0	0	Y	2013-01-29 15:10:18.234102	100	2013-01-29
 E838AE2E6CDA457580DB0992ED76388C	0	0	Y	2013-08-15 15:25:28.619233	100	2013-08-15 15:25:28.619233	100	Saturdayw	Sat.	\N	\N	\N	\N	\N	\N	\N	0	Y
 E85AEA47AE65432AA701622D1CB24DA9	0	0	Y	2012-06-21 11:50:15	0	2012-06-21 11:50:15	0	C_Subscriptionintervallines_View_ID	C_Subscriptionintervallines_View_ID	C_Subscriptionintervallines_View_ID	\N	\N	\N	\N	\N	\N	0	N
 E86CF111716C487CA493ED246FBCAEC3	0	0	Y	2012-10-15 12:39:00.792514	100	2012-10-15 12:46:52.329417	100	Zssm_Workstep_Precursor_ID	Workstep preceding	Workstep preceding	Preceding workstep	\N	\N	\N	\N	\N	9D31DE7CE403417AA30579195A455E02	Y
+E8AF0E2721D34B75974D3815ADAA176A	0	0	Y	2025-01-03 15:15:01	0	2025-01-03 15:15:01	0	Generalvisibility	Generalvisibility	Generalvisibility	\N	\N	\N	\N	\N	\N	0	N
+E8B26677819C42BE916331A0C720B572	0	0	Y	2025-10-07 11:10:19.9708	100	2025-10-07 11:10:24.963828	100	amount_open_short	Open amt.	\N	\N	\N	\N	\N	\N	\N	0	Y
 E8B2BC3D35DE44399680C6868782009F	0	0	Y	2012-10-16 09:09:00	0	2012-12-20 11:18:25.429741	100	Zssm_DurationUnit	Duration Unit	Duration per	\N	\N	\N	\N	\N	\N	9D31DE7CE403417AA30579195A455E02	N
 E8EB4A6C9B674E00911D19F8C81CC287	0	0	Y	2013-12-19 12:06:21.588965	100	2013-12-19 12:06:21.588965	100	wedate	Date Expected Del.	\N	\N	\N	\N	\N	\N	\N	0	Y
 E8EF182BA6C241739383E83C188EF777	0	0	Y	2013-10-23 14:11:30.96716	100	2013-10-23 14:11:30.96716	100	Bono	Order-No.	\N	\N	\N	\N	\N	\N	\N	0	Y
@@ -3742,9 +3781,11 @@ EBDA2A174BA54413828459B371F4C554	0	0	Y	2012-09-07 11:30:24	0	2012-09-07 12:03:59
 EBDAF030A5624F359A71897E03074872	0	0	Y	2011-09-13 13:59:24	0	2012-05-09 16:09:59.636967	100	C_Lineofbusiness_ID	Line of Business	Line of Business	\N	\N	\N	\N	\N	\N	0	N
 EBDB4546F4D54812B53C2FBD7487A9CB	0	0	Y	2011-11-09 11:38:58	0	2012-05-09 16:09:59.636967	100	Islower	Is Footer Text	Islower	\N	\N	\N	\N	\N	\N	2C556DC110134849BF4BB2B657D5B181	N
 EBE601C54F694F6C86BABD8521A28ED6	0	0	Y	2019-01-07 14:36:36	0	2019-01-07 14:36:36	0	text3	text3	text3	\N	\N	\N	\N	\N	\N	0	N
+EBF126BBAB3045289AD81F77B95B5487	0	0	Y	2025-10-02 14:09:20.910236	100	2025-10-02 14:09:57.309413	100	RemainingEMP	Remaining Days (begin of month)	\N	\N	\N	\N	\N	\N	\N	0	Y
 EC17AECB4FCB4D679E8E827833C6A81A	0	0	Y	2011-05-17 13:15:49	0	2012-05-09 16:09:59.636967	100	Printattrsondocs	Print Attributes	Printattrsondocs	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 EC1A72A29803473CB301603442DE70D4	0	0	Y	2012-09-06 11:46:10	0	2012-09-13 13:33:56.442488	100	Juwimm_Team_ID	Team	Team	\N	\N	\N	\N	\N	\N	F7E7ED8DF78A49708A990DC4C8A586C7	N
 EC47118D5E6B4BB5B70404C57E2D9281	0	0	Y	2017-10-20 16:02:31	0	2017-10-20 16:02:59.810681	100	Qtylastpo	Qty last order	Qtylastpo	\N	\N	\N	\N	\N	\N	0	N
+EC4D862C2A724147B49C5803EAEFBFB6	0	0	Y	2025-10-08 16:20:56.912442	100	2025-10-08 16:20:56.912442	100	shipmentno	Shipment No	\N	\N	\N	\N	\N	\N	\N	0	Y
 EC6B8890E47744128B05ADC57E5C3CFF	0	0	Y	2010-03-02 13:41:19.528051	0	2012-09-26 11:24:07.518339	100	Address3	Address 3	Address 3	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 ECCE6632664142ECAF0F2BDFBBEA8C2D	0	0	Y	2016-12-07 14:42:55	0	2016-12-08 08:59:36.232278	100	Element14_Orderref	Element 14 Order Reference	Element14_Orderref	\N	\N	\N	\N	\N	\N	0	N
 ECE790E9EAFC468E919441A2BE8742D0	0	0	Y	2011-05-05 14:18:19	0	2012-05-09 16:09:59.636967	100	ZSE_Shop_ID	ECommerce Shop	ECommerce Shop	\N	\N	\N	\N	\N	\N	972F04349324494DA6273E5CE3918C9E	N
@@ -3798,6 +3839,7 @@ F196C562044F4A658415B13CCA1C62DD	0	0	Y	2013-12-19 11:55:23.568895	100	2013-12-19
 F1B4070AD97E4DA29C0AAB310270B6CA	0	0	Y	2011-05-25 05:51:31	0	2012-05-09 16:09:59.636967	100	Paymentmethod	Payment Method	Payment Method	\N	\N	\N	\N	\N	\N	972F04349324494DA6273E5CE3918C9E	N
 F1D3AB63E5234F10A15ABCEC165F380C	0	0	Y	2010-11-08 19:37:31	0	2012-05-09 16:09:59.636967	100	Dependsonphase	Depends On Phase	Depends On Phase	\N	\N	\N	\N	\N	\N	19A7FD2B075F48B2B52ADBEDC581770C	N
 F1EB8D2E76674E029C5505600BB162DF	0	0	Y	2014-08-13 06:36:08	0	2014-08-13 06:36:08	0	Button1	Button1	Button1	\N	\N	\N	\N	\N	\N	0	N
+F20266329AE94CC2A51DECEC8C6F5644	0	0	Y	2025-04-22 10:39:32	0	2025-04-22 10:40:31.279316	100	Daysbeforedemand	Planned date before demand (in days)	Daysbeforedemand	\N	\N	\N	\N	\N	\N	0	N
 F24A3BCA84654A0895B1E7BD78FC16C2	0	0	Y	2014-09-05 14:50:32	0	2014-09-05 14:50:32	0	Auxfield1	Auxfield1	Auxfield1	\N	\N	\N	\N	\N	\N	0	N
 F2657447D0F54349991727FAECEC9823	0	0	Y	2012-04-10 13:00:22	0	2012-05-09 16:09:59.636967	0	Zspm_Recharge_View_ID	Zspm_Recharge_View_ID	Zspm_Recharge_View_ID	\N	\N	\N	\N	\N	\N	19A7FD2B075F48B2B52ADBEDC581770C	N
 F28461B8ECD94E1B83B95F6EF94783C7	0	0	Y	2013-03-06 10:29:14	0	2013-03-06 10:29:14	0	Qtyinflow	Quantity Inflow	Qtyinflow	\N	\N	\N	\N	\N	\N	2C556DC110134849BF4BB2B657D5B181	N
@@ -3894,9 +3936,11 @@ FC161334783C4B088C71F3ABCEF91291	0	0	Y	2017-02-18 16:26:55	0	2017-02-18 16:27:34
 FC43832F7378411BA6A0EC7BC688B4F0	0	0	Y	2013-06-21 18:19:12	0	2013-06-21 18:19:12	0	Zssm_Unproducableitems_V_ID	Zssm_Unproducableitems_V_ID	Zssm_Unproducableitems_V_ID	\N	\N	\N	\N	\N	\N	9D31DE7CE403417AA30579195A455E02	N
 FC50694844D84B6093A15D19B96F0CEB	0	0	Y	2012-09-14 15:05:51.899642	100	2012-09-14 15:05:51.899642	100	reject	Reject	Reject	\N	\N	\N	\N	\N	\N	0	Y
 FC5156167F8C455EA04A78BD06EC9A94	0	0	Y	2017-04-20 15:25:46.875882	100	2017-04-20 15:25:46.875882	100	SNR_Batchcurrentbom_V_ID	Batch BOM built in	\N	\N	\N	\N	\N	\N	\N	A4A01396DEC543E6831611C9D0126605	N
+FCC20D6B61554DDF9FAEC43848F393C7	0	0	Y	2025-03-13 09:46:11	0	2025-03-13 10:42:06.33942	100	Workbegintimetuesday_Evenweeks	(EW) Tuesday, Work Begins at	Workbegintimetuesday_Evenweeks	\N	\N	\N	\N	\N	\N	0	N
 FCE0B86565DD4D17B43961E0FA63E786	0	0	Y	2014-09-08 16:34:34	0	2014-09-08 16:46:30.808372	100	M_Chargeproduct	Charge Produkt	M_Chargeproduct	\N	\N	\N	\N	\N	\N	FB879B6035554A03960BB0CC601293AA	N
 FD1F3BEB84C149DCBB80F2D3AFB8B109	0	0	Y	2011-07-29 17:57:21	0	2013-05-08 12:14:40.201496	100	Printordernumberonshipment	Print Order No on Shipment	Printordernumberonshipment	\N	\N	\N	\N	\N	\N	F5307E2B96484292914AE8DAE32D9C74	N
 FD3F7F1717CB47E9995D1EC3DCA44728	0	0	Y	2012-12-19 15:30:05.718344	100	2013-01-31 11:04:58.173884	100	Zssm_Workstep_Product_ID	Product (assembled)	Product (assembled)	An item produced by a production work step.	\N	\N	\N	\N	\N	9D31DE7CE403417AA30579195A455E02	Y
+FD765C3D074A47B293CC20D59E8925FA	0	0	Y	2025-02-10 10:49:06.553051	100	2025-02-10 10:49:06.553051	100	orderBy	 Order by	\N	\N	\N	\N	\N	\N	\N	0	Y
 FD98015E356742379CA5DFD5A34C0274	0	0	Y	2012-04-13 11:57:02	0	2012-05-09 16:09:59.636967	100	C_User_Department_ID	Depatement / Area	C_User_Department_ID	\N	\N	\N	\N	\N	\N	0	N
 FDA000130E2347608FDFB54FB4B1F402	0	0	Y	2011-03-17 07:03:32	0	2012-05-09 16:09:59.636967	0	Zspm_Ctaskindcostplan_ID	Zspm_Ctaskindcostplan_ID	Zspm_Ctaskindcostplan_ID	\N	\N	\N	\N	\N	\N	19A7FD2B075F48B2B52ADBEDC581770C	N
 FDA5F8527856416280FC048873E19891	0	0	Y	2013-01-29 15:11:19.653396	100	2013-01-29 15:11:19.653396	100	pdcmaterialconsumptionplannedqty	planned	planned	\N	\N	\N	\N	\N	\N	000CDBE191604F5A835A3EC3213719E8	Y

@@ -25,7 +25,9 @@
         SELECT P.C_PROJECT_ID, P.VALUE, REPLACE(P.VALUE, '''', CHR(92) || '''') AS VALUE_HIDDEN, P.NAME, P.C_BPARTNER_ID, 
         REPLACE(P.NAME, '''', CHR(92) || CHR(92) || '''') AS NAME_HIDDEN, 
         B.NAME AS BPARTNER, L.NAME AS PROJECTSTATUS,
-        p.c_Project_Id || '#' || p.value || ' - ' || p.name as rowkey
+        p.c_Project_Id || '#' || p.value || ' - ' || p.name as rowkey,
+        (SELECT o.name FROM ad_org o WHERE o.ad_org_id = p.ad_org_id) as org,
+        '' as id
         FROM C_PROJECT P LEFT JOIN C_BPARTNER B ON P.C_BPARTNER_ID = B.C_BPARTNER_ID , AD_REF_LIST_V L 
         WHERE P.PROJECTSTATUS = L.VALUE 
         AND L.AD_REFERENCE_ID = '800002' 
@@ -47,6 +49,7 @@
         <Parameter name="key" ignoreValue="%" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(P.Value) LIKE UPPER(?) ]]></Parameter>
         <Parameter name="name" ignoreValue="%" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(P.Name) LIKE UPPER(?) ]]></Parameter>
         <Parameter name="bpartner" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND P.C_BPARTNER_ID = ? ]]></Parameter>
+        <Parameter name="adOrgId" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND P.AD_ORG_ID = ? ]]></Parameter>
         <Parameter name="orderBy" type="replace" optional="true" after="ORDER BY " text="P.VALUE" />
         <Parameter name="pgLimit" type="argument" optional="true" after="WHERE 1=1"><![CDATA[LIMIT ]]></Parameter>
    </SqlMethod>
@@ -78,7 +81,8 @@
         <Parameter name="key" ignoreValue="%" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(P.Value) LIKE UPPER(?) ]]></Parameter>
         <Parameter name="name" ignoreValue="%" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND UPPER(P.Name) LIKE UPPER(?) ]]></Parameter>
         <Parameter name="bpartner" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND P.C_BPARTNER_ID = ? ]]></Parameter>
-         <Parameter name="pgLimit" type="argument" optional="true" after="AND 1=1"><![CDATA[LIMIT ]]></Parameter>
+        <Parameter name="adOrgId" optional="true" after="AND P.ISACTIVE = 'Y'"><![CDATA[ AND P.AD_ORG_ID = ? ]]></Parameter>
+        <Parameter name="pgLimit" type="argument" optional="true" after="AND 1=1"><![CDATA[LIMIT ]]></Parameter>
         
    </SqlMethod>
    <SqlMethod name="getNameCount" type="preparedStatement" return="String" default="">
@@ -145,5 +149,11 @@
         SELECT NAME FROM C_BPARTNER WHERE C_BPARTNER_ID = ?
       ]]></Sql>
         <Parameter name="cBparnterId"/>
+   </SqlMethod>
+   <SqlMethod name="selectOrgs" type="preparedStatement" return="multiple">
+      <SqlMethodComment>select orgs for dropdown</SqlMethodComment>
+      <Sql> <![CDATA[
+        SELECT ad_org_id as id, NAME FROM ad_org where isactive = 'Y'
+      ]]></Sql>
    </SqlMethod>
 </SqlClass>

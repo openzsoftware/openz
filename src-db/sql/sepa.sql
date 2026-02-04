@@ -116,6 +116,9 @@ BEGIN
     IF isEmpty(v_PmtInf_DbtrAgt_BIC) THEN
       RAISE EXCEPTION '%', 'BIC fuer Auftraggeber (' ||  v_PmtInf_Dbtr_Nm||', Bank: '|| (select name from c_bank,c_bankaccount where c_bank.c_bank_id=c_bankaccount.c_bank_id limit 1)  || ') nicht gefunden.';
     END IF;
+    IF length(v_PmtInf_DbtrAgt_BIC)>11 THEN
+      RAISE EXCEPTION '%', 'BIC fuer Auftraggeber (' ||  v_PmtInf_Dbtr_Nm||', Bank: '|| (select name from c_bank,c_bankaccount where c_bank.c_bank_id=c_bankaccount.c_bank_id limit 1)  || ') hat eine ungültige Länge.';
+    END IF;
 
     -- Daten fuer Ueberweisungs-Empfaenger ermitteln
     SELECT
@@ -132,6 +135,9 @@ BEGIN
     END IF;
     IF isEmpty(v_CdtrAgt_BIC) THEN
       RAISE EXCEPTION '%', 'BIC fuer Ueberweisungs-Empfaenger ' || COALESCE(v_Cdtr_Nm, 'Ueberweisungs-Empfaenger') || ' nicht gefunden.';
+    END IF;
+    IF length(v_CdtrAgt_BIC)>11 THEN
+      RAISE EXCEPTION '%', 'BIC fuer Ueberweisungs-Empfaenger ' || COALESCE(v_Cdtr_Nm, 'Ueberweisungs-Empfaenger') || ' hat eine ungültige Länge.';
     END IF;
     IF isEmpty(v_Cdtr_Nm) THEN
       RAISE EXCEPTION '%', 'Name fuer Ueberweisungs-Empfaenger ' || COALESCE(v_Cdtr_Nm, 'Ueberweisungs-Empfaenger') || ' nicht gefunden.';
@@ -333,7 +339,8 @@ BEGIN
     -- 03=Credit Transfer Initiation: Ueberweisungen / Gutschriften an Kreditoren
     INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<?xml version="1.0" encoding="UTF-8"?>');
    --INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.003.03" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:iso:std:iso:20022:tech:xsd:pain.001.003.03 pain.001.003.03.xsd">');
-   INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.003.03">');
+   -- 11986 INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.003.03">');
+   INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09">');
 -- wg StarMoney50 001.001.02
     --INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<Document xsi:schemaLocation="urn:iso:std:iso:20022:tech:xsd:pain.001.003.03 pain.001.003.03.xsd">');
     --INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<pain.001.003.03>');                              -- wg StarMoney50 aktiviert
@@ -350,7 +357,7 @@ BEGIN
     INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<MsgId>'   || v_MsgId || '</MsgId>');   -- ZKA 'CCTI/VRNWSW/8c2df6ab9568f240ac9020c'
     INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<CreDtTm>' || v_GrpHdr_CreDtTm || '</CreDtTm>');  -- YYYY-MM-DDTHH24:MI:SSZ ??
     INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<NbOfTxs>' || v_GrpHdr_NbOfTxs || '</NbOfTxs>');  -- Anzahl Datenzeilen
-    --INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<CtrlSum>' || v_GrpHdr_CtrlSum || '</CtrlSum>');  -- max. zwei Nachkomma-St
+    INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<CtrlSum>' || v_GrpHdr_CtrlSum || '</CtrlSum>');  -- max. zwei Nachkomma-St : 11986 wieder drin und redundant (s.u.)
     --INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<Grpg>GRPD</Grpg>');  -- StarMoney50
     INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<InitgPty>');                                     -- Auftraggeber
     INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<Nm>'      || v_GrpHdr_Nm || '</Nm>');            -- Empfehlung: nur Name verwendenden
@@ -365,7 +372,7 @@ BEGIN
       FOR CUR_export IN (
          SELECT
            d.*,
-           PmtInf_PmtInfId,      -- VARCHAR(70) NOT NULL,
+           (select name from c_bankstatement where c_bankstatement_id=(select c_bankstatement_id from c_bankstatementline where c_bankstatementline_id=PmtInf_PmtInfId)) as PmtInf_PmtInfId,      -- VARCHAR(70) NOT NULL,
            PmtInf_ReqdExctnDt,   -- DATE NOT NULL,
            TRIM(SUBSTR(PmtInf_Dbtr_Nm, 1, 70))       AS PmtInf_Dbtr_Nm,       -- VARCHAR(70) NOT NULL,
            TRIM(SUBSTR(PmtInf_DbtrAcct_IBAN, 1, 34)) AS PmtInf_DbtrAcct_IBAN, -- VARCHAR(34) NOT NULL
@@ -405,7 +412,8 @@ BEGIN
 
             -- sofern kein gültger Geschäftstag angegeben wurde, durch das überweisende
             -- Kreditinstitut auf den nächsten Geschäftstag umgesetzt
-            INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<ReqdExctnDt>'|| to_char(CUR_export.PmtInf_ReqdExctnDt, 'YYYY-MM-DD') || '</ReqdExctnDt>'); -- Ausführungstermin
+            --11986 INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<ReqdExctnDt>'|| to_char(CUR_export.PmtInf_ReqdExctnDt, 'YYYY-MM-DD') || '</ReqdExctnDt>'); -- Ausführungstermin
+            INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<ReqdExctnDt><Dt>'|| to_char(CUR_export.PmtInf_ReqdExctnDt, 'YYYY-MM-DD') || '</Dt></ReqdExctnDt>'); -- Ausführungstermin
 
             INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<Dbtr>'); -- Zahler (Auftraggeber)
             INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<Nm>' ||  CUR_export.PmtInf_Dbtr_Nm || '</Nm>');  -- 'Debtor Name'
@@ -419,7 +427,8 @@ BEGIN
 
             INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<DbtrAgt>'); -- Institut des Zahlungspflichtigen
             INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<FinInstnId>');
-            INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<BIC>' || CUR_export.PmtInf_DbtrAgt_BIC || '</BIC>');
+            -- 11986 INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<BIC>' || CUR_export.PmtInf_DbtrAgt_BIC || '</BIC>');
+            INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<BICFI>' || CUR_export.PmtInf_DbtrAgt_BIC || '</BICFI>');
             INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('</FinInstnId>');
             INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('</DbtrAgt>');
             INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<ChrgBr>SLEV</ChrgBr>');   -- ChargeBearer=Entgeltverrechnung, recommended StarMoney50 reaktiviert
@@ -437,7 +446,8 @@ BEGIN
 
       INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<CdtrAgt>');  -- BranchAndFinancialInstitutionIdentificationSEPA1
       INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<FinInstnId>');
-      INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<BIC>' || CUR_export.CdtrAgt_BIC || '</BIC>'); --Business Identifier Code, max 11 Stellen
+      -- 11986 INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<BIC>' || CUR_export.CdtrAgt_BIC || '</BIC>'); --Business Identifier Code, max 11 Stellen
+      INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('<BICFI>' || CUR_export.CdtrAgt_BIC || '</BICFI>'); --Business Identifier Code, max 11 Stellen
       INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('</FinInstnId>');
       INSERT INTO zsfi_sepa_export_xml (daten) VALUES ('</CdtrAgt>');
 
@@ -828,7 +838,8 @@ BEGIN
   IF (v_anzError = 0) THEN
     -- Ausgabe CDD Basislastschrift urn:iso:std:iso:20022:tech:xsd:pain.008.003.03 pain.008.003.03.xsd
     INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('<?xml version="1.0" encoding="UTF-8"?>');
-    INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.003.02">');
+    -- 11986 INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.003.02">');
+    INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.08">');
     INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('<CstmrDrctDbtInitn>');
 
    -- 1/2 Credit Transfer Initiation = Group Header
@@ -851,7 +862,7 @@ BEGIN
     BEGIN
       i := 0;
       FOR CUR_PmtInf IN (
-        SELECT get_uuid() AS PmtInf_PmtInfId
+        SELECT (select name from c_bankstatement where c_bankstatement_id = (select pmtinf_pmtinfid from zsfi_sepa_debit_data where zsfi_sepa_debit_data_id = p_zsfi_sepa_debit_data_id)) as PmtInf_PmtInfId
              , COUNT(*) AS PmtInf_NbOfTxs
              , SUM (drctdbttx_instdamt) AS PmtInf_instdamt 
              , lclInstrm AS PmtInf_LclInstrm
@@ -897,7 +908,8 @@ BEGIN
 
         INSERT INTO zsfi_sepa_debit_xml (daten) VALUES (' <CdtrAgt>');           -- Institut des Empfaengers (Auftraggeber, Einreicher)
         INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('  <FinInstnId>');
-        INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('   <BIC>' || v_pmtinf_CdtrAgt_BIC || '</BIC>');
+        -- 11986 INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('   <BIC>' || v_pmtinf_CdtrAgt_BIC || '</BIC>');
+        INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('   <BICFI>' || v_pmtinf_CdtrAgt_BIC || '</BICFI>');
         INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('  </FinInstnId>');
         INSERT INTO zsfi_sepa_debit_xml (daten) VALUES (' </CdtrAgt>');
         
@@ -981,7 +993,8 @@ BEGIN
       
             INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('  <DbtrAgt>');
             INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('   <FinInstnId>');
-            INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('    <BIC>' || CUR_debit.DbtrAgt_BIC || '</BIC>'); --Business Identifier Code, max 13 Stellen
+            -- 11986 INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('    <BIC>' || CUR_debit.DbtrAgt_BIC || '</BIC>'); --Business Identifier Code, max 13 Stellen
+            INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('    <BICFI>' || CUR_debit.DbtrAgt_BIC || '</BICFI>'); --Business Identifier Code, max 13 Stellen
             INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('   </FinInstnId>');
             INSERT INTO zsfi_sepa_debit_xml (daten) VALUES ('  </DbtrAgt>');
 

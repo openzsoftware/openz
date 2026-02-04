@@ -142,7 +142,7 @@ END ; $BODY$
   COST 100;
  
 select zsse_dropfunction('m_generateinoutcustomer');
-CREATE OR REPLACE FUNCTION m_generateinoutcustomer( v_bpartner varchar, v_datefrom varchar,v_dateto varchar,v_docno varchar,v_project varchar, v_warehouse varchar, v_locator varchar,v_orgl varchar,v_userorg varchar,v_productlist varchar,v_typeofproduct varchar,v_productcategory varchar,v_option varchar,v_combined varchar,v_partly varchar,v_dateformat varchar,v_lang varchar,
+CREATE OR REPLACE FUNCTION m_generateinoutcustomer( v_bpartner varchar, v_datefrom varchar,v_dateto varchar,v_docno varchar,v_poreference varchar,v_project varchar, v_warehouse varchar, v_locator varchar,v_orgl varchar,v_userorg varchar,v_productlist varchar,v_typeofproduct varchar,v_productcategory varchar,v_option varchar,v_combined varchar,v_partly varchar,v_dateformat varchar,v_lang varchar,
                            ad_client_id OUT varchar, ad_org_id OUT varchar, c_order_id OUT varchar, a_asset_id OUT varchar, c_orderline_id OUT varchar, c_project_id OUT varchar, c_projecttask_id OUT varchar, m_shipper_id OUT varchar, salesrep_id OUT varchar, c_doctype_id OUT varchar, scheddeliverydate out varchar,
                            c_bpartner_id OUT varchar,   businesspartner OUT varchar, m_locator_id OUT varchar,documentno OUT varchar, projectname OUT varchar,  doctypename OUT varchar, dateordered OUT varchar, datepromised OUT varchar, shipper_name OUT varchar, salesrepname OUT varchar, totallines OUT varchar, grandtotal OUT varchar,
                            line OUT varchar,  product_name OUT varchar,  qtyordered OUT varchar, qtydelivered OUT varchar, qtyavailable OUT varchar,qty2deliver OUT varchar, description OUT varchar,  completed OUT varchar,m_attributesetinstance_id OUT varchar,
@@ -188,13 +188,15 @@ BEGIN
     v_org:=replace(v_orgl,chr(39),'');
     v_uorg:=replace(v_userorg,chr(39),'');
     -- Lieferbare Pos. nach Prio UND Lieferbare Pos. nach Lagerort
-    for v_cur1 in (select v.ad_client_id,v.ad_org_id,v.m_warehouse_id,v.m_attributesetinstance_id,v.description,v.c_orderline_id,v.scheddeliverydate,v.documentno,v.line,v.c_bpartner_id,
+    for v_cur1 in (select v.ad_client_id,v.ad_org_id,v.m_warehouse_id,v.m_attributesetinstance_id,v.description,v.c_orderline_id,v.scheddeliverydate,v.documentno,v.poreference,v.line,v.c_bpartner_id,
                          v.c_order_id,v.a_asset_id,v.c_project_id,v.c_projecttask_id,v.m_shipper_id,v.salesrep_id,v.c_doctype_id,v.datepromised,v.shipper_name,
                          v.totallines,v.grandtotal,v.qtyordered,v.qtydelivered,v.qtyavailable,p.issetitem,
                          v.qty2deliver,
                          bom.bomqty,
                          p.m_product_id,bom.m_productbom_id,
-                         b.name as businesspartner,o.priorityrule,o.dateordered,o.created,p.value 
+                         b.name as businesspartner,o.priorityrule,o.dateordered,o.created,p.value,
+                         p.isstocked,
+                         c_getconfigoption('deliveryofservices',o.ad_org_id)='Y' and p.producttype='S' as printService
                          from m_inout_candidate_v v,c_order o,c_bpartner b,m_product p
                               left join m_product_bom bom on bom.m_product_id=p.m_product_id and p.issetitem='Y'
                          where o.c_order_id=v.c_order_id  and o.c_bpartner_id=b.c_bpartner_id and v.m_product_id=p.m_product_id
@@ -202,11 +204,14 @@ BEGIN
                                       and l.m_warehouse_id=o.m_warehouse_id
                                       and case when coalesce(v_locator,'')='' then 1=1 else l.m_locator_id = v_locator end
                                       and coalesce(v.m_attributesetinstance_id,'0')=coalesce(d.m_attributesetinstance_id,'0') and w.m_warehouse_id=l.m_warehouse_id and w.isblocked='N')
-                                or (p.issetitem='Y' and m_bom_qty_onhand(p.m_product_id,o.m_warehouse_id,null, null)>0))
+                                or (p.issetitem='Y' and m_bom_qty_onhand(p.m_product_id,o.m_warehouse_id,null, null)>0)
+                                or p.isstocked='N'
+                                or (c_getconfigoption('deliveryofservices',o.ad_org_id)='Y' and p.producttype='S'))
                          and case when coalesce(v_bpartner,'')='' then 1=1 else v.C_BPARTNER_ID=v_bpartner end
                          and case when coalesce(v_datefrom,'')='' then 1=1 else v.scheddeliverydate >= TO_DATE(v_datefrom) end
                          and case when coalesce(v_dateto,'')='' then 1=1 else v.scheddeliverydate <= TO_DATE(v_dateto) end
-                         and case when coalesce(v_docno,'')='' then 1=1 else  v.documentno like v_docno end
+                         and case when coalesce(v_docno,'')='' then 1=1 else  v.documentno ilike v_docno end
+                         and case when coalesce(v_poreference,'')='' then 1=1 else  v.poreference ilike v_poreference end
                          and case when coalesce(v_project,'')='' then 1=1 else  v.c_project_id like v_project end 
                          and case when coalesce(v_warehouse,'')='' then 1=1 else v.m_warehouse_id = v_warehouse end
                          and case when coalesce(v_org,'')='' then 1=1 else v.ad_org_id =v_org end
@@ -234,8 +239,13 @@ BEGIN
         --raise notice '%', 'L';
         if (select count(*) from  availItems a where a.m_product_id=coalesce(v_cur1.m_productbom_id,v_cur1.m_product_id) and coalesce(a.m_attributesetinstance_id,'0')=coalesce(v_cur1.m_attributesetinstance_id,'0'))=0 then
             for v_cur2 in (select m.qtyonhand,m.m_locator_id from m_storage_detail m,m_locator l,m_product p
-                              where l.m_locator_id=m.m_locator_id and m.m_product_id=coalesce(v_cur1.m_productbom_id,v_cur1.m_product_id) and coalesce(m.m_attributesetinstance_id,'0')=coalesce(v_cur1.m_attributesetinstance_id,'0')
-                              and l.m_warehouse_id=v_cur1.m_warehouse_id and p.m_product_id=m.m_product_id
+                              where l.m_locator_id=m.m_locator_id
+                              and m.m_product_id=coalesce(v_cur1.m_productbom_id,v_cur1.m_product_id)
+                              and coalesce(m.m_attributesetinstance_id,'0')=coalesce(v_cur1.m_attributesetinstance_id,'0')
+                              and l.m_warehouse_id=v_cur1.m_warehouse_id
+                              and p.m_product_id=m.m_product_id
+                              and v_cur1.isstocked='Y' -- ignore not stocked products that actually do have stock (prevent double insert)
+                              and not v_cur1.printService -- ignore services that actually do have stock (prevent double insert)
                               order by l.priorityno,l.x,l.y,l.z,p.value)
             LOOP
                 -- Reserved
@@ -248,6 +258,17 @@ BEGIN
                     v_seq:=v_seq+1;
                 end if;
             END LOOP;
+            if (v_cur1.isstocked='N' or v_cur1.printService) then
+              -- insert products that are not stocked
+              insert into availItems(m_product_id,
+                                     m_locator_id, -- locator is not important (no stock chnge) but has to be valid
+                                     m_warehouse_id,m_attributesetinstance_id,qtyonhand,seqno
+              )
+                     values(coalesce(v_cur1.m_productbom_id,v_cur1.m_product_id),
+                           (select coalesce(prod.m_locator_id, m_gettransactionlocator(coalesce(v_cur1.m_productbom_id,v_cur1.m_product_id),v_cur1.m_warehouse_id,'Y',1,v_cur1.m_attributesetinstance_id,v_partly)) from m_product prod where prod.m_product_id=coalesce(v_cur1.m_productbom_id,v_cur1.m_product_id)),
+                           v_cur1.m_warehouse_id, v_cur1.m_attributesetinstance_id, 99999, v_seq+1
+                     );
+            end if;
             v_seq:=1; 
         end if;
         v_todo:=v_cur1.qty2deliver;
@@ -274,8 +295,12 @@ BEGIN
         else
             v_wecan:='Y';
         end if;
-        for v_cur2 in (select * from availItems a where a.m_product_id=coalesce(v_cur1.m_productbom_id,v_cur1.m_product_id) and coalesce(a.m_attributesetinstance_id,'0')=coalesce(v_cur1.m_attributesetinstance_id,'0')
-                                and a.m_warehouse_id=v_cur1.m_warehouse_id and a.qtyonhand>0 and v_wecan='Y' order by a.seqno)
+        for v_cur2 in (select * from availItems a
+                              where a.m_product_id=coalesce(v_cur1.m_productbom_id,v_cur1.m_product_id)
+                                and coalesce(a.m_attributesetinstance_id,'0')=coalesce(v_cur1.m_attributesetinstance_id,'0')
+                                and a.m_warehouse_id=v_cur1.m_warehouse_id
+                                and a.qtyonhand>0
+                                and v_wecan='Y' order by a.seqno)
         LOOP
             if v_todo<=0 then
                 exit;
@@ -298,7 +323,7 @@ BEGIN
                 c_orderline_id:=v_cur1.c_orderline_id||v_cur2.m_locator_id;
                 scheddeliverydate:=to_char(v_cur1.scheddeliverydate,v_dateformat);
                 --description:=zssi_html4docs(v_cur1.documentno||'-'||v_cur1.line||coalesce(v_cur1.description,''));
-                description:=v_cur1.documentno||'-'||v_cur1.line;
+                description:=coalesce(v_cur1.documentno||'-'||v_cur1.line, '') || case when v_cur1.poreference is null then '' else ' / ' || v_cur1.poreference end;
                 a_asset_id:='';
                 c_project_id:='Div.';
                 c_projecttask_id:='Div.';
@@ -354,7 +379,8 @@ BEGIN
                     c_bpartner_id:=v_cur1.c_bpartner_id;
                     businesspartner:=v_cur1.businesspartner;
                     documentno:=v_cur1.documentno;
-                    projectname:= zssi_getorderadditionaltext4manualtrx1(v_cur1.c_order_id,v_lang);
+                    projectname:= coalesce(zssi_getorderadditionaltext4manualtrx1(v_cur1.c_order_id,v_lang),'')
+                      || case when v_cur1.poreference is null then '' else ' / ' || v_cur1.poreference end;
                     doctypename:=zssi_getorderadditionaltext4manualtrx2(v_cur1.c_order_id,v_lang);
                     dateordered:=to_char(v_cur1.dateordered,v_dateformat);
                     datepromised:=to_char(v_cur1.datepromised,v_dateformat);

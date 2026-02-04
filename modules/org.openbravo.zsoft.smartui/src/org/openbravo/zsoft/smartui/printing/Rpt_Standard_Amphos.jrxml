@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 6.2.0.final using JasperReports Library version 6.2.0  -->
-<!-- 2017-02-07T09:56:18 -->
+<!-- Created with Jaspersoft Studio version 6.19.1.final using JasperReports Library version 6.1.1  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Rpt_Standard" language="groovy" pageWidth="595" pageHeight="842" columnWidth="489" leftMargin="60" rightMargin="20" topMargin="20" bottomMargin="20" uuid="0fcc73f4-2325-4fc6-b12a-ca31ca7b1d88">
 	<property name="ireport.zoom" value="1.5"/>
 	<property name="ireport.x" value="105"/>
@@ -101,6 +100,8 @@
 	-- Daten des Geschäfspartners
 		c_bpartner.value as customerno, -- Geschäftspartner-Suchschlüssel
 		c_bpartner.name as partner, -- Geschäftspartner-Name
+		(select c_bpartner_location.uidnumber from c_bpartner_location where c_bpartner_location.c_bpartner_location_id=billto_id) as taxid, -- USt-ID aus Rechnungsanschrift
+		zssi_getElementTextByColumname('UST-ID',$P{LANGUAGE}) as taxid_trl,
 		zssi_getusernamecomplete(c_order.ad_user_id,$P{LANGUAGE}) as contact_name, -- Ansprechpartner beim Geschäftspartner
 		c_location.address1 as address_cs, -- Straße und Hausnummer des Geschäftspartners
 		c_location.address2 as address_2, -- Adresszusatz des Geschäftspartners
@@ -199,6 +200,8 @@ select
 	-- Daten des Geschäfspartners
 		c_bpartner.value as customerno, -- Geschäftspartner-Suchschlüssel
 		c_bpartner.name as partner, -- Geschäftspartner-Name
+		c_bpartner_location.uidnumber as taxid,
+		zssi_getElementTextByColumname('UST-ID',$P{LANGUAGE}) as taxid_trl,
 		zssi_getusernamecomplete(c_invoice.ad_user_id,$P{LANGUAGE}) as contact_name, -- Ansprechpartner beim Geschäftspartner
 		c_location.address1 as address_cs, -- Straße und Hausnummer des Geschäftspartners
 		c_location.address2 as address_2, -- Adresszusatz des Geschäftspartners
@@ -294,6 +297,8 @@ select
 	-- Daten des Geschäfspartners
 		c_bpartner.value as customerno, -- Geschäftspartner-Suchschlüssel
 		c_bpartner.name as partner, -- Geschäftspartner-Name
+		c_bpartner_location.uidnumber as taxid,
+		zssi_getElementTextByColumname('UST-ID',$P{LANGUAGE}) as taxid_trl,
 		zssi_getusernamecomplete(m_inout.ad_user_id,$P{LANGUAGE}) as contact_name, -- Ansprechpartner beim Geschäftspartner
 		c_location.address1 as address_cs, -- Straße und Hausnummer des Geschäftspartners
 		c_location.address2 as address_2, -- Adresszusatz des Geschäftspartners
@@ -379,6 +384,8 @@ where
 	<field name="trackingno" class="java.lang.String"/>
 	<field name="shippingto" class="java.lang.String"/>
 	<field name="poreference" class="java.lang.String"/>
+	<field name="taxid" class="java.lang.String"/>
+	<field name="taxid_trl" class="java.lang.String"/>
 	<field name="customerno" class="java.lang.String"/>
 	<field name="partner" class="java.lang.String"/>
 	<field name="contact_name" class="java.lang.String"/>
@@ -427,7 +434,7 @@ where
 	<group name="TitleBar">
 		<groupExpression><![CDATA[]]></groupExpression>
 		<groupHeader>
-			<band height="72" splitType="Stretch">
+			<band height="86" splitType="Stretch">
 				<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() == 1)]]></printWhenExpression>
 				<textField isBlankWhenNull="false">
 					<reportElement key="textField-225" x="1" y="4" width="236" height="27" uuid="6f014376-dd0d-4b7c-ba25-4e3aca06fb7a"/>
@@ -437,7 +444,7 @@ where
 					<textFieldExpression><![CDATA[$F{title}]]></textFieldExpression>
 				</textField>
 				<line>
-					<reportElement key="line-14" positionType="Float" x="0" y="69" width="515" height="1" uuid="50cdccbd-0efb-42a7-9b5f-724d5b20a791"/>
+					<reportElement key="line-14" positionType="Float" x="0" y="85" width="515" height="1" uuid="50cdccbd-0efb-42a7-9b5f-724d5b20a791"/>
 				</line>
 				<line>
 					<reportElement key="line-15" x="0" y="38" width="515" height="1" uuid="6c794b53-5e94-4037-896d-192ee1713fb1"/>
@@ -790,6 +797,26 @@ where
 					</textElement>
 					<text><![CDATA[E-Mail]]></text>
 				</staticText>
+				<textField>
+					<reportElement key="staticText-55" positionType="Float" x="0" y="73" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="59c1421e-2b66-40e3-9ad7-6ca13d968f3d"/>
+					<box leftPadding="0">
+						<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+						<bottomPen lineWidth="0.0" lineColor="#000000"/>
+						<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					</box>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{taxid_trl}]]></textFieldExpression>
+				</textField>
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+					<reportElement key="textField-91" positionType="Float" x="70" y="73" width="70" height="11" isPrintWhenDetailOverflows="true" uuid="ca761340-99b6-4a96-8ceb-5eecdefe30fc"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{taxid}]]></textFieldExpression>
+				</textField>
 			</band>
 		</groupHeader>
 		<groupFooter>
@@ -1160,7 +1187,7 @@ where
 		</band>
 	</title>
 	<pageHeader>
-		<band height="164" splitType="Stretch">
+		<band height="177" splitType="Stretch">
 			<printWhenExpression><![CDATA[new java.lang.Boolean($V{PAGE_NUMBER}.intValue() != 1)]]></printWhenExpression>
 			<textField isBlankWhenNull="false">
 				<reportElement key="textField-86" x="0" y="22" width="237" height="32" uuid="df2382fc-254e-489c-a1a8-de5b1d734a78"/>
@@ -1204,7 +1231,7 @@ where
 				<text><![CDATA[Phone]]></text>
 			</staticText>
 			<line>
-				<reportElement key="line-10" positionType="Float" x="0" y="161" width="515" height="1" uuid="c51c310b-3ff0-4c81-b63e-4694bfe50296"/>
+				<reportElement key="line-10" positionType="Float" x="0" y="176" width="515" height="1" uuid="c51c310b-3ff0-4c81-b63e-4694bfe50296"/>
 			</line>
 			<line>
 				<reportElement key="line-11" x="0" y="130" width="515" height="1" uuid="9ea728d5-78ee-4898-8abc-0b7bfdc51e85"/>
@@ -1534,6 +1561,26 @@ where
 				</textElement>
 				<text><![CDATA[Document No.]]></text>
 			</staticText>
+			<textField>
+				<reportElement key="staticText-55" positionType="Float" x="0" y="164" width="70" height="11" isPrintWhenDetailOverflows="true" forecolor="#666666" uuid="62908415-2eb4-4036-a703-23663c27859e"/>
+				<box leftPadding="0">
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{taxid_trl}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement key="textField-91" positionType="Float" x="70" y="164" width="70" height="11" isPrintWhenDetailOverflows="true" uuid="d2ad6df0-dba8-4695-9466-fd9cacb958c8"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="OpenZ Sans" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{taxid}]]></textFieldExpression>
+			</textField>
 		</band>
 	</pageHeader>
 	<columnHeader>

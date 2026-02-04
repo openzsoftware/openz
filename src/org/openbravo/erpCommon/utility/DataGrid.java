@@ -56,7 +56,6 @@ public class DataGrid extends HttpSecureAppServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException,
       ServletException {
     VariablesSecureApp vars = new VariablesSecureApp(request);
-
     String action = vars.getStringParameter("action");
     String TabId = vars.getStringParameter("inpadTabId");
     String WindowId = vars.getStringParameter("inpadWindowId");
@@ -305,13 +304,21 @@ public class DataGrid extends HttpSecureAppServlet {
         // Prepare SQL adding the user filter parameters
         String strSQL = ModelSQLGeneration.generateSQL(this, vars, tableSQL, "",
             new Vector<String>(), new Vector<String>(), offset, pageSize);
+        // New Filter
+        if (vars.getSessionValue(tableSQL.getTabID() +"|newFilter").equals("Y")) {
+        	offset = 0;
+        	absoluteOffset =0;
+        	page=0;
+        	vars.removeSessionValue(tableSQL.getTabID() +"|newFilter");
+        }
+        	
         if (log4j.isDebugEnabled())
           log4j.debug("offset: " + offset + " - SQL: " + strSQL);
         vars.removeSessionValue(tableSQL.getTabID() + "|newOrder");
 
         // Wrap query to fetch only the required rows and execute it
         // passing params
-        ExecuteQuery execquery = new ExecuteQuery(this, strSQL, tableSQL.getParameterValues());
+        ExecuteQuery execquery = new ExecuteQuery(this, strSQL, tableSQL.getParameterValues(),tableSQL.getTabID(),vars);        
         data = execquery.select();
       } catch (ServletException e) {
         log4j.error("Error in print page data: " + e);

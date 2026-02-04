@@ -526,7 +526,8 @@
               and c_periodcontrol.docbasetype = ?
               and c_periodcontrol.periodstatus = 'O'
               and    a.dateacct >= c_period.StartDate
-              and     a.dateacct < c_period.EndDate + 1)
+              and     a.dateacct < c_period.EndDate + 1
+              or 1=1)
       ]]>
       </Sql>
       <Parameter name="tableName" type="replace" optional="true" after="select MIN(" text="C_INVOICE"/>
@@ -652,7 +653,7 @@
       <![CDATA[
         INSERT INTO zsfi_fact_error_log (ZSFI_FACT_ERROR_LOG_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATED, CREATEDBY, UPDATED, UPDATEDBY, 
                      DOCUMENTNO, DATEACCT, DOCUMENTTYPE, STATUS, TABLENAME,SOURCEID,description)
-               VALUES (get_uuid(), ?,?,now(),?,now(),? ,?,?,?,?,?,?,substr(?,1,2000))      
+               VALUES (get_uuid(), ?,?,now(),?,now(),? ,?,to_date(?),?,?,?,?,substr(?,1,2000))      
       ]]>
      </Sql>
         <Parameter name="client"/>

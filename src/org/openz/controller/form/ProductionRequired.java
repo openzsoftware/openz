@@ -85,6 +85,7 @@ public class ProductionRequired  extends HttpSecureAppServlet {
            String strProductId = "";
            String strDateFrom="";
            String strDateTo="";
+           String strOrderBy="";
            if (vars.commandIn("FIND")) {
              // New Filter defined: Remove old Session Vars
              removeSessionValues(vars);
@@ -92,10 +93,12 @@ public class ProductionRequired  extends HttpSecureAppServlet {
              strProductId = vars.getGlobalVariable("inpmProductId", this.getClass().getName() + "|m_product_id", "");
              strDateFrom = vars.getDateParameterGlobalVariable("inpdatefrom", this.getClass().getName() + "|DateFrom", "",this);
              strDateTo = vars.getDateParameterGlobalVariable("inpdateto", this.getClass().getName() + "|DateTo", "",this);
+             strOrderBy = vars.getGlobalVariable("inporderby", this.getClass().getName() + "|OrderBy", "");
            } else {
              strProductId = vars.getSessionValue(this.getClass().getName() + "|m_product_id");
              strDateFrom = vars.getSessionValue(this.getClass().getName() + "|DateFrom");
              strDateTo = vars.getSessionValue(this.getClass().getName() + "|DateTo");
+             strOrderBy = vars.getSessionValue(this.getClass().getName() + "|OrderBy");
            }
            if (vars.commandIn("SAVE")) {              
                 EditableGrid grid = new EditableGrid("ProdDataGrid", vars, this);
@@ -188,7 +191,7 @@ public class ProductionRequired  extends HttpSecureAppServlet {
             	 throw new ServletException("@needOrg2UseFunction@");
               //GridData= ProductionRequiredData.selectgrid(this, vars.getLanguage(),strProductId, strDateFrom, strDateTo);
               //String orglist=Tree.getMembers(this, strTreeOrg, vars.getOrg());
-              GridData= ProductionRequiredData.selectgrid(this, vars.getLanguage(), strProductId,strDateFrom,strDateTo,strOrg);
+              GridData= ProductionRequiredData.selectgrid(this, vars.getLanguage(), strProductId,strDateFrom,strDateTo,strOrg,strOrderBy);
               String strGrid1=grid.printGrid(this, vars, script, GridData);
               strOutput=Replace.replace(strSkeleton, "@CONTENT@",  filterStructure + strGrid1 + buttonprocess);
               script.addOnload("setProcessingMode('window', false);");
@@ -215,6 +218,7 @@ public class ProductionRequired  extends HttpSecureAppServlet {
       vars.removeSessionValue(this.getClass().getName() + "|M_Product_ID");
       vars.removeSessionValue(this.getClass().getName() + "|DateFrom");
       vars.removeSessionValue(this.getClass().getName() + "|DateTo");
+      vars.removeSessionValue(this.getClass().getName() + "|OrderBy");
       
     }
     

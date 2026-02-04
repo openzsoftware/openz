@@ -358,9 +358,10 @@ public class DocBank extends AcctServer {
       e.printStackTrace();
       return false;
     }
-    if (!strCount.equals("0"))
+    if (!strCount.equals("0")) {
+      setStatus(STATUS_PeriodClosed);
       return false;
-    else
+    }else
       return true;
   }
 

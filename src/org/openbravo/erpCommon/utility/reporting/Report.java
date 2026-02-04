@@ -21,6 +21,7 @@ import java.util.UUID;
 import javax.servlet.ServletException;
 
 import org.apache.log4j.Logger;
+import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.database.ConnectionProvider;
 import org.openbravo.erpCommon.utility.Utility;
 import org.openbravo.erpCommon.utility.reporting.TemplateInfo.EmailDefinition;
@@ -50,10 +51,13 @@ public class Report {
   private String _DocumentStatus;
   private String _OurReference;
   private String _CusReference;
+  private String _Referenceno = "";
   private String _BPartnerId;
   private String _BPartnerLanguage;
   private String _BPartnerName;
   private String _UniqueTimeStamp;
+  private String _Month;
+  private String _Year;
   private String _Orga;
   private String _DocName;
   private String _Filename;
@@ -83,14 +87,14 @@ public class Report {
 
   public Report(ConnectionProvider connectionProvider, DocumentType documentType,
       String documentId, String strLanguage, String templateId, boolean multiReport,
-      OutputTypeEnum outputTypeString) throws ReportingException, ServletException {
+      OutputTypeEnum outputTypeString, VariablesSecureApp vars) throws ReportingException, ServletException {
     _DocumentType = documentType;
     _DocumentId = documentId;
     outputType = outputTypeString;
     ReportData[] reportData = null;
 
     defaultTemplate=templateId;
-   
+
     if (documentType.getDoctype().equals("ORDER"))
       reportData = ReportData.getOrderInfo(connectionProvider, documentId);
     if (documentType.getDoctype().equals("INVOICE"))
@@ -99,8 +103,15 @@ public class Report {
       reportData = ReportData.getShipmentInfo(connectionProvider, documentId);
     if (reportData == null) 
       reportData = ReportData.getDefaultDocInfo(connectionProvider, documentType.getDocConfigFunction(),documentType.getTableName(), documentId);
-    
-    
+    if (documentType.getTableName().equals("C_BPARTNEREMPLOYEE_VIEW"))
+      _Referenceno = ReportData.getEmployeeReferenceno(connectionProvider, documentId);
+    _Month = "";
+    _Year = "";
+    // month/year of selected timesheet
+    if(documentType.getDoctype().equals("EMPLOYEES")) {
+        _Month = vars.getSessionValue("ORG.OPENBRAVO.ERPCOMMON.UTILITY.REPORTING.PRINTING.PRINTEMPLOYEES|MONTH");
+        _Year = vars.getSessionValue("ORG.OPENBRAVO.ERPCOMMON.UTILITY.REPORTING.PRINTING.PRINTEMPLOYEES|YEAR");
+    }
       
 
     multiReports = multiReport;
@@ -118,6 +129,7 @@ public class Report {
         _BPartnerLanguage="";
       if (_BPartnerLanguage.isEmpty())
         _BPartnerLanguage=strLanguage;
+
       _BPartnerName = reportData[0].getField("bpartner_name");
       _Orga = reportData[0].getField("orga");
       _UniqueTimeStamp = reportData[0].getField("unique_timestamp");
@@ -149,7 +161,10 @@ public class Report {
     reportFilename = reportFilename.replaceAll("@cus_ref@", _CusReference);
     reportFilename = reportFilename.replaceAll("@cus_name@", _BPartnerName);
     reportFilename = reportFilename.replaceAll("@our_orga@", _Orga);
+    reportFilename = reportFilename.replaceAll("@refno@", _Referenceno);
     reportFilename = reportFilename.replaceAll("@unique_id@", _UniqueTimeStamp);
+    reportFilename = reportFilename.replaceAll("@month@", _Month);
+    reportFilename = reportFilename.replaceAll("@year@", _Year);
     reportFilename = reportFilename.replaceAll("@doc_name@", _DocName);
     reportFilename = reportFilename.replaceAll("@timestamp@", dateStamp);
     reportFilename = reportFilename.replaceAll(" ", "_");

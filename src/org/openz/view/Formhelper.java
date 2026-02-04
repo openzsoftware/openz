@@ -215,9 +215,9 @@ public class Formhelper{
          readonly =FormDisplayLogic.fieldReadOnlyLogic(servlet, vars, script, data[i].adRefFieldcolumnId,true);
       }
       Boolean required;
-      if (isBuscador || readonly || visblelogic.equals("HIDDEN"))
+      if (isBuscador || readonly || visblelogic.equals("HIDDEN")||data[i].template.equals("LISTSORTER")||data[i].template.equals("LISTSORTER_SIMPLE"))
         required= false;
-      else
+      else  
         required= FormDisplayLogic.fieldMandantoryLogic(servlet, vars, script, data[i].adRefFieldcolumnId,true);
       
       if (visblelogic.equals("DONOTGENERATE")) 
@@ -396,44 +396,32 @@ public class Formhelper{
         else
           strTableCells=strTableCells.append(ConfigureSelectBox.doConfigureNoLink(servlet, vars, script,  Sqlc.TransformaNombreColumna(data[i].name), Integer.parseInt(data[i].leadingemptycols), Integer.parseInt(data[i].colstotal), required, readonly, onchangeevent, fieldvalue1, fp, fpidcol,tooltip,data[i].includesemptyitem.equals("Y") ? true : false, data[i].fieldreference , tableID,textelement,isListBased,datastyle));
       }
-      if (data[i].template.equals("LISTSORTER")){
+      if (data[i].template.equals("LISTSORTER")||data[i].template.equals("LISTSORTER_SIMPLE")){
         FieldProvider[] fp1=null;
         FieldProvider[] fp2=null;
         String fpidcol1="ID";
         String fpidcol2="ID";
-        for (int j = 0; j < combodatastore.size(); j++){
-          if (combodatastore.elementAt(j).columnName.equals(data[i].name)){
-            fp1= combodatastore.elementAt(j).data;
-            if (combodatastore.elementAt(j).fpIdColumn!=null)
-              fpidcol1=combodatastore.elementAt(j).fpIdColumn;
-          }
-          if (combodatastore.elementAt(j).columnName.equals(data[i].name2)){
-            fp2= combodatastore.elementAt(j).data;
-            if (combodatastore.elementAt(j).fpIdColumn!=null)
-              fpidcol2=combodatastore.elementAt(j).fpIdColumn;
-          }
+        if (combodatastore.size()>0) {
+	        for (int j = 0; j < combodatastore.size(); j++){
+	          if (combodatastore.elementAt(j).columnName.equals(data[i].name)){
+	            fp1= combodatastore.elementAt(j).data;
+	            if (combodatastore.elementAt(j).fpIdColumn!=null)
+	              fpidcol1=combodatastore.elementAt(j).fpIdColumn;
+	          }
+	          if (combodatastore.elementAt(j).columnName.equals(data[i].name2)){
+	            fp2= combodatastore.elementAt(j).data;
+	            if (combodatastore.elementAt(j).fpIdColumn!=null)
+	              fpidcol2=combodatastore.elementAt(j).fpIdColumn;
+	          }
+	        }
+        } else {
+        	fp1=SelectBoxhelper.getLISTSORTFields(servlet,vars, "LEFT", data[i].adRefFieldcolumnId,idValue,keyFieldname);
+        	fp2=SelectBoxhelper.getLISTSORTFields(servlet,vars, "RIGHT", data[i].adRefFieldcolumnId,idValue,keyFieldname);
         }
-        
-        strTableCells=strTableCells.append(ConfigureListSorter.doConfigure(servlet, vars,script, Sqlc.TransformaNombreColumna(data[i].name), Sqlc.TransformaNombreColumna(data[i].name2), Integer.parseInt(data[i].leadingemptycols), Integer.parseInt(data[i].colstotal), fieldvalue1, fieldvalue2, fp1,fpidcol1, fp2,fpidcol2, readonly, "",tooltip,textelement));
-      }
-      if (data[i].template.equals("LISTSORTER_SIMPLE")){
-        FieldProvider[] fp1=null;
-        FieldProvider[] fp2=null;
-        String fpidcol1="ID";
-        String fpidcol2="ID";
-        for (int j = 0; j < combodatastore.size(); j++){
-          if (combodatastore.elementAt(j).columnName.equals(data[i].name)){
-            fp1= combodatastore.elementAt(j).data;
-            if (combodatastore.elementAt(j).fpIdColumn!=null)
-              fpidcol1=combodatastore.elementAt(j).fpIdColumn;
-          }
-          if (combodatastore.elementAt(j).columnName.equals(data[i].name2)){
-            fp2= combodatastore.elementAt(j).data;
-            if (combodatastore.elementAt(j).fpIdColumn!=null)
-              fpidcol2=combodatastore.elementAt(j).fpIdColumn;
-          }
-        }
-        strTableCells=strTableCells.append(ConfigureListSorterSimple.doConfigure(servlet, vars,script, Sqlc.TransformaNombreColumna(data[i].name), Sqlc.TransformaNombreColumna(data[i].name2), Integer.parseInt(data[i].leadingemptycols), Integer.parseInt(data[i].colstotal), fieldvalue1, fieldvalue2, fp1,fpidcol1, fp2,fpidcol2, readonly, "",tooltip,textelement));
+        if (data[i].template.equals("LISTSORTER"))
+        		strTableCells=strTableCells.append(ConfigureListSorter.doConfigure(servlet, vars,script, Sqlc.TransformaNombreColumna(data[i].name), Sqlc.TransformaNombreColumna(data[i].name2), Integer.parseInt(data[i].leadingemptycols), Integer.parseInt(data[i].colstotal), fieldvalue1, fieldvalue2, fp1,fpidcol1, fp2,fpidcol2, readonly, "",tooltip,textelement));
+        else
+        		strTableCells=strTableCells.append(ConfigureListSorterSimple.doConfigure(servlet, vars,script, Sqlc.TransformaNombreColumna(data[i].name), Sqlc.TransformaNombreColumna(data[i].name2), Integer.parseInt(data[i].leadingemptycols), Integer.parseInt(data[i].colstotal), fieldvalue1, fieldvalue2, fp1,fpidcol1, fp2,fpidcol2, readonly, "",tooltip,textelement));
       }
       if (data[i].template.equals("TEXT") || (data[i].template.equals("SQLFIELD") &&  isBuscador) || data[i].template.equals("DATETIME")){
         strTableCells=strTableCells.append(ConfigureTextbox.doConfigure(servlet,vars,script,Sqlc.TransformaNombreColumna(data[i].name),Integer.parseInt(data[i].leadingemptycols), Integer.parseInt(data[i].colstotal),Integer.parseInt(data[i].maxlength),required, data[i].template.equals("DATETIME") ? true : readonly, onchangeevent ,fieldvalue1,tooltip,textelement, datastyle,isListBased));
@@ -581,7 +569,7 @@ public class Formhelper{
   
   public String prepareInfobar(HttpSecureAppServlet servlet,VariablesSecureApp vars,Scripthelper script,String infomessage, String additionalstyle) throws Exception{
       
-        String infobar=ConfigureInfobar.doConfigure(servlet,vars,script, infomessage, additionalstyle);
+        String infobar=ConfigureInfobar.doConfigureNoIcon(servlet,vars,script, infomessage, additionalstyle);
         return infobar;
       }
   /**

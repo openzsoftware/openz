@@ -18,6 +18,8 @@
  */
 package org.openbravo.erpCommon.utility;
 
+import java.io.IOException;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -27,9 +29,12 @@ import java.util.Vector;
 import javax.servlet.ServletException;
 
 import org.apache.log4j.Logger;
+import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.data.FieldProvider;
 import org.openbravo.data.UtilSql;
 import org.openbravo.database.ConnectionProvider;
+import org.openz.view.FormhelperData;
+import org.openz.util.FormatUtils;
 
 /**
  * @author Fernando Iriazabal
@@ -45,6 +50,8 @@ public class ExecuteQuery {
   private ConnectionProvider pool;
   private Vector<String> parameters = new Vector<String>();
   private String sql;
+  private String TabId;
+  private VariablesSecureApp vars;
 
   /**
    * Constructor
@@ -68,6 +75,26 @@ public class ExecuteQuery {
     setPool(_conn);
     setSQL(_sql);
     setParameters(_parameters);
+  }
+  
+  /**
+   * Constructor
+   * 
+   * @param _conn
+   *          Handler for the database connection.
+   * @param _sql
+   *          String with the query.
+   * @param _parameters
+   *          Vector with the query's parameters.
+   * @throws Exception
+   */
+  public ExecuteQuery(ConnectionProvider _conn, String _sql, Vector<String> _parameters, String tabid,VariablesSecureApp vari)
+      throws Exception {
+    setPool(_conn);
+    setSQL(_sql);
+    setParameters(_parameters);
+    setTab(tabid);
+    setVars(vari);
   }
 
   /**
@@ -121,6 +148,14 @@ public class ExecuteQuery {
    */
   void setParameters(Vector<String> _parameters) throws Exception {
     this.parameters = _parameters;
+  }
+  
+  void setTab(String tb) throws Exception {
+	    this.TabId=tb;
+  }
+  
+  void setVars(VariablesSecureApp vr) throws Exception {
+	    this.vars=vr;
   }
 
   /**
@@ -269,6 +304,7 @@ public class ExecuteQuery {
    */
   public FieldProvider[] select() throws ServletException {
     PreparedStatement st = null;
+    Connection conn=null;
     ResultSet result;
     Vector<SQLReturnObject> vector = new Vector<SQLReturnObject>(0);
 
@@ -277,7 +313,11 @@ public class ExecuteQuery {
       log4j.debug("SQL: " + strSQL);
 
     try {
-      st = getPool().getPreparedStatement(strSQL);
+      conn=getPool().getConnection();
+      conn.setAutoCommit(false);
+      // dynamic Filter and Parameter Handling
+      getFilter2FunctionParameters(getPool(),conn);
+      st = getPool().getPreparedStatement(conn,strSQL);
       Vector<String> params = getParameters();
       if (params != null) {
         for (int iParameter = 0; iParameter < params.size(); iParameter++) {
@@ -287,7 +327,6 @@ public class ExecuteQuery {
         }
       }
       result = st.executeQuery();
-
       boolean first = true;
       int numColumns = 0;
       int rowNum = 0;
@@ -309,6 +348,7 @@ public class ExecuteQuery {
         rowNum++;
       }
       result.close();
+      
     } catch (SQLException e) {
       log4j.error("SQL error in query: " + strSQL.toString() + "Exception:" + e);
       throw new ServletException("@CODE=" + Integer.toString(e.getErrorCode()) + "@"
@@ -318,7 +358,9 @@ public class ExecuteQuery {
       throw new ServletException("@CODE=@" + ex.getMessage());
     } finally {
       try {
+    	conn.commit();
         getPool().releasePreparedStatement(st);
+        conn.close();
       } catch (Exception ignore) {
         ignore.printStackTrace();
       }
@@ -363,5 +405,22 @@ public class ExecuteQuery {
       }
     }
     return (total);
+  }
+  
+  private void getFilter2FunctionParameters(ConnectionProvider con, Connection conn)
+	      throws ServletException, IOException {
+	  if (TabId!=null && ExecuteQueryData.isParamTab(con, TabId).equals("Y")) {
+		  FormhelperData[] data = FormhelperData.ad_selecttabBuscadorFields(con, vars.getLanguage(),TabId,"N","Y");
+		  ExecuteQueryData.initParamtab(conn, con);
+		  for (int i = 0; i < data.length; i++) {
+			  String field=TabId+"|param"+data[i].name;
+			  String value=vars.getSessionValue(field.toUpperCase());
+			  if (value.isEmpty())
+				  value=vars.getSessionValue(field.toUpperCase()+"_DES");
+			  if (!value.isEmpty())
+				  ExecuteQueryData.insertFilterParameter(conn, con, data[i].name, value);
+		  }
+	  }
+	  return;
   }
 }

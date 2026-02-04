@@ -1,16 +1,17 @@
-         <TD colspan="@NUMCOLS@" class="Form_ContentCell"  >
-            <TABLE cellpadding="0" cellspacing="0"   style="padding-bottom:5px" class="Celltable" id="@LEFTSIDEFIELDNAME@td">
+            <TD colspan="@NUMCOLS@" class="Form_ContentCell">
+            <DIV style="overflow:auto; resize:both">
+            <TABLE cellpadding="0" cellspacing="0"   style="padding-bottom:5px; height:100%" class="Celltable" id="@LEFTSIDEFIELDNAME@td">
             <TR>
-                    <TD class="List_ContentCell">
-                      <SELECT name="inp@LEFTSIDEFIELDNAME@" multiple="" id="@LEFTSIDEFIELDNAME@" class="Dimension_LeftSelect_width Dimension_LeftSelect_height" title="@TITLE@" @READONLY@>
+                    <TD class="List_ContentCell" style="width:45%;height:100%">
+                      <SELECT name="inp@LEFTSIDEFIELDNAME@" multiple="" id="@LEFTSIDEFIELDNAME@" style="height:100%" class="Dimension_LeftSelect_width Dimension_LeftSelect_height" title="@TITLE@" @READONLY@>
                        @LEFTSIDECONTENT@
                       </SELECT>
                     </TD>
-                  <TD class="Arrows_ContentCell">
+                  <TD class="Arrows_ContentCell" width="10%">
                       <TABLE border="0" cellspacing="0" cellpadding="0">
                         <TR>
                           <TD>
-                            <A class="Dimension_LeftRight_Button_TopLink" href="#" onclick="addList(document.@FORMNAME@.@LEFTSIDEFIELDNAME@, document.@FORMNAME@.@RIGHTSIDEFIELDNAME@);return false;" onfocus="setWindowElementFocus(this); window.status='Include'; return true;" onblur="window.status=''; return true;" onkeypress="this.className='Dimension_LeftRight_Button_TopLink_active'; return true;" onkeyup="this.className='Dimension_LeftRight_Button_TopLink_focus'; return true;">
+                            <A class="Dimension_LeftRight_Button_TopLink" href="#" onclick="addList(document.@FORMNAME@.@LEFTSIDEFIELDNAME@, document.@FORMNAME@.@RIGHTSIDEFIELDNAME@);changeToEditingMode('force');logChanges(this);return false;" onfocus="setWindowElementFocus(this); window.status='Include'; return true;" onblur="window.status=''; return true;" onkeypress="this.className='Dimension_LeftRight_Button_TopLink_active'; return true;" onkeyup="this.className='Dimension_LeftRight_Button_TopLink_focus'; return true;">
                               <TABLE class="Dimension_LeftRight_Button_Top" onmousedown="this.className='Dimension_LeftRight_Button_Top_active'; return true;" onmouseup="this.className='Dimension_LeftRight_Button_Top'; return true;" onmouseover="this.className='Dimension_LeftRight_Button_Top_hover'; window.status='Include'; return true;" onmouseout="this.className='Dimension_LeftRight_Button_Top'; window.status=''; return true;">
                                 <TR>
                                   <TD class="Dimension_LeftRight_Button_Top_bg">
@@ -27,7 +28,7 @@
                         </TR>
                         <TR>
                           <TD>
-                            <A class="Dimension_LeftRight_Button_BottomLink" href="#" onclick="addList(document.@FORMNAME@.@RIGHTSIDEFIELDNAME@, document.@FORMNAME@.@LEFTSIDEFIELDNAME@);return false;" onfocus="setWindowElementFocus(this); window.status='Exclude'; return true;" onblur="this.className='Dimension_LeftRight_Button_BottomLink'; window.status=''; return true;" onkeypress="this.className='Dimension_LeftRight_Button_BottomLink_active'; return true;" onkeyup="this.className='Dimension_LeftRight_Button_BottomLink_focus'; return true;">
+                            <A class="Dimension_LeftRight_Button_BottomLink" href="#" onclick="addList(document.@FORMNAME@.@RIGHTSIDEFIELDNAME@, document.@FORMNAME@.@LEFTSIDEFIELDNAME@);changeToEditingMode('force');logChanges(this);return false;" onfocus="setWindowElementFocus(this); window.status='Exclude'; return true;" onblur="this.className='Dimension_LeftRight_Button_BottomLink'; window.status=''; return true;" onkeypress="this.className='Dimension_LeftRight_Button_BottomLink_active'; return true;" onkeyup="this.className='Dimension_LeftRight_Button_BottomLink_focus'; return true;">
                               <TABLE class="Dimension_LeftRight_Button_Bottom Celltable" onmousedown="this.className='Dimension_LeftRight_Button_Bottom_active'; return true;" onmouseup="this.className='Dimension_LeftRight_Button_Bottom'; return true;" onmouseover="this.className='Dimension_LeftRight_Button_Bottom_hover'; window.status='Exclude'; return true;" onmouseout="this.className='Dimension_LeftRight_Button_Bottom'; window.status=''; return true;">
                                 <TR>
                                   <TD class="Dimension_LeftRight_Button_Bottom_bg">
@@ -40,11 +41,11 @@
                         </TR>
                       </TABLE>
                     </TD>
-                    <TD class="List_ContentCell">
-                      <TABLE border="0" cellspacing="0" cellpadding="0">
+                    <TD class="List_ContentCell" style="width:45%;height:100%">
+                        <TABLE border="0" cellspacing="0" cellpadding="0" style="width:100%;height:100%">
                         <TR>
                         <TD>
-                            <SELECT name="inp@RIGHTSIDEFIELDNAME@" multiple="" id="@RIGHTSIDEFIELDNAME@" class="Dimension_RightSelect_width Dimension_RightSelect_height" @READONLY@>
+                            <SELECT name="inp@RIGHTSIDEFIELDNAME@" multiple=""  style="height:100%; width:100%" id="@RIGHTSIDEFIELDNAME@" class="Dimension_RightSelect_width" @READONLY@>
                                   @RIGHTSIDECONTENT@
                             </SELECT>
                           </TD>
@@ -52,7 +53,7 @@
                           <TABLE border="0" cellspacing="0" cellpadding="0">
                             <TR>
                               <TD>
-                                <A class="Dimension_UpDown_Button_TopLink" href="#" onclick="moveElementInList(document.@FORMNAME@.@RIGHTSIDEFIELDNAME@, -1);return false;" onfocus="setWindowElementFocus(this); window.status='Go up'; return true;" onblur="window.status=''; return true;" onkeypress="this.className='Dimension_UpDown_Button_TopLink_active'; return true;" onkeyup="this.className='Dimension_UpDown_Button_TopLink_focus'; return true;">
+                                <A class="Dimension_UpDown_Button_TopLink" href="#" onclick="moveElementInList(document.@FORMNAME@.@RIGHTSIDEFIELDNAME@, -1);changeToEditingMode('force');logChanges(this);return false;" onfocus="setWindowElementFocus(this); window.status='Go up'; return true;" onblur="window.status=''; return true;" onkeypress="this.className='Dimension_UpDown_Button_TopLink_active'; return true;" onkeyup="this.className='Dimension_UpDown_Button_TopLink_focus'; return true;">
                                   <TABLE class="Dimension_UpDown_Button_Top" onmousedown="this.className='Dimension_UpDown_Button_Top_active'; return true;" onmouseup="this.className='Dimension_UpDown_Button_Top'; return true;" onmouseover="this.className='Dimension_UpDown_Button_Top_hover'; window.status='Go up'; return true;" onmouseout="this.className='Dimension_UpDown_Button_Top'; window.status=''; return true;">
                                     <TR>
                                       <TD class="Dimension_UpDown_Button_Top_bg">
@@ -69,7 +70,7 @@
                         </TR>
                         <TR>
                           <TD>
-                            <A class="Dimension_UpDown_Button_BottomLink" href="#" onclick="moveElementInList(document.@FORMNAME@.@RIGHTSIDEFIELDNAME@, 1);return false;" onfocus="setWindowElementFocus(this); window.status='Go down'; return true;" onblur="window.status=''; return true;" onkeypress="this.className='Dimension_UpDown_Button_BottomLink_active'; return true;" onkeyup="this.className='Dimension_UpDown_Button_BottomLink_focus'; return true;">
+                            <A class="Dimension_UpDown_Button_BottomLink" href="#" onclick="moveElementInList(document.@FORMNAME@.@RIGHTSIDEFIELDNAME@, 1);changeToEditingMode('force');logChanges(this);return false;" onfocus="setWindowElementFocus(this); window.status='Go down'; return true;" onblur="window.status=''; return true;" onkeypress="this.className='Dimension_UpDown_Button_BottomLink_active'; return true;" onkeyup="this.className='Dimension_UpDown_Button_BottomLink_focus'; return true;">
                               <TABLE class="Dimension_UpDown_Button_Bottom" onmousedown="this.className='Dimension_UpDown_Button_Bottom_active'; return true;" onmouseup="this.className='Dimension_UpDown_Button_Bottom'; return true;" onmouseover="this.className='Dimension_UpDown_Button_Bottom_hover'; window.status='Go down'; return true;" onmouseout="this.className='Dimension_UpDown_Button_Bottom'; window.status=''; return true;">
                                 <TR>
                                   <TD class="Dimension_UpDown_Button_Bottom_bg">
@@ -83,8 +84,9 @@
                           </TABLE>
                           </TD>
                         </TR>
-                      </TABLE>
+                      </TABLE>                              
                     </TD> 
              </TR>
              </TABLE>
+             </DIV>
             </TD>

@@ -40,6 +40,8 @@ public class ConfigureListSorter {
       labelfield=leftsidefieldname;
     else
       labelfield=labelfieldname;
+    if (rightsidefieldname.equals(""))
+    	rightsidefieldname=leftsidefieldname+"rightside";
     retval.append(ConfigureLabel.doConfigure(servlet,vars,labelfield,"TitleCell","",elementId,""));
     Object template =  servlet.getServletContext().getAttribute("listSorterTEMPLATE");
     if (template==null) {

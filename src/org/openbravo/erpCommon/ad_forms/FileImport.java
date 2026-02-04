@@ -73,15 +73,17 @@ public class FileImport extends HttpSecureAppServlet {
     // Define Correct Type Area
     if (vars.getSessionValue("isDatevImport").equals("Y"))
     	vars.setSessionValue("IMPORTTYPEAREA","FINANCIAL");
+    else if (vars.getSessionValue("isEInvoiceImport").equals("Y"))
+    	vars.setSessionValue("IMPORTTYPEAREA","EINVOICE");
     else
     	vars.setSessionValue("IMPORTTYPEAREA","MASTERDATA");
     //vars.setSessionValue("isDatevImport","Y");  // This hides unessessary Screen Items
     if (vars.commandIn("DEFAULT")) {
-      String strAdImpformatId = vars.getStringParameter("inpadImpformatId");
       printPage(response, vars);
       
     } else if (vars.commandIn("SAVE")) {
       String strAdImpformatId = vars.getStringParameter("inpadImpformatId");
+      vars.setSessionValue("ImportOrgID",vars.getStringParameter("inpadOrgId"));  // Org ID for use in Imports
       if (strAdImpformatId.equals("1000007")) { //DATEV Import
        String strAD_Org_ID = vars.getStringParameter("inpadOrgId");
     
@@ -109,7 +111,7 @@ public class FileImport extends HttpSecureAppServlet {
               if (line.contains("20;Stück;Gewicht"))
                 line=line.substring(0,line.indexOf("gsjahr;Zugeordnete Fälligkeit")+29);
               else
-                line=line.substring(0,FormatUtils.ordinalIndexOf(line,";", 91)+1);
+                line=line.substring(0,FormatUtils.ordinalIndexOf(line,';', 91)+1);
           }
               out.write(line);
               out.write("\r\n");
@@ -199,8 +201,13 @@ public class FileImport extends HttpSecureAppServlet {
           throw new ServletException ("Error in File Upload Procedure." + e.getMessage() +"Error in File Upload Procedure." + e2.getMessage());  
         	}
         }
+      String messagetype = vars.getSessionValue("messagetype"); // when warning, show yellwo messagebox
       OBError myMessage =new  OBError();
-      myMessage.setType("Success");
+      if(messagetype != null && messagetype.equals("Warning")) {
+          myMessage.setType("Warning");
+      }else {
+          myMessage.setType("Success");
+      }
       myMessage.setTitle(Utility.messageBD(this, "ImportSucess", vars.getLanguage()));
       myMessage.setMessage(result);
       vars.setMessage("FileImport", myMessage);
@@ -258,6 +265,10 @@ public class FileImport extends HttpSecureAppServlet {
     	  String baseDesignPath = getBaseDesignPath(vars.getLanguage());
     	  return pollBank(vars, baseDesignPath, uploadedFilePath);    	  
       }
+      if(strAdImpformatId.equals("46CA4BF6CC3F47FAAC5FCB8203C06D80")) { // X-Rechnung (Modul einvoice)
+    	  String baseDesignPath = getBaseDesignPath(vars.getLanguage());
+    	  return importXrechnung(vars, baseDesignPath, uploadedFilePath);    	  
+      }
       // Custom Module Subscription Management
       if (strAdImpformatId.equals("A51ECA6BCE624C3BA82DDFCCCE0C6445")){ // Abrechnung erp2go
           String strAD_Org_ID = vars.getStringParameter("inpadOrgId");
@@ -282,7 +293,13 @@ public class FileImport extends HttpSecureAppServlet {
   	  reg.fetchAndProcess(this, vars, baseDesignPath, uploadedFilePath);
   	  return vars.getSessionValue("CAMT_ProcessingResult");
 }
-  
+  private String importXrechnung(VariablesSecureApp vars, String baseDesignPath, String uploadedFilePath) throws Exception {
+	  	 
+	  Object obj = Class.forName("org.openz.einvoice.ImportXRechnung").getConstructor().newInstance();
+      FilePollingAPI reg = (FilePollingAPI) obj;
+  	  reg.fetchAndProcess(this, vars, baseDesignPath, uploadedFilePath);
+  	  return vars.getSessionValue("EINVOICE_ProcessingResult");
+}
   
   private void printPage(HttpServletResponse response, VariablesSecureApp vars) throws IOException, ServletException {
     if (log4j.isDebugEnabled())

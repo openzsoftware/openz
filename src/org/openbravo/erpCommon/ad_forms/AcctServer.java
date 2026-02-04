@@ -83,6 +83,7 @@ public abstract class AcctServer {
   public String TaxIncluded = "";
   public String GL_Category_ID = "";
   public String Record_ID = "";
+  public String FactError="N";
   /** No Currency in Document Indicator */
   protected static final String NO_CURRENCY = "-1";
   // This is just for the initialization of the accounting
@@ -518,7 +519,14 @@ public abstract class AcctServer {
             + strClave);
         // SZ: Added Accounting Error-Log
         Connection econ=conn.getTransactionConnection();
-        AcctServerData.insertFactError(econ, conn,AD_Client_ID,AD_Org_ID,"0",DocumentNo,DateAcct,C_DocType_ID,STATUS_DocumentLocked,tableName,strClave,"AcctServer - Post -Cannot lock Document - ignored: " + tableName + "_ID=");
+        if (tableName.toLowerCase().equals("c_bankstatement") && DocumentNo.isEmpty()) {
+        	String name=DocBankData.selectBSTName(conn, strClave);
+        	String stmtdate=DocBankData.selectBSTDate(conn, strClave);
+        	AcctServerData.insertFactError(econ, conn,AD_Client_ID,AD_Org_ID,"0",name,stmtdate,C_DocType_ID,STATUS_DocumentLocked,tableName,strClave,"AcctServer - Post -Cannot lock Document - ignored: " + tableName + "_ID=");
+        } else {
+        	AcctServerData.insertFactError(econ, conn,AD_Client_ID,AD_Org_ID,"0",DocumentNo,DateAcct,C_DocType_ID,STATUS_DocumentLocked,tableName,strClave,"AcctServer - Post -Cannot lock Document - ignored: " + tableName + "_ID=");
+        }
+        FactError="Y";
         econ.commit();
         econ.close();
         setStatus(STATUS_DocumentLocked); // Status locked document
@@ -539,7 +547,14 @@ public abstract class AcctServer {
       } else {
         // SZ: Added Accounting Error-Log
         Connection econ=conn.getTransactionConnection();
-        AcctServerData.insertFactError(econ, conn,AD_Client_ID,AD_Org_ID,"0",DocumentNo,DateAcct,C_DocType_ID,Status,tableName,strClave,Errm);
+        if (tableName.toLowerCase().equals("c_bankstatement") && DocumentNo.isEmpty() ) {
+        	String name=DocBankData.selectBSTName(conn, strClave);
+        	String stmtdate=DocBankData.selectBSTDate(conn, strClave);
+        	AcctServerData.insertFactError(econ, conn,AD_Client_ID,AD_Org_ID,"0",name,stmtdate,C_DocType_ID,Status,tableName,strClave,Errm);
+        } else {
+        	AcctServerData.insertFactError(econ, conn,AD_Client_ID,AD_Org_ID,"0",DocumentNo,DateAcct,C_DocType_ID,Status,tableName,strClave,Errm);
+        }
+        FactError="Y";
         econ.commit();
         econ.close();
         errors++;

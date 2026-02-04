@@ -32,6 +32,7 @@ import org.openbravo.base.filter.ValueListFilter;
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.data.FieldProvider;
+import org.openbravo.erpCommon.utility.ComboTableData;
 import org.openbravo.erpCommon.utility.OBError;
 import org.openbravo.erpCommon.utility.SQLReturnObject;
 import org.openbravo.erpCommon.utility.TableSQLData;
@@ -42,7 +43,7 @@ import org.openbravo.xmlEngine.XmlDocument;
 public class Project extends HttpSecureAppServlet {
   private static final long serialVersionUID = 1L;
 
-  private static final String[] colNames = { "value", "name", "bpartner", "projectstatus", "rowkey" };
+  private static final String[] colNames = { "org", "value", "name", "bpartner", "projectstatus", "rowkey" };
   private static final RequestFilter columnFilter = new ValueListFilter(colNames);
   private static final RequestFilter directionFilter = new ValueListFilter("asc", "desc");
 
@@ -64,6 +65,7 @@ public class Project extends HttpSecureAppServlet {
       String strWindow = vars.getGlobalVariable("WindowID", "Project.windowId", "");
       final Boolean ismulti = vars.getStringParameter("isMultiLine").equals("Y") ? true : false;
       String strBpartner = "";
+      String strOrg = "";
       //vars.getGlobalVariable("inpBpartnerId", "Project.bpartner", "");
       //vars.getGlobalVariable("inpNameValue", "Project.key", "");
       vars.setSessionValue("Project.adorgid", vars.getStringParameter("inpAD_Org_ID", ""));
@@ -84,7 +86,7 @@ public class Project extends HttpSecureAppServlet {
     //	  focusedField = "paramName";
      // }
 
-      printPage(response, vars, strKey, strNameValue + "%", strBpartner, strWindow, "paramName", ismulti);
+      printPage(response, vars, strKey, strNameValue + "%", strBpartner, strOrg, strWindow, "paramName", ismulti);
 
     } else if (vars.commandIn("KEY")) {
       reactOnKeyPress(response, vars);
@@ -100,6 +102,8 @@ public class Project extends HttpSecureAppServlet {
       String strKey = vars.getGlobalVariable("inpKey", "Project.key", "");
       String strName = vars.getGlobalVariable("inpName", "Project.name", "");
       String strBpartners = vars.getGlobalVariable("inpBpartnerId", "Project.bpartner", "");
+      // selected org in dropdown
+      String strOrgFilter = vars.getGlobalVariable("inpAdOrgId", "Project.inpAdOrgId", "");
       
       // benötigt nicht die gleiche Behandlung von issotrx wie Product- oder BusinessPartner.java
       // String strIsSOTrx = Utility.getContext(this, vars, "isSOTrx", strWindowId);
@@ -111,7 +115,7 @@ public class Project extends HttpSecureAppServlet {
       String strSortCols = vars.getInStringParameter("sort_cols", columnFilter);
       String strSortDirs = vars.getInStringParameter("sort_dirs", directionFilter);
       printGridData(response, vars, strKey, strName, strBpartners, strSortCols, strSortDirs,
-          strOffset, strPageSize, strNewFilter, strOrg);
+          strOffset, strPageSize, strNewFilter, strOrg, strOrgFilter);
     } else
       pageError(response);
   }
@@ -141,6 +145,7 @@ public class Project extends HttpSecureAppServlet {
     vars.removeSessionValue("Project.name");
     vars.removeSessionValue("Project.bpartner");
     vars.removeSessionValue("Project.currentPage");
+    vars.removeSessionValue("Project.inpAdOrgId");
     // remove saved adorgid only when called from DEFAULT,KEY
     // but not when called by clicking search in the selector
     if (!vars.getStringParameter("newFilter").equals("1")) {
@@ -192,12 +197,13 @@ public class Project extends HttpSecureAppServlet {
 
 		  String strWindow = vars.getGlobalVariable("WindowID", "Project.windowId", "");
 		  String strBpartner = vars.getGlobalVariable("inpBpartnerId", "Project.bpartner", "");
-		  printPage(response, vars, valSearch, nameSearch, strBpartner, strWindow, focusedField, false);
+		  String strOrg = vars.getGlobalVariable("inpOrgId", "Project.org", "");
+		  printPage(response, vars, valSearch, nameSearch, strBpartner, strOrg, strWindow, focusedField, false);
   }
   
 
   private void printPage(HttpServletResponse response, VariablesSecureApp vars, String strKeyValue,
-      String strNameValue, String strBpartners, String strWindow, String focusedId, Boolean isMulti)
+      String strNameValue, String strBpartners, String strOrg, String strWindow, String focusedId, Boolean isMulti)
       throws IOException, ServletException {
     if (log4j.isDebugEnabled())
       log4j.debug("Output: Frame 1 of the projects seeker");
@@ -215,6 +221,12 @@ public class Project extends HttpSecureAppServlet {
     xmlDocument.setParameter("name", strNameValue);
     xmlDocument.setParameter("claveTercero", strBpartners);
     xmlDocument.setParameter("tercero", ProjectData.selectTercero(this, strBpartners));
+    try {
+        // fill dropdown with orgs
+        xmlDocument.setData("reportOrgs", "liststructure", ProjectData.selectOrgs(this));
+      } catch (Exception ex) {
+        throw new ServletException(ex);
+      }
 
     xmlDocument.setParameter("grid", "20");
     xmlDocument.setParameter("grid_Offset", "");
@@ -290,7 +302,7 @@ html.append("var text = \""
     // String[] gridNames = {"Key", "Name","Disp. Credit","Credit used",
     // "Contact", "Phone no.", "Zip", "City", "Income", "c_bpartner_id",
     // "c_bpartner_contact_id", "c_bpartner_location_id", "rowkey"};
-    String[] colWidths = { "160", "300", "250", "120", "0" }; // 98
+    String[] colWidths = { "100", "100", "300", "200", "60", "0" }; // 98
     for (int i = 0; i < colNames.length; i++) {
       SQLReturnObject dataAux = new SQLReturnObject();
       dataAux.setData("columnname", colNames[i]);
@@ -314,7 +326,7 @@ html.append("var text = \""
 
   private void printGridData(HttpServletResponse response, VariablesSecureApp vars, String strKey,
       String strName, String strBpartners, String strOrderCols, String strOrderDirs,
-      String strOffset, String strPageSize, String strNewFilter, String strOrg) throws IOException,
+      String strOffset, String strPageSize, String strNewFilter, String strOrg, String strOrgFilter) throws IOException,
       ServletException {
     if (log4j.isDebugEnabled())
       log4j.debug("Output: print page rows");
@@ -363,7 +375,7 @@ html.append("var text = \""
         
         strNumRows = ProjectData.countRows(this,  vars.getLanguage(), strDraftStatus, Utility.getContext(this, vars,
               "#User_Client", "Project"), Utility.getSelectorOrgs(this, vars, strOrg), strKey,
-              strName, strBpartners, pgLimit); 
+              strName, strBpartners, strOrgFilter, pgLimit); 
           //strNumRows = String.valueOf(data.length);
           vars.setSessionValue("ProjectData.numrows", strNumRows);
         } else {
@@ -375,7 +387,7 @@ html.append("var text = \""
           String pgLimit = pageSize + " OFFSET " + offset;
           data = ProjectData.select(this, vars.getLanguage(), strDraftStatus, Utility.getContext(this, vars,
               "#User_Client", "Project"), Utility.getSelectorOrgs(this, vars, strOrg), strKey,
-              strName, strBpartners, strOrderBy,  pgLimit);
+              strName, strBpartners, strOrgFilter, strOrderBy,  pgLimit);
 
       } catch (ServletException e) {
         log4j.error("Error in print page data: " + e);

@@ -671,6 +671,16 @@ public class TabAttachments extends HttpSecureAppServlet {
 	      file.write(uploadedFile);
 	      uploadedFile.setReadable(true);
 	      myMessage =reg.fetchAndProcess(this, vars, "/tmp/" ,file.getName(),tableId,key);
+	  } else if(strUploadType.equals("BNWLINES")) {
+	      Object obj = Class.forName("com.openz.custommodules.bnw.PollingOrderLines").getConstructor().newInstance();
+          FilePollingTAB reg = (FilePollingTAB) obj;
+          final FileItem file = vars.getMultiFile("inpname");
+          final File uploadedFile = new File("/tmp/", file.getName());
+          if (uploadedFile.exists())
+              uploadedFile.delete();
+          file.write(uploadedFile);
+          uploadedFile.setReadable(true);
+          myMessage =reg.fetchAndProcess(this, vars, "/tmp/" ,file.getName(),tableId,key);
 	  } else { 
 		  myMessage = new OBError();
 		  myMessage.setType("Error");

@@ -1069,7 +1069,8 @@ Further Checks on AProve, COmplete, PRocess
                     v_ResultStr:='CreateInvoice';
                     insert into C_GENERATEINVOICEMANUAL (C_GENERATEINVOICEMANUAL_ID, C_ORDERLINE_ID, C_ORDER_ID, AD_CLIENT_ID, AD_ORG_ID, CREATEDBY, UPDATEDBY, QTY, PRICE, DESCRIPTION,LINEAMT,pinstance_id,dateinvoiced)
                            select get_uuid(),ol.C_ORDERLINE_ID, ol.C_ORDER_ID, ol.AD_CLIENT_ID, ol.AD_ORG_ID, ol.CREATEDBY, ol.UPDATEDBY, ol.qtyordered, ol.priceactual, ol.DESCRIPTION,ol.linenetamt,v_nexpinstance,o.dateordered
-                           from c_order o,c_orderline ol where ol.c_order_id=o.c_order_id and ol.C_Order_ID=v_Record_ID;
+                           from c_order o,c_orderline ol where ol.c_order_id=o.c_order_id and ol.C_Order_ID=v_Record_ID
+                           order by ol.line;
 
                     SELECT * INTO  Invoice_ID FROM C_Invoice_Create(v_nexpinstance, NULL) ;
                     RAISE NOTICE '%','  Invoice - ' || Invoice_ID ;
@@ -2000,11 +2001,11 @@ BEGIN
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
     END IF;
 
-    IF(NEW.issotrx = 'Y') THEN -- bp has to be customer
+    IF(NEW.issotrx = 'Y' AND NEW.docstatus = 'DR') THEN -- bp has to be customer and document in draft
       IF(SELECT iscustomer = 'N' FROM c_bpartner WHERE c_bpartner_id = NEW.c_bpartner_id) THEN
         RAISE EXCEPTION '@BPartnerHasToBeCustomer@';
       END IF;
-    ELSE -- bp has to be vendor
+    ELSIF(NEW.docstatus = 'DR') THEN -- bp has to be vendor and document in draft
       IF(SELECT isvendor = 'N' FROM c_bpartner WHERE c_bpartner_id = NEW.c_bpartner_id) THEN
         RAISE EXCEPTION '@BPartnerHasToBeVendor@';
       END IF;
@@ -7062,6 +7063,32 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 
+-- second userexit for backwards compat
+-- input is copy and source order
+CREATE OR REPLACE FUNCTION c_createDocumentFromOrder_userexit_sourceandcopy(v_order_id varchar, v_order_id_source varchar)
+  RETURNS varchar AS
+$BODY$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***********************************************************************************************+*****************************************
+User-Exit for c_createDocumentFromOrder0 + c_createDocumentFromOrderPO
+**/
+DECLARE
+v_return varchar:='';
+BEGIN
+RETURN v_return;
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+
 CREATE OR REPLACE FUNCTION c_createDocumentFromOrder0(p_targettype varchar, p_srcorder_id varchar, p_user varchar)
   RETURNS varchar AS
 $BODY$ 
@@ -7311,6 +7338,7 @@ BEGIN
         
     end if;
     PERFORM c_createDocumentFromOrder_userexit(v_orderid);
+    PERFORM c_createDocumentFromOrder_userexit_sourceandcopy(v_orderid,p_srcorder_id);
   RETURN v_Message;
 END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE
@@ -7412,6 +7440,7 @@ BEGIN
     END LOOP;
     v_Message:= v_Message || '@OfferFromOrderCreated@' || zsse_htmldirectlink(v_linkWindow,'document.frmMain.inpcOrderId', v_orderid, v_docno) || '</br>';
     PERFORM c_createDocumentFromOrder_userexit(v_orderid);
+    PERFORM c_createDocumentFromOrder_userexit_sourceandcopy(v_orderid, p_srcorder_id);
   RETURN v_Message;
 END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE
@@ -7474,8 +7503,6 @@ BEGIN
 RETURN 'FALSE';
 END;
 $_$  LANGUAGE 'plpgsql';
-
-
 
   
 CREATE OR REPLACE FUNCTION c_createDocumentHeaderFromSO(p_orderid varchar,p_targettype varchar,p_bpartner varchar,p_user varchar) RETURNS varchar

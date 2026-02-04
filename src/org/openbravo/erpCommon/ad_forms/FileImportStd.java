@@ -15,6 +15,7 @@ public class FileImportStd extends HttpSecureAppServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
     VariablesSecureApp vars = new VariablesSecureApp(request);
     vars.setSessionValue("isDatevImport", "N");
+    vars.setSessionValue("isEInvoiceImport", "N");
 
     response.sendRedirect(strDireccion + "/ad_forms/FileImport.html");
 

@@ -388,15 +388,23 @@ public String prepareProduction(VariablesSecureApp vars,String qty, String strpd
 } // end of prepareProduction method
 
 
-
 public void finishProduction(HttpServletResponse response, String ptrxID,String strpdcWorkstepID,String bcCommand,String strpdcUserID,VariablesSecureApp vars,HttpSecureAppServlet con,Connection conn) throws ServletException, IOException{
+    finishProduction(response, ptrxID, strpdcWorkstepID, bcCommand, strpdcUserID, vars, con, conn, null);
+}
+
+public void finishProduction(HttpServletResponse response, String ptrxID,String strpdcWorkstepID,String bcCommand,String strpdcUserID,VariablesSecureApp vars,HttpSecureAppServlet con,Connection conn, String strSerialnumber) throws ServletException, IOException{
     String strpdcFormerDialogue=vars.getSessionValue("PDCFORMERDIALOGUE");
     if (FormatUtils.isNix(strpdcWorkstepID))
         strpdcWorkstepID=vars.getSessionValue("PDCWORKSTEPID");
     if (bcCommand==null)
         bcCommand="DONE";
- // Set serisnumber
-    String snrbnr=con.getLocalSessionVariable(vars,"plannedserialorbatch");
+    // Set serisnumber
+    String snrbnr = "";
+    if(!FormatUtils.isNix(strSerialnumber)) {
+        snrbnr = strSerialnumber;
+    } else {
+        snrbnr = con.getLocalSessionVariable(vars,"plannedserialorbatch");
+    }
     if (!FormatUtils.isNix(snrbnr)) {
     	PdcCommonData.updateSnrBnr(conn,con, snrbnr, ptrxID);
     	String prod=PdcCommonData.getProductFromWorkstep(con, strpdcWorkstepID);
@@ -464,7 +472,8 @@ public void finishProduction(HttpServletResponse response, String ptrxID,String 
         else 
         vars.setSessionValue("PDCSTATUSTEXT",message);
         vars.setSessionValue("PDCSTATUS","OK");
-        response.sendRedirect(con.strDireccion + strpdcFormerDialogue);
+        if(FormatUtils.isNix(strSerialnumber))
+            response.sendRedirect(con.strDireccion + strpdcFormerDialogue);
         }
     } else {
         vars.setSessionValue("PDCSTATUS","OK");
@@ -475,7 +484,8 @@ public void finishProduction(HttpServletResponse response, String ptrxID,String 
             strpdcFormerDialogue.equals("/org.openz.pdc.ad_forms/PdcMaterialConsumption.html") ){
         vars.setSessionValue("PDCFORMERDIALOGUE","/org.openz.pdc.ad_forms/DoProduction.html");
         }
-        response.sendRedirect(con.strDireccion + "/org.openz.pdc.ad_forms/SerialAndBatchNumbers.html");
+        if(FormatUtils.isNix(strSerialnumber))
+            response.sendRedirect(con.strDireccion + "/org.openz.pdc.ad_forms/SerialAndBatchNumbers.html");
     }
 }
 public static PdcCommonData getBarcode(HttpSecureAppServlet con, VariablesSecureApp vars) throws ServletException, IOException {

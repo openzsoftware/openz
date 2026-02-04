@@ -1,4 +1,5 @@
-CREATE or replace FUNCTION snr_getassembly_snr(p_projecttask character varying) RETURNS character varying
+select zsse_dropfunction('snr_getassembly_snr');
+CREATE or replace FUNCTION snr_getassembly_snr(p_projecttask character varying, p_internalconsumption character varying) RETURNS character varying
 AS $_$
 /***************************************************************************************************************************************************
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
@@ -18,8 +19,10 @@ v_conid character varying;
 BEGIN
       select snr.serialnumber into v_return from snr_internal_consumptionline snr,m_internal_consumptionline ml,m_internal_consumption m
              where ml.c_projecttask_id=p_projecttask 
-                   and snr.m_internal_consumptionline_id=ml.m_internal_consumptionline_id and m.m_internal_consumption_id=ml.m_internal_consumption_id
-                   and m.movementtype='P+' and m.processed='Y';
+                   and snr.m_internal_consumptionline_id=ml.m_internal_consumptionline_id
+                   and m.m_internal_consumption_id=ml.m_internal_consumption_id
+                   and m.movementtype='P+' and m.processed='Y'
+                   and snr.serialnumber = (select m2.plannedserialnumber from m_internal_consumption m2 where m2.m_internal_consumption_id = p_internalconsumption);
 RETURN coalesce(v_return,'');
 END;
 $_$ LANGUAGE 'plpgsql' VOLATILE COST 100;
@@ -65,7 +68,7 @@ union
         null as m_inoutline_id, mol.m_internal_consumptionline_id, null as m_inventoryline_id, null as m_movementline_id,null as m_inout_id, mo.m_internal_consumption_id, null as m_inventory_id, null as m_movement_id,
         null as c_bpartner_id, mo.movementtype, null as c_orderline_id, mol.m_product_id, mol.m_attributesetinstance_id, mo.movementdate,  snr.guaranteedate, 
         case when snr.snr_masterdata_id is not null then coalesce(snr.serialnumber,'not available') else '' end  as serialnumber,snr.description,
-        mol.c_project_id,mol.a_asset_id,mol.c_projecttask_id,mol.m_locator_id,snr.quantity, 'CO' as docstatus,snr_getassembly_snr(mol.c_projecttask_id) as assembly_snr,snr_getassembly_productid(mol.c_projecttask_id) as assembly_productid,
+        mol.c_project_id,mol.a_asset_id,mol.c_projecttask_id,mol.m_locator_id,snr.quantity, 'CO' as docstatus,snr_getassembly_snr(mol.c_projecttask_id, mol.m_internal_consumption_id) as assembly_snr,snr_getassembly_productid(mol.c_projecttask_id) as assembly_productid,
         snr_builtinsnr as snr_builtinsnr,
         '':: character(1) as pnamevaluesqlfield ,snr.text1,snr.text2,text3,text4,text5,text6,text7,text8,text9,text10,num1,num2,num3,num4,num5,date1,date2,date3,date4
    FROM m_internal_consumption mo, m_internal_consumptionline mol, snr_internal_consumptionline snr
@@ -856,6 +859,7 @@ BEGIN
     END LOOP;
     CLOSE v_cursor;
     -- Stücklisten von Geräten prüfen, bei + Trxes müssen die SNR da raus sein.
+    v_count:=0;
     If  instr(coalesce(v_type,''),'+')>0 then
       if p_table='inventory' then
         select count(*),string_agg(s.serialnumber,',') into v_count,v_msg from snr_inventoryline s,m_inventoryline ml, m_inventory m, snr_currentbom_serials bs

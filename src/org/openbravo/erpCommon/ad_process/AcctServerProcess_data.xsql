@@ -25,6 +25,12 @@
     ]]></Sql>
     <Parameter name="adProcessId"/>
    </SqlMethod>
+   <SqlMethod name="logLocked" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        SELECT  zsfi_log_locked() from dual
+      </Sql>
+   </SqlMethod>
    <SqlMethod name="selectTable" type="preparedStatement" return="String" default="">
       <SqlMethodComment></SqlMethodComment>
       <Sql><![CDATA[

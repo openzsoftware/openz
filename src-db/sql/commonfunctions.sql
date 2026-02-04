@@ -822,7 +822,7 @@ Execute individual Statements for the Custom Instance
 
 BEGIN 
   
-  RETURN '<a href="#" onclick="submitCommandFormParameter('||chr(39)||'DIRECT'||chr(39)||','||p_fieldid||','||chr(39)||p_key||chr(39)||', false, document.frmMain, '||chr(39)||p_targetwindowurl||chr(39)||', null, false, true);return false;" class="LabelLink_white">'||p_text||' </a>';
+  RETURN '<a href="#" onclick="submitCommandFormParameter('||chr(39)||'DIRECT'||chr(39)||','||p_fieldid||','||chr(39)||p_key||chr(39)||', false, document.frmMain, '||chr(39)||p_targetwindowurl||chr(39)||', null, false, true);return false;" class="LabelLink">'||p_text||' </a>';
 END;
 $_$  LANGUAGE 'plpgsql' VOLATILE
   COST 100;
@@ -844,7 +844,7 @@ Execute individual Statements for the Custom Instance
 
 BEGIN 
   
-  RETURN '<a href="#" onclick="submitCommandFormParameter('||chr(39)||'DIRECT'||chr(39)||',document.frmMain.inpDirectKey,'||chr(39)||p_key||chr(39)||', false, document.frmMain, '||chr(39)||p_targetwindowurl||chr(39)||', null, false, true);return false;" class="LabelLink_white">'||p_text||' </a>';
+  RETURN '<a href="#" onclick="submitCommandFormParameter('||chr(39)||'DIRECT'||chr(39)||',document.frmMain.inpDirectKey,'||chr(39)||p_key||chr(39)||', false, document.frmMain, '||chr(39)||p_targetwindowurl||chr(39)||', null, false, true);return false;" class="LabelLink">'||p_text||' </a>';
 END;
 $_$  LANGUAGE 'plpgsql' VOLATILE
   COST 100;
@@ -2159,9 +2159,9 @@ elsif p_tablename='ZSSM_WORKSTEP_V' then
     from c_project p, c_projecttask pt where pt.c_project_id=p.c_project_id and pt.c_projecttask_id=p_idvalue;
 elsif p_tablename='C_BPARTNEREMPLOYEE_VIEW' then
     select c_doctype_id into v_doctypeid from c_doctype where name = 'Employee';
-    select p.ad_org_id,p_idvalue,'CO',v_doctypeid,replace(p.name,',',''),'',p.c_bpartner_id,p.ad_language, 
+    select p.ad_org_id,p_idvalue,'CO',v_doctypeid,replace(p.name,',',''),p.value,p.c_bpartner_id,p.ad_language,
            to_char(CURRENT_TIMESTAMP, 'YYDDDSSSS'), 
-           p.name,
+           replace(p.name,',',''),
            zssi_juwiorgshortcut(p.ad_org_id),
            zssi_docshortcut(v_doctypeid)
     into ad_org_id,document_id,docstatus,docTypeTargetId,ourreference,cusreference,bpartner_id,bpartner_language,unique_timestamp,bpartner_name,orga,docname
@@ -2512,5 +2512,17 @@ BEGIN
     RETURN TRUE;
 EXCEPTION WHEN others THEN
     RETURN FALSE;
+END;
+$_$ LANGUAGE plpgsql IMMUTABLE;
+
+
+CREATE OR REPLACE FUNCTION isEUCountry(countrycode varchar) RETURNS BOOLEAN AS $_$
+DECLARE 
+BEGIN
+   if countrycode in ('AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE') then
+    return TRUE;
+   else
+    return FALSE;
+   end if; 
 END;
 $_$ LANGUAGE plpgsql IMMUTABLE;

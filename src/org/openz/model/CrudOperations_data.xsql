@@ -15,7 +15,7 @@ Contributor(s): ______________________________________.
    <SqlMethod name="selectCustomColumns" type="preparedStatement" return="multiple">
       <SqlMethodComment></SqlMethodComment>
       <Sql>
-        select pType,PName from ad_getcustomcolumns(?)
+        select pType,PName, ''::varchar as ponchangeevent from ad_getcustomcolumns(?)
       </Sql>
       <Parameter name="tabId"/>
    </SqlMethod>
@@ -54,5 +54,11 @@ Contributor(s): ______________________________________.
       </Sql>
       <Parameter name="tabId"/>
    </SqlMethod>
-   
+   <SqlMethod name="selectListsorter" type="preparedStatement" return="multiple">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql>
+        select pname,ponchangeevent from  ad_selecttabfields('DE_de',?) where ptemplate in  ('LISTSORTER','LISTSORTER_SIMPLE') order by pline;
+      </Sql>
+      <Parameter name="tabId"/>
+   </SqlMethod>
  </SqlClass>

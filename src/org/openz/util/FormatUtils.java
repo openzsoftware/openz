@@ -73,12 +73,26 @@ public class FormatUtils {
     return date == null ? null : new SimpleDateFormat(dateTimeFormat).format(date);
   }
   
-  public static int ordinalIndexOf(String str, String c, int n) {
-    int pos = str.indexOf(c, 0);
-    while (n-- > 0 && pos != -1)
-        pos = str.indexOf(c, pos+1);
-    return pos;
-}
+  // n-th index of a character c in a string str
+  // c is qutotes "c" are not counted
+  // quotes in quoted strings are escaped with more quotes
+  // "test "123" bb ; ; " -> "test ""123"" bb ; ; " -> ;; not counted
+  public static int ordinalIndexOf(String str, char c, int n) {
+      boolean inQuotes = false;
+      int counter = 0;
+      for (int i = 0; i <= str.length(); i++) {
+          if (str.charAt(i) == '"') {
+              inQuotes = !inQuotes;
+          } else if (!inQuotes && str.charAt(i) == c) {
+              if (counter == n) {
+                  return i;
+              }
+              counter++;
+          }
+      }
+      return -1; // c not in str
+  }
+
   public static DecimalFormat getNumberFormat(VariablesSecureApp vars) {
     final DecimalFormatSymbols dfs = new DecimalFormatSymbols();
     dfs.setDecimalSeparator(vars.getSessionValue("#AD_ReportDecimalSeparator").charAt(0));

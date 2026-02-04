@@ -180,6 +180,8 @@ public class TimeFeedback  extends HttpSecureAppServlet {
       		employee=vars.getUser();
       		setEmpstatus(vars,employee);  	          
       	}
+        vars.setSessionValue("employee",employee);
+        vars.setSessionValue("user",vars.getUser());
         // Initialize Infobar helper variables
         String InfobarPrefix = "<span style=\"font-size: 20pt; color: #000000;\">";
         String InfobarText="";

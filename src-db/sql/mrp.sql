@@ -71,6 +71,7 @@ CREATE OR REPLACE FUNCTION mrp_purchase_run(p_pinstance_id character varying) RE
   v_BP_Group_ID VARCHAR(32); --OBTG:VARCHAR2--
   v_Vendor_ID   VARCHAR(32); --OBTG:varchar2--
   v_TimeHorizon NUMERIC;
+  v_Daysbeforedemand NUMERIC;
   v_PlanningDate TIMESTAMP;
   v_SecurityMargin NUMERIC;
   v_warehouse varchar;
@@ -104,17 +105,17 @@ CREATE OR REPLACE FUNCTION mrp_purchase_run(p_pinstance_id character varying) RE
     END LOOP; -- Get Parameter
 
     SELECT AD_Client_ID, AD_Org_ID, MRP_Planner_ID, M_Product_ID, M_Product_Category_ID, C_BPartner_ID,
-         C_BP_Group_ID, TimeHorizon, SecurityMargin, datedoc, Vendor_ID,m_warehouse_id
+         C_BP_Group_ID, TimeHorizon, Daysbeforedemand, SecurityMargin, datedoc, Vendor_ID,m_warehouse_id
     INTO v_Client_ID, v_Org_ID, v_Planner_ID, v_Product_ID, v_Product_Category_ID, v_BPartner_ID,
-         v_BP_Group_ID, v_TimeHorizon, v_SecurityMargin, v_PlanningDate, v_Vendor_ID,v_warehouse
+         v_BP_Group_ID, v_TimeHorizon, v_Daysbeforedemand, v_SecurityMargin, v_PlanningDate, v_Vendor_ID,v_warehouse
     FROM MRP_RUN_PURCHASE
     WHERE MRP_RUN_PURCHASE_ID=V_Record_ID;
 
     PERFORM MRP_RUN_INITIALIZE(v_User_ID, v_Org_ID, v_Client_ID, v_Record_ID, v_Planner_ID, v_Product_ID,
-                       v_Product_Category_ID, v_BPartner_ID, v_BP_Group_ID, v_Vendor_ID, v_TimeHorizon,
+                       v_Product_Category_ID, v_BPartner_ID, v_BP_Group_ID, v_Vendor_ID, v_TimeHorizon, v_Daysbeforedemand,
                        v_PlanningDate,v_warehouse);
     --RAISE NOTICE '%','MRP_PURCHASE_INIT done.: ';
-    PERFORM MRP_PURCHASEPLAN(v_User_ID, v_Org_ID, v_Client_ID, v_Record_ID, v_Planner_ID, v_Vendor_ID, v_TimeHorizon,
+    PERFORM MRP_PURCHASEPLAN(v_User_ID, v_Org_ID, v_Client_ID, v_Record_ID, v_Planner_ID, v_Vendor_ID, v_TimeHorizon, v_Daysbeforedemand,
                     v_PlanningDate, v_SecurityMargin,v_warehouse);
     for v_cur in (select distinct m_product_id from MRP_RUN_PURCHASELINE where inouttrxtype='PP' and c_bpartner_id is null and MRP_RUN_PURCHASE_id=v_Record_ID)
     LOOP
@@ -142,7 +143,7 @@ END ; $_$;
 
 select zsse_dropfunction('mrp_run_initialize');
 
-CREATE OR REPLACE FUNCTION mrp_run_initialize(p_user_id character varying, p_org_id character varying, p_client_id character varying, p_run character varying, p_planner_id character varying, p_product_id character varying, p_product_category_id character varying, p_bpartner_id character varying, p_bp_group_id character varying, p_vendor_id character varying, pp_timehorizon numeric, p_planningdate timestamp without time zone,p_Warehouse_ID varchar) RETURNS void
+CREATE OR REPLACE FUNCTION mrp_run_initialize(p_user_id character varying, p_org_id character varying, p_client_id character varying, p_run character varying, p_planner_id character varying, p_product_id character varying, p_product_category_id character varying, p_bpartner_id character varying, p_bp_group_id character varying, p_vendor_id character varying, pp_timehorizon numeric, p_daysbeforedemand numeric, p_planningdate timestamp without time zone,p_Warehouse_ID varchar) RETURNS void
     LANGUAGE plpgsql
     AS $_$ DECLARE 
 /***************************************************************************************************************************************************
@@ -191,14 +192,13 @@ BEGIN
     end if;
     delete from mrp_run_purchaseline where mrp_run_purchase_id=p_run;
     FOR Cur_Product IN (SELECT p.M_Product_ID,
-                        COALESCE(po.MRP_PlanningMethod_ID, 
-                                 (select MRP_PlanningMethod_ID from MRP_PlanningMethod where isstandard='Y' and isactive='Y' limit 1)) AS MRP_PlanningMethod_ID
-                        FROM M_PRODUCT p LEFT JOIN ( select m_product_id,MRP_PLANNER_ID,MRP_PlanningMethod_ID from M_PRODUCT_ORG  where
-                                                                       AD_ORG_ID = p_Org_ID
-                                                                       AND isvendorreceiptlocator = 'Y' and isactive='Y'
-                                                                       AND case when p_Warehouse_ID IS NULL then 1=1 else 
-                                                                       m_locator_id in (select m_locator_id from m_locator where m_warehouse_id=p_Warehouse_ID) end
-                                                                       LIMIT 1) po ON p.M_PRODUCT_ID = po.M_PRODUCT_ID
+                        min(COALESCE(po.MRP_PlanningMethod_ID,
+                                 (select MRP_PlanningMethod_ID from MRP_PlanningMethod where isstandard='Y' and isactive='Y' limit 1))) AS MRP_PlanningMethod_ID
+                        FROM M_PRODUCT p LEFT JOIN M_PRODUCT_ORG po on p.M_PRODUCT_ID = po.M_PRODUCT_ID
+                                                                       and po.AD_ORG_ID = p_Org_ID
+                                                                       AND po.isvendorreceiptlocator = 'Y' and po.isactive='Y'
+                                                                       AND case when p_Warehouse_ID IS NULL then 1=1 else
+                                                                       po.m_locator_id in (select m_locator_id from m_locator where m_warehouse_id=p_Warehouse_ID) end
                         WHERE (p_product_ID IS NULL OR p.M_PRODUCT_ID = p_Product_ID)
                           AND p.isactive = 'Y'
                           AND (p_Product_Category_ID IS NULL OR p.M_PRODUCT_CATEGORY_ID = p_Product_Category_ID)
@@ -265,7 +265,7 @@ BEGIN
                                              AND bp.C_BP_Group_ID = p_BP_Group_ID
                                              AND Mrp_Check_Planningmethod(COALESCE(po.MRP_PlanningMethod_ID, p.MRP_PlanningMethod_ID),'SF') <> -1
                                              AND sf.AD_ORG_ID in ('0',p_org_id)
-                              ))
+                              )) group by p.M_Product_ID
       ) LOOP
 
         --raise notice '%','LOOPING'||Cur_Product.STOCKMIN||'ÜÜÜÜÜ'||Cur_Product.QtyOnHand||'######'||zssi_getproductname(Cur_Product.M_Product_ID,'de_DE');
@@ -420,6 +420,7 @@ CREATE OR REPLACE FUNCTION mrp_purchaseplan (
   p_planner_id varchar,         -- nicht verwendet
   p_vendor_id varchar,          -- nicht verwendet
   p_timehorizon numeric,        -- nicht verwendet
+  p_daysbeforedemand numeric,
   p_planningdate timestamp,     -- nicht verwendet
   p_securitymargin numeric,
   p_warehouse varchar
@@ -496,6 +497,8 @@ $body$
   v_frameqty2buy numeric;
   v_isfirstneed varchar;
   v_cur record;
+  v_planneddate timestamp;
+  v_lastdeliverydate timestamp;
 BEGIN
   BEGIN --BODY
     v_ResultStr := 'Purchase mrp'; 
@@ -699,6 +702,19 @@ BEGIN
           END IF;  
 
     END LOOP;
+    -- edit planneddate when daysbeforedemand is used
+    if(p_daysbeforedemand>0)then
+        for v_cur in (select * from MRP_RUN_PURCHASELINE where MRP_RUN_PURCHASE_id=p_Run_ID and inouttrxtype='PP')
+        LOOP
+            v_lastdeliverydate := trunc(now()) + zssi_numofworkdays2caleandardaysfromgivendate(coalesce(v_cur.leadtime,0), p_Org_ID, trunc(now()));
+            v_planneddate := v_cur.planneddate - zssi_numofworkdays2caleandardaysfromgivendate(p_daysbeforedemand, p_Org_ID, v_cur.planneddate, 'REVERSE');
+            if(v_planneddate < v_lastdeliverydate) then
+              v_planneddate := v_lastdeliverydate;
+            end if;
+            update MRP_RUN_PURCHASELINE set planneddate=v_planneddate where MRP_RUN_PURCHASELINE_id=v_cur.MRP_RUN_PURCHASELINE_id;
+        end LOOP;
+    end if;
+
     PERFORM mrp_purchaseplan_userexit(p_run_id);
   END; --BODY
 EXCEPTION
@@ -867,6 +883,7 @@ $body$
   v_ismultipleofminimumqty CHAR;
   v_order_min NUMERIC;
   v_conversion NUMERIC;
+  v_discount numeric := 0;
 
   --  Parameter
   --TYPE RECORD IS REFCURSOR;
@@ -993,7 +1010,8 @@ $body$
            C_BPARTNER_LOCATION_ID, C_CURRENCY_ID, PAYMENTRULE, C_PAYMENTTERM_ID,
            INVOICERULE, DELIVERYRULE, FREIGHTCOSTRULE, DELIVERYVIARULE,
            PRIORITYRULE, TOTALLINES, GRANDTOTAL,
-           M_WAREHOUSE_ID, M_PRICELIST_ID, ISTAXINCLUDED, DATEPROMISED,scheddeliverydate)
+           M_WAREHOUSE_ID, M_PRICELIST_ID, ISTAXINCLUDED, DATEPROMISED,scheddeliverydate,
+           salesrep_id)
         VALUES
          (v_COrder_ID, v_Client_ID, v_Org_ID,'Y',
          TO_DATE(NOW()), v_User_ID, TO_DATE(NOW()), v_User_ID,
@@ -1003,7 +1021,8 @@ $body$
           v_BPartner_Location_ID, Cur_workproposal.C_Currency_ID, Cur_workproposal.paymentrule, Cur_workproposal.C_PAYMENTTERM_ID,
           'D', 'A', 'I',COALESCE(Cur_workproposal.DeliveryViaRule,'D'),
           '5',0,0,
-          coalesce(Cur_workproposal.m_warehouse_id,v_M_Warehouse_ID), Cur_workproposal.PO_PRICELIST_ID, 'N', Cur_workproposal.PLANNEDDATE,Cur_workproposal.PLANNEDDATE
+          coalesce(Cur_workproposal.m_warehouse_id,v_M_Warehouse_ID), Cur_workproposal.PO_PRICELIST_ID, 'N', Cur_workproposal.PLANNEDDATE,Cur_workproposal.PLANNEDDATE,
+          case when (select bp.isprocurementmanager='Y' from c_bpartner bp, ad_user us where bp.c_bpartner_id=us.c_bpartner_id and us.ad_user_id=v_User_ID) then v_User_ID else null end
           );
           -- SZ Sucess Message:
           v_Message:=v_Message||'  '||zsse_htmlLinkDirectKey('../PurchaseOrder/Header_Relation.html',v_COrder_ID,v_DocumentNo);
@@ -1024,7 +1043,7 @@ $body$
         AND IsActive= 'Y' and iscurrentvendor='Y';
       IF (v_count > 0) THEN
         SELECT PriceList, Pricepo as PriceStd,
-               M_Get_Offers_Price(v_DateDoc,Cur_workproposal.C_BPartner_ID,Cur_workproposal.M_Product_ID,coalesce(Cur_workproposal.quantityorder,Cur_workproposal.QTY), Cur_workproposal.PO_PRICELIST_ID,'N',null,'N',null,v_2nduom,Cur_workproposal.m_product_po_id, Cur_workproposal.m_attributesetinstance_id,v_Org_ID),
+               M_Get_Offers_Price(v_DateDoc,Cur_workproposal.C_BPartner_ID,Cur_workproposal.M_Product_ID,coalesce(Cur_workproposal.quantityorder,coalesce(Cur_workproposal.neededqty,Cur_workproposal.qty)), Cur_workproposal.PO_PRICELIST_ID,'N',null,'N',null,v_2nduom,Cur_workproposal.m_product_po_id, Cur_workproposal.m_attributesetinstance_id,v_Org_ID),
                Pricepo as PriceLimit,
                qtystd,c_uom_id,vendorproductno, ismultipleofminimumqty, order_min -- qtytype
           INTO v_PriceList, v_PriceStd, v_PriceActual, v_PriceLimit,v_stdqty,v_orderuom ,v_vendorpnumber, v_ismultipleofminimumqty, v_order_min -- v_qtytype
@@ -1078,6 +1097,15 @@ $body$
       if v_PriceList is null or v_PriceStd is null or v_PriceActual is null then
         raise exception '%','Artikel:'||(select value from m_product where m_product_id=Cur_workproposal.M_Product_ID)||' Einkaufspreise (Artikel||Einkauf) nicht richtig gepflegt';
       end if;
+      -- calculate discount
+      if v_PriceStd = 0 then
+          v_discount := 0;
+      elsif v_PriceActual = 0 then
+          v_discount := 100;
+      else
+          v_discount := (1 - (v_PriceActual / v_PriceStd)) * 100;
+      end if;
+
       INSERT INTO C_OrderLine
         (C_ORDERLINE_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE,
          CREATED, CREATEDBY, UPDATED, UPDATEDBY,
@@ -1086,7 +1114,8 @@ $body$
          M_WAREHOUSE_ID, C_UOM_ID, QTYORDERED, C_CURRENCY_ID,
          PRICELIST, PRICEACTUAL, PRICELIMIT,
          PRICESTD,scheddeliverydate,
-         C_TAX_ID,quantityorder,m_product_uom_id,m_product_po_id,orderlineselfjoin,m_attributesetinstance_id)
+         C_TAX_ID,quantityorder,m_product_uom_id,m_product_po_id,orderlineselfjoin,m_attributesetinstance_id,
+         discount)
      VALUES
       (v_COrderLine_ID,v_Client_ID, v_Org_ID,'Y',
        TO_DATE(NOW()), v_User_ID, TO_DATE(NOW()), v_User_ID,
@@ -1096,7 +1125,8 @@ $body$
        v_PriceList, v_PriceActual, v_PriceLimit,
        v_PriceStd, Cur_workproposal.PLANNEDDATE,
        v_TaxID,Cur_workproposal.quantityorder,Cur_workproposal.m_product_uom_id,Cur_workproposal.m_product_po_id,
-       Cur_workproposal.framecontractline,Cur_workproposal.m_attributesetinstance_id
+       Cur_workproposal.framecontractline,Cur_workproposal.m_attributesetinstance_id,
+       v_discount
       );
 
       UPDATE MRP_RUN_PURCHASELINE
@@ -1213,18 +1243,20 @@ DECLARE
   v_leadtime numeric;
 BEGIN
     if p_quickest='N' then
-        -- select the Best vendor
+        -- select the best rated vendor with the fastest delivery time
+        -- when the best rated vendor has no entered delivery time return null
         SELECT po.deliverytime_promised
                 INTO v_leadtime
                 FROM M_PRODUCT_PO po
                 WHERE po.m_product_id=p_product_id and PO.iscurrentvendor='Y' 
-                ORDER BY COALESCE(po.qualityrating,0) desc  LIMIT 1;
+                ORDER BY COALESCE(po.qualityrating,0) desc, po.deliverytime_promised LIMIT 1;
     else
+         -- select fastest vendor, ignore vendors with no delivery time
          SELECT po.deliverytime_promised
                 INTO v_leadtime
                 FROM M_PRODUCT_PO po
-                WHERE po.m_product_id=p_product_id and PO.iscurrentvendor='Y' 
-                ORDER BY COALESCE(po.deliverytime_promised,0)  LIMIT 1;
+                WHERE po.m_product_id=p_product_id and PO.iscurrentvendor='Y' and po.deliverytime_promised is not null
+                ORDER BY po.deliverytime_promised LIMIT 1;
     end if;
     return v_leadtime;
 END ; $_$ LANGUAGE 'plpgsql';
@@ -1514,7 +1546,7 @@ select trunc(coalesce(coalesce(case when pr.projectcategory='PRO' then p.startda
        0::numeric AS qtyinsaleframe,
        bom.m_product_id,w.m_warehouse_id,
        null as c_orderline_id, p.c_projecttask_id,p.ad_org_id,p.ad_client_id,bom.updated, bom.updatedby, p.created, p.createdby,'PCONS' as documenttype,
-       (bom.quantity-bom.qtyreceived)*-1 as movementqty,null as c_bpartner_id,null as m_attributesetinstance_id
+       (bom.quantity-bom.qtyreceived)*-1 as movementqty,null as c_bpartner_id,bom.m_attributesetinstance_id
        from c_projecttask p, m_locator w,zspm_projecttaskbom bom,c_project pr ,m_product m   
         where p.c_project_id=pr.c_project_id 
         and case when pr.projectcategory='PRO' then bom.receiving_locator else bom.m_locator_id end = w.m_locator_id
@@ -1577,7 +1609,7 @@ v_odate date;
 v_pdate date;
 BEGIN
       select l.scheddeliverydate into v_odate from c_orderline l, c_order o where  o.c_order_id=l.c_order_id and o.DOCSTATUS='CO' and ad_get_docbasetype(o.c_doctype_id)  = 'POO'  
-             and coalesce(l.m_attributesetinstance_id,'0')=coalesce(p_attrs,'0')
+             and coalesce(l.m_attributesetinstance_id,'0')=coalesce(p_attrs,'0') and l.deliverycomplete='N'
              and l.m_product_id=p_product_id and l.qtydelivered<l.qtyordered and l.scheddeliverydate > p_planneddate;
       select l.enddate into v_pdate from c_projecttask l,c_project p where l.c_project_id=p.c_project_id and p.projectstatus='OR' and l.assembly='Y' and l.m_product_id=p_product_id 
              and l.qtyproduced<l.qty and l.istaskcancelled='N' and l.iscomplete='N' and l.enddate > p_planneddate
@@ -1591,7 +1623,17 @@ select
         *,mrp_inoutplan_v_id as mrp_criticalitems_v_id,
         mrp_getnextincomingDate(mrp_inoutplan_v.m_product_id,mrp_inoutplan_v.planneddate,mrp_inoutplan_v.estimated_stock_qty,mrp_inoutplan_v.m_attributesetinstance_id) as nextincomingdate,
         mrp_getpurchseleadtime(mrp_inoutplan_v.m_product_id,'N') as stdleadtime,
-        mrp_getpurchseleadtime(mrp_inoutplan_v.m_product_id,'Y') as quickestleadtime
+        mrp_getpurchseleadtime(mrp_inoutplan_v.m_product_id,'Y') as quickestleadtime,
+        case when (planneddate - (mrp_getpurchseleadtime(mrp_inoutplan_v.m_product_id,'N') * interval '1 day')) < trunc(now()) then
+          null
+        else
+          (planneddate - (mrp_getpurchseleadtime(mrp_inoutplan_v.m_product_id,'N') * interval '1 day'))
+        end as latestorderdatedefaultvendor,
+        case when (planneddate - (mrp_getpurchseleadtime(mrp_inoutplan_v.m_product_id,'Y') * interval '1 day')) < trunc(now()) then
+          null
+        else
+          (planneddate - (mrp_getpurchseleadtime(mrp_inoutplan_v.m_product_id,'Y') * interval '1 day'))
+        end as latestorderdatefastestvendor
 from 
         mrp_inoutplan_v
 where

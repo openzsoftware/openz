@@ -64,7 +64,7 @@ BEGIN
             end if;
         end if;
     else
-        v_message:='ERR: WRONG USER or ORG ID while Updating Adress'; 
+        v_message:='ERR: WRONG USER or ORG ID while Updating Business Partner'; 
     end if;
     return  v_message;
 END;
@@ -210,7 +210,9 @@ Returns Order ID, if Successful
 
 This function was extended to a generic funktion to gen. Orders (PO/SO) - Not only for webservices-Also within OZ
 1. Use:  p_shopid is a valid zse_shop_id. If null, as preference for the PreferenceType WebshopOrder (SOO) is used in smartinvoiceprefs with shop-id = null else specific for the shop to Determin doctype etc.
-               In that case p_ec_paymentmethod is a shop-Payment-method ListRef 'Paymentmethod ECommerce' (8EE47A7F188B4F86936C8AF91A55490A) and has to be mapped to OZ paymentrule List Ref (195) . See Mapping to Paymentrule below.
+               In that case p_ec_paymentmethod is a shop-Payment-method ListRef 'Paymentmethod ECommerce' (8EE47A7F188B4F86936C8AF91A55490A) and has to be mapped to OZ paymentrule List Ref (195) . See Mapping to Paymentrule below. HINWEIS: Mit XML-Api recicht es, einfach die paymentrule List Ref (195)  individuell zu erweitern (s. OrderAPIjava APIOrderData.updateChannelPaymeth) - Dieses updated nachher
+               -- HINWEIS: Logik für Zahlungsart wird bei XML-Api überschrieben
+               ´ 
  
  2. Use: In p_shopid is not a zse_shop_id, BUT a Value of the List PreferenceType Ref-List-ID F2F614C13163411D8EFD805E23037EE0, Field invoicetype in smartinvoiceprefs. In this case Field invoicetype in smartinvoiceprefs is used to determin the doctype_id etc.
                In that Case The Payment method,  is used from the settings in bpartner or invoiceprefs
@@ -315,6 +317,7 @@ BEGIN
     if substr(v_message,1,3)!='ERR' then 
          if (select count(*)   from zssi_smartinvoiceprefs where ad_client_id=v_client and ad_org_id in ('0',p_org_Id) and invoicetype=coalesce(p_shopid,'null') and isactive='Y')=0 then
                  -- Mapping to Paymentrule
+                 -- HINWEIS: Logik für Zahlungsart wird bei XML-Api überschrieben
                  select value into v_ec_paymentmethod  from ad_ref_list where ad_reference_id='8EE47A7F188B4F86936C8AF91A55490A' and name=p_ec_paymentmethod;
                  if v_ec_paymentmethod is null then
                     select value into v_ec_paymentmethod  from ad_ref_list where ad_reference_id='8EE47A7F188B4F86936C8AF91A55490A' and value=p_ec_paymentmethod;
@@ -363,12 +366,13 @@ BEGIN
                 from c_bpartner where c_bpartner_id=p_bpartner_Id;
                 select ad_user_id into v_salesrep from ad_user where v_salesrep=c_bpartner_id;
         end if;          
-        -- Set defaults preventing "not null"
+        -- Set defaults preventing "not null" 
+        -- HINWEIS: Logik für Zahlungsart wird bei XML-Api überschrieben
         if v_payterm2 is null then
                 if v_payterm is null then
                         select c_paymentterm_id into v_payterm from c_paymentterm LIMIT 1;
                 end if;
-        else
+        elsif v_paymentrule in ('R','P') then -- Zahlungsbedingungen nur bei Rechnung und Bankeinzug aus Kundenstamm laden.
                 v_payterm:=v_payterm2;
         end if;
         if v_pricelist2 is null then
@@ -646,7 +650,20 @@ BEGIN
 END;
 $_$  LANGUAGE 'plpgsql';
      
-     
+CREATE OR REPLACE FUNCTION zsse_commitOrder_userexit(p_order_Id varchar)
+  RETURNS void AS
+$BODY$
+/*
+***********************************************************************************************+*****************************************
+User-Exit for zsse_commitOrder
+**/
+DECLARE
+
+BEGIN
+
+RETURN;
+END;
+$BODY$ LANGUAGE plpgsql VOLATILE;
 
 CREATE or replace FUNCTION zsse_commitOrder(p_order_Id character varying) RETURNS character varying
 AS $_$
@@ -679,6 +696,7 @@ BEGIN
         delete from c_order where c_order_id=p_order_Id;
     else
         if substr(v_message,1,3)!='ERR' then  
+        PERFORM zsse_commitOrder_userexit(p_order_Id);
         select o.ad_client_id,o.ad_org_id,s.zse_shop_id into v_client,v_org,v_shop from c_order o left join ZSE_Shoporderstatus s on s.c_order_id=o.c_order_id where o.c_order_id=p_order_Id;
         --Needs Construction for multiple shops...
         select isautoclosing into v_direct  from zssi_smartinvoiceprefs where ad_client_id=v_client and ad_org_id in ('0',v_org) and invoicetype='SSO' 
@@ -695,3 +713,179 @@ $_$  LANGUAGE 'plpgsql';
      
 
  
+select zsse_dropfunction ('zsse_createInvoiceHeader');
+CREATE or replace FUNCTION zsse_createAPInvoiceHeader(p_org_Id character varying,p_user character varying,p_bpartner_Id character varying,p_location_id varchar, p_bpcontact_id  character varying) RETURNS character varying
+AS $_$
+DECLARE
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011-2017 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+Creates an Purchase Invoice Header 
+Returns Invoice ID, if Successful
+
+*****************************************************/
+-- Simple Types
+v_message character varying :='SUCCESS';
+v_invoiceid character varying;
+v_client character varying:='C726FEC915A54A0995C568555DA5BB3C';
+v_country character varying;
+v_count integer; 
+v_user character varying;
+v_docno character varying;
+v_doctypetarget  character varying:='0AC8991D82484092B1B56A660B223527'; -- AP Invoice
+v_payterm  character varying;
+v_invrule  character varying;
+v_delrule  character varying;
+v_warehouse  character varying;
+v_pricelist  character varying; 
+v_location character varying; 
+v_locationship2 character varying; 
+v_currency  character varying:='102'; --EUR
+v_paymentrule character varying;
+v_ec_paymentmethod character varying;
+v_usecustomersdefaults character varying;
+v_salesrep character varying;
+v_so_description character varying;
+v_freightcostrule character varying;
+v_shipper character varying;
+v_incoterms character varying;
+v_invrule2 character varying;
+v_delrule2 character varying;
+v_pricelist2 character varying;
+v_freightcostrule2 character varying;
+v_paymentrule2 varchar;
+v_issotrx varchar:='N';
+BEGIN 
+    select ad_user_id into v_user from ad_user where username=p_user;
+    if v_user is null then
+        select ad_user_id into v_user from ad_user where ad_user_id=p_user;
+    end if;
+    if v_user is null or v_client is null then raise exception '%','ERR: WRONG USER or ORG ID'; end if;
+    --
+    select count(*) into v_count from c_bpartner where c_bpartner_Id=p_bpartner_Id;
+    if v_count!=1 then raise exception '%','ERR: BUSINESS Partner does not exist!'; end if;
+    -- Get Billto Location
+    select c_bpartner_location_id into v_location from C_BPARTNER_LOCATION where C_bpartner_LOCATION_id=p_location_id;
+    if p_location_id is not null and v_location is null then
+        select c_bpartner_location_id into v_location from C_BPARTNER_LOCATION where C_LOCATION_id=p_location_id and c_bpartner_id=p_bpartner_Id;
+    end if;
+    if v_location is null then -- DEFAULT
+        select c_bpartner_location_id into v_location from c_bpartner_location where c_bpartner_id=p_bpartner_Id and isbillto ='Y'  order by isheadquarter desc limit 1;
+    end if;
+    if  (v_location is null) and substr(v_message,1,3)!='ERR'   then
+        raise exception '%','ERR: LOCATION IS not a Location of Business Partner'; 
+    end if;
+    --
+    SELECT p.PO_PaymentTerm_ID,p.M_PriceList_ID,p.PaymentRulePO into v_payterm,v_pricelist, v_paymentrule  FROM C_BPartner p WHERE p.C_BPartner_ID=p_bpartner_Id;
+    if v_payterm is null then
+        select  m_pricelist_id, c_paymentterm_id, paymentrule
+                into  v_pricelist, v_payterm, v_paymentrule
+                 from zssi_smartinvoiceprefs where  ad_org_id in ('0',p_org_Id) and invoicetype='SI' and isactive='Y' order by ad_org_id desc limit 1 ; 
+    end if;
+    if v_payterm is null then
+        select c_paymentterm_id into v_payterm from c_paymentterm where  ad_org_id in ('0',p_org_Id) order by isdefault desc limit 1;
+    end if;
+    if v_pricelist is null then
+        select m_pricelist_id into v_pricelist from m_pricelist where ad_org_id in ('0',p_org_Id) and issopricelist='N' order by isdefault desc limit 1;
+    end if;
+    if v_paymentrule is null then
+        v_paymentrule:='R';
+    end if;
+    --   
+    v_invoiceid:=get_uuid();
+    -- Get new DocData
+    select ad_sequence_doctype(v_doctypetarget,p_org_Id,'Y') into v_docno from dual;
+    -- Create Invoice Header
+    select c_currency_id into v_currency from m_pricelist where m_pricelist_id=v_pricelist;
+    INSERT INTO C_Invoice
+          (C_Invoice_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE, CREATEDBY, UPDATEDBY,
+           ISSOTRX, DOCUMENTNO, DOCSTATUS, DOCACTION, PROCESSING, C_DOCTYPE_ID,C_DOCTYPETARGET_ID,
+           DATEINVOICED, DATEACCT, C_BPARTNER_ID,  C_BPARTNER_LOCATION_ID, C_CURRENCY_ID, PAYMENTRULE, C_PAYMENTTERM_ID,AD_USER_ID,
+           M_PRICELIST_ID,istaxincluded, salesrep_id)
+         VALUES
+           (v_invoiceid, v_Client, p_org_Id,'Y',v_user,v_user,
+           v_issotrx , v_docno,  'DR', 'CO','N','0',v_doctypetarget,
+            trunc(now()),trunc(now()),p_bpartner_Id,v_location,v_currency,v_paymentrule,v_payterm,p_bpcontact_id,
+            v_pricelist,'N',v_user);
+    if v_message='SUCCESS' then
+      v_message:=v_invoiceid;
+    end if;
+    return v_message;
+END;
+$_$  LANGUAGE 'plpgsql';
+
+select zsse_dropfunction('zsse_createAPInvoiceLine');
+CREATE or replace FUNCTION zsse_createAPInvoiceLine(p_invoice_Id character varying,p_product_id character varying,p_qty character varying,p_price character varying,p_decription character varying,p_taxId varchar) RETURNS character varying
+AS $_$
+DECLARE
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+Creates an Order Header
+Returns Order ID, if Successful
+*****************************************************/
+-- Simple Types
+v_message character varying :='SUCCESS';
+v_client character varying;
+v_org character varying;
+v_count integer; 
+v_line integer ;
+v_user character varying;
+v_tax  character varying;
+v_location character varying;
+v_warehouse character varying;
+v_uom character varying;
+v_currency character varying;
+v_bpartner_id character varying;
+v_guid varchar;
+BEGIN 
+    select count(*) into v_count from c_invoice where c_invoice_id=p_invoice_Id;
+    if v_count=0 then raise exception '%','ERR: IInvoice does not exist!'; end if;
+    if substr(v_message,1,3)!='ERR' then    
+        select c_bpartner_id,C_BPARTNER_LOCATION_ID,CREATEDBY,AD_CLIENT_ID, AD_ORG_ID,c_currency_id into v_bpartner_id,v_location,v_user,v_client,v_org,v_currency from c_invoice where c_invoice_id=p_invoice_Id;
+        select count(*) into v_count from m_product where m_product_id=p_product_id;
+        if v_count=0 then
+            select count(*) into v_count from m_product where value=p_product_id;
+            if v_count=0 then 
+               select count(*) into v_count from m_product where upc=p_product_id;
+               if v_count=0 then     
+                   raise exception '%','ERR: Product does not exist!'; 
+               else
+                  select m_product_id into p_product_id from m_product where upc=p_product_id limit 1; 
+               end if;
+            else
+               select m_product_id into p_product_id from m_product where value=p_product_id;
+            end if;                
+        end if;
+        if substr(v_message,1,3)!='ERR' then    
+           if (select count(*) from c_tax where c_tax_id=p_taxId)>0  then
+            v_tax:=p_taxId;
+           else
+            select zsfi_GetTax(v_location, p_product_id, v_org) into v_tax from dual;
+           end if;
+            select C_UOM_ID into v_uom from m_product where m_product_id=p_product_id;
+            select coalesce(max(line),0)+10 into v_line from c_invoiceline where c_invoice_id=p_invoice_Id;
+            v_guid:=get_uuid();
+            insert into c_invoiceline (C_INVOICELINE_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATEDBY, UPDATEDBY,
+                                    C_INVOICE_ID, LINE, M_PRODUCT_ID, C_UOM_ID, QTYINVOICED,
+                                     PRICEACTUAL, C_TAX_ID,DESCRIPTION)
+                        values(v_guid,v_client,v_org,v_user,v_user,
+                            p_invoice_Id,v_line, p_product_id,v_uom,to_number(p_qty),
+                            to_number(p_price),v_tax,replace(replace(p_decription,'\r\n',chr(10)),'\n',chr(10)));
+        end if;
+    end if;
+    return v_message;
+END;
+$_$  LANGUAGE 'plpgsql';

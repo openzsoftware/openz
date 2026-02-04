@@ -970,13 +970,20 @@ Gets the Total of an account to a specific Time
   v_Total numeric;
   v_startcurryear DATE;
   v_accounttype VARCHAR(60); -- c_elementvalue.accounttype(60)
+  v_year varchar;
 BEGIN
   --Saldo für Sachkonto ermitteln
   --A=Asset/Aktiva/Anlagen, E=Expense/Kosten, L=Liability/Passiva/Schulden, O=Owners Equity/Eigenkapital, R=Revenue/Ertrag
   SELECT TRIM(accounttype) INTO v_accounttype FROM c_elementvalue WHERE c_elementvalue_id = p_acct AND accounttype in ('A','L','O', 'E', 'R');
   -- Automatische 0 - Saldo für Aufwand und Ertrag bei Geschäftsjahresbeginn
-  select p.startdate into v_startcurryear FROM c_periodcontrol pc, c_period p, c_year y where pc.c_period_id = p.c_period_id AND p.c_year_id = y.c_year_id
-               and pc.ad_org_id=p_org  and y.year=extract (year from p_date_from)::text order by   p.startdate limit 1;
+  --select p.startdate into v_startcurryear FROM c_periodcontrol pc, c_period p, c_year y where pc.c_period_id = p.c_period_id AND p.c_year_id = y.c_year_id
+  --             and pc.ad_org_id=p_org  and y.year=extract (year from p_date_from)::text order by   p.startdate limit 1;
+
+  -- Erst das Buchungsjahr bestimmen, in dem das Anfangsdatum der Auswertung liegt
+  select p.c_year_id into v_year FROM c_periodcontrol pc, c_period p where pc.c_period_id = p.c_period_id
+               and pc.ad_org_id=p_org  and startdate<=p_date_from order by startdate desc limit 1;
+  -- Beginn der ersten Periode im Buchungsjahr (Kontenabschluß bei GuV)
+  select p.startdate into v_startcurryear FROM  c_period p where p.c_year_id= v_year order by startdate limit 1;
                
   if  v_accounttype IN ('E','R') then 
     return coalesce(v_startcurryear,to_date('01.01'|| to_char(p_date_from,'YYYY') ,'dd.mm.yyyy')); 
@@ -1012,13 +1019,22 @@ Gets the Total of an account to a specific Time
   v_Total numeric;
   v_startcurryear timestamp;
   v_accounttype VARCHAR(60); -- c_elementvalue.accounttype(60)
+  v_year varchar;
 BEGIN
   --Saldo für Sachkonto ermitteln
   --A=Asset/Aktiva/Anlagen, E=Expense/Kosten, L=Liability/Passiva/Schulden, O=Owners Equity/Eigenkapital, R=Revenue/Ertrag
   SELECT TRIM(accounttype) INTO v_accounttype FROM c_elementvalue WHERE c_elementvalue_id = p_acct AND accounttype in ('A','L','O', 'E', 'R');
   -- Automatische 0 - Saldo für Aufwand und Ertrag bei Geschäftsjahresbeginn
+  /*
   select p.startdate into v_startcurryear FROM c_periodcontrol pc, c_period p, c_year y where pc.c_period_id = p.c_period_id AND p.c_year_id = y.c_year_id
                and pc.ad_org_id=p_org  and y.year=extract (year from p_date_from)::text order by   p.startdate limit 1;
+  */
+  -- Erst das Buchungsjahr bestimmen, in dem das Anfangsdatum der Auswertung liegt
+  select p.c_year_id into v_year FROM c_periodcontrol pc, c_period p where pc.c_period_id = p.c_period_id
+               and pc.ad_org_id=p_org  and startdate<=p_date_from order by startdate desc limit 1;
+  -- Beginn der ersten Periode im Buchungsjahr (Kontenabschluß bei GuV)
+  select p.startdate into v_startcurryear FROM  c_period p where p.c_year_id= v_year order by startdate limit 1;
+
   SELECT sum( (CASE WHEN v_accounttype IN ('A', 'E') THEN f.amtacctcr ELSE f.amtacctdr END) - (CASE WHEN v_accounttype IN ('A', 'E') THEN f.amtacctdr ELSE f.amtacctcr END) )
   INTO v_Total
   FROM fact_acct f
@@ -2790,6 +2806,11 @@ BEGIN
               end
               into v_tempacct from m_product_acct where m_product_id= v_product_id and isactive='Y' and c_acctschema_id=v_acctschema_id;    
        if v_tempacct is not null then v_retacct:=v_tempacct; end if;
+       -- invoice line wins, if defined only for p_expense_acct
+       select case v_acctType when '2' then p_expense_acct
+              end
+              into v_tempacct from c_invoiceline where c_invoiceline_id=v_InvoiceLineid;
+       if v_tempacct is not null then v_retacct:=v_tempacct; end if;
     end if;
     RETURN  v_retacct;
 END;
@@ -4094,7 +4115,13 @@ BEGIN
     END IF;
 
     IF TG_OP = 'DELETE' THEN 
-        v_sql:='update '||old.tablename||' set posted='||chr(39)||'N'||chr(39)||' where posted='||chr(39)||'E'||chr(39)||' and '||old.tablename||'_id='||chr(39)||old.sourceid||chr(39);
+        -- Update Failes Processes
+        v_sql:='update '||old.tablename||' set posted='||chr(39)||'N'||chr(39)||' where 
+                posted in ('||chr(39)||'E'||chr(39)||','||chr(39)||'p'||chr(39)||','||chr(39)||'b'||chr(39)||','||chr(39)||'c'||chr(39)||','||chr(39)||'i'||chr(39)||','||chr(39)||'C'||chr(39)||','||chr(39)||'y'||chr(39)||') 
+                and '||old.tablename||'_id='||chr(39)||old.sourceid||chr(39);
+        EXECUTE(v_sql);
+        -- Update aborted Processes
+        v_sql:='update '||old.tablename||' set processing='||chr(39)||'N'||chr(39)||' where processing='||chr(39)||'Y'||chr(39)||' and '||old.tablename||'_id='||chr(39)||old.sourceid||chr(39);
         EXECUTE(v_sql);
     END IF;
     IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
@@ -4109,7 +4136,46 @@ CREATE TRIGGER zsfi_fact_error_log_trg
   EXECUTE PROCEDURE zsfi_fact_error_log_trg();
   
   
-  
+CREATE OR REPLACE FUNCTION zsfi_log_locked() RETURNS varchar
+    LANGUAGE plpgsql
+    AS $_$ DECLARE 
+-- RESET of ACCOUNTING-ERRORS
+    v_sql varchar;       
+    v_cur record;
+    
+BEGIN
+    for v_cur in (select i.dateacct,i.documentno,i.c_invoice_id from c_invoice i where i.processing='Y'  and not exists(select 0 from zsfi_fact_error_log l where l.sourceid=i.c_invoice_id))
+    LOOP
+      insert into zsfi_fact_error_log(ZSFI_FACT_ERROR_LOG_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATED, CREATEDBY, UPDATED, UPDATEDBY, 
+                     DOCUMENTNO, DATEACCT, STATUS, TABLENAME,SOURCEID)
+             values (get_uuid(),'C726FEC915A54A0995C568555DA5BB3C','0',now(),'0',now(),'0',v_cur.DOCUMENTNO,v_cur.dateacct,'L','C_Invoice',v_cur.c_invoice_id);
+    END LOOP;
+    for v_cur in (select i.dateacct,i.documentno,i.c_settlement_id from c_settlement i where i.processing='Y'  and not exists(select 0 from zsfi_fact_error_log l where l.sourceid=i.c_settlement_id))
+    LOOP
+      insert into zsfi_fact_error_log(ZSFI_FACT_ERROR_LOG_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATED, CREATEDBY, UPDATED, UPDATEDBY, 
+                     DOCUMENTNO, DATEACCT, STATUS, TABLENAME,SOURCEID)
+             values (get_uuid(),'C726FEC915A54A0995C568555DA5BB3C','0',now(),'0',now(),'0',v_cur.DOCUMENTNO,v_cur.dateacct,'L','C_Settlement',v_cur.c_settlement_id);
+    END LOOP;
+    for v_cur in (select i.dateacct,substr(i.name,1,30) as documentno,i.c_cash_id from c_cash i where i.processing='Y'  and not exists(select 0 from zsfi_fact_error_log l where l.sourceid=i.c_cash_id))
+    LOOP
+      insert into zsfi_fact_error_log(ZSFI_FACT_ERROR_LOG_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATED, CREATEDBY, UPDATED, UPDATEDBY, 
+                     DOCUMENTNO, DATEACCT, STATUS, TABLENAME,SOURCEID)
+             values (get_uuid(),'C726FEC915A54A0995C568555DA5BB3C','0',now(),'0',now(),'0',v_cur.DOCUMENTNO,v_cur.dateacct,'L','C_Cash',v_cur.c_cash_id);
+    END LOOP;
+    for v_cur in (select i.statementdate as dateacct,substr(i.name,1,30) as documentno,i.c_bankstatement_id from c_bankstatement i where i.processing='Y'  and not exists(select 0 from zsfi_fact_error_log l where l.sourceid=i.c_bankstatement_id))
+    LOOP
+      insert into zsfi_fact_error_log(ZSFI_FACT_ERROR_LOG_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATED, CREATEDBY, UPDATED, UPDATEDBY, 
+                     DOCUMENTNO, DATEACCT, STATUS, TABLENAME,SOURCEID)
+             values (get_uuid(),'C726FEC915A54A0995C568555DA5BB3C','0',now(),'0',now(),'0',v_cur.DOCUMENTNO,v_cur.dateacct,'L','C_Bankstatement',v_cur.c_bankstatement_id);
+    END LOOP;
+    for v_cur in (select i.dateacct,substr(i.name,1,30) as documentno,i.A_Amortization_id from A_Amortization i where i.processing='Y'  and not exists(select 0 from zsfi_fact_error_log l where l.sourceid=i.A_Amortization_id))
+    LOOP
+      insert into zsfi_fact_error_log(ZSFI_FACT_ERROR_LOG_ID, AD_CLIENT_ID, AD_ORG_ID,  CREATED, CREATEDBY, UPDATED, UPDATEDBY, 
+                     DOCUMENTNO, DATEACCT, STATUS, TABLENAME,SOURCEID)
+             values (get_uuid(),'C726FEC915A54A0995C568555DA5BB3C','0',now(),'0',now(),'0',v_cur.DOCUMENTNO,v_cur.dateacct,'L','A_Amortization',v_cur.A_Amortization_id);
+    END LOOP;
+    return 'ok';
+END; $_$; 
   
   
   

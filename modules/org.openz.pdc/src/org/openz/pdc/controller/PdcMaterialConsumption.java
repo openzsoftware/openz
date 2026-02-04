@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.data.FieldProvider;
-
+import org.openbravo.database.ConnectionProvider;
 import org.openbravo.erpCommon.businessUtility.WindowTabs;
 import org.openbravo.erpCommon.utility.OBError;
 import org.openbravo.erpCommon.utility.Utility;
@@ -289,7 +289,7 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
 	            	  qty="";
 	            	else {
 	            	  qty= PdcMaterialConsumptionData.getQtyPartly(this, upperGridData[i].getField("pdcmaterialconsumptionplannedqty") , GlobalWorkstepID, upperGridData[i].getField("m_product_id"), upperGridData[i].getField("m_locator_id"));
-	            	  if (!getLocalSessionVariable(vars, "plannedserialorbatch").isEmpty()  && ! FormatUtils.isNix(qty)) {
+	            	  if (! FormatUtils.isNix(qty)) {
 	            		  String rq=PdcMaterialReturnData.getRetQty(this, upperGridData[i].getField("m_product_id"),GlobalConsumptionID,GlobalWorkstepID,getLocalSessionVariable(vars, "plannedserialorbatch"));
 	            		  if (! FormatUtils.isNix(rq)) {
 	            			  Float qtyf = Float.parseFloat(qty);
@@ -306,6 +306,30 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
 	              //	  qty=PdcMaterialConsumptionData.getQty(this, GlobalConsumptionID, GlobalWorkstepID, upperGridData[i].getField("m_product_id"), upperGridData[i].getField("m_locator_id"));
 	              if (! qty.isEmpty()) {
 	                if (new BigDecimal(qty).compareTo(BigDecimal.ZERO)==1) {
+                        String prodId=PdcCommonData.getProductFromWorkstep(this, GlobalWorkstepID);
+                        // serialtracking for produced product
+                        // and simplified production
+                        // and no serialtracking products in bom
+                        // and current product is batchtracking
+                        // and produced qty is grater 1
+                        if(PdcCommonData.isserialtracking(myPool, prodId).equals("Y")
+                            && PdcCommonData.isSimplyfiedInWorkstep(myPool, GlobalWorkstepID).equals("Y")
+                            && PdcCommonData.isSerialtrackingInBom(myPool, GlobalWorkstepID).equals("N")
+                            && PdcCommonData.isbatchtracking(myPool, upperGridData[i].getField("m_product_id")).equals("Y")
+                            && new BigDecimal(qty).compareTo(BigDecimal.ONE)==1){
+                            // only use one batchnumberr for production of multiple products with serialnumbers
+                            String maxInOneBatch = PdcCommonData.getMaxQtyonhandOneBatch(myPool, upperGridData[i].getField("m_product_id"), upperGridData[i].getField("m_locator_id"));
+                            if(Float.parseFloat(qty) > Float.parseFloat(maxInOneBatch)) {
+                                // on error delete consumption+lines and start over
+                                String maxProduction = PdcCommonData.getMaxProduceableOneBatch(myPool, maxInOneBatch, vars.getLanguage(), GlobalWorkstepID, upperGridData[i].getField("m_product_id"));
+                                PdcCommonData.deleteAllMaterialLines(this,GlobalConsumptionID);
+                                PdcCommonData.deleteMaterialTransaction(this,GlobalConsumptionID);
+                                vars.setSessionValue("PDCSTATUS","ERROR");
+                                vars.removeSessionValue("pdcConsumptionID");
+                                String error = "@pdcbatchchange@" + " " + maxProduction + ", " + PdcCommonData.getBatchOfMax(myPool, upperGridData[i].getField("m_product_id"), upperGridData[i].getField("m_locator_id"));
+                                throw new ServletException(error);
+                                }
+                            }
 	                  PdcCommonData.insertMaterialLine( this, vars.getClient(), vars.getOrg(), 
 	                		  PdcUserID,GlobalConsumptionID,upperGridData[i].getField("m_locator_id"),upperGridData[i].getField("m_product_id"),
 	                    PdcCommonData.getNextLineFromConsumption(this, GlobalConsumptionID),
@@ -327,6 +351,8 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
       if ((vars.commandIn("PRODUCTION")||vars.commandIn("REJECT")) && qtySerOK(vars,GlobalWorkstepID)) {
     	  Connection con=this.getTransactionConnection();	
     	  try {
+              String prodId=PdcCommonData.getProductFromWorkstep(this, GlobalWorkstepID);
+              boolean multiProductionSerialnumber = false;
 	    	  // Start internal Consumption Post Process directly - Process Internal Consumption
 	    	  if (TimeFeedbackData.isWorstepStarted(this, GlobalWorkstepID).equals("N")) {
 	              TimeFeedbackData.beginWorkstepNoMat(con,this, GlobalWorkstepID, PdcUserID, vars.getOrg());
@@ -334,12 +360,106 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
 	    	  String psnrbnr=getLocalSessionVariable(vars,"plannedserialorbatch");
 	          if (!FormatUtils.isNix(psnrbnr))
 	          	PdcCommonData.updateSnrBnr(con,this, psnrbnr, GlobalConsumptionID);
+              // only one batchnumber per product can be used when producing multiple serialnumbers
+	          // then split consumtion to one consumtion per produced product
+              if (PdcCommonData.isserialtracking(myPool, prodId).equals("Y")
+                  && UtilsData.getOrgConfigOption(this, "serialbomstrict", vars.getOrg()).equals("Y")
+                  && !FormatUtils.isNix(vars.getNumericParameter("inppdcproductionquantity"))
+                  && Float.parseFloat(vars.getNumericParameter("inppdcproductionquantity")) > 1) {
+                  lowerGridData = PdcMaterialConsumptionData.selectlower(this, vars.getLanguage(),GlobalConsumptionID);
+                  for(FieldProvider fp : lowerGridData) {
+                      // multiple batchnumbers are separated by ;
+                      if(fp.getField("lotnumber").contains(";")) {
+                          vars.setSessionValue("PDCSTATUS","ERROR");
+                          throw new ServletException("@pdconlyonebatchallowed@");
+                      }
+                  }
+                  multiProductionSerialnumber = true;
+              }
 	          if (!FormatUtils.isNix(vars.getNumericParameter("inppdcproductionquantity")) && Float.parseFloat(DoProductionData.getOpenQTY(this, GlobalWorkstepID)) <
 	        		  Float.parseFloat(vars.getNumericParameter("inppdcproductionquantity")))
 	          {	
 	        	  vars.setSessionValue("PDCSTATUS","ERROR");
 	        	  vars.setSessionValue("PDCSTATUSTEXT","Menge > möglicher Menge");
-	          } else {
+	          } else if (multiProductionSerialnumber) {
+	              SerialNumberData[] unusedSerialnumbers = SerialNumberData.getUnusedPredefinedSerialnumbersFromWorkstep(this, GlobalWorkstepID);
+                  final String inputSerialno = getLocalSessionVariable(vars, "plannedserialorbatch");
+	              String serialInLoop = "";
+                  PdcCommonData.updateSnrBnr(con,this, "", GlobalConsumptionID); // delete snr in parent to prevent conflict
+                  String resultMessages = "";
+                  // serialnumbers -> full numbers
+                  for(int i = 0; i < Integer.parseInt(vars.getNumericParameter("inppdcproductionquantity")); i++) {
+                      String loopConsumtionId = UtilsData.getUUID(this);
+                      if(unusedSerialnumbers.length <= i) {
+                          serialInLoop = inputSerialno + "-" + i;
+                      } else {
+                          serialInLoop = unusedSerialnumbers[i].getField("name");
+                      }
+                      PdcMaterialConsumptionData.insertConsumption(
+                              con,
+                              this,
+                              loopConsumtionId,
+                              vars.getClient(),
+                              vars.getOrg(),
+                              PdcUserID,
+                              PdcCommonData.getProductionOrderFromWorkstep(this,getLocalSessionVariable(vars, WorkstepIDADName)),
+                              getLocalSessionVariable(vars, WorkstepIDADName),serialInLoop);
+
+                      // for each consumption split and insert consumptionlines
+                      PdcMaterialConsumptionData[] consumptionLines = PdcMaterialConsumptionData.getConsumptionlines(con, this, GlobalConsumptionID);
+                      for(PdcMaterialConsumptionData loopLines : consumptionLines) {
+                          String loopConsumptionLineId = UtilsData.getUUID(this);
+                          PdcCommonData.insertMaterialLine4Trx(con, this, loopConsumptionLineId, vars.getOrg(),
+                            PdcUserID,loopConsumtionId,loopLines.getField("m_locator_id"),loopLines.getField("m_product_id"),
+                            (Float.parseFloat(loopLines.getField("movementqty"))/Integer.parseInt(vars.getNumericParameter("inppdcproductionquantity")))+"",
+                            PdcCommonData.getProductStdUOM(this, loopLines.getField("m_product_id")),
+                            PdcCommonData.getProductionOrderFromWorkstep(this,getLocalSessionVariable(vars, WorkstepIDADName)),
+                            getLocalSessionVariable(vars, WorkstepIDADName));
+
+                          // for each consumtionline split batches and insert into consumptionline
+                          // each line only has ONE batchnumber, serialnumbers are not possible
+                          // (checked beforehand)
+                          PdcMaterialConsumptionData[] batchLines = PdcMaterialConsumptionData.getBatchLine(con, this, loopLines.getField("m_internal_consumptionline_id"));
+                          if(batchLines != null && batchLines.length > 0) {
+                              SerialNumberData.insertSerialLine(con, this, vars.getClient(), vars.getOrg(), PdcUserID, loopConsumptionLineId,
+                                      Float.parseFloat(batchLines[0].getField("quantity"))/Integer.parseInt(vars.getNumericParameter("inppdcproductionquantity"))+"",
+                                      batchLines[0].getField("lotnumber"), "");
+                          }
+                      }
+                      PdcCommonData.doConsumptionPost(con,this,loopConsumtionId);
+                      String msgtext=UtilsData.getProcessResultWC(con,this, loopConsumtionId);
+                      if (msgtext.startsWith("ERROR")) {
+                          throw new ServletException(msgtext.replaceFirst("ERROR@", ""));
+                      } else {
+                          String ptrxID=commons.prepareProduction(vars,"1",GlobalWorkstepID,null,PdcUserID,getLocalSessionVariable(vars, ProductIDADName),vars.getSessionValue("pdcLocatorID"),this,con);
+                          if (!FormatUtils.isNix(ptrxID)) {
+                              vars.setSessionValue("PDCFORMERDIALOGUE","/org.openz.pdc.ad_forms/PdcMainDialogue.html");
+                              String rejectmsg="";
+                              if (vars.commandIn("REJECT"))
+                                  rejectmsg=PdcCommonData.doRejection(con, this, ptrxID, vars.getLanguage());
+                              commons.finishProduction(response, ptrxID,GlobalWorkstepID, BcCommand,PdcUserID,vars,this,con,serialInLoop);
+                              // list results for each production
+                              if(resultMessages.isEmpty()) {
+                                  resultMessages=vars.getSessionValue("PDCSTATUSTEXT");
+                              } else {
+                                  resultMessages=resultMessages + "</br>" + vars.getSessionValue("PDCSTATUSTEXT");
+                              }
+                              strpdcFormerDialogue=vars.getSessionValue("PDCFORMERDIALOGUE");
+                              if (!rejectmsg.isEmpty()) {
+                                  vars.setSessionValue("PDCSTATUSTEXT",rejectmsg);
+                                  break;
+                              }
+                          }
+                      }
+                  }
+                  // delete parent consumption
+                  PdcCommonData.deleteAllMaterialLines(con,this,GlobalConsumptionID);
+                  PdcCommonData.deleteMaterialTransaction(con,this,GlobalConsumptionID);
+                  // redirect in finishproduction is disabled for milti serialnumber production
+                  vars.setSessionValue("PDCSTATUSTEXT",resultMessages);
+                  response.sendRedirect(strDireccion + strpdcFormerDialogue);
+	          }
+	          else {
 		          //ProcessUtils.startProcessDirectly(GlobalConsumptionID, "800131", vars, this); 
 	        	  PdcCommonData.doConsumptionPost(con,this,GlobalConsumptionID);
 	        	  String msgtext=UtilsData.getProcessResultWC(con,this, GlobalConsumptionID);
@@ -417,6 +537,24 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
         deleteLocalSessionVariable(vars,QuantityADName);
         response.sendRedirect(strDireccion + strpdcFormerDialogue);
       }
+
+      // for serialnumber allow to change productionqty
+      // when serialtracking
+      // and no serial product in bom
+      // and simplified
+      // and serialnumber filled
+      String prodId=PdcCommonData.getProductFromWorkstep(this, GlobalWorkstepID);
+      if(!FormatUtils.isNix(prodId)
+              && PdcCommonData.isserialtracking(this, prodId).equals("Y")
+              && PdcCommonData.isSerialtrackingInBom(this, GlobalWorkstepID).equals("N")
+              && PdcCommonData.isSimplyfiedInWorkstep(this, GlobalWorkstepID).equals("Y")
+              && !FormatUtils.isNix(getLocalSessionVariable(vars,"plannedserialorbatch"))) {
+          upperGridData = PdcMaterialConsumptionData.selectupper(this, vars.getLanguage(),getLocalSessionVariable(vars, "pdcproductionquantity"),vars.getSessionValue("pdcAssemblySerialOrBatchNO"),GlobalConsumptionID, getLocalSessionVariable(vars, WorkstepIDADName));
+          if(upperGridData.length==0) {
+              vars.setSessionValue("QTYROPROD", "N");
+          }
+      }
+
     // Present Errors on the User Screen
     } catch (Exception e) { 
     	e.printStackTrace();
@@ -554,8 +692,8 @@ public class PdcMaterialConsumption extends HttpSecureAppServlet {
   private void setQtsSer(String workstepID,VariablesSecureApp vars) throws ServletException {
 	  String prodId=PdcCommonData.getProductFromWorkstep(this, workstepID);
 	  if (prodId!=null && PdcCommonData.isserialtracking(this, prodId).equals("Y") && UtilsData.getOrgConfigOption(this, "serialbomstrict", vars.getOrg()).equals("Y")) {
-		  setLocalSessionVariable(vars, "pdcproductionquantity", "1");
-		  vars.setSessionValue("QTYROPROD", "Y");
+	      setLocalSessionVariable(vars, "pdcproductionquantity", "1");
+          vars.setSessionValue("QTYROPROD", "Y");
 	  } else {
 	      // dont set production quantity when produce continouosly is checked
 	      if(PdcMaterialConsumptionData.getProduceContinuously(this, workstepID).equals("Y")) {

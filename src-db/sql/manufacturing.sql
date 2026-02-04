@@ -433,11 +433,17 @@ BEGIN
       end if;
       if coalesce(old.m_locator_id,'')!=new.m_locator_id and new.m_locator_id is not null and (select count(*) from m_product_org where m_product_id=new.m_product_id)=0 then
         -- Update Production BOMs
-        update zspm_projecttaskbom set issuing_locator=new.m_locator_id,receiving_locator=new.m_locator_id where m_product_id=new.m_product_id 
+        update zspm_projecttaskbom set 
+            issuing_locator=case when coalesce(issuing_locator,'')=coalesce(receiving_locator,'') then new.m_locator_id else  issuing_locator end,
+            receiving_locator=new.m_locator_id  
+            where m_product_id=new.m_product_id 
             and c_projecttask_id in (select c_projecttask_id from c_projecttask where c_project_id is null);
         -- Update Worksteps
         if new.production='Y' then
-            update zssm_workstep_prp_v set issuing_locator=new.m_locator_id,receiving_locator=new.m_locator_id where m_product_id=new.m_product_id;
+            update zssm_workstep_prp_v set 
+            receiving_locator=case when coalesce(issuing_locator,'')=coalesce(receiving_locator,'') then new.m_locator_id else receiving_locator end,
+            issuing_locator=new.m_locator_id
+            where m_product_id=new.m_product_id;
       end if;
      end if;
   end if;
@@ -1314,7 +1320,8 @@ BEGIN
       if v_count!=0 then
          RAISE EXCEPTION '%', '@zsmf_InPlanMatOnlyActiveStockedItems@:'||(select value from m_product where  m_product_id=new.m_product_id);
       end if;
-      select count(*) into v_count from zspm_projecttaskbom where c_projecttask_id=new.c_projecttask_id and zspm_projecttaskbom_id!=new.zspm_projecttaskbom_id and m_product_id=new.m_product_id;
+      select count(*) into v_count from zspm_projecttaskbom where c_projecttask_id=new.c_projecttask_id and zspm_projecttaskbom_id!=new.zspm_projecttaskbom_id and m_product_id=new.m_product_id
+                                        and coalesce(m_attributesetinstance_id,'')=coalesce(new.m_attributesetinstance_id,'');
       if v_count!=0 then
           raise exception '%', '@duplicatelinenumber@ in '||coalesce((select value||'-'||name from m_product where m_product_id=new.m_product_id),'#')||' Pos: '||coalesce(to_char(new.line),'#');
       end if; 
@@ -1423,6 +1430,9 @@ v_cur RECORD;
 v_rlocator varchar;
 v_ilocator varchar;
 v_locator varchar;
+v_attributesetinstance varchar;
+v_cur_attributes record;
+v_attribute_counter numeric := 1;
 BEGIN
     --  Update AD_PInstance
     PERFORM AD_UPDATE_PINSTANCE(p_PInstance_ID, NULL, 'Y', NULL, NULL) ;
@@ -1438,8 +1448,8 @@ BEGIN
            from c_project,c_projecttask 
            where c_project.c_project_id=c_projecttask.c_project_id and c_projecttask.c_projecttask_id=v_Record_ID;
     
-    select m_product.m_product_id,m_locator.m_warehouse_id,c_projecttask.qty,c_projecttask.ad_client_id,c_projecttask.ad_org_id,c_projecttask.issuing_locator,c_projecttask.receiving_locator
-          into v_product,v_pwareh,v_qty,v_client,v_org,v_ilocator,v_rlocator from m_product,c_projecttask,m_locator where 
+    select m_product.m_product_id,m_locator.m_warehouse_id,c_projecttask.qty,c_projecttask.ad_client_id,c_projecttask.ad_org_id,c_projecttask.issuing_locator,c_projecttask.receiving_locator,c_projecttask.m_attributesetinstance_id
+          into v_product,v_pwareh,v_qty,v_client,v_org,v_ilocator,v_rlocator,v_attributesetinstance from m_product,c_projecttask,m_locator where
                                                           c_projecttask.m_product_id=m_product.m_product_id and m_product.m_locator_id=m_locator.m_locator_id and c_projecttask_id=v_Record_ID;
     select m_warehouse_id into v_tmpwh from m_product_org,m_locator where m_locator.m_locator_id=m_product_org.m_locator_id and m_product_id=v_product and m_warehouse_id=v_warehouse limit 1;
     if v_tmpwh is not null then 
@@ -1452,11 +1462,39 @@ BEGIN
         RAISE EXCEPTION '%', 'No Product or no Locator found.';
     end if;
 
+     -- copy all bomproducts in temp table for attribute substitution
+     create temporary table temp_bom on commit drop as
+       (select M_PRODUCTbom_ID,constuctivemeasure,rawmaterial,line,bomqty from m_product_bom where m_product_id = v_product);
+
+     -- when attributes set in projecttask, check for bom substitutions
+     -- first loop, delete all bomproducts with substitutuins in m_attributevaluebom via given line
+     if (v_attributesetinstance is not null) then
+       -- first loop delete overwritten products
+       v_attribute_counter := 1;
+       for v_cur_attributes in (select * from m_attributeuse where m_attributeuse.m_attributeset_id=(select m_attributesetinstance.m_attributeset_id from m_attributesetinstance where m_attributesetinstance.m_attributesetinstance_id=v_attributesetinstance) order by seqno) loop
+         -- delete bomproduct when there exists an attributevaluebom with the corresponding line
+         delete from temp_bom where line in (select avb.line from m_attributevaluebom avb, m_attributevalue av, m_attribute a
+           where avb.m_attributevalue_id=av.m_attributevalue_id and av.value=(select m_attributesetgetInstanceValue(v_attributesetinstance, v_attribute_counter)) and av.m_attribute_id=a.m_attribute_id and a.m_attribute_id=v_cur_attributes.m_attribute_id
+         );
+         v_attribute_counter := v_attribute_counter + 1;
+       end loop;
+       -- second loop insert new substitute products
+       -- (two loops to prevent deletion of newly inserted products)
+       v_attribute_counter := 1;
+       for v_cur_attributes in (select * from m_attributeuse where m_attributeuse.m_attributeset_id=(select m_attributesetinstance.m_attributeset_id from m_attributesetinstance where m_attributesetinstance.m_attributesetinstance_id=v_attributesetinstance) order by seqno) loop
+         insert into temp_bom (
+           select avb.m_product_id as M_PRODUCTbom_ID,'' as constuctivemeasure,'' as rawmaterial,avb.line,avb.quantity as bomqty from m_attributevaluebom avb, m_attributevalue av, m_attribute a
+             where avb.m_attributevalue_id=av.m_attributevalue_id and av.value=(select m_attributesetgetInstanceValue(v_attributesetinstance, v_attribute_counter)) and av.m_attribute_id=a.m_attribute_id and a.m_attribute_id=v_cur_attributes.m_attribute_id
+         );
+         v_attribute_counter := v_attribute_counter + 1;
+       end loop;
+     end if;
+
     -- If we have multiple lines of the same material in this Production-BOM
     -- This material is combined together in one line
     -- Buiding BOM ist strictly bound in Matching Products.... (Ticket 10240)
     for v_cur in (select M_PRODUCTbom_ID as M_PRODUCT_ID,string_agg(constuctivemeasure,';') as constuctivemeasure,string_agg(rawmaterial,';') as rawmaterial, min(line) as line,sum(bomqty) as quantity 
-                  from m_product_bom where M_PRODUCT_ID = v_product group by M_PRODUCTbom_ID)
+                  from temp_bom group by M_PRODUCTbom_ID)
     LOOP
          select coalesce(p.cutoff,0),p.producttype,c_uom.stdprecision into v_cutoff,v_ptype,v_prec 
                 from c_uom, m_product p where p.c_uom_id=c_uom.c_uom_id and p.m_product_id=v_cur.M_PRODUCT_ID;
@@ -1478,10 +1516,34 @@ BEGIN
     -- Delete Deleted Lines...
     delete from zspm_projecttaskbom where C_PROJECTTASK_ID = v_Record_ID and qtyreserved=0 and qtyreceived=0 and qtyinrequisition=0 
            and m_requisitionline_id is null and c_orderline_id is null and c_salesorderline_id is null
-           and not exists (select 0 from m_product_bom b where b.M_PRODUCTbom_ID=zspm_projecttaskbom.m_product_id and b.m_product_id=v_product);
+           -- product not in bom
+           and (not exists (select 0 from m_product_bom b where b.M_PRODUCTbom_ID=zspm_projecttaskbom.m_product_id and b.m_product_id=v_product)
+              -- and product not in connected attributevalueboms
+              and not exists (select 0 from m_attributevaluebom avb, m_attributevalue av, m_attribute a, m_attributeuse au, m_attributeset ats, m_attributesetinstance atsi
+                where avb.m_product_id = zspm_projecttaskbom.m_product_id
+                  and avb.m_attributevalue_id = av.m_attributevalue_id
+                  and av.m_attribute_id = a.m_attribute_id
+                  and a.m_attribute_id = au.m_attribute_id
+                  and au.m_attributeset_id = ats.m_attributeset_id
+                  and ats.m_attributeset_id = atsi.m_attributeset_id
+                  and atsi.m_attributesetinstance_id = v_attributesetinstance
+             )
+           );
     update zspm_projecttaskbom set QTY_PLAN=0, quantity=0 where C_PROJECTTASK_ID = v_Record_ID and (qtyreserved!=0 or qtyreceived!=0 or qtyinrequisition!=0 
            or m_requisitionline_id is not null or c_orderline_id is not null or c_salesorderline_id is not null)
-           and not exists (select 0 from m_product_bom b where b.M_PRODUCTbom_ID=zspm_projecttaskbom.m_product_id and b.m_product_id=v_product);
+           -- product not in bom
+           and (not exists (select 0 from m_product_bom b where b.M_PRODUCTbom_ID=zspm_projecttaskbom.m_product_id and b.m_product_id=v_product)
+             -- and product not in connected attributevalueboms
+             and not exists (select 0 from m_attributevaluebom avb, m_attributevalue av, m_attribute a, m_attributeuse au, m_attributeset ats, m_attributesetinstance atsi
+               where avb.m_product_id = zspm_projecttaskbom.m_product_id
+                  and avb.m_attributevalue_id = av.m_attributevalue_id
+                  and av.m_attribute_id = a.m_attribute_id
+                  and a.m_attribute_id = au.m_attribute_id
+                  and au.m_attributeset_id = ats.m_attributeset_id
+                  and ats.m_attributeset_id = atsi.m_attributeset_id
+                  and atsi.m_attributesetinstance_id = v_attributesetinstance
+             )
+           );
     --perform zsmf_preplanmaterial(v_Record_ID,v_User);
     select  v_message||zsmf_createproductionbom_userexit(v_Record_ID,v_User) into v_message;
     RAISE NOTICE '%','Updating PInstance - Finished ' || v_Message ;
@@ -1591,6 +1653,9 @@ BEGIN
         -- 2nd strategy: Always get from fullest stocks (minimize lines in Planning) 
             v_rest:=v_cur.quantity-v_cur.qtyreserved-v_cur.qtyreceived;
             v_first:='Y';
+            --- Double Line with same Product is not allowed anymore (12014)
+            -- Commented out (Update could manipulate Quantity...)
+            /*
             if v_rest>0 and (select qty_available from zspm_projecttaskbom_view where zspm_projecttaskbom_view_id=v_cur.zspm_projecttaskbom_id)>=v_rest then
                 for v_cur2 in (select coalesce(QTYONHAND,0) as qtyavail,m_locator_id  from m_storage_detail where m_product_id=v_cur.m_product_id and C_UOM_ID=v_uom and 
                                                                 m_locator_id in (select m_locator_id from m_locator where m_warehouse_id=v_warehouse)
@@ -1610,15 +1675,16 @@ BEGIN
                     v_first:='N';
                     else
                     insert into zspm_projecttaskbom(ZSPM_PROJECTTASKBOM_ID, C_PROJECTTASK_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE, CREATED, CREATEDBY, UPDATED, UPDATEDBY, 
-                                                    M_PRODUCT_ID, QTY_PLAN,cutoff,quantity,constuctivemeasure,rawmaterial,m_locator_id)
+                                                    M_PRODUCT_ID, QTY_PLAN,cutoff,quantity,constuctivemeasure,rawmaterial,m_locator_id,m_attributesetinstance_id)
                     values (get_uuid(),p_PROJECTTASK_ID,v_cur.ad_client_id,v_cur.ad_org_id,'Y',now(),p_user,now(),p_user,
-                                v_cur.m_product_id,v_cur.QTY_PLAN,v_cur.cutoff,v_qty,v_cur.constuctivemeasure,v_cur.rawmaterial,v_cur2.m_locator_id);
+                                v_cur.m_product_id,v_cur.QTY_PLAN,v_cur.cutoff,v_qty,v_cur.constuctivemeasure,v_cur.rawmaterial,v_cur2.m_locator_id,v_cur.m_attributesetinstance_id);
                     end if;
                     if v_rest=0 then
                     exit;
                     end if;
                 END LOOP;
             end if; -- Qty Available
+            */
             -- Rest in Req.
             /*
             if v_rest!=0 and v_first='N' then
@@ -1797,10 +1863,12 @@ BEGIN
             select get_uuid() into v_reqlineuuid;
             insert into m_requisitionline (M_REQUISITIONLINE_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY, M_REQUISITION_ID, M_PRODUCT_ID, QTY, C_UOM_ID, DESCRIPTION, 
                         internalnotes,
-                        NEEDBYDATE, LINE, C_PROJECT_ID, C_PROJECTTASK_ID,c_bpartner_id,priceactual,m_pricelist_id,zspm_projecttaskbom_id,linenetamt)
+                        NEEDBYDATE, LINE, C_PROJECT_ID, C_PROJECTTASK_ID,c_bpartner_id,priceactual,m_pricelist_id,zspm_projecttaskbom_id,linenetamt,
+                        m_attributesetinstance_id)
                       values(v_reqlineuuid,v_cur.ad_client_ID, v_cur.ad_Org_ID,now(),v_User,now(),v_User,v_requid,v_cur.m_product_id,v_qty2requisition,v_uom,v_description,
                               zssi_getText('zsmf_GeneratedByPlanning', v_lang),
-                              coalesce(v_cur.date_plan,v_needdate),v_line,v_project,v_Record_ID,v_vendor,v_price,v_pricelist,v_cur.zspm_projecttaskbom_id, v_qty2requisition*v_price);
+                              coalesce(v_cur.date_plan,v_needdate),v_line,v_project,v_Record_ID,v_vendor,v_price,v_pricelist,v_cur.zspm_projecttaskbom_id, v_qty2requisition*v_price,
+                              v_cur.m_attributesetinstance_id);
             v_line:=v_line+10;
             if v_isoutsource='N' then 
                 update zspm_projecttaskbom set m_requisitionline_id=v_reqlineuuid,qtyinrequisition=qtyinrequisition+v_qty2requisition,updated=now(),updatedby=v_user where zspm_projecttaskbom_id=v_cur.zspm_projecttaskbom_id;
@@ -2011,9 +2079,11 @@ BEGIN
             v_Line:=v_Line+10;
             select get_uuid() into v_lineUUId;
             insert into M_INTERNAL_CONSUMPTIONLINE(M_INTERNAL_CONSUMPTIONLINE_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY, M_INTERNAL_CONSUMPTION_ID, 
-                                            M_LOCATOR_ID, M_PRODUCT_ID, LINE, MOVEMENTQTY, DESCRIPTION, C_UOM_ID, C_PROJECT_ID, C_PROJECTTASK_ID,zspm_projecttaskbom_id)
+                                            M_LOCATOR_ID, M_PRODUCT_ID, LINE, MOVEMENTQTY, DESCRIPTION, C_UOM_ID, C_PROJECT_ID, C_PROJECTTASK_ID,zspm_projecttaskbom_id,
+                                            m_attributesetinstance_id)
                 values (v_lineUUId,v_client,v_Org,NOW(), v_User, NOW(),v_User,v_uid,
-                    v_cur.m_locator_id,v_cur.M_Product_ID,v_Line,least(v_qtyOnHand,(v_cur.quantity-v_cur.qtyreceived)),'Generated by Production->Get Material from Stock',v_uom,v_project, v_projecttaskid,v_cur.zspm_projecttaskbom_id);
+                    v_cur.m_locator_id,v_cur.M_Product_ID,v_Line,least(v_qtyOnHand,(v_cur.quantity-v_cur.qtyreceived)),'Generated by Production->Get Material from Stock',v_uom,v_project, v_projecttaskid,v_cur.zspm_projecttaskbom_id,
+                    v_cur.m_attributesetinstance_id);
             -- seruial Number Tracking?
             if v_serial='Y' or v_batch='Y' then
                 v_isserial:=true;

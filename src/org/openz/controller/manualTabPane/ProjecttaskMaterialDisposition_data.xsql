@@ -13,7 +13,7 @@
              v.QTY_Inconsumption,v.Qtyinrequisition,v.QTY_Instock,v.QTY_Nextreceipt,v.isreturnafteruse,
              v.QTY_Ordered,v.Qtyreceived,v.date_nextreceipt,v.Quantity, 'N' as preselected,c.name as productcategory,zssi_getuom(p.c_uom_id,?) as uom,
              row_number() OVER (ORDER BY c.name,zssi_getproductname(p.m_product_id,?),Zspm_Projecttaskbom_View_ID) as seqno,
-             v.directship,v.c_orderline_id
+             v.directship,v.c_orderline_id,v.m_attributesetinstance_id
              from Zspm_Projecttaskbom_View v,m_product p , m_product_category c
              where v.C_PROJECTTASK_ID = ? 
              and p.m_product_id=v.m_product_id and c.m_product_category_id=p.m_product_category_id 
@@ -37,7 +37,7 @@
              QTY_Inconsumption,Qtyinrequisition,QTY_Instock,QTY_Nextreceipt,isreturnafteruse,
              QTY_Ordered,Qtyreceived,date_nextreceipt,Quantity, preselected,productcategory,uom,
              row_number() OVER (ORDER BY preselected desc, productcategory,zssi_getproductname(m_product_id,?),Zspm_Projecttaskbom_View_ID) as seqno,
-             directship,c_orderline_id
+             directship,c_orderline_id,m_attributesetinstance_id
       FROM (
       select get_uuid() as Zspm_Projecttaskbom_View_ID,'' as C_Projecttask_ID, 
              0 as Actualcosamount,
@@ -46,13 +46,13 @@
              (select coalesce(startdate,trunc(now())) from c_projecttask where C_PROJECTTASK_ID = ?) as date_plan,0 as QTY_Available,
              0 as QTY_Inconsumption,0 as Qtyinrequisition,0 as QTY_Instock,0 as QTY_Nextreceipt,'N' as isreturnafteruse,
              0 as QTY_Ordered,0 as Qtyreceived,null as date_nextreceipt,1 as Quantity, 'Y' as preselected,'' as productcategory,'' as uom ,
-             'N' as directship,null as c_orderline_id
+             'N' as directship,null as c_orderline_id,'' as m_attributesetinstance_id
       from dual
       UNION
       select v.Zspm_Projecttaskbom_View_ID,v.C_Projecttask_ID,v.Actualcosamount,v.Line,v.M_Locator_ID,v.M_Product_ID,v.plannedamt,v.Planrequisition,v.date_plan,v.QTY_Available,
              v.QTY_Inconsumption,v.Qtyinrequisition,v.QTY_Instock,v.QTY_Nextreceipt,v.isreturnafteruse,
              v.QTY_Ordered,v.Qtyreceived,v.date_nextreceipt,v.Quantity, 'N' as preselected,c.name as productcategory, zssi_getuom(p.c_uom_id,?) as uom,
-             v.directship,v.c_orderline_id
+             v.directship,v.c_orderline_id,v.m_attributesetinstance_id
              from Zspm_Projecttaskbom_View v,m_product p , m_product_category c
              where v.C_PROJECTTASK_ID = ? 
              and p.m_product_id=v.m_product_id and c.m_product_category_id=p.m_product_category_id 
@@ -75,9 +75,9 @@
     <SqlMethodComment></SqlMethodComment>
     <Sql>
       INSERT INTO Zspm_Projecttaskbom_View(Zspm_Projecttaskbom_View_id, AD_CLIENT_ID,AD_ORG_ID, C_PROJECTTASK_ID, CREATEDBY, UPDATEDBY, isactive,updated,created,
-                  Line,M_Locator_ID,M_Product_ID,Quantity,Planrequisition,isreturnafteruse,date_plan,directship)
+                  Line,M_Locator_ID,M_Product_ID,Quantity,Planrequisition,isreturnafteruse,date_plan,directship,m_attributesetinstance_id)
       VALUES(?, 'C726FEC915A54A0995C568555DA5BB3C', ?, ?, ?, ?, 'Y',now(),now(),
-             to_number(coalesce(?,'0')), ?, ? ,to_number(?),?,?,to_date(?,'dd.mm.yyyy'),'N')
+             to_number(coalesce(?,'0')), ?, ? ,to_number(?),?,?,to_date(?,'dd.mm.yyyy'),'N',?)
       </Sql>
       <Parameter name="idValue"/>
       <Parameter name="adOrgId"/>
@@ -91,12 +91,13 @@
       <Parameter name="planreq"/>
       <Parameter name="returnafter"/>
       <Parameter name="dateplan"/>
+      <Parameter name="attributesetinstance"/>
   </SqlMethod>
    <SqlMethod name="update" connection="true" type="preparedStatement" return="rowCount">
     <SqlMethodComment></SqlMethodComment>
     <Sql>
       UPDATE Zspm_Projecttaskbom_View  set UPDATEDBY=?,M_Locator_ID=?,M_Product_ID=?,
-             Quantity=to_number(?),Planrequisition=?,isreturnafteruse=?,updated=now(),date_plan=to_date(?,'dd.mm.yyyy')
+             Quantity=to_number(?),Planrequisition=?,isreturnafteruse=?,updated=now(),date_plan=to_date(?,'dd.mm.yyyy'),m_attributesetinstance_id=?
       WHERE Zspm_Projecttaskbom_View_id = ?
       </Sql>
       <Parameter name="updatedby"/>
@@ -106,6 +107,7 @@
       <Parameter name="planreq"/>
       <Parameter name="returnafter"/>
       <Parameter name="dateplan"/>
+      <Parameter name="attributesetinstance"/>
       <Parameter name="bomviewId"/>
   </SqlMethod>
   <SqlMethod name="isExisting" type="preparedStatement" return="string">

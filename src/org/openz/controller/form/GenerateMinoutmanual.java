@@ -69,6 +69,7 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
           //setSessionValue(this.getClass().getName() + "|m_product_id",  strProductId);
           String strdocno = vars.getGlobalVariable("inpdocumentno",
               this.getClass().getName() + "|Documentno", "");
+          String strporeference=vars.getGlobalVariable("inpporeference", this.getClass().getName() + "|poreference", "");
           String strwh = vars.getGlobalVariable("inpmWarehouseId", this.getClass().getName() + "|m_warehouse_id", "");
           String strloc = vars.getGlobalVariable("inpmLocatorId", this.getClass().getName() + "|m_locator_id", "");
           String strcProjectId = vars.getGlobalVariable("inpproject",
@@ -136,14 +137,14 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
           if (!(vars.commandIn("DEFAULT") && UtilsData.getOrgConfigOption(this, "alwaysfilterocreatetrxs", vars.getOrg()).equals("Y"))) {
         	  GenerateMinoutmanualData datalines[];
         	  if (stroptions.equals("DELBYPRIORITY") || stroptions.equals("DELBYLOCATOR")) {
-                  datalines=GenerateMinoutmanualData.selectOptions(this, strBusinesspartnerId, strDateFrom, strDateTo,strdocno,strcProjectId,strwh,strloc,orglist, strUserOrg,strProductId, strTypeOfProduct,strProductCategoryId,
+                  datalines=GenerateMinoutmanualData.selectOptions(this, strBusinesspartnerId, strDateFrom, strDateTo,strdocno,strporeference, strcProjectId,strwh,strloc,orglist, strUserOrg,strProductId, strTypeOfProduct,strProductCategoryId,
                       stroptions,strCombineddelivery,strPartlydeliverable,strDateFormat,vars.getLanguage());
         	  } else {
 	              if (strCombineddelivery.equals("N")) {
-                      datalines=GenerateMinoutmanualData.select(this,strDateFormat,vars.getLanguage(),strPartlydeliverable, strdocno,strcProjectId, strDateFrom, strDateTo, strBusinesspartnerId,
+                      datalines=GenerateMinoutmanualData.select(this,strDateFormat,vars.getLanguage(),strPartlydeliverable, strdocno, strporeference, strcProjectId, strDateFrom, strDateTo, strBusinesspartnerId,
                           strTypeOfProduct,strProductCategoryId,strwh, orglist, strUserOrg, strIsSOtrx, strProductId,strOnlydeliverable, strloc);
 	              }else
-                      datalines=GenerateMinoutmanualData.selectCombined(this,strDateFormat,strPartlydeliverable, vars.getLanguage(),strdocno,strcProjectId, strDateFrom, strDateTo, strBusinesspartnerId,
+                      datalines=GenerateMinoutmanualData.selectCombined(this,strDateFormat,strPartlydeliverable, vars.getLanguage(),strdocno,strporeference,strcProjectId, strDateFrom, strDateTo, strBusinesspartnerId,
                           strTypeOfProduct,strProductCategoryId,strwh, orglist, strUserOrg, strIsSOtrx, strProductId,strOnlydeliverable, strloc);
         	  }
               strGrid1=grid.printGrid(this, vars, script, datalines);
@@ -176,6 +177,7 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
          // Filters
          String strCombineddelivery = vars.getSessionValue( this.getClass().getName() + "|combineddelivery");
          String strdocno = vars.getSessionValue(this.getClass().getName() + "|Documentno");
+         String strporeference=vars.getGlobalVariable("inpporeference", this.getClass().getName() + "|poreference", "");
          String strwh = vars.getSessionValue(this.getClass().getName() + "|m_warehouse_id");
          String strloc = vars.getSessionValue(this.getClass().getName() + "|m_locator_id");
          String strcProjectId = vars.getSessionValue(this.getClass().getName() + "|Project");
@@ -212,7 +214,7 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
             	ordlineLocatorId=grid.getValue(this, vars, retval.elementAt(i), "m_locator_id");
             	ordlineAttributesetId=grid.getValue(this, vars, retval.elementAt(i), "m_attributesetinstance_id");
             	mProductID=grid.getValue(this, vars, retval.elementAt(i), "m_product_id");
-            	GenerateMinoutmanualData datalines[]=GenerateMinoutmanualData.select(this,strDateFormat,vars.getLanguage(),"N", strdocno,strcProjectId, strDateFrom, strDateTo, bpartner,
+                GenerateMinoutmanualData datalines[]=GenerateMinoutmanualData.select(this,strDateFormat,vars.getLanguage(),"N", strdocno, strporeference, strcProjectId, strDateFrom, strDateTo, bpartner,
                     "","",strwh, strUserOrg, strUserOrg, strIsSOtrx, product,"1",strloc);
             	for (int ii=0;ii<datalines.length;ii++) {
             		if (qty<Double.parseDouble(ordlineQty)) {
@@ -278,6 +280,7 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
 
     private void removeSessionValues(VariablesSecureApp vars ){
       vars.removeSessionValue(this.getClass().getName() + "|Documentno");
+      vars.removeSessionValue(this.getClass().getName() + "|poreference");
       vars.removeSessionValue(this.getClass().getName() + "|Project");
       vars.removeSessionValue(this.getClass().getName() + "|DateFrom");
       vars.removeSessionValue(this.getClass().getName() + "|DateTo");

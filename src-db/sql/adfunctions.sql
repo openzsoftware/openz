@@ -5844,3 +5844,156 @@ CREATE TRIGGER ad_role_trg
   ON ad_role
   FOR EACH ROW
   EXECUTE PROCEDURE ad_role_trg();
+
+
+CREATE OR REPLACE FUNCTION ad_initparamtab() returns varchar AS
+$BODY$ 
+DECLARE 
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)
+Copyright (C) 2019 OpenZ Software GmbH All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+
+History Funktion  / Implementing delete
+
+*****************************************************/
+BEGIN
+     create temporary table ad_tempfilters(
+        columname character varying(250)  not null,
+        filtervalue character varying(250) 
+    ) on commit drop;
+    return 'OK';
+END ; $BODY$ LANGUAGE plpgsql;
+
+
+
+CREATE OR REPLACE FUNCTION ad_tabinstancefieldsettings(p_leftside varchar,p_rightside varchar,p_tabid varchar,p_section varchar) returns varchar AS
+$BODY$ 
+DECLARE 
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)
+Copyright (C) 2024 OpenZ Software GmbH All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+
+*****************************************************/
+v_i numeric;
+v_fieldId varchar;
+v_role varchar;
+v_leftside varchar;
+v_rightside varchar;
+v_org varchar;
+v_client varchar;
+v_userc varchar;
+v_useru varchar;
+v_tab varchar;
+BEGIN
+    
+    select ad_org_id,ad_client_id,createdby, updatedby,ad_tab_id into v_org,v_client,v_userc,v_useru,v_tab from AD_Tab_Instance where AD_Tab_Instance_id=p_tabid;
+    -- Default individual data
+    if p_section = 'DIRECTFILTER' then
+        insert into ad_fieldinstance (ad_fieldinstance_id,ad_field_v_id,ad_client_id, ad_org_id, isactive, createdby, updatedby,
+                                      showinrelation,editsetting,visiblesetting,issameline,isfiltercolumn,isfirstfocusedfield,includesemptyitem)
+              select get_uuid(),v.ad_field_v_id,v_client,v_org,'Y',v_userc,v_useru,'NON','NON','NON','NON','NON','NON','NON' from ad_field_v v
+              where ad_field_v_id in (select ad_field_v_id from ad_field_v where ad_tab_id=v_tab) and not exists (select 0 from ad_fieldinstance i where i.ad_field_v_id=v.ad_field_v_id);
+        -- Reset current settings
+        update ad_fieldinstance set showinrelation='NON',editsetting='NON',visiblesetting='NON',isdirectfilter='NON' 
+        where ad_field_v_id in (select ad_field_v_id from ad_field_v where ad_tab_id=v_tab);
+    end if;
+    -- Ausschalten (Left)
+    v_leftside:=coalesce(p_leftside,'');
+    v_rightside:=coalesce(p_rightside,'');
+    v_fieldId:='#';
+    WHILE v_fieldId!='' LOOP
+      raise notice '%',v_fieldId;
+      raise notice '%',v_leftside;
+      if instr(v_leftside,'|')=0 then
+        v_fieldId:=replace(v_leftside,'"','');
+        v_leftside:='';
+      else
+        v_fieldId:=replace(replace(substr(v_leftside,1,instr(v_leftside,'|')),'"',''),'|','');
+        v_leftside:=substr(v_leftside,instr(v_leftside,'|')+1);
+      end if;
+    
+      if p_section = 'DIRECTFILTER'  and v_fieldId!='' then 
+            update ad_fieldinstance set isdirectfilter='N',isfiltercolumn='NON' where ad_field_v_id=v_fieldId;
+      end if;  
+      if p_section = 'VISIBILITY'  and v_fieldId!='' then 
+         -- Do not overwrite Logics...
+        if (select count(*) from ad_field_v v,ad_fieldinstance i where i.ad_field_v_id=v.ad_field_v_id and v.ad_field_v_id=v_fieldId and coalesce(v.displaylogic,i.displaylogic) is null)=1 then
+            update ad_fieldinstance set visiblesetting='HIDDEN' where ad_field_v_id=v_fieldId;
+        else
+            update ad_fieldinstance set visiblesetting='NON' where ad_field_v_id=v_fieldId;
+        end if;
+      end if; 
+      if p_section = 'GRIDVISIBILITY'  and v_fieldId!='' then 
+            update ad_fieldinstance set showinrelation='N' where ad_field_v_id=v_fieldId;
+      end if; 
+      if p_section = 'READONLY'  and v_fieldId!='' then 
+         if (select count(*) from ad_field_v v,ad_fieldinstance i where i.ad_field_v_id=v.ad_field_v_id and v.ad_field_v_id=v_fieldId and coalesce(v.readonlylogic,i.readonlylogic) is null)=1 then
+            update ad_fieldinstance set editsetting='EDIT' where ad_field_v_id=v_fieldId;
+         else
+            update ad_fieldinstance set editsetting='NON' where ad_field_v_id=v_fieldId;
+         end if;
+      end if;       
+    END LOOP;
+    -- Anschalten (Right)
+    v_fieldId:='#';
+    v_i:=1;
+    WHILE v_fieldId!='' LOOP
+      raise notice '%',v_fieldId;
+      raise notice '%',v_rightside;
+      if instr(v_rightside,'|')=0 then
+        v_fieldId:=replace(v_rightside,'"','');
+        v_rightside:='';
+      else
+        v_fieldId:=replace(replace(substr(v_rightside,1,instr(v_rightside,'|')),'"',''),'|','');
+        v_rightside:=substr(v_rightside,instr(v_rightside,'|')+1);
+      end if;
+      if p_section = 'DIRECTFILTER'  and v_fieldId!='' then 
+            update ad_fieldinstance set isfiltercolumn='Y',isdirectfilter='Y' where ad_field_v_id=v_fieldId;
+      end if;  
+      if p_section = 'VISIBILITY'  and v_fieldId!='' then 
+        -- Do not overwrite Logics...
+        if (select count(*) from ad_field_v v,ad_fieldinstance i where i.ad_field_v_id=v.ad_field_v_id and v.ad_field_v_id=v_fieldId and coalesce(v.displaylogic,i.displaylogic) is null)=1 then
+            update ad_fieldinstance set visiblesetting='VISIBLE' where ad_field_v_id=v_fieldId;
+        else
+            update ad_fieldinstance set visiblesetting='NON' where ad_field_v_id=v_fieldId;
+        end if;
+      end if; 
+      if p_section = 'GRIDVISIBILITY' and v_fieldId!='' then 
+            update ad_fieldinstance set showinrelation='Y',gridseqno=v_i where ad_field_v_id=v_fieldId;
+            v_i:=v_i+1;
+      end if; 
+      if p_section = 'READONLY' and v_fieldId!='' then 
+         -- Do not overwrite Logics...
+        if (select count(*) from ad_field_v v,ad_fieldinstance i where i.ad_field_v_id=v.ad_field_v_id and v.ad_field_v_id=v_fieldId and coalesce(v.readonlylogic,i.readonlylogic) is null)=1 then
+            update ad_fieldinstance set editsetting='READONLY' where ad_field_v_id=v_fieldId;
+        else
+            update ad_fieldinstance set editsetting='NON' where ad_field_v_id=v_fieldId;
+        end if;
+      end if;       
+    END LOOP; 
+    /*
+    if p_section = 'READONLY' then
+      -- Delete Default individual data
+      delete from ad_fieldinstance where ad_field_v_id in (select ad_field_v_id from ad_field_v where ad_tab_id=v_tab)  
+            and gridlength is null and showinrelation='NON' and editsetting='NON'  and visiblesetting='NON'  and readonlylogic is null 
+            and displaylogic is null and mandantorylogic is null and defaultvalue is null and isfirstfocusedfield='NON' and seqno is null and issameline='NON'  and isfiltercolumn='NON'  and fieldreference is null 
+            and ad_table_id is null and ad_val_rule_id is null and referenceurl is null and template is null and maxlength is null and buttonclass is null and includesemptyitem='NON'  and style is null 
+            and onchangeevent is null and colstotal is null and ad_fieldgroup_id is null and isdirectfilter='NON';
+    end if;
+    */
+    return 'OK';
+END ; $BODY$ LANGUAGE plpgsql;
+
+

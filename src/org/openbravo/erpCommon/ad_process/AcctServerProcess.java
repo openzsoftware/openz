@@ -38,9 +38,12 @@ import org.openbravo.scheduling.ProcessContext;
 import org.openbravo.scheduling.ProcessLogger;
 import org.openbravo.scheduling.ProcessBundle.Channel;
 import org.openbravo.service.db.DalBaseProcess;
+import org.openbravo.erpCommon.utility.OBError;
+
 
 public class AcctServerProcess extends DalBaseProcess {
-
+	
+  private String FactError="N";
   private final static String BATCH_SIZE = "50";
   private final static String SYSTEM_CLIENT_ID = "0";
 
@@ -73,6 +76,18 @@ public class AcctServerProcess extends DalBaseProcess {
     } else {
       processClient(vars, bundle);
     }
+    if (bundle.getChannel() == Channel.DIRECT) {
+    	OBError msg=new OBError();
+    	msg.setMessage(lastLog.toString());
+    	if (FactError.equals("N")) {
+    		msg.setType("Success");
+    		msg.setTitle("Success");
+    	}else { 
+    		msg.setType("Warning");
+    		msg.setTitle("Fehler Buchungsprotokoll prüfen!");
+    	}
+    	bundle.setResult(msg);
+    }
   }
 
   /**
@@ -94,10 +109,12 @@ public class AcctServerProcess extends DalBaseProcess {
 
     String adNoteId = "";
     if (isDirect) {
-      addLog("@DL_STARTING@", false);
+    	addLog("Starting manual process.");
+    	isDirect=false;
     } else {
-      addLog("Starting background process.");
+      addLog("Starting background process.");      
     }
+    AcctServerProcessData.logLocked(connection);
     AcctServerProcessData.cleartempitems(connection);
     if (vars == null) {
       try {
@@ -181,6 +198,8 @@ public class AcctServerProcess extends DalBaseProcess {
         addLog("Table = " + strTableDesc + " - " + acct.getInfo(ctx.getLanguage()));
       }
       adNoteId = saveLog(adNoteId, vars.getClient());
+      if (acct.FactError.equals("Y"))
+    	  FactError="Y";
     }
     AcctServerProcessData.processDownPaymentsTempItems(connection);
   }
@@ -202,7 +221,8 @@ public class AcctServerProcess extends DalBaseProcess {
    * @param generalLog
    */
   private void addLog(String msg, boolean generalLog) {
-    logger.log(msg + "\n");
+    if (logger!=null) 
+    	logger.log(msg + "\n");
     final Timestamp tmp = new Timestamp(System.currentTimeMillis());
     if (isDirect) {
       lastLog.append("<span>").append(msg).append("</span><br>");
@@ -210,8 +230,7 @@ public class AcctServerProcess extends DalBaseProcess {
       if (generalLog) {
         this.message.append(tmp.toString()).append(" - ").append(msg).append("<br>");
       }
-      lastLog.append("<span>").append(tmp.toString()).append(" - ").append(msg).append(
-          "</span><br>");
+      lastLog.append("<span>").append(msg).append("</span><br>");
     }
   }
 

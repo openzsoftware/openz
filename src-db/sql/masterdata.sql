@@ -162,6 +162,7 @@ CREATE OR REPLACE RULE c_bpartneremployee_view_update AS
                 AD_CLIENT_ID=new.AD_CLIENT_ID, 
                 AD_ORG_ID=new.AD_ORG_ID,
                 UPDATEDBY=new.UPDATEDBY, 
+                UPDATED=new.UPDATED,
                 VALUE=new.VALUE, 
                 NAME=new.NAME, 
                 DESCRIPTION=new.DESCRIPTION, C_BP_GROUP_ID=new.C_BP_GROUP_ID, isinresourceplan=new.isinresourceplan,
@@ -896,6 +897,49 @@ CREATE TRIGGER c_bp_salcategory_trg2
   FOR EACH ROW
   EXECUTE PROCEDURE c_bp_salcategory_trg2();
 
+CREATE OR REPLACE FUNCTION c_bp_salcategory_before_trg() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $_$ DECLARE 
+
+
+/*************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License
+* Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this
+* file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html
+* Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+* License for the specific  language  governing  rights  and  limitations
+* under the License.
+* The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL
+* All portions are Copyright (C) 2001-2008 Openbravo SL
+* All Rights Reserved.
+* Contributor(s):  2020 OpenZ Software GmbH
+************************************************************************/
+BEGIN
+    
+    IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
+    END IF;
+
+    IF (TG_OP = 'UPDATE' OR TG_OP = 'INSERT' )  THEN
+      if((select extract(day from new.datefrom)) != 1) then
+        raise exception '@salcategory_only_first_of_month@';
+      end if;
+    END IF;
+
+    return new;
+END; $_$;
+
+select zsse_DropTrigger ('c_bp_salcategory_before_trg','c_bp_salcategory');
+
+CREATE TRIGGER c_bp_salcategory_before_trg
+  BEFORE INSERT OR UPDATE OR DELETE
+  ON c_bp_salcategory
+  FOR EACH ROW
+  EXECUTE PROCEDURE c_bp_salcategory_before_trg();
+
 select zsse_DropTrigger ('zssi_aduser_trg','ad_user');
 CREATE OR REPLACE FUNCTION zssi_aduser_trg()
   RETURNS trigger AS
@@ -1500,12 +1544,18 @@ Contributor(s):
 BEGIN
   IF (TG_OP = 'INSERT' or TG_OP = 'UPDATE') then
      -- Update Production BOMs
-     update zspm_projecttaskbom set issuing_locator=new.m_locator_id,receiving_locator=new.m_locator_id where m_product_id=new.m_product_id 
+     update zspm_projecttaskbom set 
+            issuing_locator=case when coalesce(issuing_locator,'')=coalesce(receiving_locator,'') then new.m_locator_id else  issuing_locator end,
+            receiving_locator=new.m_locator_id 
+            where m_product_id=new.m_product_id 
             and c_projecttask_id in (select c_projecttask_id from c_projecttask where c_project_id is null)
             and issuing_locator in (select m_locator_id from m_locator l where m_warehouse_id in (select m_warehouse_id from m_locator where m_locator_id=new.m_locator_id));
      -- Update Worksteps
      if new.isproduction='Y' then
-        update zssm_workstep_prp_v set issuing_locator=new.m_locator_id,receiving_locator=new.m_locator_id where m_product_id=new.m_product_id 
+        update zssm_workstep_prp_v set 
+          receiving_locator=case when coalesce(issuing_locator,'')=coalesce(receiving_locator,'') then new.m_locator_id else receiving_locator end,
+          issuing_locator=new.m_locator_id
+          where m_product_id=new.m_product_id 
                 and issuing_locator in (select m_locator_id from m_locator l where m_warehouse_id in (select m_warehouse_id from m_locator where m_locator_id=new.m_locator_id));
         -- Auto generate Productionplan, if applicable
         update m_product set updated=new.updated where m_product_id=new.m_product_id;
@@ -1599,6 +1649,24 @@ BEGIN
                 raise exception '@semifinished_bomrequired@';
             end if;
         end if;
+        if (new.isserialtracking='Y' or new.isbatchtracking='Y') and (NEW.producttype != 'I' or new.isstocked = 'N') then
+            raise exception '%','@serials_havetobe_stocked@';
+        end if;
+        if (new.isstocked = 'N' or NEW.producttype != 'I') and (select count(*) from m_transaction where m_product_id=new.m_product_id)>0 then
+            RAISE EXCEPTION '%', '@CannotChangeStockedProduct@';
+        end if;
+   END IF;
+   IF (TG_OP = 'UPDATE') THEN
+      if new.isserialtracking='N' and old.isserialtracking='Y' and 
+                (select count(*) from SNR_Masterdata where m_product_id=new.m_product_id)>0 
+      then
+                raise exception '%','@serials_are_created@';
+      end if;
+      if new.isbatchtracking='N'  and old.isbatchtracking='Y' and 
+                (select count(*) from SNR_batchMasterdata where m_product_id=new.m_product_id)>0
+      then
+                raise exception '%','@serials_are_created@';
+      end if;
    END IF;
    
  -- # are not allowed in name and searchkey
@@ -2228,13 +2296,14 @@ BEGIN
         IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
         END IF;
         if (select count(*) from m_attribute where isnumeric='Y' and m_attribute_id=new.m_attribute_id)>0 then
-            new.value:=to_char(to_number(new.value));
+            new.name:=to_char(to_number(new.name));
         end if;
-
+        new.value:=new.name;
         -- value has to be unique, name has to be unique for the attribute
         if(select count(*)>0 from m_attributevalue where (value = NEW.value or name = NEW.name) and m_attribute_id = NEW.m_attribute_id and m_attributevalue_id!=new.m_attributevalue_id) then
             raise exception '@attributevaluenameunique@';
         end if;
+
     IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
 END; $_$;
 

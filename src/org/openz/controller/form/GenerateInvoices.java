@@ -65,6 +65,7 @@ public class GenerateInvoices  extends HttpSecureAppServlet {
     	       removeSessionValues(vars);
         String strcbpartnerid=vars.getGlobalVariable("inpcBpartnerId", this.getClass().getName() + "|C_Bpartner_ID", "");
         String strdocumentno=vars.getGlobalVariable("inpdocumentno", this.getClass().getName() + "|documentno", "");
+        String strporeference=vars.getGlobalVariable("inpporeference", this.getClass().getName() + "|poreference", "");
         String strdatefrom =vars.getDateParameterGlobalVariableAndFetchFromSessionIfEmpty("inpdatefrom", this.getClass().getName() + "|datefrom", "",this);
         String strDatenow=vars.getSessionValue("#DATE");
         String strdateto = vars.getDateParameterGlobalVariableAndFetchFromSessionIfEmpty("inpdateto", this.getClass().getName() + "|dateto", strDatenow,this);
@@ -88,12 +89,12 @@ public class GenerateInvoices  extends HttpSecureAppServlet {
         	GenerateInvoicesData data[];
         	if (strCombinedinvoice.equals("Y")) {
         		data = GenerateInvoicesData.selectCombined(this, vars.getLanguage(),strdateto,strIsSOtrx,strdatefrom,strdocumentno,stradorgid,  Utility.getContext(this, vars,
-                                "#User_Org", "GenerateInvoicesmanual"), strcbpartnerid,strdocumentno, strdatefrom, strdateto);
+                                "#User_Org", "GenerateInvoicesmanual"), strcbpartnerid,strdocumentno,strporeference,strdatefrom, strdateto);
         	} else {
         	// Query may take some memory
         	data = GenerateInvoicesData.select(this, vars.getLanguage(),strdateto,strdatefrom,strIsSOtrx, Utility.getContext(
                     this, vars, "#User_Client", "GenerateInvoicesmanual"), Utility.getContext(this, vars,
-                            "#User_Org", "GenerateInvoicesmanual"), strcbpartnerid,strdocumentno,  strdatefrom,strdateto, Tree.getMembers(this, strTreeOrg, stradorgid));
+                            "#User_Org", "GenerateInvoicesmanual"), strcbpartnerid,strdocumentno,strporeference,strdatefrom,strdateto, Tree.getMembers(this, strTreeOrg, stradorgid));
         	}
         	strGrid1=grid.printGrid(this, vars, script, data);
         }		
@@ -239,6 +240,7 @@ public class GenerateInvoices  extends HttpSecureAppServlet {
       vars.removeSessionValue( this.getClass().getName() + "|datefrom");
       vars.removeSessionValue(this.getClass().getName() + "|dateto");
       vars.removeSessionValue(this.getClass().getName() + "|documentno");
+      vars.removeSessionValue(this.getClass().getName() + "|poreference");
       vars.removeSessionValue(this.getClass().getName() + "|combinedinvoice");
      // vars.removeSessionValue("issotrx");
     }

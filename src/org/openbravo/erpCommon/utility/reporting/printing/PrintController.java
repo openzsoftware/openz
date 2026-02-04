@@ -842,11 +842,11 @@ public class PrintController extends HttpSecureAppServlet {
     try {
       if (template.equals("")) {
         report = new Report(this, documentType, strDocumentId, firstlang, "",
-            multiReports, outputType);
+            multiReports, outputType, vars);
           template=PrintControllerData.GetDefaultDoctypeTempate(this, report.getDocTypeId(), vars.getOrg());
       }
       report = new Report(this, documentType, strDocumentId, firstlang, template,
-          multiReports, outputType);
+          multiReports, outputType, vars);
     } catch (final ReportingException e) {
       log4j.error(e);
       throw new ServletException(e.getMessage());
@@ -1085,9 +1085,23 @@ public class PrintController extends HttpSecureAppServlet {
 	      //    .lastIndexOf("/") + 1));
 	      //multipart.addBodyPart(messageBodyPart);
 	      final File file = new File(attachmentFileLocation);
-	      messageBodyPart.attachFile(file,"application/pdf",null);
+	      if(attachmentFileLocation.contains(".xml")) {
+	          messageBodyPart.attachFile(file,"application/xml",null);
+	      }else {
+	          messageBodyPart.attachFile(file,"application/pdf",null);
+	      }
 	      multipart.addBodyPart(messageBodyPart);
 	      allAttachments=allAttachments+report.getFilename() + ", ";
+      }
+      // if einvoice or einvoice creadit note
+      // add pdf to attachments
+      if((report.getdefaultTemplate().equals("38D81133009C4C9CB8B378EF4EA31DE3") || report.getdefaultTemplate().equals("C6D78C6A518F420B897DB1E933133EF5"))
+              && vars.getStringParameter("DocumentEinvoice").equals("Y")) {
+          final File fileEinvoicePdf = new File(attachmentFileLocation.replace(".xml", ".pdf"));
+          messageBodyPart = new MimeBodyPart();
+          messageBodyPart.attachFile(fileEinvoicePdf,"application/pdf",null);
+          multipart.addBodyPart(messageBodyPart);
+          allAttachments=allAttachments+report.getFilename().replace(".xml", ".pdf") + ", ";
       }
       //
       // Add eventually Attachments of the EMail Template
@@ -1457,10 +1471,23 @@ public class PrintController extends HttpSecureAppServlet {
         log4j.debug(" Filling report location with: " + documentData.reportLocation);
 
       if (onlyOneAttachedDoc) {
-        attachedContent.setDocName(report.getFilename());
+        // einvoice || einvoice credit note
+        if(report.getdefaultTemplate().equals("38D81133009C4C9CB8B378EF4EA31DE3") || report.getdefaultTemplate().equals("C6D78C6A518F420B897DB1E933133EF5")) {
+            attachedContent.setDocName(report.getFilename().replace(".pdf", ".xml"));
+        }else {
+            attachedContent.setDocName(report.getFilename());
+        }
         attachedContent.setVisible("checkbox");
         attachedContent.setId("Document");
         cloneVector.add(attachedContent);
+        // add second einvoice file (pdf) bolow xml
+        if(report.getdefaultTemplate().equals("38D81133009C4C9CB8B378EF4EA31DE3") || report.getdefaultTemplate().equals("C6D78C6A518F420B897DB1E933133EF5")) {
+            AttachContent einvoicePdf = new AttachContent();
+            einvoicePdf.setDocName(report.getFilename());
+            einvoicePdf.setVisible("checkbox");
+            einvoicePdf.setId("DocumentEinvoice");
+            cloneVector.add(einvoicePdf);
+        }
       }
 
     }
@@ -1591,6 +1618,10 @@ public class PrintController extends HttpSecureAppServlet {
     
     String output = xmlDocument.print();
     output = output.replaceAll("@specialTagsPlaceholder@", EmailOptionsData.getSpecialTagsDescriptionTable(this, firstlang.equals("") ? vars.getLanguage() : firstlang));
+    // remove default checked from einvoice pdf, depending on preference
+    if(PrintControllerData.getPreferenceEinvoicePrintPdf(this).equals("N")) {
+        output = output.replaceAll("name=\"DocumentEinvoice\" checked", "name=\"DocumentEinvoice\" value=\"N\"");
+    }
     out.println(output);
     out.close();
   }

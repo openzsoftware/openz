@@ -31,6 +31,7 @@ FROM (
       icl.C_Order_ID,  
       ad_get_doctypename(icl.C_DocType_ID,?) as cdoctypename,
       icl.DocumentNo,
+      icl.poreference,
       bp.c_bpartner_id,
       bp.Name||' - '||bp.value as cbpartnername,
       icl.DateOrdered,
@@ -58,7 +59,7 @@ FROM (
       zssi_html4docs(coalesce(icl.description,'')) as oldescription,
       bp.value as searchkey,
       zssi_getuom(COALESCE((select c_uom_id from m_product_uom where m_product_uom_id=icl.m_product_uom_id),icl.c_uom_id),?) as uom,
-      icl.PROJECT 
+      coalesce(icl.PROJECT,'') || case when icl.poreference is not null then ' / ' || icl.poreference else '' end as project
       FROM c_invoice_candidate_lines_v icl, C_BPartner bp, AD_Ref_List l left join AD_Ref_List_trl ltrl on l.AD_Ref_List_ID=ltrl.AD_Ref_List_ID and ltrl.ad_language=?
       WHERE icl.C_BPartner_ID=bp.C_BPartner_ID AND c_isorderline2invoice(icl.c_orderline_id,case when icl.term='I' then ? else null end,case when icl.term='I' then ? else null end)='Y'
       AND l.value = icl.term
@@ -90,7 +91,8 @@ FROM (
     <Parameter name="adUserClient" type="replace" optional="true" after="AND icl.ad_client_id in (" text="'1'"/>
     <Parameter name="adUserOrg" type="replace" optional="true" after="AND icl.ad_org_id in (" text="'1'"/>
     <Parameter name="parBPartner" optional="true" after="AND 1=1">AND icl.C_BPartner_ID= ?</Parameter>
-    <Parameter name="documentno" optional="true" after="AND 1=1">AND icl.documentno like ?</Parameter>
+    <Parameter name="documentno" optional="true" after="AND 1=1">AND icl.documentno ilike ?</Parameter>
+    <Parameter name="poreference" optional="true" after="AND 1=1">AND icl.poreference ilike ?</Parameter>
     <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[ AND icl.datepromised >= TO_DATE(?)]]></Parameter>
     <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[ AND icl.datepromised <= TO_DATE(?)]]></Parameter>
     <Parameter name="adOrgId" optional="true" type="replace" after="AND 2=2 AND icl.ad_org_id in (" text="'1'"/>
@@ -116,6 +118,7 @@ FROM (
       bp.C_bpartner_ID||'#' as C_Order_ID,  
       ad_get_doctypename(icls.p_C_DocType_ID,?) as cdoctypename,
       'Div.'::text as DocumentNo,
+      icl.poreference,
       bp.c_bpartner_id,
       bp.Name||' - '||bp.value as cbpartnername,
       icls.p_dateordered as DateOrdered,
@@ -140,7 +143,7 @@ FROM (
       zssi_notinvoicedlines4orderline(icl.c_orderline_id,'PENDING','LINEAMT',icl.m_inoutline_id,TO_DATE(?)) AS pendingamt,
       icl.m_attributesetinstance_id,
       'N' as residue,
-      icl.documentno  as oldescription,
+      coalesce(icl.documentno,'') || case when icl.poreference is not null then ' / ' || icl.poreference else '' end as oldescription,
       bp.value as searchkey,
       zssi_getuom(COALESCE((select c_uom_id from m_product_uom where m_product_uom_id=icl.m_product_uom_id),icl.c_uom_id),?) as uom,
       'Div.'  as PROJECT 
@@ -180,7 +183,8 @@ FROM (
     <Parameter name="adOrgId"/>
     <Parameter name="adUserOrg" type="replace" optional="true" after="AND icl.ad_org_id in (" text="'1'"/>
     <Parameter name="parBPartner" optional="true" after="AND 1=1">AND icl.C_BPartner_ID= ?</Parameter>
-    <Parameter name="documentno" optional="true" after="AND 1=1">AND icl.documentno like ?</Parameter>
+    <Parameter name="documentno" optional="true" after="AND 1=1">AND icl.documentno ilike ?</Parameter>
+    <Parameter name="poreference" optional="true" after="AND 1=1">AND icl.poreference ilike ?</Parameter>
     <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[ AND icl.datepromised >= TO_DATE(?)]]></Parameter>
     <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[ AND icl.datepromised <= TO_DATE(?)]]></Parameter>
   </SqlMethod>

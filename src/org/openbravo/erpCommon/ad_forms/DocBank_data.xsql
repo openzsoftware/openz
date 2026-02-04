@@ -45,6 +45,24 @@
      </Sql>
      <Parameter name="C_BankAccount_ID"/>
    </SqlMethod>
+   <SqlMethod name="selectBSTName" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT substr(name,1,30) as result FROM C_Bankstatement WHERE C_Bankstatement_ID=?
+     ]]>
+     </Sql>
+     <Parameter name="C_Bankstatement_ID"/>
+   </SqlMethod>
+   <SqlMethod name="selectBSTDate" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        SELECT to_char(statementdate,'dd-mm-yyyy') as result FROM C_Bankstatement WHERE C_Bankstatement_ID=?
+     ]]>
+     </Sql>
+     <Parameter name="C_Bankstatement_ID"/>
+   </SqlMethod>
   <SqlMethod name="selectRegistro" type="preparedStatement" return="multiple">
     <SqlMethodComment></SqlMethodComment>
     <Sql>

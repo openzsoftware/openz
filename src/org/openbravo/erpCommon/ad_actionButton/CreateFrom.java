@@ -288,6 +288,7 @@ public class CreateFrom extends HttpSecureAppServlet {
     final String strDiscount = vars.getNumericParameter("inpdiscount", "0.00");
     final String strDocumentNo = vars.getStringParameter("inpDocumentNo");
     final String strBpOrderNo = vars.getStringParameter("inpBpOrderNo");
+    final String strOrderNo = vars.getStringParameter("inpOrderNo");
     CreateFromBankData[] data = null;
     final XmlDocument xmlDocument = xmlEngine.readXmlTemplate(
         "org/openbravo/erpCommon/ad_actionButton/CreateFrom_Bank").createXmlDocument();
@@ -296,7 +297,7 @@ public class CreateFrom extends HttpSecureAppServlet {
         vars, "#User_Client", strWindowId), Utility
         .getContext(this, vars, "#User_Org", strWindowId), strcBPartner, strPaymentRule,
         strPlannedDateFrom, strPlannedDateTo, strAmountFrom, strAmountTo, strIsReceipt, strBank,
-        strOrg, strCharge, strIsapproved, strDocumentNo,strBpOrderNo));
+        strOrg, strCharge, strIsapproved, strDocumentNo,strBpOrderNo, strOrderNo));
     final int maxRows = Integer.valueOf(vars.getSessionValue("#RECORDRANGEINFO"));
 
     if (numRows > maxRows) {
@@ -319,13 +320,13 @@ public class CreateFrom extends HttpSecureAppServlet {
     	          .getContext(this, vars, "#User_Client", strWindowId), Utility.getContext(this, vars,
     	          "#User_Org", strWindowId), strcBPartner, strPaymentRule, strPlannedDateFrom,
     	          strPlannedDateTo, strAmountFrom, strAmountTo, strIsReceipt, strBank, strOrg, strCurrency, strCharge, strIsapproved,
-    	          strDocumentNo, strBpOrderNo,String.valueOf(maxRows));
+                  strDocumentNo, strBpOrderNo, strOrderNo, String.valueOf(maxRows));
     } else {
       data = CreateFromBankData.select(this, vars.getLanguage(), strKey, strStatementDate,Utility
           .getContext(this, vars, "#User_Client", strWindowId), Utility.getContext(this, vars,
           "#User_Org", strWindowId), strcBPartner, strPaymentRule, strPlannedDateFrom,
           strPlannedDateTo, strAmountFrom, strAmountTo, strIsReceipt, strBank, strOrg, strCurrency, strCharge, strIsapproved,
-          strDocumentNo, strBpOrderNo,String.valueOf(maxRows));
+          strDocumentNo, strBpOrderNo, strOrderNo,String.valueOf(maxRows));
     }
     String read=CreateFromBankData.readable(this,strBank,strDocumentNo);
     
@@ -349,6 +350,7 @@ public class CreateFrom extends HttpSecureAppServlet {
     xmlDocument.setParameter("paramproposed", strProposed);
     xmlDocument.setParameter("documentNo", strDocumentNo);
     xmlDocument.setParameter("bpOrderNo", strBpOrderNo);
+    xmlDocument.setParameter("OrderNo", strOrderNo);
     xmlDocument.setParameter("rw", read);
     xmlDocument.setParameter("paymentRule", strPaymentRule);
     
@@ -1162,7 +1164,7 @@ public class CreateFrom extends HttpSecureAppServlet {
 
       if (!strPO.equals("")) {
         try {
-          final int total = CreateFromInvoiceData.deleteC_Order_ID(conn, this, strKey, strPO);
+          final int total = 1; //CreateFromInvoiceData.deleteC_Order_ID(conn, this, strKey, strPO);
           if (total == 0)
             CreateFromInvoiceData.updateC_Order_ID(conn, this, strPO, strKey);
         } catch (final ServletException ex) {

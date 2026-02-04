@@ -12,13 +12,19 @@ Contributor(s): ______________________________________.
 */
 
 import org.openbravo.data.FieldProvider;
+import org.openbravo.data.UtilSql;
 import org.openbravo.database.ConnectionProvider;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.Vector;
 
 import javax.servlet.ServletException;
 
 import org.openbravo.base.secureApp.HttpSecureAppServlet;
 import org.openbravo.base.secureApp.VariablesSecureApp;
 import org.openbravo.erpCommon.utility.ComboTableDataWrapper;
+import org.openbravo.erpCommon.utility.SQLReturnObject;
 import org.openz.util.FormatUtils;
 import org.openz.view.*;
 
@@ -158,4 +164,37 @@ public class SelectBoxhelper {
       return cdb.select(!vars.getCommand().equals("NEW"));
     }
   }
+  public static FieldProvider[] getLISTSORTFields(HttpSecureAppServlet servlet, VariablesSecureApp vars,String leftright, String adFieldID,String IDValue, String keyFieldname) throws Exception  {
+      /* This Method Returns array of field provider
+       * Uses by Listsorters
+       * All replacements and tokenizing done like getSQLValueByStatement
+       * CONVENTION: Field Provider with fixed Fields ID and NAME
+       */
+  	FieldProvider[] retval;
+  	String statement="";
+  	if (leftright.equalsIgnoreCase("LEFT"))
+  		statement=SelectBoxhelperData.getListsortLeftSQL(servlet, adFieldID);
+  	else
+  		statement=SelectBoxhelperData.getListsortRightSQL(servlet, adFieldID);
+      String sql="";
+      if (statement!=null && statement.startsWith("@SQL=")){
+      	statement=statement.replaceAll("(?i)@" + keyFieldname + "@", "'" + IDValue + "'") ;
+      	sql=org.openz.view.FormDisplayLogic.tokenizeSQL(servlet,vars,statement.substring(5, statement.length()),"");
+      	PreparedStatement st = servlet.getPreparedStatement(sql); 
+      	ResultSet result;
+        Vector<Object> vector = new Vector<Object>(0);
+        result = st.executeQuery();
+        while (result.next()) {
+            SQLReturnObject sqlReturnObject = new SQLReturnObject();
+            sqlReturnObject.setData("ID", UtilSql.getValue(result, "ID"));
+            sqlReturnObject.setData("NAME", UtilSql.getValue(result, "NAME"));
+            vector.addElement(sqlReturnObject);
+        }
+        result.close();
+        FieldProvider objectListData[] = new FieldProvider[vector.size()];
+        vector.copyInto(objectListData);
+        return (objectListData);
+        }
+      return new FieldProvider[0];
+    }
 }

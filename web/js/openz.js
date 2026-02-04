@@ -161,7 +161,10 @@ function validateMandantoryFields(){
         if(isaNumber(qty) && isaNumber(price)) {                //Prüfen ob Mengenfeld und Preisfeld eine sinnvolle Zahl sind
                 var sumshort=(qty)*(price);                     //Berechnung des Produkts Menge x Preis
                 sum= (sumshort.toFixed(4));                     //Kürzen des Summenergebnisses auf vier Nachkommastellen
-                sum=sum.replace('.', ',');      
+                // '.' und ',' nur tauschen, wenn Komma als Dezimaltrenner. Führt ansonsten zu falschen Berechnungen bei englischer Sprache
+                if(getGlobalDecSeparator()===','){
+	                sum=sum.replace('.', ',');
+                }
                 frm.elements["inp" + sumfield + key].value=sum;     //Summenfeld befüllen
         }else {                                                 //Falls Menge UND Preis keine sinnvolle Zahl sind Fehlermeldung ausgeben
                                         }

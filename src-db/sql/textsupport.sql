@@ -3739,7 +3739,7 @@ $_$ LANGUAGE plpgsql VOLATILE COST 100;
 
 
 
-
+-- description
 CREATE OR REPLACE FUNCTION zssi_getpaymentterm(p_paymentterm_id character varying, lang character varying) RETURNS character varying 
 AS $_$
 /***************************************************************************************************************************************************
@@ -3768,6 +3768,36 @@ END;
 $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;
+  
+
+-- name
+CREATE OR REPLACE FUNCTION zssi_getpaymenttermname(p_paymentterm_id character varying, lang character varying) RETURNS character varying 
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): Frank Wohlers.
+***************************************************************************************************************************************************
+Part of Smartprefs
+Localozation in Database - The better way
+*****************************************************/
+DECLARE
+v_return character varying;
+BEGIN
+      select coalesce(trl.name, c.name) into v_return from c_paymentterm_trl trl, c_paymentterm c where trl.c_paymentterm_id=c.c_paymentterm_id and trl.c_paymentterm_id=p_paymentterm_id and ad_language=lang;
+      if(v_return is null) then
+          select c.name into v_return from c_paymentterm c where c.c_paymentterm_id=p_paymentterm_id;
+      end if;
+RETURN zssi_2HTML(v_return);
+END;
+$_$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
 
 
 

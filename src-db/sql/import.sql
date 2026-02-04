@@ -32,6 +32,7 @@ v_cuom_id varchar;
 v_cur2 RECORD;
 v_cmd varchar;
 v_i numeric:=0;
+v_importstart timestamp with time zone := clock_timestamp();
 BEGIN
  if p_filename is null then return 'ERROR'; end if;
   delete from i_productpriceimport;
@@ -42,6 +43,9 @@ BEGIN
 
     for v_cur2 in (select * from i_productpriceimport)
     LOOP
+        if((v_i%100)=0 and v_i>0) then -- every 100 entries
+            perform i_checkimportduration(v_importstart, v_i, (select count(*) from i_productpriceimport));
+        end if;
         select m_product_id into v_productid from m_product where value=v_cur2.productvalue_key;
         select m_pricelist_version_id,ad_org_id into v_pversion,v_org from m_pricelist_version where name=v_cur2.pricelistversion_key;
         select c_uom_id into v_cuom_id from c_uom where name = v_cur2.c_uom_id;
@@ -149,6 +153,7 @@ v_ResultStr varchar;
 v_fieldscontainer varchar;
 v_isactive varchar;
 v_isstocked varchar;
+v_importstart timestamp with time zone := clock_timestamp();
 BEGIN
     if p_filename is null then return 'ERROR'; end if;
     perform zsse_droptable ('i_productimport');
@@ -177,11 +182,15 @@ BEGIN
     -- Datei in Tabelle
     v_cmd := 'COPY i_productimport  FROM ''' || p_filename ||''' CSV DELIMITER as '||chr(39)||p_delimiter||chr(39)||' HEADER ;';
     EXECUTE(v_cmd);
+    update i_productimport set name=substr(name,1,250);
     v_cmd := 'alter table i_productimport add column idds character varying(32) not null default get_uuid()';
     EXECUTE(v_cmd);
     select ad_language into v_lang from ad_client  where ad_client_id=v_client;    
     for v_cur2 in (select * from i_productimport)
     LOOP
+        if((v_i%100)=0 and v_i>0) then -- every 100 entries
+            perform i_checkimportduration(v_importstart, v_i, (select count(*) from i_productimport));
+        end if;
         /*
         Checks for Mandatory Fields  
         */
@@ -385,6 +394,7 @@ v_country varchar;
 v_tax varchar;
 v_bpuom varchar;
 v_lang varchar;
+v_importstart timestamp with time zone := clock_timestamp();
 BEGIN
  if p_filename is null then return 'ERROR'; end if;
   delete from i_product_poimport;
@@ -397,6 +407,9 @@ BEGIN
     
     for v_cur2 in (select * from i_product_poimport)
     LOOP
+        if((v_i%100)=0 and v_i>0) then -- every 100 entries
+            perform i_checkimportduration(v_importstart, v_i, (select count(*) from i_product_poimport));
+        end if;
         select m_product_id into v_productid from m_product where value=v_cur2.m_product_id;
         
         if v_productid is null then
@@ -673,6 +686,7 @@ v_i numeric:=0;
 v_u numeric:=0;
 v_count numeric;
 v_cmd varchar;
+v_importstart timestamp with time zone := clock_timestamp();
 
 BEGIN
  if p_filename is null then return 'ERROR'; end if;
@@ -683,6 +697,9 @@ BEGIN
   EXECUTE(v_cmd);
     for v_cur2 in (select * from i_producttrlimport)
     LOOP
+        if((v_i%100)=0 and v_i>0) then -- every 100 entries
+            perform i_checkimportduration(v_importstart, v_i, (select count(*) from i_producttrlimport));
+        end if;
        
 v_masterproduct:=(select m_product_id from m_product where value=v_cur2.value);
 v_trlproduct:=(select m_product_trl_id from m_product_trl where m_product_id=v_masterproduct and ad_language=v_cur2.ad_language);
@@ -758,6 +775,7 @@ v_i numeric:=0;
 v_cur2 RECORD;
 v_date Date;
 v_cost_id varchar;
+v_importstart timestamp with time zone := clock_timestamp();
 BEGIN
  if p_filename is null then return 'ERROR'; end if;
   delete from i_import_costing;
@@ -767,6 +785,9 @@ BEGIN
   EXECUTE(v_cmd);
     for v_cur2 in (select * from i_import_costing)
     LOOP
+        if((v_i%100)=0 and v_i>0) then -- every 100 entries
+            perform i_checkimportduration(v_importstart, v_i, (select count(*) from i_import_costing));
+        end if;
        
     v_masterproduct:=(select m_product_id from m_product where ltrim(rtrim(value))=ltrim(rtrim(v_cur2.productvalue)) and ad_org_id in ((select ad_org_id from ad_org where name =v_cur2.Org),'0'));
     if v_masterproduct is not null then 
@@ -939,6 +960,7 @@ v_line numeric:=0;
 v_uom varchar;
 v_categ varchar;
 currentAssemply varchar:='';
+v_importstart timestamp with time zone := clock_timestamp();
 BEGIN
   if p_filename is null then return 'ERROR'; end if;
   perform zsse_droptable ('i_bom');
@@ -977,6 +999,9 @@ BEGIN
   select c_uom_id into v_uom from c_uom  where isactive='Y' order by isdefault desc limit 1;
   for v_cur in (select * from i_bom order by assembly) 
   LOOP
+        if((v_i%100)=0 and v_i>0) then -- every 100 entries
+            perform i_checkimportduration(v_importstart, v_i, (select count(*) from i_bom));
+        end if;
         if (select count(*) from m_product where value=v_cur.assembly)=0 then
             return 'Baugruppe existiert nicht: '||v_cur.assembly;
         end if;
@@ -1282,6 +1307,7 @@ v_attrset varchar;
 v_attrinstanc varchar; 
 v_partner varchar;
 currentAssemply varchar:='';
+v_importstart timestamp with time zone := clock_timestamp();
 BEGIN
   if p_filename is null then return 'ERROR'; end if;
   perform zsse_droptable ('i_productionplan');
@@ -1315,6 +1341,9 @@ BEGIN
   
   for v_cur in (select * from i_productionplan order by value,Workstepsearchkey,Sortno) 
   LOOP
+        if((v_i%100)=0 and v_i>0) then -- every 100 entries
+            perform i_checkimportduration(v_importstart, v_i, (select count(*) from i_productionplan));
+        end if;
         if v_cur.product is not null and (select count(*) from m_product where value=v_cur.product and typeofproduct in ('AS','CD'))!=1 then
             raise exception '%','Artikel existiert nicht oder keine Baugruppe : '||v_cur.product;
         end if;
@@ -1495,6 +1524,7 @@ v_uom varchar;
 v_attribute varchar;
 v_qtybook numeric;
 v_lang varchar;
+v_importstart timestamp with time zone := clock_timestamp();
 BEGIN
     if p_filename is null then return 'ERROR'; end if;
     -- Dynamisches allozieren der Felder
@@ -1528,6 +1558,9 @@ BEGIN
 
     for v_cur in (select * from i_import_inventory)
     LOOP
+        if((v_i%100)=0 and v_i>0) then -- every 100 entries
+            perform i_checkimportduration(v_importstart, v_i, (select count(*) from i_import_inventory));
+        end if;
         -- Pflichtfelder
         v_inventory:=null;
         select m_inventory_id into v_inventory from m_inventory where m_inventory.name = v_cur.inventory_name and m_inventory.processed = 'N';
@@ -1592,5 +1625,42 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN
         raise exception '%',' @ERROR=' || SQLERRM;
+END;
+$_$  LANGUAGE 'plpgsql';
+
+
+-- abort import process with exception, when expected duration is longer than preference
+CREATE or replace FUNCTION i_checkimportduration(p_starttime timestamp with time zone, p_importedlines numeric, p_numoflines numeric) RETURNS varchar
+AS $_$
+DECLARE
+    v_now timestamp with time zone:= clock_timestamp();
+    v_delta interval;
+    v_approxtime interval;
+    v_approxtimeinseconds numeric;
+    v_maxtimepreference numeric; -- in seconds
+BEGIN
+    select value into v_maxtimepreference from ad_preference where attribute = 'MAXTIME4IMPORT';
+    if (v_maxtimepreference is null) then
+      -- default 5min
+      v_maxtimepreference := 300;
+    end if;
+    v_delta := v_now - p_starttime;
+    v_approxtime := v_delta/p_importedlines*p_numoflines;
+    select extract (epoch from v_approxtime) into v_approxtimeinseconds;
+    /* debug info
+    raise notice '%', 'start ' || p_starttime;
+    raise notice '%', 'now ' || v_now;
+    raise notice '%', 'delta ' || v_delta;
+    raise notice '%', 'imported ' || p_importedlines;
+    raise notice '%', 'total lines ' || p_numoflines;
+    raise notice '%', 'approxtime ' || v_approxtime;
+    raise notice '%', 'approxtime in seconds ' || v_approxtimeinseconds;
+    raise notice '%', 'maxtime ' || v_maxtimepreference;
+    */
+    if(v_approxtimeinseconds > v_maxtimepreference) then
+        raise exception '%', 'Voraussichtliche Import-Zeit größer als Limit. Bitte Datei in kleinere Dateien aufeilen. Voraussichtliche Import-Zeit: ' || round(v_approxtimeinseconds) || ' Sekunden';
+    end if;
+
+    return '';
 END;
 $_$  LANGUAGE 'plpgsql';

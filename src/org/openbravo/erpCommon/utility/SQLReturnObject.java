@@ -46,4 +46,8 @@ public class SQLReturnObject implements FieldProvider {
   public String getData(String name) {
     return data.get(name.toUpperCase());
   }
+  
+  public String getCompareStr() {
+	    return data.toString();
+	  }
 }

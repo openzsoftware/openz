@@ -544,5 +544,13 @@ public String getDateParameterGlobalVariableAndFetchFromSessionIfEmpty(String pa
       setSessionValue(sessionAttribute,targetvalue);
 	    return targetvalue;
 }
+public String getgetInStringParameter4SQL(String parameter) throws ServletException {
+	// For SQL-Use : Single Parameter with Convention '"text","text2","text3"....'
+    String value = getInStringParameter(parameter);
+    if (value.contains("|") || value.contains("\"") )
+       throw new ServletException("| and \" are forbidden Characters in List");
+    String targetvalue=value.replace("('", "'\"").replace("')", "\"'").replace("', '","\"|\"");
+    return targetvalue;
+}
   
 }

@@ -112,7 +112,7 @@ Contributor(s): ______________________________________.
   <Parameter name="keyid"/>
 <Parameter name="in"/>
 </SqlMethod>
-<SqlMethod name="getdatafromtable" type="preparedStatement" return="multiple" default="">
+  <SqlMethod name="getdatafromtable" type="preparedStatement" return="multiple" default="">
   <Sql>
     <![CDATA[
       Select valuefield as value,namefield as name, idfield from zssi_getdatafromtable(?,?,?,?) ]]>
@@ -121,5 +121,49 @@ Contributor(s): ______________________________________.
   <Parameter name="keyid"/>
 <Parameter name="in"/>
 <Parameter name="language"/>
-</SqlMethod>
+  </SqlMethod>
+  <SqlMethod name="getListsortLeftSQL" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       SELECT  mandantorylogic from ad_fieldinstance where ad_field_v_id = ? and mandantorylogic is not null
+       union
+       SELECT  mandantorylogic from ad_field_v where ad_field_v_id = ?
+               and not exists (SELECT  0 from ad_fieldinstance where ad_field_v_id = ?) and mandantorylogic is not null
+       union
+       SELECT  mandantorylogic from ad_ref_fieldcolumninstance where ad_ref_fieldcolumn_id = ?
+       union
+       SELECT  mandantorylogic from ad_ref_fieldcolumn where ad_ref_fieldcolumn_id = ?
+               and not exists (SELECT  0 from ad_ref_fieldcolumninstance where ad_ref_fieldcolumn_id = ?)
+      ]]>
+    </Sql>
+    <Parameter name="fieldID"/>
+    <Parameter name="fieldID"/>
+    <Parameter name="fieldID"/>
+    <Parameter name="fieldID"/>
+    <Parameter name="fieldID"/>
+    <Parameter name="fieldID"/>
+  </SqlMethod>
+  <SqlMethod name="getListsortRightSQL" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+       SELECT  defaultvalue from ad_fieldinstance where ad_field_v_id = ? and defaultvalue is not null
+       union
+       SELECT  defaultvalue from ad_field_v where ad_field_v_id = ?
+               and not exists (SELECT  0 from ad_fieldinstance where ad_field_v_id = ?) and defaultvalue is not null
+       union
+       SELECT  defaultvalue from ad_ref_fieldcolumninstance where ad_ref_fieldcolumn_id = ?
+       union
+       SELECT  defaultvalue from ad_ref_fieldcolumn where ad_ref_fieldcolumn_id = ?
+               and not exists (SELECT  0 from ad_ref_fieldcolumninstance where ad_ref_fieldcolumn_id = ?)
+      ]]>
+    </Sql>
+    <Parameter name="fieldID"/>
+    <Parameter name="fieldID"/>
+    <Parameter name="fieldID"/>
+    <Parameter name="fieldID"/>
+    <Parameter name="fieldID"/>
+    <Parameter name="fieldID"/>
+  </SqlMethod>
 </SqlClass>

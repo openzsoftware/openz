@@ -171,9 +171,9 @@ COST 100;
   
   select zsse_dropfunction('c_getemployeeprojectsplan_short');
 CREATE OR REPLACE FUNCTION c_getemployeeprojectsplan_short(p_employee varchar, p_workdate  timestamp without time zone, p_withlink varchar,p_PlannedOrStarted varchar,out p_content varchar,out p_color varchar, out p_textcolor varchar)
-RETURNS RECORD AS 
-$BODY$ 
-DECLARE 
+RETURNS RECORD AS
+$BODY$
+DECLARE
 /***************************************************************************************************************************************************
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
 compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
@@ -183,11 +183,11 @@ The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan
 Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
 Contributor(s): Robert Schardt.
 ***************************************************************************************************************************************************
- 
+
 Central Calender Function - Org Specific
 
 OVERLOADED - Tuning purpose in Production Simulation
- 
+
 *****************************************************/
 v_cur record;
 v_return varchar:='';
@@ -196,47 +196,53 @@ v_color2 varchar:='';
 v_textcolor varchar:='';
 v_orgevent varchar;
 v_temp varchar;
+v_style varchar:='';
 BEGIN
-    for v_cur in (select distinct p.name||'-'||pt.name as text, pt.c_projecttask_id,pt.c_color_id,hrp.zspm_ptaskhrplan_id,p.projectcategory from zspm_ptaskhrplan hrp,c_projecttask pt,c_project p,ad_user u where 
-                   pt.c_projecttask_id=hrp.c_projecttask_id and p.c_project_id=pt.c_project_id 
-                   and case when p_PlannedOrStarted='Planned' then p.projectstatus in ('OP','OR') else  p.projectstatus='OR' end 
+    for v_cur in (select distinct p.name||'-'||pt.name as text, pt.c_projecttask_id,pt.c_color_id,hrp.zspm_ptaskhrplan_id,p.projectcategory from zspm_ptaskhrplan hrp,c_projecttask pt,c_project p,ad_user u where
+                   pt.c_projecttask_id=hrp.c_projecttask_id and p.c_project_id=pt.c_project_id
+                   and case when p_PlannedOrStarted='Planned' then p.projectstatus in ('OP','OR') else  p.projectstatus='OR' end
                    and pt.istaskcancelled='N' and pt.iscomplete='N'
-                   and trunc(p_workdate) >= trunc(coalesce(hrp.datefrom,pt.startdate)) and  
+                   and trunc(p_workdate) >= trunc(coalesce(hrp.datefrom,pt.startdate)) and
                    trunc(p_workdate) <= trunc(coalesce(hrp.dateto,pt.enddate))
                    and hrp.employee_id=u.ad_user_id and u.c_bpartner_id=p_employee
                    and pt.startdate is not null and pt.enddate is not null)
     LOOP
        select htmlnotation, case when istextwhite='Y' then 'white' else 'black' end into v_color,v_textcolor from c_color where c_color_id=v_cur.c_color_id;
        -- If there is only one Project with Color, return the Color. If there are more then one Projects with Color return RED
-       -- If there is one Project with Color and others without, return the color of the Project 
-       if v_color is not null and v_color2='' then
-        v_color2:=v_color;
-       else
-        if v_color2!='' then
-        v_color2:='redwork';
-        v_textcolor:='black';
+       -- If there is one Project with Color and others without, return the color of the Project
+       if (select count(*) from ad_preference where attribute='RESOURCEPLAN_DOUBLES_RED' and value='Y')=1 then
+        if v_color is not null and v_color2='' then
+            v_color2:=v_color;
         else
-        v_color2:='';
-       end if;
+            if v_color2!='' then
+            v_color2:='redwork';
+            v_textcolor:='black';
+            else
+            v_color2:='';
+            end if;
+        end if;
+       else
+          v_color2:=coalesce(v_color,'greenwork');
+          v_style:='style="background-color:'||v_color2||';"';
        end if;
        if p_withlink='N' then
             if v_return!='' then  v_return:=v_return||'--'; end if;
             v_return:=v_return||v_cur.text;
        else
          if v_return!='' then  v_return:=v_return||'</br>'; end if;
-       
+
 	 if v_cur.projectcategory='PRO' then
 		v_temp:='submitCommandFormParameter('||chr(39)||'DIRECT'||chr(39)||',document.frmMain.inpDirectKey,'||chr(39)||v_cur.zspm_ptaskhrplan_id||chr(39)||', false, document.frmMain, '||chr(39)||'../org.openbravo.zsoft.serprod.ProductionOrder/Activities6F92F616B40C49FD9F2E8DE87216DD55_Edition.html'||chr(39)||', null, false, true)';
 
-	 else 
+	 else
 		v_temp:='submitCommandFormParameter('||chr(39)||'DIRECT'||chr(39)||',document.frmMain.inpDirectKey,'||chr(39)||v_cur.zspm_ptaskhrplan_id||chr(39)||', false, document.frmMain, '||chr(39)||'../org.openbravo.zsoft.project.Projects/EmployeePlanC80DFFDC5E4E4F219622923DB9C2C760_Edition.html'||chr(39)||', null, false, true)';
 	 end if;
-      
-        
+
+
         if v_textcolor='white' then
-            v_return:=v_return||'<a title="'||zssi_2html(v_cur.text)||'" href="#" onclick="stashaction(function(){'||v_temp||'},1200)" ondblclick="delstash();openServletNewWindow('||chr(39)||'DIRECT'||chr(39)||',false,'||chr(39)||'../org.openz.controller.popup/ResourcePlanUpdate.html'||chr(39)||','||chr(39)||'Popup'||chr(39)||','||chr(39)||v_cur.zspm_ptaskhrplan_id||chr(39)||',false,500,1000);return false;" class="LabelLink_white">'||'&nbsp;'||v_cur.text||' </a>';
+            v_return:=v_return||'<a '||v_style||' title="'||zssi_2html(v_cur.text)||'" href="#" onclick="stashaction(function(){'||v_temp||'},1200)" ondblclick="delstash();openServletNewWindow('||chr(39)||'DIRECT'||chr(39)||',false,'||chr(39)||'../org.openz.controller.popup/ResourcePlanUpdate.html'||chr(39)||','||chr(39)||'Popup'||chr(39)||','||chr(39)||v_cur.zspm_ptaskhrplan_id||chr(39)||',false,500,1000);return false;" class="LabelLink_white">'||'&nbsp;'||v_cur.text||' </a>';
         else
-            v_return:=v_return||'<a title="'||zssi_2html(v_cur.text)||'" href="#" onclick="stashaction(function(){'||v_temp||'},1200)" ondblclick="delstash();openServletNewWindow('||chr(39)||'DIRECT'||chr(39)||',false,'||chr(39)||'../org.openz.controller.popup/ResourcePlanUpdate.html'||chr(39)||','||chr(39)||'Popup'||chr(39)||','||chr(39)||v_cur.zspm_ptaskhrplan_id||chr(39)||',false,500,1000);return false;" class="LabelLink_black">'||'&nbsp;'||v_cur.text||' </a>';
+            v_return:=v_return||'<a '||v_style||' title="'||zssi_2html(v_cur.text)||'" href="#" onclick="stashaction(function(){'||v_temp||'},1200)" ondblclick="delstash();openServletNewWindow('||chr(39)||'DIRECT'||chr(39)||',false,'||chr(39)||'../org.openz.controller.popup/ResourcePlanUpdate.html'||chr(39)||','||chr(39)||'Popup'||chr(39)||','||chr(39)||v_cur.zspm_ptaskhrplan_id||chr(39)||',false,500,1000);return false;" class="LabelLink_black">'||'&nbsp;'||v_cur.text||' </a>';
         end if;
        end if;
     END LOOP;
@@ -246,7 +252,7 @@ BEGIN
 END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE
 COST 100;
-  
+
 select zsse_dropfunction('c_getemployeeprojectsplanInRange');
 CREATE OR REPLACE FUNCTION c_getemployeeprojectsplanInRange(p_employee varchar, p_datefrom  varchar,p_dateto  varchar,p_excludedTask varchar,p_PlannedOrStarted varchar)
 RETURNS VARCHAR AS 
@@ -458,23 +464,35 @@ v_dow numeric;
 v_org varchar;
 v_globalholiday varchar;
 v_day varchar;
+v_calendarweek numeric;
 BEGIN
     select ad_org_id into v_org from c_bpartner where c_bpartner_id=p_employee;
     select extract (DOW from p_workdate) into v_dow;
+    select extract (week from p_workdate) into v_calendarweek;
+    if (select coalesce(date1,now()) from ad_user where c_bpartner_id=p_employee limit 1)>p_workdate then
+        return 0;
+    end if;
     if v_dow=1 then
-        select worktimemonday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimemonday else coalesce (worktimemonday_evenweeks,worktimemonday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=2 then 
-        select worktimetuesday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimetuesday else coalesce (worktimetuesday_evenweeks,worktimetuesday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=3 then 
-         select worktimewednesday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimewednesday else coalesce (worktimewednesday_evenweeks,worktimewednesday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=4 then 
-         select worktimethursday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimethursday else coalesce (worktimethursday_evenweeks,worktimethursday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=5 then 
-         select worktimefriday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimefriday else coalesce (worktimefriday_evenweeks,worktimefriday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=6 then 
-         select worktimesaturday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimesaturday else coalesce (worktimesaturday_evenweeks,worktimesaturday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=0 then 
-         select worktimesunday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimesunday else coalesce (worktimesunday_evenweeks,worktimesunday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     end if;
     if v_return is not null then
         return v_return;
@@ -532,26 +550,37 @@ OVERLOADED - Tuning purpose in Production Simulation
 
 v_return numeric;
 v_dow numeric;
+v_calendarweek numeric;
 BEGIN
     select worktime into v_return from C_bpartneremployeeEVENT where c_bpartner_id=p_employee and isactive='Y' and datefrom<=p_workdate and coalesce(dateto,datefrom)>=p_workdate order by worktime limit 1;
     if v_return is not null then
         return v_return;
     end if;
     select extract (DOW from p_workdate) into v_dow;
+    select extract (week from p_workdate) into v_calendarweek;
+    -- when useevenweeks='N' or week is uneven -> use standard field
+    -- else -> use evenweek field when filled
     if v_dow=1 then
-        select worktimemonday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimemonday else coalesce (worktimemonday_evenweeks,worktimemonday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=2 then 
-        select worktimetuesday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimetuesday else coalesce (worktimetuesday_evenweeks,worktimetuesday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=3 then 
-         select worktimewednesday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimewednesday else coalesce (worktimewednesday_evenweeks,worktimewednesday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=4 then 
-         select worktimethursday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimethursday else coalesce (worktimethursday_evenweeks,worktimethursday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=5 then 
-         select worktimefriday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimefriday else coalesce (worktimefriday_evenweeks,worktimefriday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=6 then 
-         select worktimesaturday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimesaturday else coalesce (worktimesaturday_evenweeks,worktimesaturday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=0 then 
-         select worktimesunday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then worktimesunday else coalesce (worktimesunday_evenweeks,worktimesunday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     end if;
     if v_return is not null then
         return v_return;
@@ -618,23 +647,32 @@ OVERLOADED - Tuning purpose in Production Simulation
 
 v_return timestamp without time zone;
 v_dow numeric;
+v_calendarweek numeric;
 BEGIN
     
     select extract (DOW from p_workdate) into v_dow;
+    select extract (week from p_workdate) into v_calendarweek;
     if v_dow=1 then
-        select workbegintimemonday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then workbegintimemonday else coalesce (workbegintimemonday_evenweeks,workbegintimemonday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=2 then 
-        select workbegintimetuesday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then workbegintimetuesday else coalesce (workbegintimetuesday_evenweeks,workbegintimetuesday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=3 then 
-         select workbegintimewednesday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then workbegintimewednesday else coalesce (workbegintimewednesday_evenweeks,workbegintimewednesday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=4 then 
-         select workbegintimethursday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then workbegintimethursday else coalesce (workbegintimethursday_evenweeks,workbegintimethursday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=5 then 
-         select workbegintimefriday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then workbegintimefriday else coalesce (workbegintimefriday_evenweeks,workbegintimefriday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=6 then 
-         select workbegintimesaturday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then workbegintimesaturday else coalesce (workbegintimesaturday_evenweeks,workbegintimesaturday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     elsif v_dow=0 then 
-         select workbegintimesunday into v_return from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
+        select case when useevenweeks='N' or v_calendarweek%2=1 then workbegintimesunday else coalesce (workbegintimesunday_evenweeks,workbegintimesunday) end into v_return
+          from C_bpartneremployeeCALENDARSETTINGS where c_bpartner_id=p_employee and isactive='Y' and validfrom<=p_workdate order by validfrom desc;
     end if;
     if v_return is null then
         return c_getorgworkbegintime((select ad_org_id from c_bpartner where c_bpartner_id=p_employee), p_workdate);
@@ -991,6 +1029,7 @@ v_color2 varchar:='';
 v_textcolor varchar:='';
 v_orgevent varchar;
 v_temp varchar;
+v_style varchar:='';
 BEGIN
     for v_cur in (select distinct  p.name||'-'||pt.name as text, pt.c_projecttask_id,pt.c_color_id,mpl.zspm_ptaskmachineplan_id, p.projectcategory
                   from zspm_ptaskmachineplan mpl,c_projecttask pt,c_project p where 
@@ -1005,15 +1044,20 @@ BEGIN
        select htmlnotation, case when istextwhite='Y' then 'white' else 'black' end into v_color,v_textcolor from c_color where c_color_id=v_cur.c_color_id;
        -- If there is only one Project with Color, return the Color. If there are more then one Projects with Color return RED
        -- If there is one Project with Color and others without, return the color of the Project 
-      if v_color is not null and v_color2='' then
-        v_color2:=v_color;
-       else
-        if v_color2!='' then
-        v_color2:='redwork';
-        v_textcolor:='black';
+      if (select count(*) from ad_preference where attribute='RESOURCEPLAN_DOUBLES_RED' and value='Y')=1 then
+        if v_color is not null and v_color2='' then
+            v_color2:=v_color;
         else
-        v_color2:='';
-       end if;
+            if v_color2!='' then
+            v_color2:='redwork';
+            v_textcolor:='black';
+            else
+            v_color2:='';
+            end if;
+        end if;
+       else
+          v_color2:=coalesce(v_color,'greenwork');
+          v_style:='style="background-color:'||v_color2||';"';
        end if;
        if p_withlink='N' then
             if v_return!='' then  v_return:=v_return||'--'; end if;
@@ -1028,11 +1072,10 @@ BEGIN
 	 else 
         	v_temp:='submitCommandFormParameter('||chr(39)||'DIRECT'||chr(39)||',document.frmMain.inpDirectKey,'||chr(39)||v_cur.zspm_ptaskmachineplan_id||chr(39)||', false, document.frmMain, '||chr(39)||'../org.openbravo.zsoft.project.Projects/MachinePlanD3DA773117B94F868813BCEAA1A667F5_Relation.html'||chr(39)||', null, false, true)';
 	 end if;
-        
         if v_textcolor='white' then
-            v_return:=v_return||'<a title="'||zssi_2html(v_cur.text)||'" href="#" onclick="stashaction(function(){'||v_temp||'},1200)" ondblclick="delstash();openServletNewWindow('||chr(39)||'DIRECT'||chr(39)||',false,'||chr(39)||'../org.openz.controller.popup/ResourcePlanUpdate.html'||chr(39)||','||chr(39)||'Popup'||chr(39)||','||chr(39)||v_cur.zspm_ptaskmachineplan_id||chr(39)||',false,500,1000);return false;" class="LabelLink_white">'||'&nbsp;'||v_cur.text||' </a>';
+            v_return:=v_return||'<a '||v_style||' title="'||zssi_2html(v_cur.text)||'" href="#" onclick="stashaction(function(){'||v_temp||'},1200)" ondblclick="delstash();openServletNewWindow('||chr(39)||'DIRECT'||chr(39)||',false,'||chr(39)||'../org.openz.controller.popup/ResourcePlanUpdate.html'||chr(39)||','||chr(39)||'Popup'||chr(39)||','||chr(39)||v_cur.zspm_ptaskmachineplan_id||chr(39)||',false,500,1000);return false;" class="LabelLink_white">'||'&nbsp;'||v_cur.text||' </a>';
         else
-            v_return:=v_return||'<a title="'||zssi_2html(v_cur.text)||'" href="#" onclick="stashaction(function(){'||v_temp||'},1200)" ondblclick="delstash();openServletNewWindow('||chr(39)||'DIRECT'||chr(39)||',false,'||chr(39)||'../org.openz.controller.popup/ResourcePlanUpdate.html'||chr(39)||','||chr(39)||'Popup'||chr(39)||','||chr(39)||v_cur.zspm_ptaskmachineplan_id||chr(39)||',false,500,1000);return false;" class="LabelLink_black">'||'&nbsp;'||v_cur.text||' </a>';
+            v_return:=v_return||'<a '||v_style||' title="'||zssi_2html(v_cur.text)||'" href="#" onclick="stashaction(function(){'||v_temp||'},1200)" ondblclick="delstash();openServletNewWindow('||chr(39)||'DIRECT'||chr(39)||',false,'||chr(39)||'../org.openz.controller.popup/ResourcePlanUpdate.html'||chr(39)||','||chr(39)||'Popup'||chr(39)||','||chr(39)||v_cur.zspm_ptaskmachineplan_id||chr(39)||',false,500,1000);return false;" class="LabelLink_black">'||'&nbsp;'||v_cur.text||' </a>';
         end if;
        end if;
     END LOOP;
@@ -1328,6 +1371,8 @@ SELECT w.c_workcalender_id||o.c_bpartner_id as c_employeecalendar_v_id,o.ad_org_
        coalesce(c_getemployeeworktimeplan(o.c_bpartner_id,w.workdate),w.worktime) as worktimeplan, 
        to_char(coalesce(c_getemployeeworkbegintime(o.c_bpartner_id,w.workdate),w.workbegintime),'HH24:MI')::character varying as workbegintime,
        w.workdate,
+       date_part('week',w.workdate)::numeric as calendarweek,
+       date_part('isodow',w.workdate)::numeric as weekday,
        o.c_bpartner_id,
        (select p_content from c_getemployeeprojectsplan(o.c_bpartner_id,w.workdate,'N','Started')) as projectsplan,
        c_getemployeeprojectsworked(o.c_bpartner_id,w.workdate) as projectsworked,
@@ -1700,26 +1745,30 @@ Contributor(s): ______________________________________.
 ***************************************************************************************************************************************************
 Part of CORE
 *****************************************************/
-        
+v_begin timestamp;
+v_end timestamp;
 BEGIN
     
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;  END IF;
     if TG_OP = 'DELETE' then
-        update zspm_ptaskhrplan hr set updated=hr.updated from c_projecttask pt,c_project p where hr.c_projecttask_id=pt.c_projecttask_id and pt.c_project_id=p.c_project_id 
+        select min(pt.startdate),max(pt.enddate) into v_begin,v_end from c_projecttask pt,c_project p,zspm_ptaskhrplan hr where hr.c_projecttask_id=pt.c_projecttask_id and pt.c_project_id=p.c_project_id 
            and p.projectstatus in ('OP','OR') and pt.istaskcancelled='N' and pt.iscomplete='N' and employee_id=(select ad_user_id from ad_user where c_bpartner_id=old.c_bpartner_id);
-        PERFORM zssi_resourceplanupdate(null,(select ad_user_id from ad_user where c_bpartner_id=old.c_bpartner_id),old.datefrom,old.dateto);
+        --update zspm_ptaskhrplan hr set updated=hr.updated from c_projecttask pt,c_project p where hr.c_projecttask_id=pt.c_projecttask_id and pt.c_project_id=p.c_project_id 
+        --   and p.projectstatus in ('OP','OR') and pt.istaskcancelled='N' and pt.iscomplete='N' and employee_id=(select ad_user_id from ad_user where c_bpartner_id=old.c_bpartner_id);
+        PERFORM zssi_resourceplanupdate(null,(select ad_user_id from ad_user where c_bpartner_id=old.c_bpartner_id),least(old.datefrom,v_begin),greatest(old.dateto,v_end));
     else
-        
+        select min(pt.startdate),max(pt.enddate) into v_begin,v_end from c_projecttask pt,c_project p,zspm_ptaskhrplan hr where hr.c_projecttask_id=pt.c_projecttask_id and pt.c_project_id=p.c_project_id 
+           and p.projectstatus in ('OP','OR') and pt.istaskcancelled='N' and pt.iscomplete='N' and employee_id=(select ad_user_id from ad_user where c_bpartner_id=new.c_bpartner_id);
         if TG_OP = 'INSERT' then
-           update zspm_ptaskhrplan hr set updated=hr.updated from c_projecttask pt,c_project p where hr.c_projecttask_id=pt.c_projecttask_id and pt.c_project_id=p.c_project_id 
-                and p.projectstatus in ('OP','OR') and pt.istaskcancelled='N' and pt.iscomplete='N' and employee_id=(select ad_user_id from ad_user where c_bpartner_id=new.c_bpartner_id);
-           PERFORM zssi_resourceplanupdate(null,(select ad_user_id from ad_user where c_bpartner_id=new.c_bpartner_id),new.datefrom,new.dateto); 
+           --update zspm_ptaskhrplan hr set updated=hr.updated from c_projecttask pt,c_project p where hr.c_projecttask_id=pt.c_projecttask_id and pt.c_project_id=p.c_project_id 
+           --     and p.projectstatus in ('OP','OR') and pt.istaskcancelled='N' and pt.iscomplete='N' and employee_id=(select ad_user_id from ad_user where c_bpartner_id=new.c_bpartner_id);
+           PERFORM zssi_resourceplanupdate(null,(select ad_user_id from ad_user where c_bpartner_id=new.c_bpartner_id),least(new.datefrom,v_begin),greatest(new.dateto,v_end)); 
         end if;
         if TG_OP = 'UPDATE' then
            if old.ad_org_id=new.ad_org_id then
-                update zspm_ptaskhrplan hr set updated=hr.updated from c_projecttask pt,c_project p where hr.c_projecttask_id=pt.c_projecttask_id and pt.c_project_id=p.c_project_id 
-                    and p.projectstatus in ('OP','OR') and pt.istaskcancelled='N' and pt.iscomplete='N' and employee_id=(select ad_user_id from ad_user where c_bpartner_id=new.c_bpartner_id);
-                PERFORM zssi_resourceplanupdate(null,(select ad_user_id from ad_user where c_bpartner_id=new.c_bpartner_id),least(new.datefrom,old.datefrom),greatest(new.dateto,old.dateto));
+                --update zspm_ptaskhrplan hr set updated=hr.updated from c_projecttask pt,c_project p where hr.c_projecttask_id=pt.c_projecttask_id and pt.c_project_id=p.c_project_id 
+                --    and p.projectstatus in ('OP','OR') and pt.istaskcancelled='N' and pt.iscomplete='N' and employee_id=(select ad_user_id from ad_user where c_bpartner_id=new.c_bpartner_id);
+                PERFORM zssi_resourceplanupdate(null,(select ad_user_id from ad_user where c_bpartner_id=new.c_bpartner_id),least(new.datefrom,old.datefrom,v_begin),greatest(new.dateto,old.dateto,v_end));
            end if;
         end if;
     end if;
@@ -2186,6 +2235,9 @@ v_cur_absent record;
 v_hours numeric;
 v_countabsentasbreak varchar;
 v_oneline varchar;
+v_break numeric:=0;
+v_vgl1 varchar;
+v_vgl2 varchar;
 BEGIN
 
 if ((p_datefrom is not null and p_datefrom != '') and (p_dateto is not null and p_dateto != '')) then
@@ -2213,8 +2265,8 @@ for v_cur in (select  fbl.workdate, to_char(fbl.workdate,'DY') as vdd,to_char(fb
                 sum(fbl.breaktime) as breaktime, sum(fbl.paidbreaktime) as paidbreaktime,  sum(fbl.traveltime) as traveltime, 
                 sum(fbl.specialtime) as specialtime, sum(fbl.specialtime2) as specialtime2,sum(fbl.specialtime3) as specialtime3,sum(fbl.special4) as special4,sum(fbl.special5) as special5,
                 sum(fbl.triggeramt) as triggeramt,sum(fbl.overtimehours) as overtimehours, sum(fbl.nighthours) as  nighthours,
-                case when  fbl.hour_from>fbl.hour_to then 'Y' else case when v_oneline='Y' then 'N' else get_uuid() end end as ckstate -- Overnight single Lines
-              from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_id and p.timekeeping='Y' and fbl.workdate = v_curcal.datenow and fbl.ad_user_id=v_userid 
+                case when  fbl.hour_from>fbl.hour_to then 'Y' else case when v_oneline='Y' then 'N' else fbl.zspm_ptaskfeedbackline_id end end as ckstate -- Overnight single Lines
+              from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_id and p.timekeeping='Y' and fbl.workdate = v_curcal.datenow and fbl.ad_user_id=v_userid
               group by p.c_project_id,fbl.c_projecttask_id,fbl.ad_user_id,fbl.workdate,ckstate order by min(fbl.hour_from))
   LOOP
     -- Sollarbeitszeit nur einmal am Tag.
@@ -2240,22 +2292,54 @@ for v_cur in (select  fbl.workdate, to_char(fbl.workdate,'DY') as vdd,to_char(fb
             v_absent:=v_cur_absent.hour_to;
         END LOOP;
     end if;
-    if v_absentHours>coalesce(v_cur.breaktime,0) and v_cur.ckstate='N' then
+    if v_absentHours>coalesce(v_cur.breaktime,0) then -- Ausstempelzeit>Pausenzeit: Ausstempelzeit=Pause
         dbreak:=v_absentHours;
         v_hours:=coalesce(v_cur.hours,0)+coalesce(v_cur.breaktime,0); -- Die abgezogene Pause zählt nicht mit--> Abwesenheit > Pause!
-        dover:=v_hours-v_time;
-        if dover<0 then dover:=0; end if;
     else
-        dbreak:=coalesce(v_cur.breaktime,0);
-        v_hours:=coalesce(v_cur.hours,0);
+        dbreak:=coalesce(v_cur.breaktime,0); -- Gesetzliche Pause > Abwesenheit
+        v_hours:=coalesce(v_cur.hours,0)+v_absentHours; -- Abwesenheit=Arbeitszeit
+    end if;
+    -- Überstunden (obsolet)
+    if v_oneline='Y' then
+        dover:=v_hours-v_time; -- Überstunden an normalen Tagen (geleistete Stunden - Soll-Arbeitszeit
+    else 
         dover:=v_cur.overtimehours;
     end if;
+    -- Überstunden (neu, Ticket 11893) -> v_hours zieht wenn Abwesenheit gestempelt wurde (geht nur auf derselben Aufgabe) -> hours zieht bei mehreren Projekten / Aufgaben (Da muß Pause dann eingetragen werden)
+    select greatest(sum(coalesce(hours,0)),v_hours)-v_time-sum(coalesce(nighthours,0)) into dover from zspm_ptaskfeedbackline fbl,c_project p
+           where p.c_project_id=fbl.c_project_id and p.timekeeping='Y' and fbl.workdate = v_curcal.datenow and fbl.ad_user_id=v_userid;
+    select case when v_oneline='Y' then 'N' else fbl.zspm_ptaskfeedbackline_id end as ckstate,fbl.c_projecttask_id
+           into v_vgl1,v_vgl2
+           from zspm_ptaskfeedbackline fbl,c_project p where p.c_project_id=fbl.c_project_id and p.timekeeping='Y' and fbl.workdate = v_curcal.datenow and fbl.ad_user_id=v_userid
+              group by p.c_project_id,fbl.c_projecttask_id,fbl.ad_user_id,fbl.workdate,ckstate order by min(fbl.hour_from) desc limit 1;
+    if not (v_vgl1=v_cur.ckstate and v_vgl2=v_cur.c_projecttask_id) then -- Überstunden nur in letzer Zeile
+        dover:=0;
+    end if;
+    if dover<0 then dover:=0; end if;
+    dnorm:=0;
+    dnight:=v_cur.nighthours;
+    -- Über Nacht gearbeitet. Wir sind aber in der Zeile ohne Nachtarbeit (1. Zeile) -> Pause immer in der 2. Zeile
+    if (select count(*) from zspm_ptaskfeedbackline where workdate=v_curcal.datenow and ad_user_id=v_userid and c_projecttask_id=v_cur.c_projecttask_id and hour_to<hour_from)>0 and v_cur.hour_to>v_cur.hour_from then
+        dbreak:=0;
+    end if;
+    v_break:=0;
+    -- Über Nacht gearbeitet.. (ggf. sind wir jetzt in der 2. Zeilen, pause als summe hier berechnen
+    if v_cur.hour_to<v_cur.hour_from then    
+         select sum(breaktime) into v_break from zspm_ptaskfeedbackline where workdate=v_curcal.datenow and ad_user_id=v_userid and c_projecttask_id=v_cur.c_projecttask_id;
+         if v_absentHours>coalesce(v_break,0) then -- Abwesenheit>Pause in der 2. Zeile
+           dbreak:=v_absentHours;
+           v_hours:=coalesce(v_cur.hours,0)+coalesce(v_cur.breaktime,0); -- evtl in diesem DS abgezogene Pause dann zu gesamt hinzu (Pause ist in der 1. Zeile!)
+         else
+            dbreak:=coalesce(v_break,0); -- Eingetragene Pausenzeit in der 2. Zeile
+            v_hours:=coalesce(v_cur.hours,0); -- Hier nicht absent abzienen, machen wir bereits in der 1. Zeile
+         end if;
+    end if;
+    --raise notice '%', v_cur.workdate||'#'||v_absentHours||'#'||v_hours||'#'||v_cur.breaktime||'#'||v_cur.ckstate||'#'||dbreak||'#'||v_time;
     -- Sondertage immer auf der ersten Zeit (Nachtarbeit!)
     select issunday, issaturday,isholiday into v_issunday, v_issaturday,v_isholiday 
            from zspm_ptaskfeedbackline where workdate=v_curcal.datenow and ad_user_id=v_userid and c_projecttask_id=v_cur.c_projecttask_id order by hour_from limit 1;
-    dnorm:=0;
-    dnight:=v_cur.nighthours;
     if v_issunday='Y' or v_issaturday='Y' or v_isholiday='Y' then
+        dover:=0; -- An Sondertagen keine Überstunden
         if (v_issunday='Y') then            
             dsun:=v_hours;
             dsat:=0;
@@ -2315,12 +2399,14 @@ for v_cur in (select  fbl.workdate, to_char(fbl.workdate,'DY') as vdd,to_char(fb
         select p_norm,p_over,p_night,p_sat,p_sun,p_holi into dnorm,dover,dnight,dsat,dsun,dholi from c_getworktimeThisdayOvernight(v_id);
         -- Zweiter Teil der Nacht
         select p_norm+dnorm,p_over+dover,p_night+dnight,p_sat+dsat,p_sun+dsun,p_holi+dholi,p_ne into dnorm,dover,dnight,dsat,dsun,dholi,v_ne from c_getworktimeNEXTDayOvernight(v_id); 
-        select greatest(dnorm,dnight,dsat,dsun,dholi) into v_bre;
-        if dnorm>0 then dnorm:=dnorm-coalesce(dbreak,0); elsif dnight=v_bre then dnight:=dnight-coalesce(dbreak,0); elsif dsat=v_bre then dsat:=dsat-coalesce(dbreak,0); 
-           elsif dsun=v_bre then dsun:=dsun-coalesce(dbreak,0); elsif dholi=v_bre then dholi:=dholi-coalesce(dbreak,0);
+        If v_absentHours<coalesce(v_break,0) then 
+            select greatest(dnorm,dnight,dsat,dsun,dholi) into v_bre;
+            if dnorm=v_bre then dnorm:=dnorm-coalesce(v_break,0); elsif dnight=v_bre then dnight:=dnight-coalesce(v_break,0); elsif dsat=v_bre then dsat:=dsat-coalesce(v_break,0); 
+                elsif dsun=v_bre then dsun:=dsun-coalesce(v_break,0); elsif dholi=v_bre then dholi:=dholi-coalesce(v_break,0);
+            end if;
         end if;
         -- Nächsten Tag Bez Pause wandert von Nachtschicht auf Überstunden.
-        if dpaidbreak>0 and dnight>0 and dsun=0 and dsat=0 and dholi=0 then
+        if dpaidbreak>0 and dnight>0 and dsun<dpaidbreak and dsat<dpaidbreak and dholi<dpaidbreak then
             if v_ne<v_cur.hour_to then -- Next Day Normal or Over
                 if dover>0 or dnorm=dsoll then
                     dover:=dover+dpaidbreak;
@@ -2331,14 +2417,14 @@ for v_cur in (select  fbl.workdate, to_char(fbl.workdate,'DY') as vdd,to_char(fb
             end if;
         end if;
         -- An so und sa gilt es als Überstunde , nicht aber an Feiertagen       
-        if dpaidbreak>0 and (dsun>0 or dsat>0) then
+        if dpaidbreak>0 and (dsun>=dpaidbreak or dsat>=dpaidbreak) then
             dover:=dover+dpaidbreak;
             --if dholi>0 then dholi:=dholi-dpaidbreak; els
             if
                dsun>0 then dsun:=dsun-dpaidbreak; elsif
                dsat>0 then dsat:=dsat-dpaidbreak; 
             end if;            
-        end if;        
+        end if;
     end if;
     
     
@@ -2626,8 +2712,10 @@ $_$
   COST 100;
 
 
-  
-CREATE or replace FUNCTION zssi_NumofWorkdays2CaleandarDaysFromGivenDate(p_workdays numeric,p_org_id character varying,p_date timestamp) RETURNS numeric
+
+-- when p_reverse = 'REVERSE' return p_date - p_workdays
+-- else return p_date + p_workdays
+CREATE or replace FUNCTION zssi_NumofWorkdays2CaleandarDaysFromGivenDate(p_workdays numeric,p_org_id character varying,p_date timestamp, p_reverse character varying) RETURNS numeric
 AS $_$
 /***************************************************************************************************************************************************
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
@@ -2645,7 +2733,16 @@ DECLARE
   v_calendarcounter numeric:=0;
   v_worktime numeric;
 BEGIN
-    for v_cur in (select worktime,workdate,isweekend,isholiday from c_workcalender where workdate > trunc(p_date) order by workdate)
+    for v_cur in (select worktime,workdate,isweekend,isholiday from c_workcalender
+        where
+          case when p_reverse='REVERSE'
+            then workdate < trunc(p_date)
+            else workdate > trunc(p_date)
+          end
+        order by
+          case when p_reverse='REVERSE' then workdate end desc,
+          case when p_reverse!='REVERSE' then workdate end asc
+    )
     LOOP
         v_worktime:=coalesce(c_getorgworktime(p_org_id,v_cur.workdate),v_cur.worktime);
         if v_worktime>0 and v_cur.isweekend='N' and v_cur.isholiday='N' then
@@ -2664,7 +2761,30 @@ END
 $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;  
-  
+
+-- overloaded for backwards compatibility
+CREATE or replace FUNCTION zssi_NumofWorkdays2CaleandarDaysFromGivenDate(p_workdays numeric,p_org_id character varying,p_date timestamp) RETURNS numeric
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2015 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+*************************************************************************************************************************************************/
+DECLARE
+BEGIN
+    return zssi_NumofWorkdays2CaleandarDaysFromGivenDate(p_workdays, p_org_id, p_date, '');
+END
+$_$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+
+
+
+
 select zsse_dropfunction('zssi_getusercolor');
 CREATE or replace FUNCTION zssi_getusercolor(p_user_id character varying) RETURNS character varying
 AS $_$
@@ -3058,7 +3178,7 @@ BEGIN
   	select C_Calendarevent_ID into v_event from C_workcalendarevent where (p_date between datefrom and COALESCE(dateto, datefrom) or p_date::date=datefrom::date) and ad_org_id=v_org;
   	select isholyday into v_isHolyday from c_calendarevent where c_calendarevent_id=v_event;
   end if;
-	
+
   return coalesce(v_isHolyday, 'N');
 
 END;
@@ -3103,11 +3223,10 @@ BEGIN
 		v_stopDate := (SELECT CASE WHEN (v_stopDate::date < p_lastDayOfMonth::date) THEN v_stopDate ELSE p_lastDayOfMonth END);
 		
 
-		while(v_startDate::date <= v_stopDate::date) 
+		while(v_startDate::date <= v_stopDate::date)
 		LOOP
-
 			-- Wenn angegebener Tag kein Feier- oder Wochenendstag ist
-			if (zssi_checkIfHolidayOrWeekend(v_startDate, v_bpartneremployeeevent.ad_org_id) = 'N') then
+			if (zssi_checkIfHolidayOrWeekend(v_startDate, v_bpartneremployeeevent.ad_org_id) = 'N') and c_getemployeeworktimeNormal(p_bpartner_id, v_startDate)>0 then
 
 				if(COALESCE(v_bpartneremployeeevent.worktime, 0) > 0) then
 
@@ -3199,11 +3318,14 @@ BEGIN
                     v_tmpWMonth=0;
                 end if;
 		v_firstDayOfSpan := (case when v_tmpWMonth=0 then to_char(to_number(p_year)+1) else p_year end|| '-' || (v_tmpWMonth + 1) || '-01')::timestamp without time zone;
+		--v_firstDayOfSpan := (case when v_tmpWMonth=0 then to_char(to_number(p_year)+1)||'-01-01' else p_year|| '-' || (v_tmpWMonth) || '-01' end)::timestamp without time zone;
 		v_lastDayOfMonth := (p_year || '-' || p_month || '-01')::timestamp without time zone + (INTERVAL '1 month - 1 day');
+
 		if p_datefrom is not null and p_datefrom!='' and p_dateto is not null and p_dateto!='' then
             v_lastDayOfMonth:=p_dateto;
             --v_firstDayOfSpan:=p_datefrom;
 		end if;
+		--raise notice '%',v_firstDayOfSpan||'#'||v_lastDayOfMonth||'#'||v_remaining||'#'||zssi_countSumOfHolidayDaysTaken(p_bpartner_id, v_firstDayOfSpan, v_lastDayOfMonth);
   		v_remaining := v_remaining - zssi_countSumOfHolidayDaysTaken(p_bpartner_id, v_firstDayOfSpan, v_lastDayOfMonth);
 	end if;
 	

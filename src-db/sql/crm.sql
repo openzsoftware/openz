@@ -171,6 +171,8 @@ CREATE OR REPLACE VIEW zssi_crm_bpartner_v AS
                 c.phone2,
                 c.fax,
                 c.comments,
+                c.c_user_position_id,
+                c.c_user_department_id,
                 coalesce(zssi_crm_getinterests(c.ad_user_id),'') as interests,
                 bp.iscustomer,
                 bp.isvendor,

@@ -501,18 +501,19 @@ BEGIN
             -- Includes Monday morning hours :
             -- all the night (and more) ?
             -- Worked to morning
-            if v_hourto>=v_cur.nightbegin then
-                if v_hourto>=v_cur.nightend then
-                    new.nighthours:=extract(hour from v_cur.nightend)+extract(minute from v_cur.nightend)/60;
-                    new.overtimehours:=v_Hours-c_getemployeeworktimeNormal(v_bpartner,NEW.workdate+1)-v_ovhours;
-                    if new.overtimehours <0 then new.overtimehours:=0; end if;
-                else
+            --11893 : Commented out: Nightwork is only if work is till Monday for the Monday hours.
+            --if v_hourto>=v_cur.nightbegin then
+            --    if v_hourto>=v_cur.nightend then
+            --        new.nighthours:=extract(hour from v_cur.nightend)+extract(minute from v_cur.nightend)/60;
+            --        new.overtimehours:=v_Hours-c_getemployeeworktimeNormal(v_bpartner,NEW.workdate+1)-v_ovhours;
+            --       if new.overtimehours <0 then new.overtimehours:=0; end if;
+            --    else
                    -- Worked in next day?
                    if v_overnight='Y' then
                         new.nighthours:= (extract(hour from v_hourto)+extract(minute from v_hourto)/60) ;
                    end if;
-                end if;
-            end if;
+            --    end if;
+            --end if;
             EXIT;
         elsif v_cur.ident='saturday' and (select dayname from c_workcalender where trunc(workdate)=trunc(new.workdate))='6' then
             new.issaturday:='Y';

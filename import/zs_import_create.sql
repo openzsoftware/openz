@@ -198,6 +198,7 @@ isactive  character varying(250) default 'Y');
 create table zsi_bp_location (
 bp_value_key character varying(250),
 deviantbpartnername character varying(250),
+printcontactname character varying(250) default 'N',
 isactive  character varying(250) default 'Y',
 address1 character varying(250),
 address2 character varying(250),
@@ -207,15 +208,17 @@ country_key character varying(250),
 phone character varying(250),
 phone2 character varying(250),
 fax character varying(250),
+email character varying(250),
+ccemail character varying(250),
 isshipto character varying(250),
 isbillto character varying(250),
-isremitto character varying(250),
-ispayfrom character varying(250),
-istaxlocation character varying(250),
+isinvoicebyemail character varying(250) default 'Y',
 isheadquarter character varying(250),
 uidnumber character varying(250),
+eoriidentification  character varying(250),
 tax_key character varying(250),
-salesregion_key character varying(250));
+salesregion_key character varying(250),
+c_bpartnerinvreceiver character varying(250));
 
 
 create table zsi_bp_customer (

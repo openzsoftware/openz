@@ -75,9 +75,9 @@
        where 1=1
        AND 2=2 
        AND 3=3 
-       AND 4=4 
+       AND 4=4
        AND ad_org_id = ?
-       order by value,NEEDBYDATE
+       ORDER BY CASE WHEN ? = 'cause' THEN causetext WHEN ? = 'product' THEN value ELSE value END, NEEDBYDATE
     </Sql>
        <Parameter name="language"/>
        <Parameter name="language"/>
@@ -85,7 +85,9 @@
       <Parameter name="parProduct" optional="true" after="where 1=1"><![CDATA[ AND ZSSM_PRODUCTIONREQUIRED_V.M_PRODUCT_ID = TO_CHAR(?)]]></Parameter>
       <Parameter name="parDateFrom" optional="true" after="AND 3=3"><![CDATA[ AND coalesce(ZSSM_PRODUCTIONREQUIRED_V.dependentstartdate,ZSSM_PRODUCTIONREQUIRED_V.lateststartdate) >= TO_DATE(?)]]></Parameter>
       <Parameter name="parDateTo" optional="true" after="AND 4=4"><![CDATA[ AND coalesce(ZSSM_PRODUCTIONREQUIRED_V.dependentstartdate,ZSSM_PRODUCTIONREQUIRED_V.lateststartdate) < TO_DATE(?)]]></Parameter>
-     <Parameter name="adOrgId"/>
+      <Parameter name="adOrgId"/>
+      <Parameter name="orderBy"/>
+      <Parameter name="orderBy"/>
       </SqlMethod> 
   <SqlMethod name="treeOrg" type="preparedStatement" return="string">
     <SqlMethodComment></SqlMethodComment>

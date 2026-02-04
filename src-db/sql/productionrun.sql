@@ -617,12 +617,30 @@ Updates Projects, Tasks with actual
 Costs and Schedule Status
 Direct call variant (overloaded)
 *****************************************************/
+    v_dependentstartdate timestamp without time zone;
+    v_needbydate timestamp without time zone;
+    v_lateststartdate timestamp without time zone;
+    v_cur record;
 BEGIN
     -- Call the Proc
     delete from  zssm_productionrequireddates;
-    insert into zssm_productionrequireddates select v.zssm_productionrequired_v_id, 
-           zssm_getlatestproductionstart(v.m_product_id,v.movementqty,v.needbydate,v.ad_org_id) as dependentstartdate
-    from zssm_productionrequired_v v;
+    for v_cur in (select * from zssm_productionrequired_v)
+    LOOP
+        if v_cur.cause != 'STOCKMIN' then
+            v_dependentstartdate:=zssm_getlatestproductionstart(v_cur.m_product_id,v_cur.movementqty,v_cur.needbydate,v_cur.ad_org_id);
+        end if;
+        if v_cur.cause = 'STOCKMIN' then
+            v_needbydate:=zssm_getFastestProductionDoneDate(v_cur.m_product_id,v_cur.movementqty,v_cur.ad_org_id);
+        end if;
+        if v_cur.cause = 'STOCKMIN' then
+            v_lateststartdate:=zssm_getlatestproductionstartWoRecursion(v_cur.m_product_id,v_cur.movementqty,v_needbydate,v_cur.ad_org_id);
+        end if;
+        insert into zssm_productionrequireddates (zssm_productionrequired_v_id,dependentstartdate,needbydate,lateststartdate)
+        values(v_cur.zssm_productionrequired_v_id,v_dependentstartdate,v_needbydate,v_lateststartdate);
+        v_dependentstartdate:=null;
+        v_needbydate:=null;
+        v_lateststartdate:=null;
+    END LOOP;
     RETURN;
 END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE
@@ -855,10 +873,11 @@ FROM m_product p,zssm_DoesProductHaveValidPlanRecursive() vx where vx.pm_product
 -- Not Avoidable cross-script dependency to mrp.sql. AND Serialproduction.sql
 -- mrp_inoutplan_v_id is in MRP.sql
 -- After Running MRP.sql or serialproduction.sql this Script has to be run!
+-- Bei STOCKMIN: Werte voraggregiert!
 select zsse_DropView ('zssm_productionrequired_v');
 CREATE OR REPLACE VIEW zssm_productionrequired_v AS
 SELECT a.ad_org_id,a.ad_client_id,a.updated,a.updatedby,a.created,a.createdby,'Y'::text as isactive,
-       a.zssm_productionrequired_v_id,a.m_product_id,a.value, a.pname,a.needbydate,a.lateststartdate,t.dependentstartdate,
+       a.zssm_productionrequired_v_id,a.m_product_id,a.value, a.pname,coalesce(a.needbydate,t.needbydate) as needbydate ,coalesce(a.lateststartdate,t.lateststartdate) as lateststartdate,t.dependentstartdate,
        (select p_lotetxt from zssm_getrequiredqty(a.m_product_id,a.movementqty,a.ad_org_id))::varchar(60) as  lottext,
        a.requiredqty,
        a.cause ,a.currOnhandQty,
@@ -929,9 +948,13 @@ SELECT
   m_bom_qty_onhand(po.m_product_id, ml.m_warehouse_id,null,po.m_attributesetinstance_id) as currOnhandQty,
   m_bom_qty_onhand(po.m_product_id, ml.m_warehouse_id,null,po.m_attributesetinstance_id)*(-1)+coalesce(po.qtyoptimal,coalesce(po.STOCKMIN,0)) as movementqty,
   p.value||'-'||zssi_getproductname(po.m_product_id,'de_DE') as pname,
-  zssm_getFastestProductionDoneDate(po.m_product_id,m_bom_qty_onhand(po.m_product_id, null, po.m_locator_id)*(-1)+coalesce(po.qtyoptimal,coalesce(po.STOCKMIN,0)),po.ad_org_id) as needbydate,
-  zssm_getlatestproductionstartWoRecursion(po.m_product_id,m_bom_qty_onhand(po.m_product_id, null, po.m_locator_id)*(-1)+coalesce(po.qtyoptimal,coalesce(po.STOCKMIN,0)),
-                                zssm_getFastestProductionDoneDate(po.m_product_id,m_bom_qty_onhand(po.m_product_id, null, po.m_locator_id)*(-1)+coalesce(po.qtyoptimal,coalesce(po.STOCKMIN,0)),po.ad_org_id),po.ad_org_id) as lateststartdate,
+  case when (select count(*) from ad_preference where attribute='PRODUCTIONRUNTUNESTOCKMIN' and value='Y')=1 then null ELSE
+       zssm_getFastestProductionDoneDate(po.m_product_id,m_bom_qty_onhand(po.m_product_id, null, po.m_locator_id)*(-1)+coalesce(po.qtyoptimal,coalesce(po.STOCKMIN,0)),po.ad_org_id) end
+  as needbydate,
+  case when (select count(*) from ad_preference where attribute='PRODUCTIONRUNTUNESTOCKMIN' and value='Y')=1 then null else
+       zssm_getlatestproductionstartWoRecursion(po.m_product_id,m_bom_qty_onhand(po.m_product_id, null, po.m_locator_id)*(-1)+coalesce(po.qtyoptimal,coalesce(po.STOCKMIN,0)),
+                zssm_getFastestProductionDoneDate(po.m_product_id,m_bom_qty_onhand(po.m_product_id, null, po.m_locator_id)*(-1)+coalesce(po.qtyoptimal,coalesce(po.STOCKMIN,0)),po.ad_org_id),po.ad_org_id) end
+  as lateststartdate,
   --m_bom_qty_onhand(po.m_product_id, null, po.m_locator_id)*(-1)+coalesce(po.qtyoptimal,coalesce(po.qtyoptimal,coalesce(po.STOCKMIN,0))) as requiredqty,
   null as  requiredqty,
   'STOCKMIN'  as cause ,

@@ -327,6 +327,11 @@ function setProcessingMode(target, value, logo) {
   if (logo != false) {
     logo = true;
   }
+  if (value) {
+	setCursor('wait');
+  } else {
+	setCursor('default');
+  }
   if (target=='popup') {
     var popup_code = document.getElementsByTagName('BODY')[0].innerHTML;
     isKeyboardLocked=value;

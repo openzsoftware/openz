@@ -139,8 +139,10 @@ Same calculations on ordrs are done in c_orderline_trg
  v_uom_conversion  NUMERIC;
  v_price           NUMERIC;
  v_qty             NUMERIC;   
-
+ v_order           varchar;
+ v_count           numeric;
 BEGIN
+
   -- Checks, if sonething has to be Done, else Return from Trigger
   IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;  END IF;
   IF (TG_OP = 'UPDATE') THEN
@@ -151,11 +153,17 @@ BEGIN
         OR COALESCE(old.priceactual,0) <> COALESCE(NEW.priceactual,0)
         OR COALESCE(old.M_Product_ID,'0') <> COALESCE(NEW.M_Product_ID,'0')
         OR COALESCE(old.C_Tax_ID,'0') <> COALESCE(NEW.C_Tax_ID,'0')
-        OR COALESCE(old.C_Uom_ID,'0') <> COALESCE(NEW.C_Uom_ID,'0'))
+        OR COALESCE(old.C_Uom_ID,'0') <> COALESCE(NEW.C_Uom_ID,'0')
+        OR coalesce(new.c_orderline_id,'')!=coalesce(old.c_orderline_id,'')
+        OR coalesce(old.discount,0) <> coalesce(new.discount,0))
       THEN
          RETURN NEW;
       END IF;
-  END IF;
+      -- On Using electronic Invoice, replace Standard product
+      if new.m_product_id='A35CF660DDD342689823535231C3E22F' and new.c_orderline_id!=coalesce(old.c_orderline_id,'') and new.c_orderline_id is not null then
+        select m_product_id,c_uom_id into new.m_product_id,new.C_Uom_ID from c_orderline where c_orderline_id=new.c_orderline_id;
+      end if;
+  END IF;  -- Update
  -- CHACK Coccect UOM, Get ID
  IF (TG_OP = 'UPDATE' OR TG_OP = 'INSERT') THEN
      IF (NEW.M_PRODUCT_ID IS NOT NULL) THEN
@@ -242,6 +250,10 @@ BEGIN
         select IsTaxIncluded into v_IsGross from m_pricelist where m_pricelist_id=(select m_pricelist_id from c_invoice where c_invoice_id=new.c_invoice_id);
         new.isgrossprice:=v_IsGross;
         -- On LINE-LEVEL: Set linenetamt, linegrossamt, linetaxamt
+        if(coalesce(new.discount,0) != 0) then
+          -- Listenpreis - Listenpreis * Rabatt /100
+          new.priceactual := new.pricelist - new.pricelist * new.discount / 100;
+        end if;
         If new.qtyinvoiced!=0 and new.priceactual!=0 and new.c_tax_id is not null THEN
                 select rate,reversecharge into v_taxrate,v_reversetax from c_tax where c_tax_id=new.c_tax_id;
                  --If we order in Secondary OUM, Price applies to OrderQTY not to qtyOrdered
@@ -345,10 +357,29 @@ BEGIN
     -- Insert or Update    
     END IF;
     --perform logg('Current Header: '||new.c_invoice_id||' ,TNET: '||to_char(v_t,'999D9999999999')||' ,TGROS: '||to_char(v_g,'999D9999999999'));
+    -- Wenn alles Zeilen einer Rechnung demselben Auftrags zugeordnet werden, erscheint dieser Auftrag automatisch auch im Kopf der Rechnung. Andernfalls bleibt das Feld Auftrag im Kopf leer.
+    if TG_OP = 'DELETE' then
+      select count(distinct coalesce(ol.c_order_id,'')) into v_count from c_orderline ol, c_invoiceline il where ol.c_orderline_id=il.c_orderline_id and il.c_invoiceline_id!=old.c_invoiceline_id and il.c_invoice_id=old.c_invoice_id;
+      if v_count=1 then
+        select distinct ol.c_order_id into v_order from c_orderline ol, c_invoiceline il where ol.c_orderline_id=il.c_orderline_id and il.c_invoiceline_id!=old.c_invoiceline_id and il.c_invoice_id=old.c_invoice_id limit 1;
+      end if;
+    else
+      select count(distinct coalesce(ol.c_order_id,'')) into v_count from c_orderline ol, c_invoiceline il where ol.c_orderline_id=il.c_orderline_id and il.c_invoiceline_id!=new.c_invoiceline_id and il.c_invoice_id=new.c_invoice_id;
+      if v_count=0 and new.c_orderline_id is not null then
+        select ol.c_order_id into v_order from c_orderline ol where ol.c_orderline_id=new.c_orderline_id;
+      end if;
+      if v_count=1 then
+        select distinct ol.c_order_id into v_order from c_orderline ol, c_invoiceline il where ol.c_orderline_id=il.c_orderline_id and il.c_invoiceline_id!=new.c_invoiceline_id and il.c_invoice_id=new.c_invoice_id limit 1;
+        if new.c_orderline_id is not null and v_order!=(select c_order_id from c_orderline where c_orderline_id=new.c_orderline_id) then
+          v_order:=null;
+        end if;
+      end if;
+    end if;
     -- Update Header
     UPDATE  C_INVOICE
       SET TotalLines = v_NetAmt,
-      GrandTotal = v_GrossAmt
+      GrandTotal = v_GrossAmt,
+      c_order_id=v_order
     WHERE C_Invoice_ID = v_ID;
     --perform logg('Updating Header: '||new.c_invoice_id||' ,DNET: '||to_char(v_deltaNetAmt,'999D9999999999')||' ,DGROS: '||to_char(v_deltaGrossamt,'999D9999999999'));
  -- processed=N
@@ -486,6 +517,9 @@ $BODY$ DECLARE
     v_actualdoc varchar;
     v_orderall varchar;
     v_textpos varchar;
+    v_delivery_movementdate timestamp without time zone;
+    v_delivery_docno varchar;
+    v_delivery_poreference varchar;
         -- manual edited lines
         DECLARE Cur_ManualGeneratedLines CURSOR (Order_ID VARCHAR)  FOR
            SELECT ol.AD_Client_ID,
@@ -830,7 +864,14 @@ $BODY$ DECLARE
                                 v_textpos:= zssi_getElementTextByColumname('performanceperiod',v_lang)||' '||zssi_strDate(v_lzstart,v_lang)||' - '||zssi_strDate(v_lzend,v_lang)||', ' || zssi_getElementTextByColumname('DocumentNo',v_lang) || ': ' || v_ĺinesrecord.documentno || case when v_ĺinesrecord.textposition is not null then chr(10)||v_ĺinesrecord.textposition else '' end;
                             end if;
                             if v_lzend=trunc(now()+10000) then
-                                v_textpos:= zssi_getElementTextByColumname('performanceperiod',v_lang)||' '||zssi_strDate(v_lzstart,v_lang)|| ', ' || zssi_getElementTextByColumname('DocumentNo',v_lang) || ': ' || v_ĺinesrecord.documentno || case when v_ĺinesrecord.textposition is not null then v_ĺinesrecord.textposition else '' end;                                
+                                v_textpos:= zssi_getElementTextByColumname('performanceperiod',v_lang)||' '||zssi_strDate(v_lzstart,v_lang)|| ', '                                     || zssi_getElementTextByColumname('DocumentNo',v_lang) || ': ' || v_ĺinesrecord.documentno || case when v_ĺinesrecord.textposition is not null then chr(10)||v_ĺinesrecord.textposition else '' end;
+                            end if;
+                            -- there is a delivery already
+                            select documentno, poreference, movementdate
+                              into v_delivery_docno, v_delivery_poreference, v_delivery_movementdate
+                              from m_inout where c_order_id = v_ĺinesrecord.c_order_id and docstatus='CO' order by created desc limit 1;
+                            if(v_delivery_docno is not null) then
+                                v_textpos:= zssi_getElementTextByColumname('Date promised',v_lang)||' '|| zssi_strDate(v_delivery_movementdate,v_lang)||', '|| zssi_getElementTextByColumname('shipmentno',v_lang) || ': ' || v_delivery_docno || ', ' || zssi_getElementTextByColumname('Poreference ',v_lang) || ': ' || coalesce(v_delivery_poreference,'-') || ', ' || zssi_getElementTextByColumname('DocumentNo',v_lang) || ': ' || v_ĺinesrecord.documentno;
                             end if;
                           else
                             v_textpos:=v_ĺinesrecord.textposition;
@@ -1358,9 +1399,9 @@ $BODY$ DECLARE
   v_documentno_Settlement VARCHAR(40); 
   v_dateSettlement TIMESTAMP;
   v_Cancel_Processed CHAR(1);
-  v_nameBankstatement VARCHAR (60); 
+  v_nameBankstatement VARCHAR;
   v_dateBankstatement TIMESTAMP;
-  v_nameCash VARCHAR (60); 
+  v_nameCash VARCHAR;
   v_dateCash TIMESTAMP;
   v_Bankstatementline_ID VARCHAR(32); 
   v_Debtpayment_ID VARCHAR(32); 
@@ -2395,7 +2436,7 @@ Matching
             v_ODocumentNo C_ORDER.DocumentNo%TYPE;
             v_NewPendingToInvoice NUMERIC;            
             v_deliveredQty NUMERIC;
-            v_inOutStatus VARCHAR(60) ; 
+            v_inOutStatus VARCHAR ;
             v_ignoreresidue character;
            
         BEGIN
@@ -2892,11 +2933,11 @@ BEGIN
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
     END IF;
 
-    IF(NEW.issotrx = 'Y') THEN -- bp has to be customer
+    IF(NEW.issotrx = 'Y' AND NEW.docstatus = 'DR') THEN -- bp has to be customer and document in draft
       IF(SELECT iscustomer = 'N' FROM c_bpartner WHERE c_bpartner_id = NEW.c_bpartner_id) THEN
         RAISE EXCEPTION '@BPartnerHasToBeCustomer@';
       END IF;
-    ELSE -- bp has to be vendor
+    ELSIF(NEW.docstatus = 'DR') THEN -- bp has to be vendor and document in draft
       IF(SELECT isvendor = 'N' FROM c_bpartner WHERE c_bpartner_id = NEW.c_bpartner_id) THEN
         RAISE EXCEPTION '@BPartnerHasToBeVendor@';
       END IF;
@@ -2908,6 +2949,19 @@ BEGIN
     IF TG_OP = 'UPDATE' THEN
         if old.c_doctypetarget_id!=new.c_doctypetarget_id then
             new.c_doctype_id=new.c_doctypetarget_id;
+        end if;
+        if old.documentno!=new.documentno and (
+           (select count(*) from c_file where ad_table_id='318' and ad_record_id=new.c_invoice_id)>0 or
+           (select count(*) from c_filedeleted where ad_table_id='318' and ad_record_id=new.c_invoice_id)>0
+        ) then
+          RAISE EXCEPTION '@InvoiceHasAttachments@';
+        end if;
+    END IF;
+    IF TG_OP = 'DELETE' THEN
+        if (select count(*) from c_file where ad_table_id='318' and ad_record_id=old.c_invoice_id)>0 or
+           (select count(*) from c_filedeleted where ad_table_id='318' and ad_record_id=old.c_invoice_id)>0
+        then
+          RAISE EXCEPTION '@InvoiceHasAttachments@';
         end if;
     END IF;
     -- Currency of Pricelist=currency of Invoice
@@ -3886,6 +3940,7 @@ CREATE VIEW c_invoice_candidate_lines_v AS
           o.dateordered,
           o.invoicerule AS term,
           o.documentno,
+          o.poreference,
           o.c_bpartner_id,
           c_invoice_candidate_project_userexit(o.c_order_id) as project,
           sl.m_inoutline_id,
@@ -3897,6 +3952,13 @@ CREATE VIEW c_invoice_candidate_lines_v AS
            c_order o left join Zspr_Printinfo pc on pc.ad_org_id=o.ad_org_id
       WHERE o.c_order_id=ol.c_order_id
         AND o.docstatus='CO' and o.iscompletelyinvoiced='N';
+
+select zsse_DropView ('c_open_orderlines_v');      
+CREATE VIEW c_open_orderlines_v AS 
+        select o.documentno||'-'||ol.line||'-'||p.value||'-'||ol.linenetamt-ol.invoicedamt as displayname, ol.C_OrderLine_ID,o.documentno,ol.line,o.iscompletelyinvoiced,
+               o.issotrx,o.c_bpartner_id,ol.created,ol.createdby,ol.updated,ol.updatedby,ol.ad_org_id,ol.ad_client_id,p.isactive
+from c_order o,c_orderline ol,m_product p where ol.c_order_id=o.c_order_id and o.docstatus='CO' and p.m_product_id=ol.m_product_id;
+
 
 select zsse_dropfunction('c_invoice_candidate_combinedselect');
 CREATE OR REPLACE FUNCTION c_invoice_candidate_combinedselect(p_isotrx varchar,p_datefrom varchar,p_dateto varchar,p_bpartner_id varchar,p_documentno varchar,p_orgid varchar,
@@ -3938,8 +4000,9 @@ BEGIN
         p_bpartner_id_out:=p_bpartner_id ;
         
     else
-     SELECT sum(case when icl.linenetamt=0 then icl.linegrossamt else icl.linenetamt end) as amountlines,sum(case when icl.linenetamt=0 then icl.linegrossamt else icl.linenetamt end - icl.invoicedamt) as pend,
-           sum(case when icl.linenetamt=0 then icl.linegrossamt else icl.linenetamt end - icl.invoicedamt) as notinvoiced, p_bpartner_id,
+     SELECT sum(case when icl.linenetamt=0 then icl.linegrossamt else icl.linenetamt end) as amountlines,
+            sum(zssi_notinvoicedlines4orderline(icl.c_orderline_id,'PENDING','LINEAMT',icl.m_inoutline_id,TO_DATE(p_dateto))) as pend,
+            sum(case when icl.linenetamt=0 then icl.linegrossamt else icl.linenetamt end - icl.invoicedamt) as notinvoiced, p_bpartner_id,
            min(icl.dateordered) as dateordered,min(icl.datepromised) as datepromised,min(icl.ad_org_id) as ad_org_id,min(icl.C_DocType_ID),min(term),min(c_order_id)
         into p_amountlines,p_pendinglines,p_notinvoicedlines,p_bpartner_id_out,p_dateordered,p_datepromised,p_ad_org_id,p_C_DocType_ID,p_term,p_order_id
         from c_invoice_candidate_lines_v icl
@@ -4627,7 +4690,34 @@ $BODY$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;
 
+
+-- overloaded
 CREATE OR REPLACE FUNCTION get_Contact_for_c_invoice_print(v_invoice_id character varying)
+  RETURNS character varying AS
+$BODY$ DECLARE
+/***************************************************************************************************************************************************
+Called in Application Dictionary || Reference  || Reference Invoice List || Reference List || Contact
+
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+**************************************************************************************************************************************************
+*****************************************************/
+
+BEGIN
+  return get_Contact_for_c_invoice_print(v_invoice_id, 'salesrep');
+END;
+$BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
+
+-- v_salesrep_contact -> use salesrep_id or ad_user_id (contact)
+CREATE OR REPLACE FUNCTION get_Contact_for_c_invoice_print(v_invoice_id character varying, v_salesrep_contact character varying)
   RETURNS character varying AS
 $BODY$ DECLARE
 /***************************************************************************************************************************************************
@@ -4647,10 +4737,10 @@ v_return_val varchar;
 BEGIN
   -- old:
   -- @SQL=SELECT u.name from ad_user u,c_invoice m where m.salesrep_id=u.ad_user_id and m.c_invoice_id=#ID#
-  SELECT u.name INTO v_return_val from ad_user u,c_invoice m where m.salesrep_id=u.ad_user_id and m.c_invoice_id=v_invoice_id;
+  SELECT u.name INTO v_return_val from ad_user u,c_invoice m where case when v_salesrep_contact='salesrep' then m.salesrep_id=u.ad_user_id else m.ad_user_id=u.ad_user_id end and m.c_invoice_id=v_invoice_id;
   -- 1St Order of Invoice
   IF(v_return_val IS NULL) THEN
-      SELECT u.name  INTO v_return_val from c_order o,ad_user u where o.salesrep_id=u.ad_user_id and o.c_order_id = (
+      SELECT u.name  INTO v_return_val from c_order o,ad_user u where case when v_salesrep_contact='salesrep' then o.salesrep_id=u.ad_user_id else o.ad_user_id=u.ad_user_id end and o.c_order_id = (
         SELECT c_order_id FROM c_orderline WHERE c_orderline_id = (
           SELECT c_orderline_id FROM c_invoiceline WHERE c_invoice_id = v_invoice_id AND c_orderline_id IS NOT NULL ORDER BY line LIMIT 1
         ));
@@ -4666,7 +4756,31 @@ $BODY$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;
 
+
+-- overloaded
 CREATE OR REPLACE FUNCTION get_Phone_for_c_invoice_print(v_invoice_id character varying)
+  RETURNS character varying AS
+$BODY$ DECLARE
+/***************************************************************************************************************************************************
+Called in Application Dictionary || Reference  || Reference Invoice List || Reference List || Phone
+
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+**************************************************************************************************************************************************
+*****************************************************/
+BEGIN
+  return get_Phone_for_c_invoice_print(v_invoice_id,'salesrep');
+END;
+$BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
+CREATE OR REPLACE FUNCTION get_Phone_for_c_invoice_print(v_invoice_id character varying, v_salesrep_contact character varying)
   RETURNS character varying AS
 $BODY$ DECLARE
 /***************************************************************************************************************************************************
@@ -4686,10 +4800,10 @@ v_return_val varchar;
 BEGIN
   -- old:
   -- @SQL=SELECT zssi_getuserphone(C_INVOICE.salesrep_id) from C_INVOICE where C_INVOICE.C_INVOICE_ID = #ID#
-  SELECT zssi_getuserphone(u.ad_user_id) INTO v_return_val from ad_user u,c_invoice m where m.salesrep_id=u.ad_user_id and m.c_invoice_id=v_invoice_id;
+  SELECT zssi_getuserphone(u.ad_user_id) INTO v_return_val from ad_user u,c_invoice m where case when v_salesrep_contact='salesrep' then m.salesrep_id=u.ad_user_id else m.ad_user_id=u.ad_user_id end and m.c_invoice_id=v_invoice_id;
   -- 1St Order of Invoice
   IF(v_return_val IS NULL) THEN
-      SELECT zssi_getuserphone(u.ad_user_id)  INTO v_return_val from c_order o,ad_user u where o.salesrep_id=u.ad_user_id and o.c_order_id = (
+      SELECT zssi_getuserphone(u.ad_user_id)  INTO v_return_val from c_order o,ad_user u where case when v_salesrep_contact='salesrep' then o.salesrep_id=u.ad_user_id else o.ad_user_id=u.ad_user_id end and o.c_order_id = (
         SELECT c_order_id FROM c_orderline WHERE c_orderline_id = (
           SELECT c_orderline_id FROM c_invoiceline WHERE c_invoice_id = v_invoice_id AND c_orderline_id IS NOT NULL ORDER BY line LIMIT 1
         ));
@@ -4705,7 +4819,32 @@ $BODY$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;
   
+
+-- overloaded
 CREATE OR REPLACE FUNCTION get_Email_for_c_invoice_print(v_invoice_id character varying)
+  RETURNS character varying AS
+$BODY$ DECLARE
+/***************************************************************************************************************************************************
+Called in Application Dictionary || Reference  || Reference Invoice List || Reference List || Email
+
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2022 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+**************************************************************************************************************************************************
+*****************************************************/
+BEGIN
+  return get_Email_for_c_invoice_print(v_invoice_id,'salesrep');
+END;
+$BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
+
+CREATE OR REPLACE FUNCTION get_Email_for_c_invoice_print(v_invoice_id character varying, v_salesrep_contact character varying)
   RETURNS character varying AS
 $BODY$ DECLARE
 /***************************************************************************************************************************************************
@@ -4725,10 +4864,10 @@ v_return_val varchar;
 BEGIN
   -- old:
   -- @SQL=SELECT zssi_getuseremail(C_INVOICE.salesrep_id) from C_INVOICE where C_INVOICE.C_INVOICE_ID = #ID#
-  SELECT zssi_getuseremail(u.ad_user_id) INTO v_return_val from ad_user u,c_invoice m where m.salesrep_id=u.ad_user_id and m.c_invoice_id=v_invoice_id;
+  SELECT zssi_getuseremail(u.ad_user_id) INTO v_return_val from ad_user u,c_invoice m where case when v_salesrep_contact='salesrep' then m.salesrep_id=u.ad_user_id else m.ad_user_id=u.ad_user_id end and m.c_invoice_id=v_invoice_id;
   -- 1St Order of Invoice
   IF(v_return_val IS NULL) THEN
-      SELECT zssi_getuseremail(u.ad_user_id)  INTO v_return_val from c_order o,ad_user u where o.salesrep_id=u.ad_user_id and o.c_order_id = (
+      SELECT zssi_getuseremail(u.ad_user_id)  INTO v_return_val from c_order o,ad_user u where case when v_salesrep_contact='salesrep' then o.salesrep_id=u.ad_user_id else o.ad_user_id=u.ad_user_id end and o.c_order_id = (
         SELECT c_order_id FROM c_orderline WHERE c_orderline_id = (
           SELECT c_orderline_id FROM c_invoiceline WHERE c_invoice_id = v_invoice_id AND c_orderline_id IS NOT NULL ORDER BY line LIMIT 1
         ));
@@ -4785,3 +4924,51 @@ $BODY$
   
   
 /* DRUCKAUSGABE FÜR SAMMELRECHNUNGEN ENDE*/ 
+
+
+select zsse_DropView ('c_invoice_currency_converted_v');
+
+CREATE VIEW c_invoice_currency_converted_v AS
+ SELECT
+   c_invoice_id as c_invoice_currency_converted_v_id,
+   c_invoice_id,
+   c_order_id,
+   ad_client_id,
+   ad_org_id,
+   isactive,
+   created,
+   createdby,
+   updated,
+   updatedby,
+   documentno,
+   c_bpartner_id,
+   dateinvoiced,
+   dateacct,
+   dateordered,
+   c_currency_id,
+   -- for credit memos invert values
+   case when c_doctypetarget_id = 'A4277AD679DF4DD8A9C2BB9F3C2F2C92' then totallines * (-1) else totallines end as totallines,
+   case when c_doctypetarget_id = 'A4277AD679DF4DD8A9C2BB9F3C2F2C92' then grandtotal * (-1) else grandtotal end as grandtotal,
+   (select c_currency_id from ad_client where ad_client_id = 'C726FEC915A54A0995C568555DA5BB3C') c_currency_converted, -- client default
+   C_Currency_Convert(
+    (case when c_doctypetarget_id = 'A4277AD679DF4DD8A9C2BB9F3C2F2C92' then totallines * (-1) else totallines end),
+    c_currency_id,
+    (select c_currency_id from ad_client where ad_client_id = 'C726FEC915A54A0995C568555DA5BB3C'),
+    dateinvoiced,
+    NULL,
+    ad_client_id,
+    ad_org_id
+   ) as totallines_converted,
+   C_Currency_Convert(
+    (case when c_doctypetarget_id = 'A4277AD679DF4DD8A9C2BB9F3C2F2C92' then grandtotal * (-1) else grandtotal end),
+    c_currency_id,
+    (select c_currency_id from ad_client where ad_client_id = 'C726FEC915A54A0995C568555DA5BB3C'),
+    dateinvoiced,
+    NULL,
+    ad_client_id,
+    ad_org_id
+   ) as grandtotal_converted,
+   -- for filters
+   IsSOTrx,
+   Processed
+ FROM c_invoice;

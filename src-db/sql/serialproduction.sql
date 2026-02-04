@@ -1829,6 +1829,7 @@ SELECT
 	zspm_projecttaskbom.updated AS updated,
 	zspm_projecttaskbom.updatedby AS updatedby,
 	zspm_projecttaskbom.m_product_id AS m_product_id,
+	zspm_projecttaskbom.M_ATTRIBUTESETINSTANCE_ID AS M_ATTRIBUTESETINSTANCE_ID,
 	zspm_projecttaskbom.quantity AS quantity,
 	zspm_projecttaskbom.m_locator_id AS m_locator_id,
 	zspm_projecttaskbom.description AS description,
@@ -2249,11 +2250,15 @@ $body$
 DECLARE
  cur_product_bom RECORD;
  v_description VARCHAR;
+ v_status VARCHAR;
 BEGIN
   IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;  END IF;
-
   IF (TG_OP <> 'DELETE') then
     IF (TG_OP = 'INSERT') THEN
+        select projectstatus into v_status from c_project where c_project_id=new.c_project_id;
+        if v_status='OC' then
+          raise exception '%','@zspm_nochangeonclosedproject@';
+        end if;
         if (select projectcategory from c_project where c_project_id=new.c_project_id) in ('CS','S','I','M','P') then
             -- Copy Indirect Costs
             FOR cur_product_bom IN (SELECT * FROM ma_indirect_cost WHERE ad_org_id in (new.ad_org_id,'0') and addauto2project='Y' and isactive='Y') 
@@ -3584,15 +3589,12 @@ SELECT
 -- unplanmaterial,
 -- canceltask,
 -- begintask,
-  (select sum(b.quantity* m_get_product_cost(b.m_product_id,trunc(now()),null,b.ad_org_id)) from zspm_projecttaskbom b where b.c_projecttask_id=c_projecttask.c_projecttask_id) +
-  (select sum(zsco_get_machine_cost(b.ma_machine_id,trunc(now()),b.Costuom,b.ad_org_id)*b.quantity) from zspm_ptaskmachineplan b where b.c_projecttask_id=c_projecttask.c_projecttask_id) +
-  (select sum(p_cost*b.quantity) from zspm_ptaskhrplan b, zsco_get_salary_cost(b.c_salary_category_id,trunc(now()),b.Costuom,b.ad_org_id) where b.c_projecttask_id=c_projecttask.c_projecttask_id) 
-  as plannedcost,
+  0::numeric as plannedcost,
 -- endtask,
-  (select sum(b.quantity* m_get_product_cost(b.m_product_id,trunc(now()),null,b.ad_org_id)) from zspm_projecttaskbom b where b.c_projecttask_id=c_projecttask.c_projecttask_id) as materialcostplan,
+  0::numeric as materialcostplan,
   indirectcostplan,
-  (select sum(zsco_get_machine_cost(b.ma_machine_id,trunc(now()),b.Costuom,b.ad_org_id)*b.quantity) from zspm_ptaskmachineplan b where b.c_projecttask_id=c_projecttask.c_projecttask_id) as machinecostplan,
-  (select sum(p_cost*b.quantity) from zspm_ptaskhrplan b, zsco_get_salary_cost(b.c_salary_category_id,trunc(now()),b.Costuom,b.ad_org_id) where b.c_projecttask_id=c_projecttask.c_projecttask_id) as servcostplan,
+  0::numeric as machinecostplan,
+  0::numeric as servcostplan,
   setuptime,
   timeperpiece,
   isautotriggered,
@@ -3938,6 +3940,20 @@ BEGIN
 END;
 $BODY$ LANGUAGE 'plpgsql' VOLATILE COST 100;
 
+
+-- select productionorder where material is not yet completely picked
+SELECT zsse_DropView ('zssm_productionorwithopenbom_v');
+CREATE OR REPLACE VIEW zssm_productionorwithopenbom_v AS
+SELECT DISTINCT po.zssm_productionorder_v_id as zssm_productionorwithopenbom_v_id, po.*
+  FROM zssm_productionorder_v po, zssm_workstep_v ws, zssm_workstepbom_v bom
+  WHERE ws.c_project_id = po.zssm_productionorder_v_id
+    AND bom.zssm_workstep_v_id = ws.zssm_workstep_v_id
+    AND po.projectstatus = 'OR' -- started
+    AND po.projectcategory = 'PRO'
+    AND ws.iscomplete='N'
+    AND ws.istaskcancelled='N'
+    AND bom.quantity != bom.qtyreceived
+  ORDER BY po.value ASC;
 
 SELECT zsse_DropView ('zssm_productionorderstatus_v');
 CREATE OR REPLACE VIEW zssm_productionorderstatus_v AS

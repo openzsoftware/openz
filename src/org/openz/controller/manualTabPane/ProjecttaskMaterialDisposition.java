@@ -13,6 +13,7 @@ Contributor(s): ______________________________________.
 */
 import java.sql.Connection;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -55,7 +56,7 @@ public class ProjecttaskMaterialDisposition  implements ManualTabPane{
         Vector <String> retval;
         conn= servlet.getTransactionConnection();
         retval=grid.getSelectedIds(servlet, vars, "zspm_projecttaskbom_view_id");
-        String strPTBOMId,strLine,strProduct,strLocator,strQty,strIsreturned,strRequisition,strPlanDate;
+        String strPTBOMId,strLine,strProduct,strLocator,strQty,strIsreturned,strRequisition,strPlanDate,strAttributeSetInstance;
         for (int i = 0; i < retval.size(); i++) {
           strPTBOMId=retval.elementAt(i);
           strProduct=grid.getValue(servlet, vars, strPTBOMId, "M_Product_ID");
@@ -64,16 +65,17 @@ public class ProjecttaskMaterialDisposition  implements ManualTabPane{
           strIsreturned=grid.getValue(servlet, vars, strPTBOMId, "isreturnafteruse");
           strRequisition=grid.getValue(servlet, vars, strPTBOMId, "Planrequisition");
           strPlanDate=grid.getValue(servlet, vars, strPTBOMId, "Date_Plan");
+          strAttributeSetInstance=grid.getValue(servlet, vars, strPTBOMId, "m_attributesetinstance_id");
           // INsert or Update?
           if (ProjecttaskMaterialDispositionData.isExisting(servlet, strPTBOMId).equals("0")) {
             if (strLocator.isEmpty())
               strLocator=ProjecttaskMaterialDispositionData.getPreferedLocator(servlet, strProjecttaskid, strProduct);
             strLine=ProjecttaskMaterialDispositionData.gfetNextLine(servlet, strProjecttaskid);
             ProjecttaskMaterialDispositionData.insert(conn, servlet, strPTBOMId,strOrgid, strProjecttaskid,strUser, strLine,strLocator,strProduct, strQty, strRequisition,
-                strIsreturned,strPlanDate);
+                strIsreturned,strPlanDate,strAttributeSetInstance);
           }else
             ProjecttaskMaterialDispositionData.update(conn, servlet, strUser, strLocator,strProduct, strQty, strRequisition,
-                strIsreturned,strPlanDate,strPTBOMId);
+                strIsreturned,strPlanDate,strAttributeSetInstance,strPTBOMId);
           if (msg.isEmpty())
             msg=Utility.messageBD(servlet, "MaterialPlanCreatedSucessfully",vars.getLanguage());
         }   
@@ -84,7 +86,7 @@ public class ProjecttaskMaterialDisposition  implements ManualTabPane{
         Vector <String> retval;
         conn= servlet.getTransactionConnection();
         retval=vars.getListFromInString(vars.getInStringParameter("inpproductlist"));
-        String strPTBOMId,strLine,strProduct,strLocator,strQty,strIsreturned,strRequisition,strPlanDate;
+        String strPTBOMId,strLine,strProduct,strLocator,strQty,strIsreturned,strRequisition,strPlanDate,strAttributeSetInstance;
         strLine=ProjecttaskMaterialDispositionData.gfetNextLine(servlet, strProjecttaskid);
         for (int i = 0; i < retval.size(); i++) {
           strPTBOMId=SequenceIdData.getUUID();
@@ -94,8 +96,9 @@ public class ProjecttaskMaterialDisposition  implements ManualTabPane{
           strRequisition="N";
           strLocator=ProjecttaskMaterialDispositionData.getPreferedLocator(servlet, strProjecttaskid, strProduct);
           strPlanDate=ProjecttaskMaterialDispositionData.getPalanDate(servlet, strProjecttaskid);
+          strAttributeSetInstance="";
           ProjecttaskMaterialDispositionData.insert(conn, servlet, strPTBOMId,strOrgid, strProjecttaskid,strUser, strLine,strLocator,strProduct, strQty, strRequisition,
-              strIsreturned,strPlanDate);
+              strIsreturned,strPlanDate,strAttributeSetInstance);
           strLine=Integer.toString(Integer.parseInt(strLine)+10);
           if (msg.isEmpty())
             msg=Utility.messageBD(servlet, "MaterialPlanCreatedSucessfully",vars.getLanguage());
@@ -146,6 +149,14 @@ public class ProjecttaskMaterialDisposition  implements ManualTabPane{
     Formhelper fh=new Formhelper();
     
     String strGrid = grid.printGrid(servlet, vars, script, GridData); 
+
+    // PAttribute edit is normally used for detail view
+    // manually add correct m_product for every line
+    final String searchString = Pattern.quote("'inpProduct', inputValue(document.frmMain.inpmProductId)");
+    final String replacementString = "'inpProduct', document.frmMain.inpM_Product_ID@projecttaskbomid@.value";
+    for(ProjecttaskMaterialDispositionData loop_data : GridData) {
+        strGrid = strGrid.replaceFirst(searchString, replacementString.replace("@projecttaskbomid@", loop_data.zspmProjecttaskbomViewId));
+    }
     String strTableStructure=fh.prepareFieldgroup(servlet, vars, script, "PtaskMatPlanHeaderFG",null,true);
     strSkeleton=Replace.replace(strSkeleton, "@CONTENT@", strTableStructure + strGrid);  
     // Add Search Shortcut

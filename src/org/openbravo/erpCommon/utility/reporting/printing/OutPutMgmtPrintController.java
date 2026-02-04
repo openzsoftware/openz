@@ -54,7 +54,7 @@ public class OutPutMgmtPrintController {
 		final Report report;
 		String template=PrintControllerData.GetDefaultDoctypeTempate(connection, cDoctypeId, adOrgId);
 		report = new Report(connection, documentType, strDocumentId, lang, template,
-		          false, outType);
+		          false, outType, vars);
 		reportManager.setTargetDirectory(report);
 		final String tableId = ToolsData.getTableId(connection, report.getDocumentType().getTableName());
 		reportManager.createAttachmentForReport(connection, report, tableId, vars);

@@ -60,8 +60,21 @@ public class PrintEmployees extends PrintController {
     if (smonth.length()==1)
       smonth="0" +smonth;
     // Session Vars for default values
-    vars.setSessionValue(this.getClass().getName() + "|month", smonth);
-    vars.setSessionValue(this.getClass().getName() + "|year", Integer.toString(year));
+
+    String inpMonth = vars.getStringParameter("inpmonth");
+    String inpYear = vars.getStringParameter("inpyear");
+
+    if(!inpMonth.isEmpty()) {
+        vars.setSessionValue(this.getClass().getName() + "|month", inpMonth);
+    } else {
+        vars.setSessionValue(this.getClass().getName() + "|month", smonth);
+    }
+    if(!inpYear.isEmpty()) {
+        vars.setSessionValue(this.getClass().getName() + "|year", inpYear);
+    } else {
+        vars.setSessionValue(this.getClass().getName() + "|year", Integer.toString(year));
+    }
+
     // The prefix PRINTORDERS is a fixed name based on the KEY of the
     // AD_PROCESS
     String sessionValuePrefix = "PRINTEMPLOYEES";

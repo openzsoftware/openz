@@ -54,8 +54,9 @@ public class Scripthelper {
       additionalonload=additionalonload + "enableShortcuts('edition');";
     if (type.equals("RELATION"))
       additionalonload=additionalonload + "enableShortcuts('relation');";
-    if (type.equals("POPUP"))
-      additionalonload=additionalonload + "enableShortcuts('popup');";
+  // Javascript function is called for popups anyway. Calling it here again, breaks the popupsearch inside a popup
+  //  if (type.equals("POPUP"))
+  //    additionalonload=additionalonload + "enableShortcuts('popup');";
    
   }
   public void setPopupSize(String width,String height){

@@ -512,6 +512,15 @@ public class ModelSQLGeneration {
         parametersData.setData("PARENT", aux);
       }
     }
+    // Reset Page Counter on new Filter
+    String newfilter=parametersData.getCompareStr();
+    String oldfilter=vars.getSessionValue(tableSQL.getTabID() + "|oldFilter");
+    if (newfilter!=null && newfilter.compareTo(oldfilter)!=0) {
+    	vars.setSessionValue(tableSQL.getTabID() + "|" + "currentPage", "0");
+    	vars.setSessionValue(tableSQL.getTabID() + "|oldFilter", newfilter);
+    	offset=0;
+    	vars.setSessionValue(tableSQL.getTabID() + "|newFilter", "Y");
+    }
     //setSessionOrderBy(vars, tableSQL);
     String strSQL = tableSQL.getSQL(filter, filterParams, orderBy, null, selectFields,
         orderBySimple, offset, pageSize, sorted, onlyId);

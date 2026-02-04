@@ -131,7 +131,19 @@ public class VerticalMenu extends HttpSecureAppServlet {
 
     response.setContentType("text/html; charset=UTF-8");
     final PrintWriter out = response.getWriter();
-    out.println(xmlDocument.print());
+    String xmlString = xmlDocument.print();
+    if(VerticalMenuData.isSkin40(this).equals("Y")) {
+        xmlString = xmlString.replace("xxximagetoolbarhidden=\"\"", "");
+        xmlString = xmlString.replace("xxxstylebg1=\"\"", "style=\"background-color:fff;\"");
+        xmlString = xmlString.replace("xxxstylebg2=\"\"", "style= \"background-color:fff; background-image:none;\"");
+        xmlString = xmlString.replace("xxximagemenuhidden=\"\"", "hidden");
+    }else {
+        xmlString = xmlString.replace("xxximagetoolbarhidden=\"\"", "hidden");
+        xmlString = xmlString.replace("xxxstylebg1=\"\"", "");
+        xmlString = xmlString.replace("xxxstylebg2=\"\"", "style= \"background-image:none;\"");
+        xmlString = xmlString.replace("xxximagemenuhidden=\"\"", "");
+    }
+    out.println(xmlString);
     out.close();
   }
 

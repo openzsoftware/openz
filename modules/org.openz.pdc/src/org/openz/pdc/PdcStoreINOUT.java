@@ -96,6 +96,13 @@ public class PdcStoreINOUT extends HttpSecureAppServlet {
     	  if (getLocalSessionVariable(vars, "pdcinouttrx").isEmpty()) {
     		  // Zuerst Warenbewegung wählen
     		  String dscr=vars.getStringParameter("inppdcinouttrx");
+    		  // SHIPMENT/RECEIPT
+        	  if (((bctype.equals("RECEIPT")&&getLocalSessionVariable(vars, "pdcdirection").equals("V+"))
+        			  || (bctype.equals("SHIPMENT")&&getLocalSessionVariable(vars, "pdcdirection").equals("C-"))
+        			  && dscr.isEmpty())){
+        		  dscr=PdcINOUTData.pickTRX(this,barcode);       		  
+    			  barcode="";
+        	  }
     		  if (dscr.isEmpty()) {
     			  vars.setSessionValue("PDCSTATUS","ERROR");
     			  vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "pdc_settrxfirst",vars.getLanguage()));
@@ -107,7 +114,7 @@ public class PdcStoreINOUT extends HttpSecureAppServlet {
     			  bctype="IOTRX";
     			  PdcINOUTData.setServiceProductsScanned(this, GlobalINOUTID);
     		  }
-    	  }
+    	  }    	  
           //Time Feedback/Employee not applicable
           if (bctype.equals("EMPLOYEE")||bcid.equals("872C3C326AB64D1EBABDD49A1E138136")||bctype.equals("WORKSTEP")){
         	  vars.setSessionValue("PDCSTATUS","WARNING");

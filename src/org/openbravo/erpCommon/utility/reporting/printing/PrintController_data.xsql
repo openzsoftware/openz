@@ -105,4 +105,12 @@
         <Parameter name="dummyfield" optional="true" type="replace" after="WHERE " text="c_order_id"/>
         <Parameter name="DocumentId"/>
     </SqlMethod>
+    <SqlMethod name="getPreferenceEinvoicePrintPdf" type="preparedStatement" return="string">
+        <SqlMethodComment></SqlMethodComment>
+        <Sql>
+            <![CDATA[
+              select case when (select count(*) from ad_preference where attribute='EINV_SENDPDFDEFAULT' and isactive = 'Y' and value='Y') > 0 then 'Y' else 'N' end
+            ]]>
+        </Sql>
+    </SqlMethod>
 </SqlClass>

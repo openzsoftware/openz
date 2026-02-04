@@ -58,6 +58,7 @@ public class PsqlExecutionService extends DalBaseProcess {
     } catch (Exception e) {
       // catch any possible exception and throw it as a Quartz
       // JobExecutionException
+      logger.log(	e.getMessage());
       throw new JobExecutionException(e.getMessage(), e);
     }
 

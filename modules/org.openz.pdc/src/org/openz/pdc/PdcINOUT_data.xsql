@@ -396,6 +396,15 @@ Contributor(s): ______________________________________.
       <Parameter name="mInOutlineId"/>
 </SqlMethod>
 
+<SqlMethod name="pickTRX" type="preparedStatement" return="string">
+      <Sql>
+      <![CDATA[
+        SELECT m_inout_id from m_inout where documentno =?
+      ]]>  
+      </Sql>
+      <Parameter name="mInOutValue"/>
+</SqlMethod>
+
 <SqlMethod name="incrementBtchLine" type="preparedStatement"  return="rowCount">
     <SqlMethodComment></SqlMethodComment>
     <Sql>

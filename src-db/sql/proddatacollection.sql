@@ -33,6 +33,7 @@ CREATE VIEW pdc_barcode_v AS
   SELECT l.ad_org_id as ad_org_id,'I' as ord,l.documentno::varchar(200) AS barcode, case when l.issotrx='Y' then 'SHIPMENT' else 'RECEIPT' end AS type, l.m_inout_id AS id, '' AS snrmasterdata_id,'' as batchmasterdata_id,null::numeric as weight,null::varchar(200) AS serialnumber,null::varchar(200) AS lotnumber
   FROM m_inout l;
 
+SELECT zsse_dropfunction('pdc_getDataIdFromScan');
 CREATE OR REPLACE FUNCTION pdc_getDataIdFromScan(p_value VARCHAR,p_rolid varchar)
 RETURNS SETOF pdc_barcode_v -- value, type, id, mess, ad_message_value
 AS $body$
@@ -148,6 +149,16 @@ EXCEPTION
 WHEN OTHERS THEN
   v_message := 'SQL_PROC: pdc_getDataIdFromScan()' || SQLERRM;
   RAISE EXCEPTION '%', v_message;
+END;
+$body$
+LANGUAGE 'plpgsql';
+
+-- Obsolete, only for Backward Compat. in Custom Modules:
+CREATE OR REPLACE FUNCTION pdc_getDataIdFromScan(p_value VARCHAR)
+RETURNS SETOF pdc_barcode_v 
+AS $body$
+BEGIN
+  RETURN QUERY select * from pdc_getDataIdFromScan(p_value,'32BB190E7B4846E8AA0F1847BD4444BE'); -- With System Admin Role
 END;
 $body$
 LANGUAGE 'plpgsql';
@@ -458,9 +469,12 @@ LANGUAGE 'plpgsql';
 select zsse_dropview('zspm_workstepdropdown_v');
 CREATE OR REPLACE VIEW zspm_workstepdropdown_v AS
 SELECT pt.c_projecttask_id as zspm_workstepdropdown_v_id,p.ad_org_id,p.ad_client_id,p.updated,p.updatedby,p.created,p.createdby,'Y'::character as isactive, 
-       coalesce(pt.value,p.value)||case when p.name!=pt.name then '-'||p.name else '' end||'-'||pt.name as name,pt.c_projecttask_id,p.projectstatus
-FROM c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and p.projectstatus in ('OP','OR') and pt.iscomplete='N' and pt.istaskcancelled='N' and p.ishidden='N'
-     and case when p.projectcategory!='PRO' then pt.taskbegun='Y' else 1=1 end and pt.feedbackfinished='N' and not exists (select 0 from c_bpartner b where b.c_project_id=p.c_project_id);
+       coalesce(pt.value,p.value)||case when p.name!=pt.name then '-'||p.name else '' end||'-'||pt.name as name,pt.c_projecttask_id,p.projectstatus,string_agg(hrp.employee_id,',') as employees
+FROM c_projecttask pt
+     LEFT JOIN zspm_ptaskhrplan hrp ON hrp.c_projecttask_id=pt.c_projecttask_id,
+     c_project p where p.c_project_id=pt.c_project_id and p.projectstatus in ('OP','OR') and pt.iscomplete='N' and pt.istaskcancelled='N' and p.ishidden='N'
+     and case when p.projectcategory!='PRO' then pt.taskbegun='Y' else 1=1 end and pt.feedbackfinished='N' and not exists (select 0 from c_bpartner b where b.c_project_id=p.c_project_id)
+GROUP BY pt.c_projecttask_id,p.ad_org_id,p.ad_client_id,p.updated,p.updatedby,p.created,p.createdby,pt.value,p.value,p.name,pt.name,p.projectstatus;
 
 
 select zsse_DropFunction ('pdc_settimefeedback');
@@ -2243,5 +2257,24 @@ SELECT pt.c_projecttask_id as pdc_openworkstep_v_id,p.ad_org_id,p.ad_client_id,p
        pt.c_projecttask_id,p.projectstatus
 FROM c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and p.projectstatus ='OR' and p.projectcategory='PRO' and pt.iscomplete='N' and pt.istaskcancelled='N';
 
+select zsse_dropfunction('pdc_getfeedbackworkstepname');
+CREATE OR REPLACE FUNCTION  pdc_getfeedbackworkstepname(p_workstep varchar) RETURNS varchar AS
+$_$ 
+DECLARE 
+/***************************************************************************************************************************************************          
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in                          
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html                                                  
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the                   
+License for the specific language governing rights and limitations under the License.                                                                         
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@openz.de)                                       
+Contributor(s): ______________________________________.                                                                                                       
+***************************************************************************************************************************************************           
+      Zeiterfassungs-APP : Anzeige des Projektes
+*****************************************************/  
+  v_ret varchar;
+BEGIN   
+  SELECT coalesce(value,name) into v_ret from c_projecttask where c_projecttask_id=p_workstep;
+  return coalesce(v_ret,'');
+END ; $_$ LANGUAGE plpgsql; 
 
 

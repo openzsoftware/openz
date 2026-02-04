@@ -98,15 +98,19 @@ select c_orderline.c_orderline_id as mrp_deliveries_expected_id,c_orderline.crea
        c_orderline.c_project_id,c_orderline.c_projecttask_id ,c_orderline.a_asset_id,c_orderline.description,c_order.salesrep_id,c_orderline.scheddeliverydate,c_order.c_bpartner_id,
        case when coalesce(c_orderline.scheddeliverydate,now()+1)<now() then 'Y'::character(1) else 'N'::character(1) end as overdue,
        check_Ampel('N'::varchar, trunc(coalesce(c_orderline.scheddeliverydate,now()))-to_date('01.01.1900','dd.mm.yyyy'), trunc(now())-to_date('01.01.1900','dd.mm.yyyy'),trunc(now())+5-to_date('01.01.1900','dd.mm.yyyy')) as image,
-       m_product.m_product_category_id,m_product.m_locator_id
-from c_order,m_product,c_orderline left join m_matchpo on  m_matchpo.c_orderline_id=c_orderline.c_orderline_id and m_matchpo.m_product_id=c_orderline.m_product_id and m_matchpo.c_invoiceline_id is null
+       m_product.m_product_category_id,coalesce(org.m_locator_id,l.m_locator_id) as m_locator_id
+from c_order     left join c_orderline on c_orderline.c_order_id=c_order.c_order_id
+                 left join m_product on c_orderline.m_product_id=m_product.m_product_id
+                 left join m_product_org org on org.m_product_id=m_product.m_product_id and org.isvendorreceiptlocator='Y' and (select m_locator.m_warehouse_id=c_order.m_warehouse_id from m_locator where m_locator.m_locator_id=org.m_locator_id)
+                 left join m_locator l on m_product.m_locator_id=l.m_locator_id and l.m_warehouse_id = c_order.m_warehouse_id
+                 left join m_matchpo on  m_matchpo.c_orderline_id=c_orderline.c_orderline_id and m_matchpo.m_product_id=c_orderline.m_product_id and m_matchpo.c_invoiceline_id is null
      where c_order.c_order_id=c_orderline.c_order_id  and c_order.docstatus='CO' 
            AND ad_get_docbasetype(C_ORDER.c_DocType_ID) ='POO'
            AND c_orderline.deliverycomplete='N' and c_orderline.qtyordered > c_orderline.qtydelivered
            AND m_product.m_product_id = c_orderline.m_product_id
      group by c_orderline.c_orderline_id ,c_orderline.created,c_orderline.createdby,c_orderline.updated,c_orderline.updatedby,c_orderline.isactive,c_orderline.ad_client_id,c_orderline.ad_org_id,
               c_order.c_order_id,line,c_orderline.dateordered,c_orderline.datepromised,c_orderline.datedelivered,c_orderline.m_product_id,c_orderline.qtyordered, c_order.salesrep_id,c_orderline.description,
-              c_orderline.c_project_id,c_orderline.c_projecttask_id ,c_orderline.a_asset_id,c_orderline.scheddeliverydate,m_product.m_product_category_id,m_product.m_locator_id
+              c_orderline.c_project_id,c_orderline.c_projecttask_id ,c_orderline.a_asset_id,c_orderline.scheddeliverydate,m_product.m_product_category_id,org.m_locator_id,l.m_locator_id
 ) a
 where qtyordered!=qtydelivered;
 
@@ -1116,9 +1120,18 @@ Hochdrehen der Sequenz -Erst bei echtem Abspeichen
 
 *****************************************************/
 v_isincremented BOOLEAN:=false;
+v_days numeric;
 BEGIN
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
     END IF; 
+    -- Max Duration (11672)
+    if new.startdate is not null and new.enddate is not null then
+      select to_number(value) into v_days from ad_preference where attribute='MAXPROJECTDAYS';
+      if v_days is null then v_days:=1278; end if; -- Default 3,5 Jahre
+      if new.enddate::date - new.startdate::date > v_days then
+        raise exception '%', '@maxprojektduration@';
+      end if;
+    end if;
     --  Calculation for Projects
     IF (TG_OP = 'INSERT' or TG_OP = 'UPDATE') THEN
         if new.margin_percent is not null then
@@ -3309,6 +3322,7 @@ SELECT	zspm_projecttaskbom.zspm_projecttaskbom_id as zspm_projecttaskbom_view_id
                 zspm_projecttaskbom.directship,
                 zspm_projecttaskbom.c_orderline_id,
                 zspm_projecttaskbom.c_salesorderline_id,
+                zspm_projecttaskbom.m_attributesetinstance_id,
                 COALESCE((SELECT SUM(qty) FROM m_requisitionline, m_requisition 
                         WHERE m_requisition.docstatus='CO'
                         AND m_requisition.m_requisition_id=m_requisitionline.m_requisition_id
@@ -3328,11 +3342,11 @@ SELECT	zspm_projecttaskbom.zspm_projecttaskbom_id as zspm_projecttaskbom_view_id
                         AND zspm_projecttaskbom.ad_org_id = mrp_deliveries_expected.ad_org_id
                         ORDER BY mrp_deliveries_expected.scheddeliverydate
                         LIMIT 1) as qty_nextreceipt,
-                m_bom_qty_onhand(zspm_projecttaskbom.m_product_id,null,zspm_projecttaskbom.m_locator_id) as qty_instock,
+                m_bom_qty_onhand(zspm_projecttaskbom.m_product_id,null,zspm_projecttaskbom.m_locator_id,zspm_projecttaskbom.m_attributesetinstance_id) as qty_instock,
                 case when c_project.projectstatus = 'OR' and zspm_projecttaskbom.m_locator_id is not null then
-                    M_Qty_AvailableInTime(zspm_projecttaskbom.m_product_id,c_project.m_warehouse_id ,zspm_projecttaskbom.date_plan) + case when    (zspm_projecttaskbom.quantity-zspm_projecttaskbom.qtyreceived)>0 then (zspm_projecttaskbom.quantity-zspm_projecttaskbom.qtyreceived) else 0 end
+                    M_Qty_AvailableInTime(zspm_projecttaskbom.m_product_id,c_project.m_warehouse_id ,zspm_projecttaskbom.date_plan,zspm_projecttaskbom.m_attributesetinstance_id) + case when    (zspm_projecttaskbom.quantity-zspm_projecttaskbom.qtyreceived)>0 then (zspm_projecttaskbom.quantity-zspm_projecttaskbom.qtyreceived) else 0 end
                 else 
-                    M_Qty_AvailableInTime(zspm_projecttaskbom.m_product_id,c_project.m_warehouse_id ,zspm_projecttaskbom.date_plan)
+                    M_Qty_AvailableInTime(zspm_projecttaskbom.m_product_id,c_project.m_warehouse_id ,zspm_projecttaskbom.date_plan,zspm_projecttaskbom.m_attributesetinstance_id)
                 end as qty_available,
                 (select sum(COALESCE(m_storage_pending.qtyordered, 0)) from m_storage_pending where m_product_id=zspm_projecttaskbom.m_product_id AND c_project.m_warehouse_id = m_storage_pending.m_warehouse_id) as qty_ordered,
                 (coalesce((SELECT SUM(movementqty) FROM m_internal_consumptionline
@@ -3372,7 +3386,8 @@ CREATE OR REPLACE RULE zspm_projecttaskbom_view_insert AS
                 cutoff, 
                 qty_plan, 
                 planrequisition,
-                date_plan,isreturnafteruse,line,Directship) 
+                date_plan,isreturnafteruse,line,Directship,
+                m_attributesetinstance_id)
         VALUES (
                 new.zspm_projecttaskbom_view_id, 
                 new.c_projecttask_id, 
@@ -3393,7 +3408,8 @@ CREATE OR REPLACE RULE zspm_projecttaskbom_view_insert AS
                 new.cutoff, 
                 new.qty_plan, 
                 new.planrequisition,
-                new.date_plan,NEW.isreturnafteruse,new.line,new.Directship);
+                new.date_plan,NEW.isreturnafteruse,new.line,new.Directship,
+                new.m_attributesetinstance_id);
 
 CREATE OR REPLACE RULE zspm_projecttaskbom_view_update AS
         ON UPDATE TO zspm_projecttaskbom_view DO INSTEAD  
@@ -3420,7 +3436,8 @@ CREATE OR REPLACE RULE zspm_projecttaskbom_view_update AS
                 date_plan=new.date_plan,
                 isreturnafteruse=new.isreturnafteruse,
                 line=new.line,
-                Directship=new.Directship
+                Directship=new.Directship,
+                m_attributesetinstance_id=new.m_attributesetinstance_id
         WHERE 
                 zspm_projecttaskbom.zspm_projecttaskbom_id = new.zspm_projecttaskbom_view_id;
 
@@ -3520,9 +3537,11 @@ BEGIN
             end if;
             --PERFORM M_UPDATE_INVENTORY(v_cur.ad_client_ID, v_cur.ad_Org_ID, v_User, v_cur.m_product_id, v_cur.m_locator_id, null, v_uom,NULL, NULL, NULL, NULL,v_cur.qtyreceived , NULL) ;
             insert into M_INTERNAL_CONSUMPTIONLINE(M_INTERNAL_CONSUMPTIONLINE_ID, AD_CLIENT_ID, AD_ORG_ID, CREATED, CREATEDBY, UPDATED, UPDATEDBY, M_INTERNAL_CONSUMPTION_ID, 
-                                                    M_LOCATOR_ID, M_PRODUCT_ID, LINE, MOVEMENTQTY, DESCRIPTION, C_UOM_ID, C_PROJECT_ID, C_PROJECTTASK_ID,zspm_projecttaskbom_id)
+                                                    M_LOCATOR_ID, M_PRODUCT_ID, LINE, MOVEMENTQTY, DESCRIPTION, C_UOM_ID, C_PROJECT_ID, C_PROJECTTASK_ID,zspm_projecttaskbom_id,
+                                                    m_attributesetinstance_id)
                 values (v_lineUUId,v_client,v_Org,NOW(), v_User, NOW(),v_User,v_uid,
-                            v_locator,v_cur.M_Product_ID,v_Line,v_cur.qtyreceived,'Generated by Production->Return Material to Stock',v_uom,v_project, v_Record_ID,v_cur.zspm_projecttaskbom_id);
+                            v_locator,v_cur.M_Product_ID,v_Line,v_cur.qtyreceived,'Generated by Production->Return Material to Stock',v_uom,v_project, v_Record_ID,v_cur.zspm_projecttaskbom_id,
+                            v_cur.m_attributesetinstance_id);
             
             -- seruial Number Tracking?
             if v_serial='Y'  or v_batch='Y' then

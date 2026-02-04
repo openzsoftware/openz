@@ -127,6 +127,13 @@ v_rcount      numeric:=0;
 v_client      character varying;
 v_source      character varying;
 v_sollhaben   character varying;
+v_wkzumsatz         varchar := ''; -- Währung ISO Code
+v_wkzumsatz_id      varchar := ''; -- Währung ID
+v_kurs_str          varchar := ''; -- Wechselkurs
+v_basisumsatz       numeric := 0;  -- Umsatz in Hauswährung
+v_basisumsatz_str   varchar := '';
+v_wkzbasisumsatz    varchar := ''; -- Währung ISO Code
+v_wkzbasisumsatz_id varchar := ''; -- Währung ID
 v_onlydebcred character varying;
 v_dracct      character varying;
 v_cracct      character varying;
@@ -228,12 +235,24 @@ BEGIN
                 if v_count!=1 then
                     RAISE EXCEPTION '%','Datev-Export-Fehler: Kein Gegenkonto definiert: '||to_char(v_cur2.dateacct)||'   '||v_cur2.description||' Key:'||v_cur2.fact_acct_group_id;
                 end if;
+                if (v_cur2.ad_table_id='318' or v_cur2.ad_table_id='392' or v_cur2.ad_table_id='800019') then
+                    -- Währung der Rechnungn != Hauswährung
+                    v_wkzumsatz_id = v_cur2.c_currency_id;
+                    v_wkzbasisumsatz_id = (select c_currency.c_currency_id from ad_client,c_currency where ad_client.ad_client_id = 'C726FEC915A54A0995C568555DA5BB3C' and ad_client.c_currency_id = c_currency.c_currency_id);
+                    if(v_wkzumsatz_id != v_wkzbasisumsatz_id) then
+                        v_wkzumsatz := (select iso_code from c_currency where c_currency_id = v_wkzumsatz_id);
+                        v_wkzbasisumsatz := (select iso_code from c_currency where c_currency_id = v_wkzbasisumsatz_id);
+                        v_kurs_str := (select C_Currency_Rate(v_wkzbasisumsatz_id, v_wkzumsatz_id, v_cur2.dateacct, null));
+                    end if;
+                end if;
                 if v_cur2.amtacctdr!=0 then
                     v_sourceamt :=  v_cur2.amtacctdr;
+                    v_basisumsatz := v_cur2.amtsourcedr;
                     v_dracct:=v_cur2.acctvalue;
                     select amtacctcr,acctvalue into v_amt,v_cracct from fact_acct where fact_acct_group_id=v_cur1.fact_acct_group_id and seqno=999999 and line_id=v_cur2.line_id;
                 elsif v_cur2.amtacctcr!=0 then
                     v_sourceamt :=  v_cur2.amtacctcr;
+                    v_basisumsatz := v_cur2.amtsourcecr;
                     v_cracct:=v_cur2.acctvalue;
                     select amtacctdr,acctvalue into v_amt, v_dracct from fact_acct where fact_acct_group_id=v_cur1.fact_acct_group_id and seqno=999999 and line_id=v_cur2.line_id;
                 else
@@ -249,6 +268,7 @@ BEGIN
                 if v_amt < 0 then
                       v_sollhaben:='H';
                       v_amt:=v_amt*(-1);
+                      v_basisumsatz:=v_basisumsatz*(-1);
                 else
                       v_sollhaben:='S';
                 end if;
@@ -257,22 +277,26 @@ BEGIN
                 else
                     v_stramt:=zsdv_strNumber(v_amt,'de_DE');
                 end if;
+                if(v_wkzumsatz_id != v_wkzbasisumsatz_id) then
+                    v_stramt:=zsdv_strNumber(v_basisumsatz,'de_DE');
+                    v_basisumsatz_str:=v_stramt;
+                end if;
                 -- OLD v_satz:= ';'||v_sollhaben||';'||v_stramt||';;'||v_dracct||';;;'||to_char(v_cur2.dateacct,'DDMM')||';'||v_cracct||';;;;0,00;'||v_desc||';;0,00;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;';
                 v_shStz:=v_sollhaben;
                 v_korrektur:='';
                 v_uid:='';
                 -- RechnungsNo., Ref No.
-                select substr(i.documentno,1,12),i.poreference into  v_belegfeld1,v_ziart3text from c_invoice i,c_debt_payment p,c_settlement s where s.c_settlement_id=v_cur2.record_id 
-                       and (p.c_settlement_cancel_id=s.c_settlement_id or p.c_settlement_generate_id=s.c_settlement_id) and i.c_invoice_id=p.c_invoice_id;
+                select substr(i.documentno,1,12),coalesce(i.poreference,'') into  v_belegfeld1,v_ziart3text from c_invoice i,c_debt_payment p,c_settlement s where s.c_settlement_id=v_cur2.record_id
+                       and (p.c_settlement_cancel_id=s.c_settlement_id or p.c_settlement_generate_id=s.c_settlement_id) and i.c_invoice_id=p.c_invoice_id
+                       and p.c_debt_payment_id=v_cur2.line_id;
                 if v_belegfeld1 is null then v_belegfeld1:=''; end if; if v_ziart3text is null then v_ziart3text:=''; end if; 
-                v_satz:=v_stramt||';'||v_shStz||';;;;;'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                 v_line:=v_line+1;
                 if v_satz is null then
                    raise exception '%','Datensatz ist NULL a: '||v_cur2.fact_acct_id;
                 end if;
                 insert into ZSDV_Datev_ExportLines (ZSDV_Datev_ExportLines_id,ZSDV_DATEV_EXPORT_ID, AD_CLIENT_ID, AD_ORG_ID, CREATEDBY, UPDATEDBY, dateacct,fact_acct_group, lineno,export_data )
                         values(get_uuid(),p_exuid,v_client, p_OrgID,p_user,p_user,v_cur2.dateacct,v_cur2.fact_acct_group_id,v_line,v_satz);
-                v_belegfeld1:='';
                 v_ziart3text:='';
                 -- Währungsdifferenzen ? - weden immer mit lineid=null in erster seq gebucht..
                 -- AUFTEILUNG für Währungsdifferenzen 
@@ -298,10 +322,11 @@ BEGIN
                     v_shStz:=v_sollhaben;
                     v_korrektur:='';
                     v_uid:='';
-                    v_satz:=v_stramt||';'||v_shStz||';;;;;'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                    v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                     insert into ZSDV_Datev_ExportLines (ZSDV_Datev_ExportLines_id,ZSDV_DATEV_EXPORT_ID, AD_CLIENT_ID, AD_ORG_ID, CREATEDBY, UPDATEDBY, dateacct,fact_acct_group, lineno,export_data )
                         values(get_uuid(),p_exuid,v_client, p_OrgID,p_user,p_user,v_cur2.dateacct,v_cur2.fact_acct_group_id,v_line,v_satz);
                 end if;
+                v_belegfeld1:=''; -- erst nach Währungsdifferenzen zurücksetzen
                 if abs(v_sourceamt)-abs(v_amt)!=0 then
                     RAISE EXCEPTION '%','Datev-Export-Fehler: Soll und Haben ungleich: '||to_char(v_cur2.dateacct)||'   '||v_cur2.description||' Erg:'||to_char(v_sourceamt)||' und '||to_char(v_amt)||' Key:'||v_cur2.fact_acct_group_id;
                 end if;
@@ -356,7 +381,7 @@ BEGIN
                     v_shStz:=v_sollhaben;
                     v_korrektur:='';
                     v_uid:='';
-                    v_satz:=v_stramt||';'||v_shStz||';;;;;'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                    v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                     v_line:=v_line+1;
                     if v_satz is null then
                         raise exception '%','Datensatz ist NULL b: '||v_cur2.fact_acct_id;
@@ -384,6 +409,16 @@ BEGIN
                     -- Buchung unterdrücken
                     null;
                 else
+                    if (v_cur2.ad_table_id='318' or v_cur2.ad_table_id='392' or v_cur2.ad_table_id='800019') then
+                        -- Währung der Rechnungn != Hauswährung
+                        v_wkzumsatz_id = v_cur2.c_currency_id;
+                        v_wkzbasisumsatz_id = (select c_currency.c_currency_id from ad_client,c_currency where ad_client.ad_client_id = 'C726FEC915A54A0995C568555DA5BB3C' and ad_client.c_currency_id = c_currency.c_currency_id);
+                        if(v_wkzumsatz_id != v_wkzbasisumsatz_id) then
+                            v_wkzumsatz := (select iso_code from c_currency where c_currency_id = v_wkzumsatz_id);
+                            v_wkzbasisumsatz := (select iso_code from c_currency where c_currency_id = v_wkzbasisumsatz_id);
+                            v_kurs_str := (select C_Currency_Rate(v_wkzbasisumsatz_id, v_wkzumsatz_id, v_cur2.dateacct, null));
+                        end if;
+                    end if;
                     v_desc:=replace(replace(replace(replace(substr(v_cur2.description,1,60),E'\r\n',''),';',''),chr(13),''),chr(10),'');
                     v_ldesc:=replace(replace(replace(replace(substr(v_cur2.description,1,210),E'\r\n',''),';',''),chr(13),''),chr(10),'');
                     if v_cur2.c_bpartner_id is not null then
@@ -391,6 +426,13 @@ BEGIN
                     else
                         v_ziart2text:='';
                     end if;
+                    -- RechnungsNo., Ref No.
+                    select substr(i.documentno,1,12),coalesce(i.poreference,'') into  v_belegfeld1,v_ziart3text from c_invoice i,c_debt_payment p,c_bankstatementline b
+                       where b.c_bankstatementline_id=v_cur2.line_id
+                       and b.c_debt_payment_id=p.c_debt_payment_id
+                       and i.c_invoice_id=p.c_invoice_id;
+                    if v_belegfeld1 is null then v_belegfeld1:=''; end if; if v_ziart3text is null then v_ziart3text:=''; end if;
+                    --
                     if v_cur2.line_id!=v_oldlineid then
                         v_oldlineid:=v_cur2.line_id;
                         if v_cur2.amtacctdr!=0 then
@@ -406,12 +448,17 @@ BEGIN
                         end if;
                         v_check:= v_check+v_sourceamt;
                     else
-                        if v_source='S' then 
+                        if v_cur2.amtacctdr<>0 then -- old: v_source:='S'
                         v_amt:= v_cur2.amtacctdr; 
+                        v_basisumsatz := v_cur2.amtsourcedr;
                         v_dracct:=v_cur2.acctvalue;
                         else 
                         v_amt:= v_cur2.amtacctcr; 
+                        v_basisumsatz := v_cur2.amtsourcecr;
                         v_cracct:=v_cur2.acctvalue;
+                        end if;
+                        if (v_source='S' and v_cur2.amtacctdr=0) or (v_source='H' and v_cur2.amtacctcr=0) then --  Kostenbuchungen sind auf der anderen Seite
+                            v_check:= v_check+v_amt*2;
                         end if;
                         if v_amt=0 then
                             RAISE EXCEPTION '%','Datev-Export-Fehler: Betrag = 0  - '||to_char(v_cur2.dateacct)||'   '||v_cur2.description||' Key:'||v_cur2.fact_acct_group_id;
@@ -420,16 +467,22 @@ BEGIN
                         if v_amt < 0 then
                             v_sollhaben:='H';
                             v_amt:=v_amt*(-1);
+                            v_basisumsatz:=v_basisumsatz*(-1);
                         else
                             v_sollhaben:='S';
                         end if;
                         v_check:= v_check-v_amt;
-                        v_stramt:=zsdv_strNumber(v_amt,'de_DE');
+                        if(v_wkzumsatz_id != v_wkzbasisumsatz_id) then
+                            v_stramt:=zsdv_strNumber(v_basisumsatz,'de_DE');
+                            v_basisumsatz_str:=zsdv_strNumber(v_amt,'de_DE');
+                        else
+                            v_stramt:=zsdv_strNumber(v_amt,'de_DE');
+                        end if;
                         --OLD v_satz:= ';'||v_sollhaben||';'||v_stramt||';;'||v_dracct||';;;'||to_char(v_cur2.dateacct,'DDMM')||';'||v_cracct||';;;;0,00;'||v_desc||';;0,00;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;';
                         v_shStz:=v_sollhaben;
                         v_korrektur:='';
                         v_uid:='';
-                        v_satz:=v_stramt||';'||v_shStz||';;;;;'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                        v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                         v_line:=v_line+1;
                         if v_satz is null then
                         raise exception '%','Datensatz ist NULL c: '||v_cur2.fact_acct_id;
@@ -438,6 +491,9 @@ BEGIN
                         values(get_uuid(),p_exuid,v_client, p_OrgID,p_user,p_user,v_cur2.dateacct,v_cur2.fact_acct_group_id,v_line,v_satz);
                     end if;
                 end if; -- docbasetype='DPC'
+                v_belegfeld1:='';
+                v_ziart3text:='';
+                v_wkzumsatz:=''; v_kurs_str:=''; v_basisumsatz_str:=''; v_wkzbasisumsatz:='';
               END LOOP;
               if v_check!=0 then
                  RAISE EXCEPTION '%','Datev-Export-Fehler: Soll und Haben im Bankabgleich ungleich. Key:'||v_cur2.fact_acct_group_id;
@@ -491,7 +547,7 @@ BEGIN
                     v_shStz:=v_sollhaben;
                     v_korrektur:='';
                     v_uid:='';
-                    v_satz:=v_stramt||';'||v_shStz||';;;;;'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                    v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                     v_line:=v_line+1;
                     if v_satz is null then
                        raise exception '%','Datensatz ist NULL d: '||v_cur2.fact_acct_id;
@@ -509,6 +565,16 @@ BEGIN
               v_cracct:=null;
               for v_cur2 in (select * from fact_acct where fact_acct_group_id=v_cur1.fact_acct_group_id order by seqno)
               LOOP
+                    if (v_cur2.ad_table_id='318' or v_cur2.ad_table_id='392' or v_cur2.ad_table_id='800019') then
+                        -- Währung der Rechnungn != Hauswährung
+                        v_wkzumsatz_id = v_cur2.c_currency_id;
+                        v_wkzbasisumsatz_id = (select c_currency.c_currency_id from ad_client,c_currency where ad_client.ad_client_id = 'C726FEC915A54A0995C568555DA5BB3C' and ad_client.c_currency_id = c_currency.c_currency_id);
+                        if(v_wkzumsatz_id != v_wkzbasisumsatz_id) then
+                            v_wkzumsatz := (select iso_code from c_currency where c_currency_id = v_wkzumsatz_id);
+                            v_wkzbasisumsatz := (select iso_code from c_currency where c_currency_id = v_wkzbasisumsatz_id);
+                            v_kurs_str := (select C_Currency_Rate(v_wkzbasisumsatz_id, v_wkzumsatz_id, v_cur2.dateacct, null));
+                        end if;
+                    end if;
                     -- Bei Automatikkonten mit Kennziffer -> Automatik ausschalten
                     v_korrektur:='';
                     select isdoccontrolled into v_datevkz40 from c_elementvalue where c_elementvalue_id=v_cur2.account_id;
@@ -526,9 +592,11 @@ BEGIN
                         v_sollhaben:='S';  
                         if v_cur2.amtacctdr!=0 then
                             v_amt :=  v_cur2.amtacctdr;
+                            v_basisumsatz := v_cur2.amtsourcedr;
                             v_dracct:=v_cur2.acctvalue;
                         elsif v_cur2.amtacctcr!=0 then
                             v_amt :=  v_cur2.amtacctcr;
+                            v_basisumsatz := v_cur2.amtsourcecr;
                             v_cracct:=v_cur2.acctvalue;
                         else
                             RAISE EXCEPTION '%','Datev-Export-Fehler: Kein Betrag gefunden: '||to_char(v_cur2.dateacct)||'   '||v_cur2.description||' Key:'||v_cur2.fact_acct_group_id;
@@ -542,25 +610,30 @@ BEGIN
                         end if; 
                         -- Jeder 2. Datensatz wird gebucht , Prinzip: 1. Konto 2.Gegenkonto und los...
                         if v_dracct is not null and v_cracct is not null then
-                             v_stramt:=zsdv_strNumber(v_amt,'de_DE');
+                             if(v_wkzumsatz_id != v_wkzbasisumsatz_id) then
+                                 v_stramt:=zsdv_strNumber(v_basisumsatz,'de_DE');
+                                 v_basisumsatz_str:=zsdv_strNumber(v_amt,'de_DE');
+                             else
+                                 v_stramt:=zsdv_strNumber(v_amt,'de_DE');
+                             end if;
                              v_shStz:=v_sollhaben;
                              if v_cur2.line_id is not null then
                                 select substr(i.documentno,1,12),
                                         case when v_kost2conf='KOSTVALUE'  then substr(a.value,1,8) when v_kost2conf='PRJTASKSEQNO' then to_char(pt.seqno) else '' end,
                                         case when v_kost1conf='PROJECTVALUE' then substr(p.value,1,8) when v_kost1conf='KOSTVALUE' then substr(a.value,1,8) when v_kost1conf='PROJECTVALUEKOSTVALUE' then substr(coalesce(a.value,p.value),1,8) else '' end,
-                                        substr(pt.name,1,210),i.poreference,t.name, substr(p.name,1,210)
+                                        substr(pt.name,1,210),coalesce(i.poreference,''),t.name, substr(p.name,1,210)
                                         into  v_belegfeld1,v_kost2,v_kost1,v_ziart6text,v_ziart3text,v_ziart4text,v_ziart5text
                                         from c_invoice i ,c_tax t,c_invoiceline il left join a_asset a on a.a_asset_id=il.a_asset_id 
                                                                             left join c_project p on il.c_project_id=p.c_project_id 
                                                                             left join c_projecttask pt on pt.c_projecttask_id=il.c_projecttask_id 
                                         where i.c_invoice_id=il.c_invoice_id and il.c_tax_id=t.c_tax_id and il.c_invoiceline_id=v_cur2.line_id;
                              else
-                                select substr(i.documentno,1,12),i.poreference,t.name into  v_belegfeld1,v_ziart3text,v_ziart4text
+                                select substr(i.documentno,1,12),coalesce(i.poreference,''),t.name into  v_belegfeld1,v_ziart3text,v_ziart4text
                                     from c_invoice i ,c_tax t
                                     where  t.c_tax_id=v_cur2.c_tax_id and i.c_invoice_id=v_cur2.record_id;
                              end if;
                              if v_belegfeld1 is null then v_belegfeld1:=''; end if; if v_kost2 is null then v_kost2:=''; end if; if v_kost1 is null then v_kost1:=''; end if; if v_belegfeld2 is null then v_belegfeld2:=''; end if; if v_ziart3text is null then v_ziart3text:=''; end if; if v_ziart4text is null then v_ziart4text:=''; end if; if v_ziart5text is null then v_ziart5text:=''; end if; if v_ziart6text is null then v_ziart6text:=''; end if; 
-                             v_satz:=v_stramt||';'||v_shStz||';;;;;'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||coalesce(v_cur2.uidnumber,'')||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                             v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||coalesce(v_cur2.uidnumber,'')||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                              v_line:=v_line+1;
                              if v_satz is null then
                                 raise exception '%','Datensatz ist NULL UAZ: '||v_cur2.fact_acct_id;
@@ -571,6 +644,7 @@ BEGIN
                             v_dracct:=null;
                             v_cracct:=null;
                             v_belegfeld1:=''; v_kost2:='';v_kost1:='';v_belegfeld2:='';v_ziart3text:='';v_ziart4text:='';v_ziart5text:='';v_ziart6text:='';
+                            v_wkzumsatz:=''; v_kurs_str:=''; v_basisumsatz_str:=''; v_wkzbasisumsatz:='';
                         end if;
                         v_korrektur:='';
                     end if;
@@ -589,7 +663,7 @@ BEGIN
               --                          and case when coalesce(v_onlydebcred,'N')='Y' then fact_acct.ad_table_id='318' else 1=1 end order by seqno)
               --  zeroinv: Erweiterung für Rechnungen mit Summe =0
               for v_cur2 in (select ad_table_id,record_id,line_id,amtacctdr,amtacctcr,acctvalue,fact_acct_group_id,dateacct,description,c_bpartner_id,fact_acct_id,
-                                      account_id,c_tax_id,seqno,uidnumber,c_acctschema_id
+                                      account_id,c_tax_id,seqno,uidnumber,c_acctschema_id,c_currency_id,amtsourcedr,amtsourcecr
                                    from fact_acct where fact_acct_group_id=v_cur1.fact_acct_group_id 
                                         and case when coalesce(v_onlydebcred,'N')='Y' then ad_table_id='318' else 1=1 end 
                                         and case when ad_table_id='318' then 
@@ -603,7 +677,7 @@ BEGIN
                                       f.fact_acct_group_id,f.dateacct,
                                       i.documentno||' # '||b.name as description,f.c_bpartner_id,get_uuid() as fact_acct_id,
                                       e.c_elementvalue_id as account_id,
-                                      f.c_tax_id,10 as seqno,f.uidnumber,f.c_acctschema_id
+                                      f.c_tax_id,10 as seqno,f.uidnumber,f.c_acctschema_id,f.c_currency_id,f.amtsourcedr,f.amtsourcecr
                                    from fact_acct f,c_invoice i,c_bpartner b,c_validcombination v,c_elementvalue e
                                       where f.record_id=i.c_invoice_id and f.c_bpartner_id=b.c_bpartner_id and v.c_acctschema_id=f.c_acctschema_id and
                                       v.account_id=e.c_elementvalue_id  and
@@ -613,10 +687,10 @@ BEGIN
                                                                 and ff.seqno=10) 
                                       and v.c_validcombination_id=zsfi_GetBPAccount(case when i.issotrx='Y' then '1' else '2' end,f.c_bpartner_id,f.c_acctschema_id)
                                       group by f.ad_table_id,f.record_id,e.value,f.fact_acct_group_id,f.dateacct,i.documentno,b.name,f.c_bpartner_id,e.c_elementvalue_id,
-                                               f.c_tax_id,f.uidnumber,f.c_acctschema_id
+                                               f.c_tax_id,f.uidnumber,f.c_acctschema_id,f.c_currency_id,f.amtsourcedr,f.amtsourcecr
                                union
                                select ad_table_id,record_id,line_id,amtacctdr,amtacctcr,acctvalue,fact_acct_group_id,dateacct,description,c_bpartner_id,fact_acct_id,
-                                      account_id,c_tax_id,seqno,uidnumber,c_acctschema_id
+                                      account_id,c_tax_id,seqno,uidnumber,c_acctschema_id,c_currency_id,amtsourcedr,amtsourcecr
                                    from fact_acct where fact_acct_group_id=v_cur1.fact_acct_group_id and ad_table_id='318' and
                                       case when v_cur1.zeroinv='N' then amtacctdr>=0 and amtacctcr>=0 else  amtacctdr<=0 and amtacctcr<=0 end  and
                                       not exists (select 0 from fact_acct ff where ff.fact_acct_group_id=fact_acct.fact_acct_group_id
@@ -625,12 +699,23 @@ BEGIN
                                order by seqno
                 )
                 LOOP
+                    -- Beschreibung des Buchungstextes:
+                    if (select count(*) from ad_preference where attribute='AMPDATEVEXPORTCUSTOMINVOICETEXT' and value='Y')>0 and v_cur2.ad_table_id='318' and
+                       (select count(*) from c_invoiceline where c_invoiceline_id=v_cur2.line_id)>0 then
+                        select i.documentno||' # '||il.line||' # '||p.name||' # '||coalesce(il.description,'') into v_ldesc from c_invoiceline il,c_invoice i,m_product p 
+                                where il.c_invoice_id=i.c_invoice_id and il.m_product_id=p.m_product_id and il.c_invoiceline_id=v_cur2.line_id;
+                        v_desc:=replace(replace(replace(replace(substr(v_ldesc,1,60),E'\r\n',''),';',''),chr(13),''),chr(10),'');
+                        v_ldesc:=replace(replace(replace(replace(substr(v_ldesc,1,210),E'\r\n',''),';',''),chr(13),''),chr(10),'');
+                    else
+                        v_desc:=replace(replace(replace(replace(substr(v_cur2.description,1,60),E'\r\n',''),';',''),chr(13),''),chr(10),'');
+                        v_ldesc:=replace(replace(replace(replace(substr(v_cur2.description,1,210),E'\r\n',''),';',''),chr(13),''),chr(10),'');
+                    end if;
                     if v_cur2.ad_table_id='318' then
                         if v_cur2.line_id is not null then
                             select substr(i.documentno,1,12),
                                 case when v_kost2conf='KOSTVALUE'  then substr(a.value,1,8) when v_kost2conf='PRJTASKSEQNO' then to_char(pt.seqno) else '' end,
                                 case when v_kost1conf='PROJECTVALUE' then substr(p.value,1,8) when v_kost1conf='KOSTVALUE' then substr(a.value,1,8) when v_kost1conf='PROJECTVALUEKOSTVALUE' then substr(coalesce(a.value,p.value),1,8) else '' end,
-                                substr(pt.name,1,210),i.poreference,t.name,substr(p.name,1,210)
+                                substr(pt.name,1,210),coalesce(i.poreference,''),t.name,substr(p.name,1,210)
                                 into  v_belegfeld1,v_kost2,v_kost1,v_ziart6text,v_ziart3text,v_ziart4text,v_ziart5text
                                 from c_invoice i ,c_invoiceline il left join a_asset a on a.a_asset_id=il.a_asset_id 
                                                                     left join c_project p on il.c_project_id=p.c_project_id 
@@ -638,9 +723,21 @@ BEGIN
                                                                     left join c_tax t on il.c_tax_id=t.c_tax_id
                                 where i.c_invoice_id=il.c_invoice_id and il.c_invoiceline_id=v_cur2.line_id;
                         else
-                            select substr(i.documentno,1,12),i.poreference,t.name into  v_belegfeld1,v_ziart3text,v_ziart4text
+                            select substr(i.documentno,1,12),coalesce(i.poreference,''),t.name into  v_belegfeld1,v_ziart3text,v_ziart4text
                             from c_invoice i ,c_tax t
                             where  t.c_tax_id=v_cur2.c_tax_id and i.c_invoice_id=v_cur2.record_id;
+                        end if;
+                    end if;
+                    -- Bei Fremdwährung die entsprechenden Felder füllen
+                    -- Feld Umsatz wird dann in den folgenden Abschnitten mit dem originalen Wert in Fremdwährung angegeben
+                    if (v_cur2.ad_table_id='318' or v_cur2.ad_table_id='392' or v_cur2.ad_table_id='800019') then
+                        -- Währung der Rechnungn != Hauswährung
+                        v_wkzumsatz_id = v_cur2.c_currency_id;
+                        v_wkzbasisumsatz_id = (select c_currency.c_currency_id from ad_client,c_currency where ad_client.ad_client_id = 'C726FEC915A54A0995C568555DA5BB3C' and ad_client.c_currency_id = c_currency.c_currency_id);
+                        if(v_wkzumsatz_id != v_wkzbasisumsatz_id) then
+                            v_wkzumsatz := (select iso_code from c_currency where c_currency_id = v_wkzumsatz_id);
+                            v_wkzbasisumsatz := (select iso_code from c_currency where c_currency_id = v_wkzbasisumsatz_id);
+                            v_kurs_str := (select C_Currency_Rate(v_wkzbasisumsatz_id, v_wkzumsatz_id, v_cur2.dateacct, null));
                         end if;
                     end if;
                     if v_cur2.ad_table_id='4AF9D81E51A04F2B987CD91AA9EE99F4' then
@@ -672,10 +769,12 @@ BEGIN
                             v_newgroup:='N';
                             if v_cur2.amtacctdr!=0 then
                                 v_sourceamt :=  v_cur2.amtacctdr;
+                                v_basisumsatz := v_cur2.amtsourcedr;
                                 v_source:='H';
                                 v_dracct:=v_cur2.acctvalue;
                             elsif v_cur2.amtacctcr!=0 then
                                 v_sourceamt :=  v_cur2.amtacctcr;
+                                v_basisumsatz := v_cur2.amtsourcecr;
                                 v_source:='S';  
                                 v_cracct:=v_cur2.acctvalue;
                             else
@@ -703,6 +802,13 @@ BEGIN
                             end if;
                             -- UST ID im Buchungssatz bei Skonto auf Zahlungen
                             if v_cur2.ad_table_id='800019' then
+                                if(coalesce(v_belegfeld1,'') = '') then -- Dokumentennummer für Skonto ermitteln
+                                   select substr(inv.documentno,1,12) into v_belegfeld1 from c_invoice inv, c_debt_payment pay where pay.c_invoice_id = inv.c_invoice_id and pay.c_settlement_generate_id = v_cur2.record_id;
+                                   if(v_belegfeld1 is null) then
+                                      select substr(inv.documentno,1,12) into v_belegfeld1 from c_invoice inv, c_debt_payment pay where pay.c_invoice_id = inv.c_invoice_id and pay.c_settlement_cancel_id = v_cur2.record_id;
+                                   end if;
+                                   if(v_belegfeld1 is null) then v_belegfeld1:=''; end if;
+                                end if;
                                 select count(*) into v_mcount from c_tax_acct c,c_tax t,c_validcombination w where 
                                         (w.c_validcombination_id=c.t_ar_discount_acct or w.c_validcombination_id=c.t_ap_discount_acct)
                                         and w.account_id=v_gegenkontoID
@@ -714,10 +820,15 @@ BEGIN
                                     v_uid:='';
                                 end if;
                             end if;
-                            v_stramt:=zsdv_strNumber(v_sourceamt,'de_DE');
+                            if(v_wkzumsatz_id != v_wkzbasisumsatz_id) then
+                                v_stramt:=zsdv_strNumber(v_basisumsatz,'de_DE');
+                                v_basisumsatz_str:=zsdv_strNumber(v_sourceamt,'de_DE');
+                            else
+                                v_stramt:=zsdv_strNumber(v_sourceamt,'de_DE');
+                            end if;
                             v_line:=v_line+1;
-                            v_desc:=replace(replace(replace(replace(substr(v_cur2.description,1,60),E'\r\n',''),';',''),chr(13),''),chr(10),'');
-                            v_ldesc:=replace(replace(replace(replace(substr(v_cur2.description,1,210),E'\r\n',''),';',''),chr(13),''),chr(10),'');
+                            --v_desc:=replace(replace(replace(replace(substr(v_cur2.description,1,60),E'\r\n',''),';',''),chr(13),''),chr(10),'');
+                            --v_ldesc:=replace(replace(replace(replace(substr(v_cur2.description,1,210),E'\r\n',''),';',''),chr(13),''),chr(10),'');
                             if v_cur2.c_bpartner_id is not null then
                                 select value into v_ziart2text from c_bpartner where c_bpartner_id=v_cur2.c_bpartner_id;
                             else
@@ -725,7 +836,7 @@ BEGIN
                             end if;
                             --OLD v_satz:= ';'||v_source||';'||v_stramt||';'||v_korrektur||';'||v_dracct||';'||v_belegfeld1||';'||v_belegfeld2||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_cracct||';;;;0,00;'||v_desc||';'||v_uid||';0,00;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;';
                             v_shStz:=v_source;
-                            v_satz:=v_stramt||';'||v_shStz||';;;;;'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                            v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                             if v_satz is null then
                                 raise exception '%','Datensatz ist NULL e: '||v_cur2.fact_acct_id;
                             end if;
@@ -735,6 +846,7 @@ BEGIN
                             v_korrektur:='';
                             v_check:=0;
                             v_belegfeld1:=''; v_kost2:='';v_kost1:='';v_belegfeld2:='';v_ziart3text:='';v_ziart4text:='';v_ziart5text:='';v_ziart6text:='';
+                            v_wkzumsatz:=''; v_kurs_str:=''; v_basisumsatz_str:=''; v_wkzbasisumsatz:='';
                             EXIT;
                         end if;
                     else        
@@ -757,10 +869,12 @@ BEGIN
                         v_newgroup:='N';
                         if v_cur2.amtacctdr!=0 then
                             v_sourceamt :=  v_cur2.amtacctdr;
+                            v_basisumsatz := v_cur2.amtsourcedr;
                             v_source:='H';
                             v_dracct:=v_cur2.acctvalue;
                         elsif v_cur2.amtacctcr!=0 then
                             v_sourceamt :=  v_cur2.amtacctcr;
+                            v_basisumsatz := v_cur2.amtsourcecr;
                             v_source:='S';  
                             v_cracct:=v_cur2.acctvalue;
                         else
@@ -792,6 +906,11 @@ BEGIN
                         if (v_count>0 or (v_usedatevkey='Y' and v_datevkeyvst is not null)) 
                             and v_korrektur!='40' and  (v_cur2.ad_table_id='318' or v_cur2.ad_table_id='4AF9D81E51A04F2B987CD91AA9EE99F4') 
                         then
+                            -- Buchungstext
+                            if v_cur2.ad_table_id='318' then
+                              select substr(i.documentno,1,12),coalesce(i.poreference,'') into  v_belegfeld1,v_ziart3text
+                                    from c_invoice i where  i.c_invoice_id=v_cur2.record_id;
+                            end if;
                             if v_count=0 then
                                 v_korrektur:=v_datevkeyvst;
                             end if;
@@ -801,7 +920,7 @@ BEGIN
                                 -- Hier erweitern wir, damit das alte Verhalten ansonsten bleibt...(s. Exept. Texte)
                                 --RAISE EXCEPTION '%','Datev-Export-Fehler: Auf Automatikkonten kann nur eine Steuerart und ein Gegenkonto benutzt werden: '||v_cur2.description||'-'||v_cur1.fact_acct_group_id;
                                 for v_cur3 in (select sum(f.amtacctdr) as amtacctdr, sum(f.amtacctcr) as amtacctcr,
-                                               coalesce(f.c_tax_id,i.c_tax_id) as c_tax_id
+                                               coalesce(f.c_tax_id,i.c_tax_id) as c_tax_id, sum(f.amtsourcedr) as amtsourcedr, sum(f.amtsourcecr) as amtsourcecr
                                                from fact_acct f left join c_invoiceline i on i.c_invoiceline_id=f.line_id
                                                where  fact_acct_group_id=v_cur1.fact_acct_group_id and coalesce(f.c_tax_id,i.c_tax_id) is not null 
                                                group by coalesce(f.c_tax_id,i.c_tax_id))
@@ -809,8 +928,10 @@ BEGIN
                                     -- Setzen des Betrages
                                     if v_cur3.amtacctdr!=0 then
                                         v_sourceamt :=  v_cur3.amtacctdr;
+                                        v_basisumsatz := v_cur3.amtsourcedr;
                                     elsif v_cur3.amtacctcr!=0 then
                                         v_sourceamt :=  v_cur3.amtacctcr;
+                                        v_basisumsatz := v_cur3.amtsourcecr;
                                     end if;
                                     v_check:= v_sourceamt;
                                     -- Suchen des Gegenkontos (Automatik-Kontos)
@@ -850,11 +971,16 @@ BEGIN
                                             v_xsource:='H';
                                         end if;
                                         v_sourceamt:=v_sourceamt*(-1);
+                                        v_basisumsatz:=v_basisumsatz*(-1);
                                     end if;
-                                    v_stramt:=zsdv_strNumber(v_sourceamt,'de_DE');
+                                    if(v_wkzumsatz_id != v_wkzbasisumsatz_id) then
+                                        v_stramt:=zsdv_strNumber(v_basisumsatz,'de_DE');
+                                        v_basisumsatz_str:=zsdv_strNumber(v_sourceamt,'de_DE');
+                                    else
+                                        v_stramt:=zsdv_strNumber(v_sourceamt,'de_DE');
+                                    end if;
                                     v_line:=v_line+1;
-                                    v_desc:=replace(replace(replace(replace(substr(v_cur2.description,1,60),E'\r\n',''),';',''),chr(13),''),chr(10),'');
-                                    v_ldesc:=replace(replace(replace(replace(substr(v_cur2.description,1,210),E'\r\n',''),';',''),chr(13),''),chr(10),'');
+                                    
                                     if v_cur2.c_bpartner_id is not null then
                                         select value into v_ziart2text from c_bpartner where c_bpartner_id=v_cur2.c_bpartner_id;
                                     else
@@ -862,7 +988,7 @@ BEGIN
                                     end if;
                                     --OLD v_satz:= ';'||v_xsource||';'||v_stramt||';'||v_korrektur||';'||v_dracct||';'||v_belegfeld1||';'||v_belegfeld2||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_cracct||';;;;0,00;'||v_desc||';'||v_uid||';0,00;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;';
                                     v_shStz:=v_xsource;
-                                    v_satz:=v_stramt||';'||v_shStz||';;;;;'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                                    v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                                     if v_satz is null then
                                         raise exception '%','Datensatz ist NULL e: '||v_cur2.fact_acct_id;
                                     end if;
@@ -873,6 +999,7 @@ BEGIN
                                     v_check:=0;
                                 END LOOP;
                                 v_belegfeld1:=''; v_kost2:='';v_kost1:='';v_belegfeld2:='';v_ziart3text:='';v_ziart4text:='';v_ziart5text:='';v_ziart6text:='';
+                                v_wkzumsatz:=''; v_kurs_str:=''; v_basisumsatz_str:=''; v_wkzbasisumsatz:='';
                                 EXIT; -- cur3
                                 --    raise exception '%',v_cur1.fact_acct_group_id||'#'||v_cur2.fact_acct_id||'#';
                             end if;
@@ -894,11 +1021,17 @@ BEGIN
                                     v_source:='H';
                                 end if;
                                 v_sourceamt:=v_sourceamt*(-1);
+                                v_basisumsatz:=v_basisumsatz*(-1);
                             end if;
-                            v_stramt:=zsdv_strNumber(v_sourceamt,'de_DE');
+                            if(v_wkzumsatz_id != v_wkzbasisumsatz_id) then
+                                v_stramt:=zsdv_strNumber(v_basisumsatz,'de_DE');
+                                v_basisumsatz_str:=zsdv_strNumber(v_sourceamt,'de_DE');
+                            else
+                                v_stramt:=zsdv_strNumber(v_sourceamt,'de_DE');
+                            end if;
                             v_line:=v_line+1;
-                            v_desc:=replace(replace(replace(replace(substr(v_cur2.description,1,60),E'\r\n',''),';',''),chr(13),''),chr(10),'');
-                            v_ldesc:=replace(replace(replace(replace(substr(v_cur2.description,1,210),E'\r\n',''),';',''),chr(13),''),chr(10),'');
+                            --v_desc:=replace(replace(replace(replace(substr(v_cur2.description,1,60),E'\r\n',''),';',''),chr(13),''),chr(10),'');
+                            --v_ldesc:=replace(replace(replace(replace(substr(v_cur2.description,1,210),E'\r\n',''),';',''),chr(13),''),chr(10),'');
                             if v_cur2.c_bpartner_id is not null then
                                 select value into v_ziart2text from c_bpartner where c_bpartner_id=v_cur2.c_bpartner_id;
                             else
@@ -906,7 +1039,7 @@ BEGIN
                             end if;
                             --OLD v_satz:= ';'||v_source||';'||v_stramt||';'||v_korrektur||';'||v_dracct||';'||v_belegfeld1||';'||v_belegfeld2||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_cracct||';;;;0,00;'||v_desc||';'||v_uid||';0,00;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;';
                             v_shStz:=v_source;
-                            v_satz:=v_stramt||';'||v_shStz||';;;;;'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                            v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                             if v_satz is null then
                                 raise exception '%','Datensatz ist NULL ef: '||v_cur2.fact_acct_id;
                             end if;
@@ -916,6 +1049,7 @@ BEGIN
                             v_korrektur:='';
                             v_check:=0;
                             v_belegfeld1:=''; v_kost2:='';v_kost1:='';v_belegfeld2:='';v_ziart3text:='';v_ziart4text:='';v_ziart5text:='';v_ziart6text:='';
+                            v_wkzumsatz:=''; v_kurs_str:=''; v_basisumsatz_str:=''; v_wkzbasisumsatz:='';
                             EXIT; -- cur2
                         end if; -- --- Buchung auf Automatikkonto
                     --seqno=10
@@ -936,8 +1070,8 @@ BEGIN
                             v_sollhaben:='S';
                             end if;
                             v_stramt:=zsdv_strNumber(v_amt,'de_DE');
-                            v_desc:=replace(replace(replace(replace(substr(v_cur2.description,1,60),E'\r\n',''),';',''),chr(13),''),chr(10),'');
-                            v_ldesc:=replace(replace(replace(replace(substr(v_cur2.description,1,210),E'\r\n',''),';',''),chr(13),''),chr(10),'');
+                            --v_desc:=replace(replace(replace(replace(substr(v_cur2.description,1,60),E'\r\n',''),';',''),chr(13),''),chr(10),'');
+                            --v_ldesc:=replace(replace(replace(replace(substr(v_cur2.description,1,210),E'\r\n',''),';',''),chr(13),''),chr(10),'');
                             if v_cur2.c_bpartner_id is not null then
                                 select value into v_ziart2text from c_bpartner where c_bpartner_id=v_cur2.c_bpartner_id;
                             else
@@ -948,7 +1082,7 @@ BEGIN
                             --OLD v_satz:= ';'||v_sollhaben||';'||v_stramt||';;'||v_taxdracct||';;;'||to_char(v_cur2.dateacct,'DDMM')||';'||v_taxcracct||';;;;0,00;'||v_desc||';'||v_uid||';0,00;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;';
                             v_shStz:=v_sollhaben;
                             -- Be arware of TAX-ACCOUNTS!!!
-                            v_satz:=v_stramt||';'||v_shStz||';;;;;'||v_taxcracct||';'||v_taxdracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                            v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_taxcracct||';'||v_taxdracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                             if v_satz is null then
                                 raise exception '%','Datensatz ist NULL f: '||v_cur2.fact_acct_id||'-'||v_cur1.fact_acct_group_id;
                             end if;
@@ -956,17 +1090,23 @@ BEGIN
                                 values(get_uuid(),p_exuid,v_client, p_OrgID,p_user,p_user,v_cur2.dateacct,v_cur2.fact_acct_group_id,v_line,v_satz);
                             v_rcount:=v_rcount+1;
                             v_belegfeld1:=''; v_kost2:='';v_kost1:='';v_belegfeld2:='';v_ziart3text:='';v_ziart4text:='';v_ziart5text:='';v_ziart6text:='';
+                            v_wkzumsatz:=''; v_kurs_str:=''; v_basisumsatz_str:=''; v_wkzbasisumsatz:='';
                         end if; 
                         v_taxbooked='Y';
                         -- Reverse-Charge of TAX - Always one FACT
                     else
                         -- Normale Aufteilungen
-                        if v_source='S' then 
-                            v_amt:= v_cur2.amtacctdr; 
+                        if v_cur2.amtacctdr<>0 then
+                            v_amt:= v_cur2.amtacctdr;
+                            v_basisumsatz := v_cur2.amtsourcedr;
                             v_dracct:=v_cur2.acctvalue;
-                        else 
-                            v_amt:= v_cur2.amtacctcr; 
+                        else
+                            v_amt :=  v_cur2.amtacctcr;
+                            v_basisumsatz := v_cur2.amtsourcecr;
                             v_cracct:=v_cur2.acctvalue;
+                        end if;
+                        if (v_source='S' and v_cur2.amtacctdr=0) or (v_source='H' and v_cur2.amtacctcr=0) then --  Kostenbuchungen sind auf der anderen Seite
+                            v_check:= v_check+v_amt*2;
                         end if;
                         v_check:= v_check-v_amt;
                         -- Währungsumrechnungen - Rundungsdifferenzen
@@ -983,8 +1123,8 @@ BEGIN
                                 RAISE EXCEPTION '%','Datev-Export-Fehler: Betrag = 0  - '||to_char(v_cur2.dateacct)||'   '||v_cur2.description||' Key:'||v_cur2.fact_acct_group_id;
                             end if;
                         else
-                            v_desc:=replace(replace(replace(replace(substr(v_cur2.description,1,60),E'\r\n',''),';',''),chr(13),''),chr(10),'');
-                            v_ldesc:=replace(replace(replace(replace(substr(v_cur2.description,1,210),E'\r\n',''),';',''),chr(13),''),chr(10),'');
+                            --v_desc:=replace(replace(replace(replace(substr(v_cur2.description,1,60),E'\r\n',''),';',''),chr(13),''),chr(10),'');
+                            --v_ldesc:=replace(replace(replace(replace(substr(v_cur2.description,1,210),E'\r\n',''),';',''),chr(13),''),chr(10),'');
                             if v_cur2.c_bpartner_id is not null then
                                 select value into v_ziart2text from c_bpartner where c_bpartner_id=v_cur2.c_bpartner_id;
                             else
@@ -995,12 +1135,25 @@ BEGIN
                             if v_amt < 0 then
                                 v_sollhaben:='H';
                                 v_amt:=v_amt*(-1);
+                                v_basisumsatz:=v_basisumsatz*(-1);
                             else
                                 v_sollhaben:='S';
                             end if;
                             v_stramt:=zsdv_strNumber(v_amt,'de_DE');
+                            if(v_wkzumsatz_id != v_wkzbasisumsatz_id) then
+                                -- Bei Fremdwährung Umsatz und Basisumsatz tauschen
+                                v_basisumsatz_str:=zsdv_strNumber(v_amt,'de_DE');
+                                v_stramt:=zsdv_strNumber(v_basisumsatz,'de_DE');
+                            end if;
                             -- UST ID im Buchungssatz bei Skonto auf Zahlungen
                             if v_cur2.ad_table_id='800019' then
+                                if(coalesce(v_belegfeld1,'') = '') then -- Dokumentennummer für Skonto ermitteln
+                                   select substr(inv.documentno,1,12) into v_belegfeld1 from c_invoice inv, c_debt_payment pay where pay.c_invoice_id = inv.c_invoice_id and pay.c_settlement_generate_id = v_cur2.record_id;
+                                   if(v_belegfeld1 is null) then
+                                      select substr(inv.documentno,1,12) into v_belegfeld1 from c_invoice inv, c_debt_payment pay where pay.c_invoice_id = inv.c_invoice_id and pay.c_settlement_cancel_id = v_cur2.record_id;
+                                   end if;
+                                   if(v_belegfeld1 is null) then v_belegfeld1:=''; end if;
+                                end if;
                                 select count(*) into v_mcount from c_tax_acct c,c_tax t,c_validcombination w where 
                                         (w.c_validcombination_id=c.t_ar_discount_acct or w.c_validcombination_id=c.t_ap_discount_acct)
                                         and w.account_id=v_cur2.account_id
@@ -1015,7 +1168,7 @@ BEGIN
                             -- Bei Umsätzen auf Umsatzkonten - Steuerschlüssel 40 (Automatikbuchung im Datev abschalten)
                             --OLD v_satz:= ';'||v_sollhaben||';'||v_stramt||';'||v_korrektur||';'||v_dracct||';'||v_belegfeld1||';'||v_belegfeld2||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_cracct||';;;;0,00;'||v_desc||';'||v_uid||';0,00;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;';
                             v_shStz:=v_sollhaben;
-                            v_satz:=v_stramt||';'||v_shStz||';;;;;'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                            v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                             v_line:=v_line+1;
                             if v_satz is null then
                             raise exception '%','Datensatz ist NULL g: '||v_cur2.fact_acct_id;
@@ -1025,9 +1178,10 @@ BEGIN
                             v_rcount:=v_rcount+1;
                             v_korrektur:='';
                             v_belegfeld1:=''; v_kost2:='';v_kost1:='';v_belegfeld2:='';v_ziart3text:='';v_ziart4text:='';v_ziart5text:='';v_ziart6text:='';
+                            v_wkzumsatz:=''; v_kurs_str:=''; v_basisumsatz_str:=''; v_wkzbasisumsatz:='';
                         end if; -- amt=0
                     end if;
-                    END LOOP;
+                    END LOOP; --cur2
                     if v_check!=0 then
                         RAISE EXCEPTION '%','Datev-Export-Fehler: Soll und Haben ungleich: '||to_char(v_cur2.dateacct)||'   '||v_cur2.description||' Erg:'||to_char(v_check)||' Key:'||v_cur2.fact_acct_group_id;
                     end if;
@@ -1144,6 +1298,38 @@ BEGIN
     ELSEIF (p_datevkeyust = '91') THEN
       v_datevkeyust := '8';
 --  ELSEIF (p_datevkeyust = '94') THEN    -- deaktiviert, wird 1:1 durchgereicht, c_tax.rate=19
+    END IF;
+  
+  ELSEIF (LENGTH(p_datevkeyust) = 3) THEN -- 27.10.2025 added
+-- 1xx:
+    IF     (p_datevkeyust = '101') THEN    -- old 3, Umsatzsteuer 19%
+      v_datevkeyust := '9';
+    ELSEIF (p_datevkeyust = '102') THEN    -- old 2, Umsatzsteuer 7%
+      v_datevkeyust := '8';
+    ELSEIF (p_datevkeyust = '191') THEN    -- steuerfrei
+      v_datevkeyust := '0';
+-- 2xx:
+    ELSEIF (p_datevkeyust = '202') THEN    -- old 46, steuerfrei
+      v_datevkeyust := '0';
+    ELSEIF (p_datevkeyust = '231') THEN    -- old 11, steuerfrei
+      v_datevkeyust := '0';
+    ELSEIF (p_datevkeyust = '260') THEN    -- steuerfrei
+      v_datevkeyust := '0';
+    ELSEIF (p_datevkeyust = '270') THEN    -- old 47, steuerfrei
+      v_datevkeyust := '0';
+-- 4xx:
+    ELSEIF (p_datevkeyust = '401') THEN    -- old 9, Umsatzsteuer 19 %
+      v_datevkeyust := '9';
+    ELSEIF (p_datevkeyust = '402') THEN    -- old 8, Umsatzsteuer 7 %
+      v_datevkeyust := '8';
+-- 5xx:
+    ELSEIF (p_datevkeyust = '506') THEN    -- old 94, $13b, 19%
+      v_datevkeyust := '94';
+    ELSEIF (p_datevkeyust = '511') THEN    -- old 94, $13b, 19%
+      v_datevkeyust := '94';
+-- 7xx:
+    ELSEIF (p_datevkeyust = '701') THEN    -- old 19, Umsatzsteuer 19 %
+      v_datevkeyust := '9';
     END IF;
   END IF;
 
@@ -1947,13 +2133,13 @@ BEGIN
       -- gelieferte BU-Schluessel
         IF     (v_il_09 = '1') THEN  -- Umsatzsteuerfrei (mit Vorsteuerabzug)
           v_isGross := 'N';          -- dummy-Anweisung wg. Vollstaendigkeit
-        ELSEIF (v_il_09 = '2') THEN  -- Umsatzsteuer 7%
+        ELSEIF (v_il_09 = '2' or v_il_09 = '102') THEN  -- Umsatzsteuer 7%
           v_isGross := 'Y'; -- Brutto, enthaelt Steuer
-        ELSEIF (v_il_09 = '3') THEN  -- Umsatzsteuer 19%
+        ELSEIF (v_il_09 = '3' or v_il_09 = '101') THEN  -- Umsatzsteuer 19%
           v_isGross := 'Y'; -- Brutto, enthaelt Steuer
-        ELSEIF (v_il_09 = '8') THEN  -- Vorsteuer 7%
+        ELSEIF (v_il_09 = '8' or v_il_09 = '402') THEN  -- Vorsteuer 7%
           v_isGross := 'Y'; -- Brutto, enthaelt Steuer
-        ELSEIF (v_il_09 = '9') THEN  -- Vorsteuer 19%
+        ELSEIF (v_il_09 = '9' or v_il_09 = '401') THEN  -- Vorsteuer 19%
           v_isGross := 'Y'; -- Brutto, enthaelt Steuer
         ELSEIF ( (SUBSTRING(v_il_09, 1, 1) = '1')  AND (LENGTH(v_il_09) = 2) ) THEN  -- 1x = '10'..'19' EU-Tatbestand
           IF ( (v_il_09 = '10') OR (v_il_09 = '11') )  THEN
@@ -1961,6 +2147,8 @@ BEGIN
           ELSE
            v_isGross := 'Y';      -- Brutto, enthaelt Steuer: '17'=16%, '18'=7%, '19'=19%
           END IF;
+        ELSEIF (v_il_09 = '701') THEN
+          v_isGross := 'Y'; -- 701 -> old 19
         ELSEIF (SUBSTRING(v_il_09, 1, 1) = '2' AND (LENGTH(v_il_09) = 2) )        -- 2x Generalumkehrbuchung: 20..29
         OR     (SUBSTRING(v_il_09, 1, 1) = '3' AND (LENGTH(v_il_09) = 2) ) THEN   -- 3x Generalumkehr bei aufzuteilender Vorsteuer
           v_amt := (v_amt * -1);  -- Generalumkehrbuchung
@@ -1981,9 +2169,11 @@ BEGIN
           ELSE
            v_isGross := 'Y';      -- Brutto, enthaelt Steuer: '67'=16% '68'=7%, '69'=19%
           END IF;
-        ELSEIF ( (v_il_09 = '91') OR (v_il_09 = '94') ) THEN                        -- 9x Steuer bei Leistungsempfaenger : mit Vorsteuer 7%/19%, mit 7%/19% Umsatzsteuer
+        ELSEIF ( (v_il_09 = '91') OR (v_il_09 = '94') OR (v_il_09 = '506') OR (v_il_09 = '511')) THEN -- 9x Steuer bei Leistungsempfaenger : mit Vorsteuer 7%/19%, mit 7%/19% Umsatzsteuer
            v_isGross := 'Y';      -- Brutto, enthaelt Steuer: '91'=7%, '94'=19%
     --  ELSEIF ( (v_il_09) = '92') OR (v_il_09) = '95') ) THEN                      -- 9x Steuer bei Leistungsempfaenger : ohne Vorsteuer, mit 7%/19% Umsatzsteuer
+        ELSEIF ((v_il_09 = '191') OR (v_il_09 = '202') OR (v_il_09 = '231') OR (v_il_09 = '260') OR (v_il_09 = '270')) THEN
+           v_isGross := 'N';
         END IF;
 
         -- BU-Schluessel geliefert, aber ungueltig

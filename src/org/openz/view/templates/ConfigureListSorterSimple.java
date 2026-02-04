@@ -22,52 +22,54 @@ import org.openz.view.Scripthelper;
 public class ConfigureListSorterSimple {
  
   
-  public static StringBuilder doConfigure(HttpSecureAppServlet servlet,VariablesSecureApp vars,Scripthelper script,String leftsidefieldname,String rightsidefieldname, int leadingemptycols,int colstotal,String leftcurrentvalue,String rightcurrentvalue,FieldProvider[] leftdata, String leftdataIDField,FieldProvider[] rightdata, String rightdataIDField,boolean readonly,String labelfieldname,String tooltip,String elementId) throws Exception{
-    StringBuilder retval= new StringBuilder();
-    final String directory= servlet.strBasePath;
-    String strinclude=Utility.messageBD(servlet, "JSListSortInclude", vars.getLanguage());
-    String strexclude=Utility.messageBD(servlet, "JSListSortExclude", vars.getLanguage());
-    String strgoup=Utility.messageBD(servlet, "JSListSortGoUp", vars.getLanguage());
-    String strgodown=Utility.messageBD(servlet, "JSListSortGoDown", vars.getLanguage());
-    String strleftContent="";
-    String strrightContent="";
-    String formname="frmMain";
-    String labelfield="";
-    for (int i = 0; i < leadingemptycols; i++) {
-      retval.append("<td class=\"leadingemptycolslistsortersimple\"></td>");
-    }
-    if (labelfieldname.equals(""))
-      labelfield=leftsidefieldname;
-    else
-      labelfield=labelfieldname;
-    retval.append(ConfigureLabel.doConfigure(servlet,vars,labelfield,"TitleCell","",elementId,""));
-    Object template =  servlet.getServletContext().getAttribute("listSorterSimpleTEMPLATE");
-    if (template==null) {
-      template = new String(FileUtils.readFile("ListSorterSimple.xml", directory + "/src-loc/design/org/openz/view/templates/"));
-      servlet.getServletContext().setAttribute("listSorterSimpleTEMPLATE", template);
-    }
-    retval.append(template.toString());
-    Replace.replace(retval, "@NUMCOLS@", Integer.toString(colstotal-1));
-    strleftContent=SelectBoxhelper.fields2option(leftdata,leftdataIDField.equals("") ?  leftsidefieldname: leftdataIDField,leftcurrentvalue,false,false);
-    Replace.replace(retval, "@LEFTSIDECONTENT@", strleftContent);
-    strrightContent=SelectBoxhelper.fields2option(rightdata,rightdataIDField.equals("") ? rightsidefieldname : rightdataIDField,rightcurrentvalue,false,false);
-    Replace.replace(retval, "@RIGHTSIDECONTENT@", strrightContent);
-    Replace.replace(retval, "@RIGHTSIDEFIELDNAME@", rightsidefieldname);
-    Replace.replace(retval, "@LEFTSIDEFIELDNAME@", leftsidefieldname);
-    Replace.replace(retval, "@INCLUDEMSG@",strinclude);
-    Replace.replace(retval, "@EXCLUDEMSG@",strexclude);
-    Replace.replace(retval, "@GOUPMSG@",strgoup);
-    Replace.replace(retval, "@GODOWNMSG@",strgodown);
-    Replace.replace(retval, "@TITLE@", tooltip);
-    if (readonly)
-      Replace.replace(retval, "@READONLY@", "readonly=\"true\" disabled=\"true\"");
-    else
-      Replace.replace(retval, "@READONLY@", "");
-    Replace.replace(retval, "@FORMNAME@",formname);
-    
-    script.addmultiselected(leftsidefieldname);
-    script.addmultiselected(rightsidefieldname);
-    return retval;
-  }
-    
-}
+	 public static StringBuilder doConfigure(HttpSecureAppServlet servlet,VariablesSecureApp vars,Scripthelper script,String leftsidefieldname,String rightsidefieldname, int leadingemptycols,int colstotal,String leftcurrentvalue,String rightcurrentvalue,FieldProvider[] leftdata, String leftdataIDField,FieldProvider[] rightdata, String rightdataIDField,boolean readonly,String labelfieldname,String tooltip,String elementId) throws Exception{
+		    StringBuilder retval= new StringBuilder();
+		    final String directory= servlet.strBasePath;
+		    String strinclude=Utility.messageBD(servlet, "JSListSortInclude", vars.getLanguage());
+		    String strexclude=Utility.messageBD(servlet, "JSListSortExclude", vars.getLanguage());
+		    String strgoup=Utility.messageBD(servlet, "JSListSortGoUp", vars.getLanguage());
+		    String strgodown=Utility.messageBD(servlet, "JSListSortGoDown", vars.getLanguage());
+		    String strleftContent="";
+		    String strrightContent="";
+		    String formname="frmMain";
+		    String labelfield="";
+		    for (int i = 0; i < leadingemptycols; i++) {
+		      retval.append("<td class=\"leadingemptycolslistsorter\"></td>");
+		    }
+		    if (labelfieldname.equals(""))
+		      labelfield=leftsidefieldname;
+		    else
+		      labelfield=labelfieldname;
+		    if (rightsidefieldname.equals(""))
+		    	rightsidefieldname=leftsidefieldname+"rightside";
+		    retval.append(ConfigureLabel.doConfigure(servlet,vars,labelfield,"TitleCell","",elementId,""));
+		    Object template =  servlet.getServletContext().getAttribute("listSorterSimpleTEMPLATE");
+		    if (template==null) {
+		    	template = new String(FileUtils.readFile("ListSorterSimple.xml", directory + "/src-loc/design/org/openz/view/templates/"));
+		        servlet.getServletContext().setAttribute("listSorterSimpleTEMPLATE", template);
+		    }
+		    retval.append(template.toString());
+		    Replace.replace(retval, "@NUMCOLS@", Integer.toString(colstotal-1));
+		    strleftContent=SelectBoxhelper.fields2option(leftdata,leftdataIDField.equals("") ?  leftsidefieldname: leftdataIDField,leftcurrentvalue,false,false);
+		    Replace.replace(retval, "@LEFTSIDECONTENT@", strleftContent);
+		    strrightContent=SelectBoxhelper.fields2option(rightdata,rightdataIDField.equals("") ? rightsidefieldname : rightdataIDField,rightcurrentvalue,false,false);
+		    Replace.replace(retval, "@RIGHTSIDECONTENT@", strrightContent);
+		    Replace.replace(retval, "@RIGHTSIDEFIELDNAME@", rightsidefieldname);
+		    Replace.replace(retval, "@LEFTSIDEFIELDNAME@", leftsidefieldname);
+		    Replace.replace(retval, "@INCLUDEMSG@",strinclude);
+		    Replace.replace(retval, "@EXCLUDEMSG@",strexclude);
+		    Replace.replace(retval, "@GOUPMSG@",strgoup);
+		    Replace.replace(retval, "@GODOWNMSG@",strgodown);
+		    Replace.replace(retval, "@TITLE@", tooltip);
+		    if (readonly)
+		      Replace.replace(retval, "@READONLY@", "readonly=\"true\" disabled=\"true\"");
+		    else
+		      Replace.replace(retval, "@READONLY@", "");
+		    Replace.replace(retval, "@FORMNAME@",formname);
+		    
+		    script.addmultiselected(leftsidefieldname);
+		    script.addmultiselected(rightsidefieldname);
+		    return retval;
+		  }
+		    
+		}

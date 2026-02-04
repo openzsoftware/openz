@@ -100,6 +100,9 @@ BEGIN
                             select snr_batchmasterdata_id into v_bmdid from snr_batchmasterdata  where batchnumber=v_cur2.batchnunber and m_product_id=v_productid;
                             update snr_batchmasterdata set guaranteedate=to_date(v_cur2.guaranteedate,'DD-MM-YYYY'),description=v_cur2.description,
                                 auxfield1=v_cur2.auxfield1,auxfield2=v_cur2.auxfield2,auxfield3=v_cur2.auxfield3 where snr_batchmasterdata_id=v_bmdid;
+                            select snr_masterdata_id into v_bmdid from snr_masterdata  where serialnumber=v_cur2.serialnumber and m_product_id=v_productid;
+                            update snr_masterdata set guaranteedate=to_date(v_cur2.guaranteedate,'DD-MM-YYYY'),description=v_cur2.description,
+                                text1=v_cur2.auxfield1,text2=v_cur2.auxfield2,text3=v_cur2.auxfield3 where snr_masterdata_id=v_bmdid;
                     END LOOP;
                 end if;
             end if;

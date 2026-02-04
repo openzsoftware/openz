@@ -71,7 +71,7 @@ public class SepaExportService implements org.openbravo.scheduling.Process {
       res.close();
     // direct debit / insert from c_bankstatement into zsfi_sepa_debit_data
       if ((sepapaintype != null) && sepapaintype.startsWith("pain.008")) {
-        SepaExportDebitData.insertHeader(connp, uuid, adClientId, adOrgId, adUserId, cBankstatementId, uuid, uuid, reqdColltnDt);
+        SepaExportDebitData.insertHeader(connp, uuid, adClientId, adOrgId, adUserId, cBankstatementId, cBankstatementId, cBankstatementId, reqdColltnDt);
         SepaExportDebitData.insertLines(connp, uuid, adClientId, adOrgId, adUserId, cBankstatementId);
         filename = SepaExportDebitData.doProcessing(conn, connp, uuid);
       }

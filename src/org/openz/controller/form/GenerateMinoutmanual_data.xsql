@@ -23,7 +23,9 @@
     <![CDATA[
     select ad_client_id, ad_org_id, c_order_id, a_asset_id, c_orderline_id, c_project_id, c_projecttask_id, m_shipper_id, salesrep_id, c_doctype_id, issotrx,to_char(scheddeliverydate,?) as scheddeliverydate,
                  c_bpartner_id,   businesspartner, m_locator_id,
-                 documentno,  zssi_getorderadditionaltext4manualtrx1(c_order_id,?) as projectname,  zssi_getorderadditionaltext4manualtrx2(c_order_id,?) as doctypename, to_char(dateordered,?) as dateordered, to_char(datepromised,?) as datepromised, shipper_name, salesrepname, totallines, grandtotal,
+                 documentno,
+                 coalesce(zssi_getorderadditionaltext4manualtrx1(c_order_id,?),'') || case when poreference is not null then ' / ' || poreference else '' end as projectname,
+                 zssi_getorderadditionaltext4manualtrx2(c_order_id,?) as doctypename, to_char(dateordered,?) as dateordered, to_char(datepromised,?) as datepromised, shipper_name, salesrepname, totallines, grandtotal,
                   line,  product_name,  qtyordered, qtydelivered, qtyavailable, 
                   case when ?='Y' and m_locator_id is not null then least(m_bom_qty_onhand(m_product_id, null,m_locator_id),qty2deliver) else qty2deliver end as qty2deliver, 
                   description,  completed,m_attributesetinstance_id,0::numeric as SequenceNO,m_product_id
@@ -31,7 +33,7 @@
               SELECT v.ad_client_id, v.ad_org_id, v.c_order_id, v.a_asset_id, v.c_orderline_id, v.c_project_id, v.c_projecttask_id, v.m_shipper_id, v.salesrep_id, v.c_doctype_id, v.issotrx,v.scheddeliverydate,
               v.c_bpartner_id,  b.name as businesspartner, v.m_product_id as m_product_id,
               case when v.m_locator_id is null then m_gettransactionlocator(v.m_product_id,v.m_warehouse_id,v.issotrx,v.qtyordered-v.qtydelivered,v.m_attributesetinstance_id,?) else v.m_locator_id end as m_locator_id,
-              v.documentno,   v.dateordered, v.datepromised, v.shipper_name, u.name as salesrepname, v.totallines, v.grandtotal,
+              v.documentno, v.poreference, v.dateordered, v.datepromised, v.shipper_name, u.name as salesrepname, v.totallines, v.grandtotal,
               v.line, v.priorityrule,
               p.value||'-'||coalesce(trl.name,p.name)  as product_name, 
               v.qtyordered, v.qtydelivered, v.qtyavailable, case when ?='Y' and v.qty2deliver>v.qtyavailable then v.qtyavailable else v.qty2deliver end as qty2deliver, 
@@ -56,7 +58,8 @@
       <Parameter name="partlydeliverable"/>
       <Parameter name="partlydeliverable"/>
       <Parameter name="language"/>
-      <Parameter name="documentno" optional="true" after="AND 1=1"><![CDATA[ AND v.documentno like ?]]></Parameter>
+      <Parameter name="documentno" optional="true" after="AND 1=1"><![CDATA[ AND v.documentno ilike ?]]></Parameter>
+      <Parameter name="poreference" optional="true" after="AND 1=1"><![CDATA[ AND v.poreference ilike ?]]></Parameter>
       <Parameter name="parProject" optional="true" after="AND 1=1"><![CDATA[ AND v.c_project_id like ?]]></Parameter>
       <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[ AND v.scheddeliverydate >= TO_DATE(?)]]></Parameter>
       <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[ AND v.scheddeliverydate <= TO_DATE(?)]]></Parameter>
@@ -88,14 +91,15 @@
        FROM (
               SELECT v.ad_client_id, v.ad_org_id, v.c_bpartner_id||'#' as c_order_id, 'Div.' as  a_asset_id, v.c_bpartner_id||v.m_product_id as c_orderline_id, 'Div.' as c_project_id, 'Div.' as c_projecttask_id, min(v.m_shipper_id) as  m_shipper_id, min(v.salesrep_id) as salesrep_id, 'Div.' as c_doctype_id, 'Y' as issotrx,min(v.scheddeliverydate) as scheddeliverydate  ,
               v.c_bpartner_id,  b.name as businesspartner, 
-              'Div.'::text as documentno,  'Div.' as projectname, min(dttrl.name) as doctypename, min(v.dateordered) as dateordered, min(v.datepromised) as datepromised, min(v.shipper_name) as shipper_name,
+              'Div.'::text as documentno,'Div.'::text as poreference, 'Div.' as projectname, min(dttrl.name) as doctypename, min(v.dateordered) as dateordered, min(v.datepromised) as datepromised, min(v.shipper_name) as shipper_name,
               min(u.name) as salesrepname, 
               min(v.line) as line, 
               p.value||'-'||coalesce(trl.name,p.name)  as product_name, 
               m_gettransactionlocator(v.m_product_id,v.m_warehouse_id,'Y',sum(v.qtyordered)-sum(v.qtydelivered),v.m_attributesetinstance_id,?) as m_locator_id,
               sum(v.qtyordered) as qtyordered, sum(v.qtydelivered) as qtydelivered, min(v.qtyavailable) as qtyavailable, 
               case when ?='Y' and sum(v.qty2deliver)>min(v.qtyavailable) then min(v.qtyavailable) else sum(v.qty2deliver) end as qty2deliver,
-              string_agg(v.documentno,',')  as description, 'N' as completed, v.m_attributesetinstance_id
+              coalesce(string_agg(v.documentno,','),'') || case when v.poreference is not null then ' / ' || v.poreference else '' end  as description,
+              'N' as completed, v.m_attributesetinstance_id
               from m_inout_candidate_v v left join c_doctype_trl dttrl on dttrl.c_doctype_id=v.c_doctype_id and dttrl.ad_language = ?
                                          left join ad_user u on u.ad_user_id=v.salesrep_id, c_bpartner b, 
                                          m_product p left join   m_product_trl trl on trl.m_product_id=p.m_product_id and trl.ad_language= ?
@@ -105,7 +109,7 @@
               AND 4=4 AND v.ad_org_id in ('1')
               AND v.issotrx = ?
               AND 3=3
-              group by v.ad_client_id, v.ad_org_id, v.c_bpartner_id,b.name,v.m_warehouse_id,v.m_product_id,p.value,trl.name,p.name,v.m_attributesetinstance_id
+              group by v.ad_client_id, v.ad_org_id, v.c_bpartner_id,b.name,v.m_warehouse_id,v.m_product_id,p.value,trl.name,p.name,v.m_attributesetinstance_id,v.poreference
               ) a where 5=5
       order by businesspartner, documentno, case when c_getconfigoption('sortgeneratelinesbyproduct',ad_org_id)='Y' then product_name end, line 
       ]]></Sql>
@@ -116,7 +120,8 @@
       <Parameter name="partlydeliverable"/>
       <Parameter name="language"/>
       <Parameter name="language"/>
-      <Parameter name="documentno" optional="true" after="AND 1=1"><![CDATA[ AND v.documentno like ?]]></Parameter>
+      <Parameter name="documentno" optional="true" after="AND 1=1"><![CDATA[ AND v.documentno ilike ?]]></Parameter>
+      <Parameter name="poreference" optional="true" after="AND 1=1"><![CDATA[ AND v.poreference ilike ?]]></Parameter>
       <Parameter name="parProject" optional="true" after="AND 1=1"><![CDATA[ AND v.c_project_id like ?]]></Parameter>
       <Parameter name="parDateFrom" optional="true" after="AND 1=1"><![CDATA[ AND v.scheddeliverydate >= TO_DATE(?)]]></Parameter>
       <Parameter name="parDateTo" optional="true" after="AND 1=1"><![CDATA[ AND v.scheddeliverydate <= TO_DATE(?)]]></Parameter>
@@ -143,12 +148,13 @@
                   line,  product_name,  qtyordered, qtydelivered, qtyavailable, 
                  qty2deliver, 
                   description,  completed,m_attributesetinstance_id,m_product_id
-       FROM m_generateinoutcustomer( ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) order by SequenceNO,SequenceNO2;
+       FROM m_generateinoutcustomer(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) order by SequenceNO,SequenceNO2;
       ]]></Sql>
       <Parameter name="bpartner"/>
       <Parameter name="datefrom"/>
       <Parameter name="dateto"/>
       <Parameter name="documentno"/>
+      <Parameter name="poreference"/>
       <Parameter name="parProject"/>
       <Parameter name="parwarehouse"/>
       <Parameter name="parlocator"/>

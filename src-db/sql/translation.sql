@@ -386,6 +386,7 @@ BEGIN
           AND M.AD_Module_ID = new.AD_Module_ID
           AND M.AD_Language != AD_Language.AD_Language;
         -- Access for all
+        /*
         INSERT
         INTO AD_Window_Access
           (
@@ -400,6 +401,7 @@ BEGIN
           TO_DATE(NOW()), '0',  'Y'
         FROM AD_Role r
         WHERE isManual='N';
+        */
    END IF;
  -- Inserting
 -- Updating
@@ -918,6 +920,7 @@ BEGIN
        and m.ad_language != AD_Language.AD_Language;
 
     -- Add Access for all Roles
+    /*
     INSERT INTO AD_Process_Access
                 (AD_Process_Access_ID, AD_Process_ID, AD_Role_ID, AD_Client_ID, AD_Org_ID,
                  IsActive, Created, CreatedBy, Updated, UpdatedBy,
@@ -926,6 +929,7 @@ BEGIN
              'Y', TO_DATE(NOW()), '0', TO_DATE(NOW()), '0', 'Y'
         FROM AD_Role r
        where isManual='N';
+    */
   END IF;
 
 
@@ -1251,6 +1255,7 @@ BEGIN
     and m.ad_module_id = new.ad_module_id
     and m.ad_language != AD_Language.AD_Language;
   -- Access for all
+  /*
   INSERT
   INTO AD_Form_Access
     (
@@ -1265,6 +1270,7 @@ BEGIN
     TO_DATE(NOW()), '0',  'Y'
   FROM AD_Role r
   where ismanual = 'N';
+  */
  END IF;
  -- Inserting
  -- AD_Form update trigger

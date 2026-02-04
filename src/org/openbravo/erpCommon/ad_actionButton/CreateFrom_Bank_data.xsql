@@ -37,7 +37,8 @@
            (case when (select c.c_currency_id from c_bankaccount c,c_bankstatement s  where s.c_bankaccount_id=c.c_bankaccount_id and s.c_bankstatement_id = ?)=(select c_currency_id from c_invoice where c_invoice_id=a.c_invoice_id) then 'TRUE' else 'FALSE' end) AS rw,
           to_date(?) as statementdate,
           (CASE IsReceipt WHEN 'Y' THEN (p_cashdiscountamt) ELSE (p_cashdiscountamt)*(-1) END) AS cashdiscountamt, 
-         (CASE IsReceipt WHEN 'Y' THEN (coalesce('Referenz: '||zssi_getinvoicelinkhesir(a.c_invoice_id), 'Rechnung: '||zssi_getinvoicelinkhesid(a.c_invoice_id))) ELSE (coalesce('Referenz: '||zssi_getinvoicelinkhepir(a.c_invoice_id), 'Rechnung: '||zssi_getinvoicelinkhepid(a.c_invoice_id)))END)as addref
+         (CASE IsReceipt WHEN 'Y' THEN (coalesce('Referenz: '||zssi_getinvoicelinkhesir(a.c_invoice_id), 'Rechnung: '||zssi_getinvoicelinkhesid(a.c_invoice_id))) ELSE (coalesce('Referenz: '||zssi_getinvoicelinkhepir(a.c_invoice_id), 'Rechnung: '||zssi_getinvoicelinkhepid(a.c_invoice_id)))END) 
+             || ' - B/A-Nr.: ' || coalesce(a.orderno,'-') as addref
         
 
         FROM ( 
@@ -54,7 +55,8 @@
         p.IsReceipt AS IsReceipt,
         p.isapproved as isapproved,
         c_invoice.poreference as vendinvoice,
-        c_invoice.dateinvoiced,c_invoice.documentno,c_bpartner.value as bpvalue
+        c_invoice.dateinvoiced,c_invoice.documentno,c_bpartner.value as bpvalue,
+        (select c_order.documentno from c_order where c_order.c_order_id=c_invoice.c_order_id) as orderno
         FROM C_DEBT_Payment_v p,
          C_Currency c,  AD_Org o, c_invoice,c_bpartner
         where p.C_Currency_ID=c.C_Currency_ID
@@ -104,6 +106,7 @@
     <Parameter name="isapproved" optional="true" after="AND NOT EXISTS (SELECT * FROM C_BankStatementLine l WHERE p.C_DEBT_Payment_ID=l.C_DEBT_PAYMENT_ID)" text=" AND p.ISAPPROVED = ? "/>
     <Parameter name="invoice" optional="true" after="AND NOT EXISTS (SELECT * FROM C_BankStatementLine l WHERE p.C_DEBT_Payment_ID=l.C_DEBT_PAYMENT_ID)" text=" AND EXISTS (SELECT 1 FROM C_INVOICE WHERE p.C_INVOICE_ID = C_INVOICE.C_INVOICE_ID AND DOCUMENTNO LIKE TO_CHAR(?))"/>
     <Parameter name="orderNoOfBP" optional="true" after="AND NOT EXISTS (SELECT * FROM C_BankStatementLine l WHERE p.C_DEBT_Payment_ID=l.C_DEBT_PAYMENT_ID)" text=" AND EXISTS (SELECT 1 FROM C_INVOICE WHERE p.C_INVOICE_ID = C_INVOICE.C_INVOICE_ID AND poreference LIKE TO_CHAR(?))"/>
+    <Parameter name="orderNo" optional="true" after="AND NOT EXISTS (SELECT * FROM C_BankStatementLine l WHERE p.C_DEBT_Payment_ID=l.C_DEBT_PAYMENT_ID)" text=" AND EXISTS (SELECT 1 FROM C_INVOICE WHERE p.C_INVOICE_ID = C_INVOICE.C_INVOICE_ID AND C_INVOICE.C_ORDER_ID IN (SELECT C_ORDER.C_ORDER_ID FROM C_ORDER WHERE documentno LIKE TO_CHAR(?)))"/>
      <Parameter name="pgLimit" type="argument" optional="true" after=",DatePlanned"><![CDATA[LIMIT ]]></Parameter>
   </SqlMethod>
 
@@ -143,6 +146,7 @@
     <Parameter name="isapproved" optional="true" after="AND 1=1" text=" AND p.ISAPPROVED = ? "/>
     <Parameter name="invoice" optional="true" after="AND 1=1" text=" AND EXISTS (SELECT 1 FROM C_INVOICE WHERE p.C_INVOICE_ID = C_INVOICE.C_INVOICE_ID AND DOCUMENTNO LIKE TO_CHAR(?))"/>
     <Parameter name="orderNoOfBP" optional="true" after="AND 1=1" text=" AND EXISTS (SELECT 1 FROM C_INVOICE WHERE p.C_INVOICE_ID = C_INVOICE.C_INVOICE_ID AND poreference LIKE TO_CHAR(?))"/>
+    <Parameter name="orderNo" optional="true" after="AND 1=1" text=" AND EXISTS (SELECT 1 FROM C_INVOICE WHERE p.C_INVOICE_ID = C_INVOICE.C_INVOICE_ID AND C_INVOICE.C_ORDER_ID IN (SELECT C_ORDER.C_ORDER_ID FROM C_ORDER WHERE documentno LIKE TO_CHAR(?)))"/>
   </SqlMethod>
 
   <SqlMethod name="NotIsReconcilied" type="preparedStatement" connection="true" return="boolean">

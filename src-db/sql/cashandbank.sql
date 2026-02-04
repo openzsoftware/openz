@@ -1457,8 +1457,13 @@ BEGIN
     END IF;
     END IF;
     new.Status := new.Status_Initial;
+    -- different bpartner only for sepa transactions
+    select c_bp_bankaccount_id into new.c_bp_bankaccount_id from c_bp_bankaccount where c_bpartner_id=(select c_bpartnerinvreceiver_sepa from c_bpartner_location where c_bpartner_location_id = (select c_bpartner_location_id from c_invoice where c_invoice_id=new.c_invoice_id)) and iban is not null and isactive='Y' order by mndtident limit 1;
     -- On Invoices you can determin the Bank account of your Business-Partner. This is important for SAPA, though only Banaccounts with IBAN are suggested here.
-    select c_bp_bankaccount_id into new.c_bp_bankaccount_id from c_bp_bankaccount where c_bpartner_id=new.c_bpartner_id and iban is not null and isactive='Y' order by mndtident limit 1;
+    if(new.c_bp_bankaccount_id is null) then
+      -- use default bankaccount from given bpartner
+      select c_bp_bankaccount_id into new.c_bp_bankaccount_id from c_bp_bankaccount where c_bpartner_id=new.c_bpartner_id and iban is not null and isactive='Y' order by mndtident limit 1;  
+    end if;
   ELSIF (TG_OP = 'UPDATE') THEN
     IF (old.IsValid = 'Y' AND ((old.IsActive <> new.IsActive)
                    OR (old.IsReceipt<>new.IsReceipt)
@@ -2442,6 +2447,11 @@ BEGIN
       THEN
       RAISE EXCEPTION '%', 'Document processed/posted'; --OBTG: -20501--
      END IF;
+     if(old.name!=new.name) then
+       if(select count(*)>0 from c_bankstatement where name=new.name) then
+         RAISE EXCEPTION '%', '@23505@'; -- not unique error
+       end if;
+     end if;
      begin
       SELECT COUNT(*)  INTO v_Count  FROM C_BankAccount b1, C_BankAccount b2  
              WHERE b1.C_BankAccount_ID = old.C_BankAccount_ID   AND b2.C_BankAccount_ID = new.C_BankAccount_ID  AND b2.C_Currency_ID != b1.C_Currency_ID
@@ -2465,6 +2475,9 @@ BEGIN
      IF(NEW.Processed='Y') THEN
        RAISE EXCEPTION '%', 'Document processed/posted' ; --OBTG:-20501--
      END IF;
+     if(select count(*)>0 from c_bankstatement where name=new.name) then
+       RAISE EXCEPTION '%', '@23505@'; -- not unique error
+     end if;
    END IF;
    IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
 END; $_$;
@@ -3092,7 +3105,8 @@ BEGIN
       END IF;
     END IF;
     IF (NEW.IBAN IS NOT NULL) THEN
-    
+        NEW.IBAN := replace(NEW.IBAN, ' ', ''); -- remove spaces before check
+        NEW.IBAN := upper(substr(NEW.IBAN,1,2)) || substr(NEW.IBAN,3); -- change the first two letters to uppercase, dont change the rest
         v_I_AccountNumberOrig:=SUBSTR(NEW.IBAN, 5, LENGTH(NEW.IBAN)-4);
         v_CodeAccountLength:=LENGTH(v_I_AccountNumberOrig);
         WHILE (v_i<=v_CodeAccountLength) LOOP 
@@ -3105,7 +3119,6 @@ BEGIN
           v_I_AccountNumberFinal:=v_I_AccountNumberFinal||v_i_char;
           v_i:=v_i+1;
         END LOOP;
-       
         SELECT MOD(TO_NUMBER(v_I_AccountNumberFinal||
                             TRIM(TO_CHAR(ASCII(SUBSTR(UPPER(NEW.IBAN),1,1))-55))
                             ||TRIM(TO_CHAR(ASCII(SUBSTR(UPPER(NEW.IBAN),2,1))-55))||
@@ -3287,7 +3300,8 @@ BEGIN
         raise exception '%','@ifIbanNoacctIbanNotNullIfAcctNoIbanAcctNotNull@';
     end if;
     IF (NEW.IBAN IS NOT NULL) THEN
-        
+        NEW.IBAN := replace(NEW.IBAN, ' ', ''); -- remove spaces before check
+        NEW.IBAN := upper(substr(NEW.IBAN,1,2)) || substr(NEW.IBAN,3); -- change the first two letters to uppercase, dont change the rest
         v_I_AccountNumberOrig:=SUBSTR(NEW.IBAN, 5, LENGTH(NEW.IBAN)-4);
         v_CodeAccountLength:=LENGTH(v_I_AccountNumberOrig);
         WHILE (v_i<=v_CodeAccountLength) LOOP 
@@ -3300,8 +3314,6 @@ BEGIN
          v_I_AccountNumberFinal:=v_I_AccountNumberFinal||v_i_char;
          v_i:=v_i+1;
         END LOOP;
- 
-    
         SELECT MOD(TO_NUMBER(v_I_AccountNumberFinal||
                             TRIM(TO_CHAR(ASCII(SUBSTR(UPPER(NEW.IBAN),1,1))-55))
                             ||TRIM(TO_CHAR(ASCII(SUBSTR(UPPER(NEW.IBAN),2,1))-55))||

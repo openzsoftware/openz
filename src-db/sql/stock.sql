@@ -745,7 +745,8 @@ CREATE OR REPLACE FUNCTION m_inout_post(p_pinstance_id character varying, p_inou
             end if;
           end if;
           -- Invoice Rule After Shipment Immediate
-          if (select count(*) from c_order o,m_inout s where s.m_inout_id=Cur_InOut.M_INOUT_ID and s.c_order_id=o.c_order_id and o.invoicerule='DI')>0 then
+          if (select count(*) from c_order o,m_inout s where s.m_inout_id=Cur_InOut.M_INOUT_ID and s.c_order_id=o.c_order_id and o.invoicerule='DI'
+               and coalesce(s.description,'') not like '(*R*%')>0 then -- prevent inserting (second) reverted invoice on cancellation
             v_invPinstance:=get_uuid();
             FOR Cur_InOutLine IN (SELECT sl.C_ORDERLINE_ID, s.C_ORDER_ID, s.AD_CLIENT_ID, s.AD_ORG_ID,  s.CREATEDBY, s.UPDATEDBY, sl.movementQTY as qty, ol.priceactual as PRICE,sl.M_InOutLine_ID,
                                       sl.m_attributesetinstance_id FROM M_INOUTLINE sl,m_inout s,c_orderline ol WHERE sl.M_InOut_ID=s.M_InOut_ID AND s.M_InOut_ID=Cur_InOut.M_InOut_ID 
@@ -1232,7 +1233,8 @@ select
         m_bom_qty_onhand(l.m_product_id,o.m_warehouse_id,null) as qtyonhand,
         m_bom_qty_onhand(l.m_product_id,o.m_warehouse_id,null) as qtyavailable,
         l.m_attributesetinstance_id,
-        null as m_locator_id
+        null as m_locator_id,
+        o.poreference
 from 
 	c_order o left join m_shipper ms on ms.m_shipper_id=o.m_shipper_id left join Zspr_Printinfo pc on pc.ad_org_id=o.ad_org_id,c_orderline l,c_bpartner bp,m_product p
 where 
@@ -3851,7 +3853,7 @@ END ; $BODY$
   COST 100; 
 
   
-CREATE OR REPLACE FUNCTION M_Qty_AvailableInTime(p_product_id character varying, p_warehouse_id character varying, p_date timestamp without time zone)
+CREATE OR REPLACE FUNCTION M_Qty_AvailableInTime(p_product_id character varying, p_warehouse_id character varying, p_date timestamp without time zone, p_attributesetinstance_id character varying)
   RETURNS numeric AS
 $BODY$ DECLARE 
 /***************************************************************************************************************************************************
@@ -3911,13 +3913,36 @@ UNION
                b.mrp_inoutplanbase_id AS zssi_onhanqty_id
                from mrp_inoutplanbase b, m_product p
                where b.m_product_id=p.m_product_id
-) a where m_product_id=p_product_id and m_warehouse_id=p_warehouse_id and stockdate<=trunc(p_date);
+) a where m_product_id=p_product_id and m_warehouse_id=p_warehouse_id and stockdate<=trunc(p_date) and case when p_attributesetinstance_id is null then 1=1 else m_attributesetinstance_id=p_attributesetinstance_id end;
 
   RETURN coalesce(v_ProductQty,0);
 END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;   
-  
+
+-- overloaded for attributesetinstance
+CREATE OR REPLACE FUNCTION M_Qty_AvailableInTime(p_product_id character varying, p_warehouse_id character varying, p_date timestamp without time zone)
+  RETURNS numeric AS
+$BODY$ DECLARE 
+/***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, 02/2011, sz@zimmermann-software.de (SZ) Contributions are Copyright (C) 2011 Stefan Zimmermann
+* 
+****************************************************************************************************************************************************/
+    --
+  BEGIN
+  RETURN M_Qty_AvailableInTime(p_product_id,p_warehouse_id,p_date,null);
+END ; $BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;  
+
+
 select zsse_dropview('zssi_qtyoverview');
 CREATE OR REPLACE VIEW zssi_qtyoverview AS 
 SELECT 
@@ -5535,6 +5560,8 @@ BEGIN
     ---- <<END_PROCESS>>
     v_ResultStr:='UnLockingMovement';
     UPDATE M_Movement  SET Processing='N'  WHERE M_Movement_ID=v_Record_ID;
+    -- Do Update the Material Plan with new Stock qty's
+    PERFORM mrp_inoutplanupdate(null);
     --  Update AD_PInstance
     RAISE NOTICE '%','Updating PInstance - Finished ' || v_Message ;
     PERFORM AD_UPDATE_PINSTANCE(PInstance_ID, v_p_User, 'N', v_Result, v_Message) ;
@@ -5678,6 +5705,220 @@ CREATE OR REPLACE FUNCTION m_move_locator(pinstance_id character varying) RETURN
           )
           ;
       END LOOP;
+    END IF;--END_PROCESS
+    ---- <<END_PROCESS>>
+    --  Update AD_PInstance
+    RAISE NOTICE '%','Updating PInstance - Finished ' || v_Message ;
+    PERFORM AD_UPDATE_PINSTANCE(PInstance_ID, NULL, 'N', 1, v_Message) ;
+    RETURN;
+  END; --BODY
+EXCEPTION
+WHEN OTHERS THEN
+  v_ResultStr:= '@ERROR=' || SQLERRM;
+  RAISE NOTICE '%',v_ResultStr ;
+  PERFORM AD_UPDATE_PINSTANCE(PInstance_ID, NULL, 'N', 0, v_ResultStr) ;
+  RETURN;
+END ; $_$;
+
+
+
+--move products from productionorderbom from given warehouse to reveiving locator (in bom)
+select zsse_dropfunction('pick_productionorder');
+CREATE OR REPLACE FUNCTION pick_productionorder(pinstance_id character varying) RETURNS void
+    LANGUAGE plpgsql
+    AS $_$ DECLARE 
+/*************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License
+* Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this
+* file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html
+* Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+* License for the specific  language  governing  rights  and  limitations
+* under the License.
+* The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL
+* All portions are Copyright (C) 2001-2006 Openbravo SL
+* All Rights Reserved.
+* Contributor(s):  OpenZ Software GmbH 2021.
+************************************************************************/
+  -- Logistice
+  v_ResultStr VARCHAR(2000):=''; --OBTG:VARCHAR2--
+  v_Message VARCHAR(2000):=''; --OBTG:VARCHAR2--
+  v_Record_ID VARCHAR(32); --OBTG:VARCHAR2--
+  -- Parameter
+  --TYPE RECORD IS REFCURSOR;
+    Cur_Parameter RECORD;
+    -- Lines to create
+    Cur_MovementLine RECORD;
+    -- Parameter Variables
+    v_AD_User_ID VARCHAR(32) ; --OBTG:VARCHAR2--
+    v_warehouse  VARCHAR(32); --OBTG:VARCHAR2--
+    v_productionOrder  VARCHAR(32); --OBTG:VARCHAR2--
+    v_ClientID VARCHAR(32) ; --OBTG:varchar2--
+    v_OrgID VARCHAR(32) ; --OBTG:varchar2--
+    v_Processed VARCHAR(60) ; --OBTG:VARCHAR2--
+    v_MovementLine_ID VARCHAR(32) ; --OBTG:VARCHAR2--
+    v_LineNo NUMERIC(10) := 0;
+    v_description varchar;
+    v_qty numeric;
+    v_qty_date timestamp without time zone;
+    v_qty_destination_plan numeric;
+    v_qty_date_destination timestamp without time zone;
+    v_qtyneeded numeric;
+    v_locator varchar(32);
+    END_PROCESS BOOLEAN:=false;
+  BEGIN
+    --  Update AD_PInstance
+    RAISE NOTICE '%','Updating PInstance - Processing ' || PInstance_ID ;
+    v_ResultStr:='PInstanceNotFound';
+    PERFORM AD_UPDATE_PINSTANCE(PInstance_ID, NULL, 'Y', NULL, NULL) ;
+  BEGIN --BODY
+    -- Get Parameters
+    v_ResultStr:='ReadingParameters';
+    FOR Cur_Parameter IN
+      (SELECT i.Record_ID,
+        p.ParameterName,
+        p.P_String,
+        p.P_Number,
+        p.P_Date,
+        i.CreatedBy AS AD_User_ID
+      FROM AD_PInstance i
+      LEFT JOIN AD_PInstance_Para p
+        ON i.AD_PInstance_ID=p.AD_PInstance_ID
+      WHERE i.AD_PInstance_ID=PInstance_ID
+      ORDER BY p.SeqNo
+      )
+    LOOP
+      v_Record_ID:=Cur_Parameter.Record_ID;
+      v_AD_User_ID:=Cur_Parameter.AD_User_ID;
+      IF(Cur_Parameter.ParameterName='m_warehouse_id') THEN
+        v_warehouse:=Cur_Parameter.P_String;
+        RAISE NOTICE '%',' v_warehouse=' || v_warehouse ;
+      ELSIF(Cur_Parameter.ParameterName='zssm_productionorder_v_id') THEN
+        v_productionOrder:=Cur_Parameter.P_String;
+        RAISE NOTICE '%',' v_productionOrder=' || v_productionOrder ;
+      ELSE
+        RAISE NOTICE '%','*** Unknown Parameter=' || Cur_Parameter.ParameterName ;
+      END IF;
+    END LOOP; -- Get Parameter
+    RAISE NOTICE '%','  Record_ID=' || v_Record_ID ;
+    -- Reading Movement
+    SELECT AD_Client_ID,
+      AD_Org_ID,
+      Processed
+    INTO v_ClientID,
+      v_OrgID,
+      v_Processed
+    FROM M_Movement
+    WHERE M_Movement_ID=v_Record_ID  FOR UPDATE;
+    IF(v_Processed='Y') THEN
+      v_Message:='@AlreadyPosted@';
+      END_PROCESS:=true;
+    END IF;
+    IF(NOT END_PROCESS) THEN
+      -- start with clean lines
+      DELETE FROM M_MOVEMENTLINE WHERE m_movement_id = v_Record_ID;
+      select (value || ' ' || coalesce(note,'')) into v_description from zssm_productionorder_v where zssm_productionorder_v_id = v_productionOrder;
+      update m_movement set description=v_description, updated=now(), updatedby=v_AD_User_ID where m_movement_id=v_Record_ID;
+
+      FOR Cur_MovementLine IN
+        (SELECT bom.* FROM zssm_workstepbom_v bom, zssm_workstep_v step
+            WHERE bom.zssm_workstep_v_id = step.zssm_workstep_v_id
+              AND step.zssm_productionorder_v_id = v_productionOrder)
+        LOOP
+          -- planned materialmovement
+          -- only take stock that is available and prevent negative stock
+          -- take minimum of estimated stock and subtract all planned positive material movements (purchase, ...)
+          select mrp_inoutplan_v.estimated_stock_qty, mrp_inoutplan_v.planneddate into v_qty, v_qty_date from mrp_inoutplan_v
+           where mrp_inoutplan_v.m_product_id = Cur_MovementLine.M_Product_ID
+             and coalesce(mrp_inoutplan_v.m_attributesetinstance_id,'') = coalesce(Cur_MovementLine.M_ATTRIBUTESETINSTANCE_ID,'')
+             and mrp_inoutplan_v.m_warehouse_id = v_warehouse
+           order by mrp_inoutplan_v.estimated_stock_qty asc
+           limit 1;
+          if(v_qty is not null and v_qty > 0) then
+            v_qty = v_qty -
+              (select coalesce(sum(mrp_inoutplan_v.movementqty),0) from mrp_inoutplan_v
+                where mrp_inoutplan_v.m_product_id = Cur_MovementLine.M_Product_ID
+                  and coalesce(mrp_inoutplan_v.m_attributesetinstance_id,'') = coalesce(Cur_MovementLine.M_ATTRIBUTESETINSTANCE_ID,'')
+                  and mrp_inoutplan_v.m_warehouse_id = v_warehouse
+                  and mrp_inoutplan_v.movementqty > 0
+                  and mrp_inoutplan_v.planneddate < v_qty_date);
+          end if;
+          -- edge case no planned materialmovement, use stock
+          if(v_qty is null) then
+            select coalesce(sum(zssi_onhanqty.qtyonhand),0) into v_qty from zssi_onhanqty
+             where zssi_onhanqty.m_product_id = Cur_MovementLine.M_Product_ID
+               and coalesce(zssi_onhanqty.m_attributesetinstance_id,'') = coalesce(Cur_MovementLine.M_ATTRIBUTESETINSTANCE_ID,'')
+               and zssi_onhanqty.m_warehouse_id = v_warehouse;
+          end if;
+
+          -- get estimated stock after workstep
+          select mrp_inoutplan_v.estimated_stock_qty, mrp_inoutplan_v.planneddate
+            into v_qty_destination_plan, v_qty_date_destination
+            from mrp_inoutplan_v
+           where mrp_inoutplan_v.m_product_id = Cur_MovementLine.M_Product_ID
+             and coalesce(mrp_inoutplan_v.m_attributesetinstance_id,'') = coalesce(Cur_MovementLine.M_ATTRIBUTESETINSTANCE_ID,'')
+             and mrp_inoutplan_v.m_warehouse_id = (select m_locator.m_warehouse_id from m_locator where m_locator.m_locator_id = Cur_MovementLine.receiving_locator)
+             and mrp_inoutplan_v.c_projecttask_id = Cur_MovementLine.zssm_workstep_v_id;
+           -- v_qty_destination_plan cannot be null, productionplan is always in planned materialmovement
+           -- subtract any given positive movements
+           v_qty_destination_plan := v_qty_destination_plan -
+             (select coalesce(sum(mrp_inoutplan_v.movementqty),0) from mrp_inoutplan_v
+               where mrp_inoutplan_v.m_product_id = Cur_MovementLine.M_Product_ID
+                 and coalesce(mrp_inoutplan_v.m_attributesetinstance_id,'') = coalesce(Cur_MovementLine.M_ATTRIBUTESETINSTANCE_ID,'')
+                 and mrp_inoutplan_v.m_warehouse_id = (select m_locator.m_warehouse_id from m_locator where m_locator.m_locator_id = Cur_MovementLine.receiving_locator)
+                 and mrp_inoutplan_v.movementqty > 0
+                 and mrp_inoutplan_v.planneddate < v_qty_date_destination);
+
+          -- enough planned stock at destination -> no movement needed
+          if(v_qty_destination_plan >= 0) then
+            v_qtyneeded := 0;
+          -- not enough stock at source for planned qty, substract overlap
+          elsif((v_qty - v_qty_destination_plan*-1) < 0) then
+            v_qtyneeded := Cur_MovementLine.quantity - Cur_MovementLine.qtyreceived + (v_qty - v_qty_destination_plan*-1);
+          -- stock is enough
+          else
+            -- take minimum of movement qty and planned qty
+            if((Cur_MovementLine.quantity - Cur_MovementLine.qtyreceived) < coalesce(v_qty_destination_plan,0) *-1) then
+              v_qtyneeded := Cur_MovementLine.quantity - Cur_MovementLine.qtyreceived;
+            else
+              v_qtyneeded := coalesce(v_qty_destination_plan,0) *-1;
+            end if;
+          end if;
+
+          if(v_qtyneeded < v_qty) then
+            v_qty := v_qtyneeded;
+          end if;
+          if(v_qty > 0) then
+            SELECT * INTO  v_MovementLine_ID FROM Ad_Sequence_Next('M_MovementLine', v_ClientID);
+            v_LineNo:=v_LineNo + 10;
+            -- use locator with most stock
+            -- and only use qtyonhand as maximum
+            select m_locator_id, case when qtyonhand < v_qty then qtyonhand else v_qty end into v_locator, v_qty from zssi_onhanqty
+                          where m_product_id=Cur_MovementLine.M_Product_ID
+                            and m_warehouse_id=v_warehouse
+                       order by qtyonhand desc limit 1;
+            if(v_locator is not null) then -- null -> no stock at all
+              INSERT
+              INTO M_MOVEMENTLINE
+                (
+                  M_MOVEMENTLINE_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE,
+                  CREATED, CREATEDBY, UPDATED, UPDATEDBY,
+                  M_MOVEMENT_ID, M_LOCATOR_ID, M_LOCATORTO_ID, M_PRODUCT_ID,
+                  LINE, MOVEMENTQTY, M_ATTRIBUTESETINSTANCE_ID
+                )
+                VALUES
+                (
+                  v_MovementLine_ID, v_ClientID, v_OrgID, 'Y',
+                  TO_DATE(NOW()), v_AD_User_ID, TO_DATE(NOW()), v_AD_User_ID,
+                  v_Record_ID, v_locator, Cur_MovementLine.receiving_locator, Cur_MovementLine.M_Product_ID,
+                  v_LineNo, v_qty, Cur_MovementLine.M_ATTRIBUTESETINSTANCE_ID
+                );
+            end if;
+          end if;
+        END LOOP;
     END IF;--END_PROCESS
     ---- <<END_PROCESS>>
     --  Update AD_PInstance

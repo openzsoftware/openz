@@ -88,4 +88,13 @@
     </Sql>
     <Parameter name="userorg"/>
   </SqlMethod>
+
+  <SqlMethod name="isSkin40" type="preparedStatement" return="string">
+    <SqlMethodComment>ad_system has only one record</SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        select case when tad_theme='OpenZCleanCSS' then 'Y' else 'N' end from ad_system limit 1
+      ]]>
+    </Sql>
+  </SqlMethod>
 </SqlClass>

@@ -22,11 +22,11 @@ Contributor(s): ______________________________________.
     <SqlMethodComment></SqlMethodComment>
     <Sql>
     Select '' as snr_internal_consumptionline_id,'' as serialnumber ,'' as lotnumber,f.internal_consumptionline_id as m_internal_consumptionline_id,f.locator_id as m_locator_id,'' as quantity,
-            f.product_id as m_product_id, zssi_getproductnamewithvalue(f.product_id,?) as product,f.isserialtracking,f.isbatchtracking,f.iscreated as production,f.qty as qtytodo
+            f.product_id as m_product_id, zssi_getproductnamewithvalue(f.product_id,?) as product,f.isserialtracking,f.isbatchtracking,f.iscreated as production,f.qty as qtytodo,'' as name
            from pdc_snrtodeliver(?)   f
     union
     Select '' as snr_internal_consumptionline_id,'' as serialnumber ,'' as lotnumber,f.internal_consumptionline_id as m_internal_consumptionline_id,f.locator_id as m_locator_id,'' as quantity,
-            f.product_id as m_product_id, zssi_getproductnamewithvalue(f.product_id,?) as product,f.isserialtracking,f.isbatchtracking,f.iscreated as production,f.qty as qtytodo
+            f.product_id as m_product_id, zssi_getproductnamewithvalue(f.product_id,?) as product,f.isserialtracking,f.isbatchtracking,f.iscreated as production,f.qty as qtytodo,'' as name
            from pdc_snrtodeliver(?)   f
     </Sql>
     <Parameter name="language"/>
@@ -322,4 +322,15 @@ Contributor(s): ______________________________________.
     </Sql>
     <Parameter name="consumptionlineId"/>
     </SqlMethod>
+
+  <SqlMethod name="getUnusedPredefinedSerialnumbersFromWorkstep" type="preparedStatement" return="multiple">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      select pd.name from zssm_predefinedserials_v pd
+       where pd.hastrx = 'N'
+         and pd.zssm_workstep_v_id = ?
+      order by to_number(name)
+    </Sql>
+    <Parameter name="workstepId"/>
+  </SqlMethod>
  </SqlClass>

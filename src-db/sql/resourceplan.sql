@@ -1677,16 +1677,17 @@ Contributor(s): ______________________________________.
 Complete Aggregation USED Only on ROLLOUT to Migrate Data to the new tuned Structure
  
 *****************************************************/
-    firstevent timestamp:=to_date('01.01.2015','dd.mm.yyyy');
-    lastevent  timestamp:=to_date('31.12.2017','dd.mm.yyyy');
+    firstevent timestamp:=to_date('01.01.2025','dd.mm.yyyy');
+    lastevent  timestamp:=to_date('31.12.2025','dd.mm.yyyy');
     v_cur record;
 BEGIN  
 delete from zssi_resourceplan;
 
 select min(pt.startdate) from c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and p.projectstatus in ('OP','OR') into firstevent; 
-select max(pt.enddate) from c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and p.projectstatus in ('OP','OR') into lastevent;
-firstevent:=to_date('01.01.'||to_number(to_char(firstevent,'yyyy')));
-lastevent:=to_date('31.12.'||to_number(to_char(firstevent,'yyyy')));
+select max(coalesce(pt.enddate,pt.startdate)) from c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and p.projectstatus in ('OP','OR') into lastevent;
+
+--firstevent:=to_date('01.01.'||to_number(to_char(firstevent,'yyyy')));
+--lastevent:=to_date('31.12.'||to_number(to_char(firstevent,'yyyy')));
 --select least((select min(datefrom) from ma_machineevent),(select min(datefrom) from C_bpartneremployeeEVENT),(select min(startdate) from c_projecttask)) into firstevent;  
 --select greatest((select max(coalesce(dateto,datefrom)) from ma_machineevent),(select max(coalesce(dateto,datefrom)) from C_bpartneremployeeEVENT),(select max(enddate) from c_projecttask)) into lastevent;
   for v_cur in (select ma_machine_id,null as c_bpartner_id,ad_org_id from ma_machine where isactive='Y' and isinresourceplan='Y'
@@ -1763,6 +1764,10 @@ BEGIN
        select least(startdate,olddatefrom),greatest(enddate,olddateto) into v_datefrom,v_dateto from c_projecttask where c_projecttask_id=old.c_projecttask_id;
             --if old.datefrom is not null then v_datefrom:=old.datefrom; end if;
             --if old.dateto is not null then v_dateto:=old.dateto; end if;
+            if v_datefrom is null or v_dateto is null then
+                v_datefrom:=now()-10;
+                v_dateto:=now()+90;
+            end if;
             PERFORM zssi_resourceplanupdate(null,old.employee_id,trunc(coalesce(v_datefrom,now())),v_dateto);
     end if;
     if TG_OP = 'INSERT' then
