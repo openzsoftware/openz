@@ -1610,10 +1610,10 @@ v_pdate date;
 BEGIN
       select l.scheddeliverydate into v_odate from c_orderline l, c_order o where  o.c_order_id=l.c_order_id and o.DOCSTATUS='CO' and ad_get_docbasetype(o.c_doctype_id)  = 'POO'  
              and coalesce(l.m_attributesetinstance_id,'0')=coalesce(p_attrs,'0') and l.deliverycomplete='N'
-             and l.m_product_id=p_product_id and l.qtydelivered<l.qtyordered and l.scheddeliverydate > p_planneddate;
+             and l.m_product_id=p_product_id and l.qtydelivered<l.qtyordered and l.scheddeliverydate > p_planneddate order by l.scheddeliverydate asc limit 1;
       select l.enddate into v_pdate from c_projecttask l,c_project p where l.c_project_id=p.c_project_id and p.projectstatus='OR' and l.assembly='Y' and l.m_product_id=p_product_id 
              and l.qtyproduced<l.qty and l.istaskcancelled='N' and l.iscomplete='N' and l.enddate > p_planneddate
-             and coalesce(l.m_attributesetinstance_id,'0')=coalesce(p_attrs,'0');
+             and coalesce(l.m_attributesetinstance_id,'0')=coalesce(p_attrs,'0') order by l.enddate asc limit 1;
       return coalesce(v_pdate,v_odate);
 END ; $_$ LANGUAGE 'plpgsql';
  

@@ -428,11 +428,11 @@ BEGIN
                     end if;
                     -- RechnungsNo., Ref No.
                     select substr(i.documentno,1,12),coalesce(i.poreference,'') into  v_belegfeld1,v_ziart3text from c_invoice i,c_debt_payment p,c_bankstatementline b
-                       where b.c_bankstatementline_id=v_cur2.line_id
+                       where b.c_bankstatementline_id=case when v_cur2.docbasetype='DPC' then v_cur2.record_id2 else v_cur2.line_id end
                        and b.c_debt_payment_id=p.c_debt_payment_id
                        and i.c_invoice_id=p.c_invoice_id;
                     if v_belegfeld1 is null then v_belegfeld1:=''; end if; if v_ziart3text is null then v_ziart3text:=''; end if;
-                    --
+                    -- Down Paymelnts have the same LINE ID (Anzahlungsrechnung)
                     if v_cur2.line_id!=v_oldlineid then
                         v_oldlineid:=v_cur2.line_id;
                         if v_cur2.amtacctdr!=0 then
@@ -618,15 +618,21 @@ BEGIN
                              end if;
                              v_shStz:=v_sollhaben;
                              if v_cur2.line_id is not null then
+                                --- Ist Wahrscheinlich Tot-Code, da lineId. keine Rechnungszeile....
                                 select substr(i.documentno,1,12),
                                         case when v_kost2conf='KOSTVALUE'  then substr(a.value,1,8) when v_kost2conf='PRJTASKSEQNO' then to_char(pt.seqno) else '' end,
                                         case when v_kost1conf='PROJECTVALUE' then substr(p.value,1,8) when v_kost1conf='KOSTVALUE' then substr(a.value,1,8) when v_kost1conf='PROJECTVALUEKOSTVALUE' then substr(coalesce(a.value,p.value),1,8) else '' end,
                                         substr(pt.name,1,210),coalesce(i.poreference,''),t.name, substr(p.name,1,210)
                                         into  v_belegfeld1,v_kost2,v_kost1,v_ziart6text,v_ziart3text,v_ziart4text,v_ziart5text
-                                        from c_invoice i ,c_tax t,c_invoiceline il left join a_asset a on a.a_asset_id=il.a_asset_id 
+                                        from c_invoice i ,c_tax t,c_invoiceline il left join a_asset a on a.a_asset_id=il.a_asset_id
                                                                             left join c_project p on il.c_project_id=p.c_project_id 
                                                                             left join c_projecttask pt on pt.c_projecttask_id=il.c_projecttask_id 
                                         where i.c_invoice_id=il.c_invoice_id and il.c_tax_id=t.c_tax_id and il.c_invoiceline_id=v_cur2.line_id;
+                                        -- Damit Beledfeld1 auf jeden Fall gefüllt wird
+                                        if v_belegfeld1 is null then
+                                          select substr(i.documentno,1,12),coalesce(i.poreference,'') into  v_belegfeld1,v_ziart3text
+                                            from c_invoice i where  i.c_invoice_id=v_cur2.record_id;
+                                        end if;
                              else
                                 select substr(i.documentno,1,12),coalesce(i.poreference,''),t.name into  v_belegfeld1,v_ziart3text,v_ziart4text
                                     from c_invoice i ,c_tax t
@@ -1110,9 +1116,17 @@ BEGIN
                         end if;
                         v_check:= v_check-v_amt;
                         -- Währungsumrechnungen - Rundungsdifferenzen
-                        if v_cur2.seqno=999998 and v_cur2.ad_table_id='318' and v_amt=0 then
+                        if v_cur2.seqno=999998 and v_cur2.ad_table_id='318' then
+                          -- Damit Beledfeld1 auf jeden Fall gefüllt wird
+                          if coalesce(v_belegfeld1,'')='' then
+                              select substr(i.documentno,1,12),coalesce(i.poreference,'') into  v_belegfeld1,v_ziart3text
+                                from c_invoice i where  i.c_invoice_id=v_cur2.record_id;
+                                if v_belegfeld1 is null then v_belegfeld1:=''; v_ziart3text:=''; end if;
+                          end if;
+                          if v_amt=0 then
                            if v_cur2.amtacctdr!=0 then v_amt:= v_cur2.amtacctdr; else v_amt:= v_cur2.amtacctcr; end if;
                            v_check:= v_check+v_amt;
+                          end if;
                         end if;
                         if v_amt=0 then
                             -- Fehlerkorrekturen (Fehlbuchungen) werden immer mit Zeile 10 ausgeglichen - sollte es nicht geben.

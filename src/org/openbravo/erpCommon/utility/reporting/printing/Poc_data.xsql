@@ -71,7 +71,14 @@
 			c_order.c_bpartner_id as bpartner_id,
 			c_bpartner.name as bpartner_name,
 			c_order.ad_user_id as contact_user_id,
-			coalesce(loc.email,customercontact.email) as contact_email,
+			case when (select coalesce(value,'N')='Y' from ad_preference where attribute = 'USECONTACTEMAIL4ORDERS'
+			                                                               and ad_window_id = '143'
+			                                                               and isactive = 'Y'
+			                                                             limit 1) then
+			  coalesce(customercontact.email,loc.email)
+			else
+			  coalesce(loc.email,customercontact.email)
+			end as contact_email,
 			coalesce(loc.ccemail,customercontact.ccemail) as contact_ccemail,
 			customercontact.name as contact_name
 		from

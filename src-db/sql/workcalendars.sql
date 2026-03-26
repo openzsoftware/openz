@@ -1990,24 +1990,32 @@ CREATE OR REPLACE FUNCTION zspm_ptaskResource_trg() RETURNS trigger
 LANGUAGE plpgsql
 AS $_$ DECLARE   
 v_cur record;
+v_datefrom date;
+v_dateto date;
 BEGIN
         -- If Dates have changed, recalculate resource Planning
         IF (TG_OP = 'UPDATE') THEN
-            if (coalesce(new.startdate,now()) != coalesce(old.startdate,now())) or (coalesce(new.enddate,now()) != coalesce(old.enddate,now()))
-                or (coalesce(new.c_color_id,'') != coalesce(old.c_color_id,'')) then
-                update zspm_ptaskhrplan set updated=updated where c_projecttask_id=new.c_projecttask_id and isactive='Y';
-                update zspm_ptaskmachineplan set updated=updated where c_projecttask_id=new.c_projecttask_id and isactive='Y';
-            end if;
-            if old.istaskcancelled!=new.istaskcancelled then
+           -- if old.istaskcancelled!=new.istaskcancelled or coalesce(new.startdate,now()) != coalesce(old.startdate,now()) or coalesce(new.enddate,now()) != coalesce(old.enddate,now())
+           --     or coalesce(new.c_color_id,'') != coalesce(old.c_color_id,'') or old.iscomplete!=new.iscomplete
+           -- then
+           --    update zspm_ptaskhrplan set updated=updated where c_projecttask_id=new.c_projecttask_id and isactive='Y';
+           --    update zspm_ptaskmachineplan set updated=updated where c_projecttask_id=new.c_projecttask_id and isactive='Y';
+           -- end if;
+            -- Alternativ:
+            if old.istaskcancelled!=new.istaskcancelled or coalesce(new.startdate,now()) != coalesce(old.startdate,now()) or coalesce(new.enddate,now()) != coalesce(old.enddate,now())
+                or coalesce(new.c_color_id,'') != coalesce(old.c_color_id,'') or old.iscomplete!=new.iscomplete
+            then
+               select least(startdate,olddatefrom),greatest(enddate,olddateto) into v_datefrom,v_dateto from c_projecttask where c_projecttask_id=new.c_projecttask_id;
                for v_cur in (select * from zspm_ptaskmachineplan where c_projecttask_id=new.c_projecttask_id)
                LOOP
-                    PERFORM zssi_resourceplanupdate(v_cur.ma_machine_id,null,trunc(coalesce(new.startdate,now())),new.enddate);
+                    PERFORM zssi_resourceplanupdate(v_cur.ma_machine_id,null,v_datefrom,v_dateto);
                END LOOP;
                for v_cur in (select * from zspm_ptaskhrplan where c_projecttask_id=new.c_projecttask_id)
                LOOP
-                    PERFORM zssi_resourceplanupdate(null,v_cur.employee_id,trunc(coalesce(new.startdate,now())),new.enddate);
+                    PERFORM zssi_resourceplanupdate(null,v_cur.employee_id,v_datefrom,v_dateto);
                END LOOP;
             end if;
+
         end if;
 IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
 END ; $_$;
@@ -3186,7 +3194,7 @@ $_$  LANGUAGE 'plpgsql';
 
 
 CREATE OR REPLACE FUNCTION zssi_countSumOfHolidayDaysTaken(p_bpartner_id character varying, p_firstDayOfSpan timestamp without time zone, p_lastDayOfMonth timestamp without time zone) RETURNS NUMERIC
-AS $_$ 
+AS $_$
 /***************************************************************************************************************************************************
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
 compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
@@ -3205,7 +3213,7 @@ v_datefrom timestamp without time zone;
 v_dateto timestamp without time zone;
 v_startDate timestamp without time zone;
 v_stopDate timestamp without time zone;
-v_sumOfHolidayDaysTaken NUMERIC := 0; 
+v_sumOfHolidayDaysTaken NUMERIC := 0;
 
 BEGIN
 
@@ -3213,16 +3221,14 @@ BEGIN
 
 
   -- für jeden Eintrag, der Urlaub und vor dem angegeben Zeitpunkt und wo ein Teil im selben Jahr ist
-  FOR v_bpartneremployeeevent IN(SELECT * from c_bpartneremployeeevent cbpe, c_calendarevent cce where cbpe.c_calendarevent_id = cce.c_calendarevent_id AND cce.correlation = '2' AND cce.isemployeecalendar = 'Y' AND cbpe.c_bpartner_id = p_bpartner_id AND datefrom::date <= p_lastDayOfMonth::date AND (EXTRACT(year from datefrom) = v_yearOfCalculation OR EXTRACT(year from dateto) = v_yearOfCalculation))  
-	
+  FOR v_bpartneremployeeevent IN(
+      SELECT * from c_bpartneremployeeevent cbpe, c_calendarevent cce where cbpe.c_calendarevent_id = cce.c_calendarevent_id AND cce.correlation = '2' AND cce.isemployeecalendar = 'Y' AND cbpe.c_bpartner_id = p_bpartner_id AND datefrom >= p_firstDayOfSpan and datefrom<=p_lastDayOfMonth)
 	LOOP
 
 		v_startDate := (SELECT (CASE WHEN (v_bpartneremployeeevent.datefrom::date > p_firstDayOfSpan::date) THEN v_bpartneremployeeevent.datefrom ELSE p_firstDayOfSpan END));
 
 		v_stopDate = COALESCE(v_bpartneremployeeevent.dateto::date, v_startDate);
 		v_stopDate := (SELECT CASE WHEN (v_stopDate::date < p_lastDayOfMonth::date) THEN v_stopDate ELSE p_lastDayOfMonth END);
-		
-
 		while(v_startDate::date <= v_stopDate::date)
 		LOOP
 			-- Wenn angegebener Tag kein Feier- oder Wochenendstag ist
@@ -3236,7 +3242,7 @@ BEGIN
 
 				end if;
 			end if;
-
+   -- raise notice '%',v_startDate||'#'||v_stopDate||'#'||v_sumOfHolidayDaysTaken;
 			v_startDate := v_startDate + (INTERVAL '1 day');
 		END LOOP;
 
@@ -3267,74 +3273,43 @@ v_lastDayOfMonth timestamp without time zone;
 v_firstDayOfSpan timestamp without time zone;
 
 v_tmpWMonth NUMERIC := 0;
+v_tmpyear  NUMERIC := 0;
 v_remaining NUMERIC := NULL;
 v_calculation NUMERIC := 0;
 v_lyear varchar;
+
 BEGIN
 
     if p_datefrom is not null and p_datefrom!='' and p_dateto is not null and p_dateto!='' then
        p_month:= substr(p_datefrom,4,2);
        p_year:=substr(p_datefrom,7,4);
     end if;
-    
-  	select COALESCE(number4, 0) into v_holidayEntitlementForYear from ad_user where c_bpartner_id = p_bpartner_id; 
+
+  	select COALESCE(number4, 0) into v_holidayEntitlementForYear from ad_user where c_bpartner_id = p_bpartner_id;
 
 	-- Suche nach dem jüngsten remaining-Wert aus dem selben Jahr
 	-- an dieser Stelle darf das remaining auf keinen Fall coalesciciert werden
-	select remaining, wmonth into v_remaining, v_tmpWMonth from c_vacation_account where c_bpartner_id = p_bpartner_id and wyear = p_year and wmonth::numeric <= p_month::numeric order by wmonth desc limit 1;
-
-
-	-- Logik wenn kein Eintrag im selben Jahr gefunden wurde
-  	if v_remaining is null then
-
-		-- 1. Suche nach dem jüngsten remaining-Wert aus dem vorherigen Jahr 
-		--select remaining into v_remaining from c_vacation_account where c_bpartner_id = p_bpartner_id and wyear = (p_year::numeric - 1) order by wmonth desc limit 1;
-		--v_remaining := COALESCE(v_remaining, 0);
-		if (select count(*) from  c_vacation_account where c_bpartner_id = p_bpartner_id and wyear::numeric<p_year::numeric)=0 then
-            v_remaining:=0;
-		else
-            v_lyear:=to_char((p_year::numeric - 1));
-            select zssi_getHolidayEntitlement(p_bpartner_id,'12',v_lyear) into v_remaining;
-        end if;
-		-- 2. hole den Urlaubsanspruch aus persönliche Daten
-		v_calculation := v_remaining + v_holidayEntitlementForYear; 
-
-		-- 3. verrechne den Wert mit den genommenen Urlaubstagen bis zum Ende des aktuellen Monats
-		v_lastDayOfMonth := (p_year || '-' || p_month || '-01')::timestamp without time zone + (INTERVAL '1 month - 1 day');
-		v_firstDayOfSpan := date_trunc('year', v_lastDayOfMonth);
-		if p_datefrom is not null and p_datefrom!='' and p_dateto is not null and p_dateto!='' then
-            v_lastDayOfMonth:=p_dateto;
-            --v_firstDayOfSpan:=p_datefrom;
-		end if;
-  		v_remaining := v_calculation - zssi_countSumOfHolidayDaysTaken(p_bpartner_id, v_firstDayOfSpan, v_lastDayOfMonth);
-
-
-	-- Logik wenn ein Eintrag im selben Jahr gefunden wurde
-	else
-
-		-- 1. verrechne den Wert mit den genommen Urlaubstagen von Start(1 Tag des nächsten Monats vom vorletzten Eintrag ausgehend) bis zum Ende des aktuellen Monats
-		--raise exception '%',v_tmpWMonth||'#'||p_month||'#'||p_year;
-                if  v_tmpWMonth=12 then
-                    v_tmpWMonth=0;
-                end if;
-		v_firstDayOfSpan := (case when v_tmpWMonth=0 then to_char(to_number(p_year)+1) else p_year end|| '-' || (v_tmpWMonth + 1) || '-01')::timestamp without time zone;
-		--v_firstDayOfSpan := (case when v_tmpWMonth=0 then to_char(to_number(p_year)+1)||'-01-01' else p_year|| '-' || (v_tmpWMonth) || '-01' end)::timestamp without time zone;
-		v_lastDayOfMonth := (p_year || '-' || p_month || '-01')::timestamp without time zone + (INTERVAL '1 month - 1 day');
-
-		if p_datefrom is not null and p_datefrom!='' and p_dateto is not null and p_dateto!='' then
-            v_lastDayOfMonth:=p_dateto;
-            --v_firstDayOfSpan:=p_datefrom;
-		end if;
-		--raise notice '%',v_firstDayOfSpan||'#'||v_lastDayOfMonth||'#'||v_remaining||'#'||zssi_countSumOfHolidayDaysTaken(p_bpartner_id, v_firstDayOfSpan, v_lastDayOfMonth);
-  		v_remaining := v_remaining - zssi_countSumOfHolidayDaysTaken(p_bpartner_id, v_firstDayOfSpan, v_lastDayOfMonth);
-	end if;
-	
-	-- dieser Wert wurde ja schon im vorherigen Eintrag gegen die genommenen Urlaubstage verrechnet
-	return v_remaining;
+	select remaining, wmonth,wyear into v_remaining, v_tmpWMonth,v_tmpyear from c_vacation_account where c_bpartner_id = p_bpartner_id order by wyear desc,wmonth desc limit 1;
+    if v_tmpyear<to_number(p_year) and v_remaining is not null then
+        v_remaining:=v_remaining + v_holidayEntitlementForYear*(to_number(p_year)-v_tmpyear); -- Wenn letzter Eintrag vorjahr oder weiter zurück wird jahresanspruch addiert.
+    end if;
+    if v_remaining is null then
+        v_remaining:=v_holidayEntitlementForYear;
+        v_tmpWMonth:=1;
+        v_tmpyear:=to_number(p_year);
+    end if;
+    v_firstDayOfSpan := (v_tmpyear|| '-' || (v_tmpWMonth) || '-01')::timestamp without time zone;
+    v_lastDayOfMonth := (p_year || '-' || p_month || '-01')::timestamp without time zone + (INTERVAL '1 month - 1 day');
+    if p_datefrom is not null and p_datefrom!='' and p_dateto is not null and p_dateto!='' then
+        v_remaining := v_remaining - zssi_countSumOfHolidayDaysTaken(p_bpartner_id, v_firstDayOfSpan, to_date(p_dateto,'dd.mm.yyyy'));
+    else
+        v_remaining := v_remaining - zssi_countSumOfHolidayDaysTaken(p_bpartner_id, v_firstDayOfSpan, v_lastDayOfMonth);
+    end if;
+    return v_remaining;
 END
 $_$
   LANGUAGE plpgsql VOLATILE
-  COST 100;  
+  COST 100;
 
 CREATE or replace FUNCTION zssi_getHolidayEntitlement(p_bpartner_id character varying, p_month character varying, p_year character varying) RETURNS NUMERIC
 AS $_$

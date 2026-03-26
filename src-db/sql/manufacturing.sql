@@ -419,9 +419,6 @@ BEGIN
       if new.typeofproduct in ('CD','SA','AS','UA') and coalesce(new.cutoff,0)!=0 then
          RAISE EXCEPTION '%', '@zsmf_CutoffOnlyOnStandardProducts@';
       end if;
-      if (new.isstocked='N' or new.producttype='S') and ((select count(*) from m_storage_detail where m_product_id=new.m_product_id and QtyOnHand!=0)>0) then
-         RAISE EXCEPTION '%', '@CannotChangeStockedProduct@';
-      end if;
       If old.typeofproduct not in ('CD','SA','AS','UA') and new.typeofproduct in ('CD','AS','SA','UA') then
          for v_cur in (select m_product_id  from m_product_bom where m_productbom_id= new.m_product_id)
          LOOP

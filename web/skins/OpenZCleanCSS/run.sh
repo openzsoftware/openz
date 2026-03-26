@@ -31,8 +31,8 @@ for ziel_datei in "${ziel_dateien[@]}"; do
     # Inhalt der Zieldatei lesen und Marker-basierten Bereich entfernen
     awk -v start="$start_marker" -v end="$end_marker" '
       BEGIN {in_block=0}
-      $0 ~ start {in_block=1; next}
-      $0 ~ end {in_block=0; next}
+      index($0, start) {in_block=1; next}
+      index($0, end) {in_block=0; next}
       !in_block {print}
     ' "$ziel_datei" > "$tmp_datei"
 

@@ -31,7 +31,7 @@ loop
 counter2 := counter2 +1;
  if v_return!=' ' then v_return:=v_return||'</th><th id="date'||counter2||'" class="DataGrid_Header_Cell" onclick="cclass(''status'||counter2||''')">'; end if;
   --v_return := v_return||to_char(v_cur.workdate,'DD.MM.YYYY');
-    v_return := v_return||to_char(v_cur.workdate,'DD.MM.YYYY "KW:" WW');
+    v_return := v_return||to_char(v_cur.workdate,'DD.MM.YYYY')|| 'KW:' ||EXTRACT(WEEK FROM v_cur.workdate);
   end loop;
 RETURN v_pretext||v_return||v_posttext;
 END;
@@ -39,7 +39,7 @@ $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 
-    CREATE OR REPLACE FUNCTION zssi_resourceplan_headerfix(p_date_from timestamp, p_date_to timestamp)
+CREATE OR REPLACE FUNCTION zssi_resourceplan_headerfix(p_date_from timestamp, p_date_to timestamp)
 RETURNS character varying AS
 $_$
 /***************************************************************************************************************************************************
@@ -81,7 +81,8 @@ counter2 := counter2 +1;
  if v_return!=' ' then v_return:=v_return||'<div class="xtFRCell" style="top:0px;width:82px;height:31px;position:relative;float:left;"><table class="xtCellTbl" style="height:31px;width:87px;"><tbody><tr><th style="text-align:center;font-weight:lighter;'||v_styletoday||'" id="date'||counter2||'" class="DataGrid_Header_Cell" onclick="cclass(''status'||counter2||''')">';
  end if;
   --v_return := v_return||to_char(v_cur.workdate,'DD.MM.YYYY');
-    v_return := v_return||to_char(v_cur.workdate,'DD.MM.YYYY&nbsp;<br/>"KW:" WW ')||'</th></tr></tbody></table></div>';
+    --v_return := v_return||to_char(v_cur.workdate,'DD.MM.YYYY&nbsp;<br/>"KW:" WW ')||'</th></tr></tbody></table></div>';
+    v_return := v_return||to_char(v_cur.workdate,'DD.MM.YYYY')|| 'KW:' ||EXTRACT(WEEK FROM v_cur.workdate)||'</th></tr></tbody></table></div>';
   end loop;
   widthcount:=(counter2*82+100);
 RETURN v_pretext||'<div id="xtFzRow" class="xtFzRow" style="width:'||widthcount||'px;height:31px;position:relative;z-Index:10;"><div class="xtFRInner" style="top:0px;height:31px;position:relative;">'||'<div id="xtHead" class="xtFRCell" style="left:-3px;top:0px;width:100px;height:31px;position:relative;float:left;z-Index:100;"><table class="xtCellTbl" style="height:31px;width:109px;"><tbody><tr><th style="text-align:center;font-weight:lighter;" class="DataGrid_Header_Cell">'||'Datum<br>Mitarbeiter'||'</th></tr></tbody></table></div>'||v_return||v_posttext;
@@ -90,7 +91,7 @@ $_$
   LANGUAGE plpgsql VOLATILE
   COST 100;
 
-  select zsse_dropfunction('zssi_resourceplan_headerfix_small');
+select zsse_dropfunction('zssi_resourceplan_headerfix_small');
 CREATE OR REPLACE FUNCTION zssi_resourceplan_headerfix_small(p_date_from timestamp, p_date_to timestamp,p_project varchar, p_org varchar)
 RETURNS character varying AS
 $_$
@@ -135,8 +136,9 @@ end if;
 counter2 := counter2 +1;
  if v_return!=' ' then v_return:=v_return||'<div class="xtFRCell" style="left:4px;top:11px;width:100px;height:27px;position:relative;"><table class="xtCellTbl" style="border-spacing:0px !important;border:0px !important;height:28px;width:98px;"><tbody><tr><th style="text-align:center;font-weight:lighter;'||v_styletoday||'" id="date'||counter2||'" class="DataGrid_Header_Cell" onclick="cclass(''status'||counter2||''')">';
  end if;
-  --v_return := v_return||to_char(v_cur.workdate,'DD.MM.YYYY');
-    v_return := v_return||to_char(v_cur.workdate,'DD.MM.YYYY&nbsp;"KW:" WW ')||'</th></tr></tbody></table></div>';
+    --v_return := v_return||to_char(v_cur.workdate,'DD.MM.YYYY');
+    --v_return := v_return||to_char(v_cur.workdate,'DD.MM.YYYY&nbsp;"KW:" WW ')||'</th></tr></tbody></table></div>';
+    v_return := v_return||to_char(v_cur.workdate,'DD.MM.YYYY')|| ' KW:' ||EXTRACT(WEEK FROM v_cur.workdate)||'</th></tr></tbody></table></div>';
   end loop;
   widthcount:=(counter2*82+100);
 RETURN v_pretext||'<div id="xtFzRow" class="xtFzRow" style="left:2px;height:82px;position:relative;z-Index:15;transform:rotate(-90deg);-webkit-transform:rotate(-90deg);-ms-transform:rotate(-90deg)"><div class="xtFRInner" style="top:-5px;height:82px;position:relative;">'||'<div id="xtHead" class="xtFRCell" style="left:2px;top:-9px;width:100px;height:81px;position:relative;z-Index:100;"><table class="xtCellTbl" style="height:102px;width:103px;"><tbody><tr><th style="text-align:center;font-weight:lighter;transform:rotate(90deg);-webkit-transform:rotate(90deg);-ms-transform:rotate(90deg)" class="DataGrid_Header_Cell">'||'Datum<br>Mitarbeiter'||'</th></tr></tbody></table></div>'||v_return||v_posttext;
@@ -1685,11 +1687,7 @@ delete from zssi_resourceplan;
 
 select min(pt.startdate) from c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and p.projectstatus in ('OP','OR') into firstevent; 
 select max(coalesce(pt.enddate,pt.startdate)) from c_projecttask pt,c_project p where p.c_project_id=pt.c_project_id and p.projectstatus in ('OP','OR') into lastevent;
-
---firstevent:=to_date('01.01.'||to_number(to_char(firstevent,'yyyy')));
---lastevent:=to_date('31.12.'||to_number(to_char(firstevent,'yyyy')));
---select least((select min(datefrom) from ma_machineevent),(select min(datefrom) from C_bpartneremployeeEVENT),(select min(startdate) from c_projecttask)) into firstevent;  
---select greatest((select max(coalesce(dateto,datefrom)) from ma_machineevent),(select max(coalesce(dateto,datefrom)) from C_bpartneremployeeEVENT),(select max(enddate) from c_projecttask)) into lastevent;
+raise notice '%' ,'Zeitraum: '||firstevent||'#'||lastevent;
   for v_cur in (select ma_machine_id,null as c_bpartner_id,ad_org_id from ma_machine where isactive='Y' and isinresourceplan='Y'
                 union 
                 select null as ma_machine_id,c_bpartner_id,ad_org_id from c_bpartner where isemployee='Y' and isactive='Y' and isinresourceplan='Y')
@@ -1800,6 +1798,39 @@ CREATE TRIGGER zssi_resourceplanemp_trg
   EXECUTE PROCEDURE zssi_resourceplanemp_trg();
 
 
+CREATE OR REPLACE FUNCTION C_Calendarevent_trg () RETURNS trigger
+LANGUAGE plpgsql
+AS $_$ DECLARE
+v_datefrom timestamp;
+v_dateto timestamp;
+v_cur record;
+BEGIN
+
+    IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;  END IF;
+    if TG_OP = 'UPDATE' then
+          if coalesce(new.c_color_id,'') != coalesce(old.c_color_id,'') then
+                v_datefrom:=now()-10;
+                v_dateto:=now()+90;
+          end if;
+          for v_cur in (select * from C_Bpartneremployeeevent where C_Calendarevent_id=new.C_Calendarevent_id and datefrom between now()-10 and now()+90)
+          loop
+            PERFORM zssi_resourceplanupdate(null,(select ad_user_id from ad_user where c_bpartner_id=v_cur.c_bpartner_id limit 1),trunc(coalesce(v_datefrom,now())),v_dateto);
+          end loop;
+          for v_cur in (select * from MA_Machineevent where C_Calendarevent_id=new.C_Calendarevent_id and datefrom between now()-10 and now()+90)
+          loop
+            PERFORM zssi_resourceplanupdate(v_cur.ma_machine_id,null,trunc(coalesce(v_datefrom,now())),v_dateto);
+          end loop;
+    end if;
+IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
+END ; $_$;
+
+select zsse_DropTrigger ('C_Calendarevent_trg','C_Calendarevent');
+
+CREATE TRIGGER C_Calendarevent_trg
+  AFTER INSERT OR UPDATE OR DELETE
+  ON C_Calendarevent FOR EACH ROW
+  EXECUTE PROCEDURE C_Calendarevent_trg();
+
 
 CREATE OR REPLACE FUNCTION zssi_resourceplanmachine_trg () RETURNS trigger
 LANGUAGE plpgsql
@@ -1825,7 +1856,11 @@ BEGIN
        select least(startdate,olddatefrom),greatest(enddate,olddateto) into v_datefrom,v_dateto from c_projecttask where c_projecttask_id=old.c_projecttask_id;
           --  if old.datefrom is not null then v_datefrom:=old.datefrom; end if;
           --  if old.dateto is not null then v_dateto:=old.dateto; end if;
-            PERFORM zssi_resourceplanupdate(old.ma_machine_id,null,trunc(coalesce(v_datefrom,now())),v_dateto);
+          if v_datefrom is null or v_dateto is null then
+                v_datefrom:=now()-10;
+                v_dateto:=now()+90;
+          end if;
+          PERFORM zssi_resourceplanupdate(old.ma_machine_id,null,trunc(coalesce(v_datefrom,now())),v_dateto);
     end if;
     if TG_OP = 'INSERT' then
             select least(startdate,olddatefrom),greatest(enddate,olddateto) into v_datefrom,v_dateto from c_projecttask where c_projecttask_id=new.c_projecttask_id;

@@ -7,7 +7,7 @@ This repository is read-only and active development is done in a privat reposito
 A ready to use system is available as a VirtualBox image at [https://sourceforge.net/projects/openz/files/VirtualAppliance/](https://sourceforge.net/projects/openz/files/VirtualAppliance/).
 
 ## Installation
-A full installation guide in German is available at [https://openz.de/handbuch/openz-entwicklung/wptsaentwicklungsugbgb/](https://openz.de/handbuch/openz-entwicklung/wptsaentwicklungsugbgb/).
+A full installation guide in German is available at [https://openz.de/wptsaentwicklungsugbgb/](https://openz.de/wptsaentwicklungsugbgb/).
 
 
 ### Requirements

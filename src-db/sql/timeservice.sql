@@ -764,8 +764,132 @@ END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;
 
-  
+
+CREATE OR REPLACE FUNCTION tsrv_feedbackcalendar_v()
+  RETURNS table(
+    tsrv_feedbackcalendar_v_id  character varying           ,
+    ad_org_id                  character varying       ,
+    ad_client_id               character varying       ,
+    updated                    timestamp without time zone ,
+    updatedby                  character varying       ,
+    created                    timestamp without time zone ,
+    createdby                  character varying       ,
+    isactive                   character               ,
+    workdate                   timestamp without time zone ,
+    dayname                    character varying                        ,
+    c_bpartner_id              character varying       ,
+    ad_user_id                 character varying       ,
+    zspm_ptaskfeedbackline_id  character varying       ,
+    c_project_id               character varying       ,
+    c_projecttask_id           character varying       ,
+    ma_machine_id              character varying       ,
+    description                character varying     ,
+    hour_from                  timestamp without time zone ,
+    hour_to                    timestamp without time zone ,
+    actualcostamount           numeric                     ,
+    isprocessed                character                ,
+    c_salary_category_id       character varying       ,
+    hours                      numeric                     ,
+    url                        character varying      ,
+    dayhours                   character varying       ,
+    c_calendarevent_id         character varying       ,
+    breaktime                  numeric                     ,
+    traveltime                 numeric                     ,
+    specialtime                numeric                     ,
+    overtimehours              numeric                     ,
+    nighthours                 numeric                     ,
+    issaturday                 character               ,
+    issunday                   character                ,
+    isholiday                  character           ,
+    costuom                    character varying      ,
+    specialtime2               numeric                     ,
+    triggeramt                 numeric                     ,
+    billable                   numeric                     ,
+    workdate_to                timestamp without time zone ,
+    specialtime3               numeric                     ,
+    c_orderline_id             character varying       ,
+    responsible_id             character varying       ,
+    paidbreaktime              numeric                     ,
+    special4                   numeric                     ,
+    special5                   numeric                     ,
+    createdbytimefeedbackapp   character               ,
+    event                      character varying           ,
+    weekworktime               character varying           ,
+    accountbalance             character varying           ,
+    holidays                   numeric                     )
+ AS
+$BODY$
+DECLARE
+  v_cur RECORD;
+  v_result varchar:='';
+  v_from varchar;
+  v_to varchar;
+  v_user varchar;
+  v_emp varchar;
+  v_org varchar;
+  v_prj varchar;
+  v_task varchar;
+BEGIN
+    for v_cur in (select columname,filtervalue from ad_tempfilters)
+    LOOP
+      if v_cur.columname='Workdate' then v_from:=v_cur.filtervalue; end if;
+      if v_cur.columname='Workdate_f' then v_to:=v_cur.filtervalue; end if;
+      if v_cur.columname='AD_User_ID' then v_user:=v_cur.filtervalue; end if;
+      v_result:=v_result||'#'||v_cur.columname||'-'||v_cur.filtervalue;
+    END LOOP;
+    If v_from is null or v_to is null or v_user is null then
+        raise exception '%', '@TimeFedOvALLFiltersMandatory@';
+    end if;
+    if to_date(v_to,'dd.mm.yyyy')-to_date(v_from,'dd.mm.yyyy')>90 then
+      raise exception '%', '@UseMax90DaysFilter@';
+    end if;
+    --v_from:='01.01.2026';
+    --v_to:='31.01.2026';
+    --v_user:='80AF1DEA260B4A40B3C5F498D6A1874E';
+    select u.c_bpartner_id,u.ad_org_id into v_emp,v_org from ad_user u where u.ad_user_id=v_user;
+    for v_cur in (select * from zssi_getdayset(v_emp,null,null,'de_DE', v_from, v_to))
+    LOOP
+      select coalesce(max(f.zspm_ptaskfeedbackline_id),w.c_workcalender_id),coalesce(max(f.ad_org_id),v_org),w.ad_client_id, coalesce(max(f.updated),now()),coalesce(max(f.created),now())
+             into tsrv_feedbackcalendar_v_id , ad_org_id,ad_client_id,updated,created
+             from c_workcalender w left join zspm_ptaskfeedbackline f on f.workdate=w.workdate and f.ad_user_id=v_user
+             where w.workdate=v_cur.wdate group by w.c_workcalender_id;
+      createdby:=v_user;
+      updatedby:=v_user;
+      isactive:='Y';
+      workdate:=v_cur.wdate;
+      --dayname:=v_cur.mday;
+      dayname:=case extract ('dow' from v_cur.wdate) when 1 then 'Mo.' when 2 then 'Di.' when 3 then 'Mi.' when 4 then 'Do.' when 5 then 'Fr.' when 6 then 'Sa.' else 'So.' end;
+      c_bpartner_id:=v_emp;
+      ad_user_id:=v_user;
+      zspm_ptaskfeedbackline_id:=tsrv_feedbackcalendar_v_id;
+      ---c_projecttask_id,c_project_id ma_machine_id, description,c_salary_category_id, actualcostamount,isprocessed,url,dayhours always null
+      hour_from:=v_cur.dfrom;
+      hour_to:=v_cur.dto;
+      event:=v_cur.dworkplace;
+      hours:=v_cur.dtotal; --v_cur.dtotal_hours||':'||v_cur.dtotal_minutes;
+      --dayhours:=v_cur.dnormal;
+      breaktime:=v_cur.dbreak;
+      overtimehours:=v_cur.dover;
+      nighthours:=v_cur.dnight;
+      issaturday:=case when v_cur.dsat>0 then 'Y' else 'N' end;
+      issunday:=case when v_cur.dsun>0 then 'Y' else 'N' end;
+      isholiday:=case when v_cur.dholi>0 then 'Y' else 'N' end;
+      weekworktime:=case when extract ('dow' from v_cur.wdate)=0 then tsrv_getsumofweek(v_cur.wdate,v_user) else null end;
+      accountbalance:=zssi_getworktimeaccountbalanceashhmm(v_emp,null,null,to_char(v_cur.wdate,'dd.mm.yyyy'),to_char(v_cur.wdate,'dd.mm.yyyy'),'#');
+      holidays:=COALESCE(zssi_getHolidayEntitlement(v_emp, null,null,to_char(v_cur.wdate,'dd.mm.yyyy'),to_char(v_cur.wdate,'dd.mm.yyyy')),
+                zssi_calculatevacationaccountbalance(v_emp,null,null,to_char(v_cur.wdate,'dd.mm.yyyy'),to_char(v_cur.wdate,'dd.mm.yyyy')), 0);
+      return next;
+    END LOOP;
+
+END ; $BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+
 select zsse_DropView ('tsrv_feedbackcalendar_v');
+create or replace view tsrv_feedbackcalendar_v as
+SELECT * FROM tsrv_feedbackcalendar_v();
+
+/*
 create or replace view tsrv_feedbackcalendar_v as
 select
  coalesce(f.zspm_ptaskfeedbackline_id,a.tsrv_feedbackcalendar_v_id) as tsrv_feedbackcalendar_v_id ,a.ad_org_id,a.ad_client_id,a.updated,a.updatedby,a.created,a.createdby,a.isactive,
@@ -810,7 +934,7 @@ select
  c_getemployeeevent(a.c_bpartner_id,a.workdate) as event,
  case when extract ('dow' from a.workdate)=0 then tsrv_getsumofweek(a.workdate,a.ad_user_id) else null end as weekworktime,
  zssi_getworktimeaccountbalanceashhmm(a.c_bpartner_id,null,null,to_char(a.workdate,'dd.mm.yyyy'),to_char(a.workdate,'dd.mm.yyyy'),'#') as accountbalance,
- (COALESCE(zssi_getHolidayEntitlement(a.c_bpartner_id, null,null,to_char(a.workdate,'dd.mm.yyyy'),to_char(a.workdate,'dd.mm.yyyy')), 
+ (COALESCE(zssi_getHolidayEntitlement(a.c_bpartner_id, null,null,to_char(a.workdate,'dd.mm.yyyy'),to_char(a.workdate,'dd.mm.yyyy')),
            zssi_calculatevacationaccountbalance(a.c_bpartner_id,null,null,to_char(a.workdate,'dd.mm.yyyy'),to_char(a.workdate,'dd.mm.yyyy')), 0)) as holidays
 from (select
         w.c_workcalender_id||u.ad_user_id as tsrv_feedbackcalendar_v_id,u.ad_org_id,u.ad_client_id,u.updated,u.updatedby,u.created,u.createdby,u.isactive,
@@ -820,7 +944,9 @@ from (select
       from c_workcalender w ,ad_user u,c_bpartner  b
       where u.c_bpartner_id=b.c_bpartner_id and b.isemployee='Y' and b.isactive='Y' and u.isactive='Y') a
 left join zspm_ptaskfeedbackline f on f.workdate=a.workdate and  f.ad_user_id= a.ad_user_id and f.c_project_id in (select c_project_id from c_project where timekeeping='Y');
- 
+
+*/
+
  
 CREATE RULE tsrv_feedbackcalendar_v_update AS ON UPDATE TO public.tsrv_feedbackcalendar_v
 DO INSTEAD (

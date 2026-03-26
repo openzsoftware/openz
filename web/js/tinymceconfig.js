@@ -47,7 +47,7 @@ tinyMCE.init({
         plugins : "emotions,spellchecker,advhr,insertdatetime,preview,heading,fullscreen", 
         extended_valid_elements : "iframe[src|frameborder|style|scrolling|class|width|height|name|align]",
         heading_clear_tag : "", 
-        forced_root_block : "",
+        forced_root_block : "div",
         cleanup_on_startup: false,
         trim_span_elements: false,
         verify_html: false,

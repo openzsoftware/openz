@@ -5010,6 +5010,7 @@ BEGIN
         -- 1nd. To Target (Same Direction...)
         v_fact2move.fact_acct_id:=get_uuid();
         v_fact2move.line_id:=get_uuid();
+        v_fact2move.record_id2:=p_bankstatementline_id;
         v_fact2move.account_id:=v_acct;
         v_fact2move.seqno:=v_seq;
         v_seq:=v_seq+10;

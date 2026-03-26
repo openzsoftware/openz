@@ -1027,6 +1027,37 @@ CREATE TRIGGER zssi_adusera_trg
   AFTER UPDATE
   ON ad_user FOR EACH ROW
   EXECUTE PROCEDURE zssi_adusera_trg();
+
+
+select zsse_DropTrigger ('ad_user_mfa_permsessions_trg','ad_user_mfa_permsessions');
+CREATE OR REPLACE FUNCTION ad_user_mfa_permsessions_trg()
+  RETURNS trigger AS
+$BODY$ DECLARE 
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): 
+***************************************************************************************************************************************************
+*****************************************************/
+BEGIN
+  -- clean up old and expired cookies
+  delete from ad_user_mfa_permsessions where expires < now();
+  RETURN NEW;
+END;
+$BODY$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
+  
+
+CREATE TRIGGER ad_user_mfa_permsessions_trg
+  AFTER INSERT
+  ON ad_user_mfa_permsessions FOR EACH ROW
+  EXECUTE PROCEDURE ad_user_mfa_permsessions_trg();
+
   
 select zsse_DropTrigger ('zssi_aduserrolea_trg','ad_user_roles');
 CREATE OR REPLACE FUNCTION zssi_aduserrolea_trg()
@@ -1652,11 +1683,11 @@ BEGIN
         if (new.isserialtracking='Y' or new.isbatchtracking='Y') and (NEW.producttype != 'I' or new.isstocked = 'N') then
             raise exception '%','@serials_havetobe_stocked@';
         end if;
-        if (new.isstocked = 'N' or NEW.producttype != 'I') and (select count(*) from m_transaction where m_product_id=new.m_product_id)>0 then
-            RAISE EXCEPTION '%', '@CannotChangeStockedProduct@';
-        end if;
    END IF;
    IF (TG_OP = 'UPDATE') THEN
+      if ((new.isstocked='N' and old.isstocked='Y') or (new.producttype='S' and old.producttype='I'))  and (select count(*) from m_transaction where m_product_id=new.m_product_id)>0 then
+            RAISE EXCEPTION '%', '@CannotChangeStockedProduct@';
+      end if;
       if new.isserialtracking='N' and old.isserialtracking='Y' and 
                 (select count(*) from SNR_Masterdata where m_product_id=new.m_product_id)>0 
       then

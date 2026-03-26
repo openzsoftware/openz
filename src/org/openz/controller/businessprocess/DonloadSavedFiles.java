@@ -39,6 +39,15 @@ public class DonloadSavedFiles {
 private String processRequest(ProcessBundle bundle) throws Exception {
  
     final String yearID = (String) bundle.getParams().get("cYearId");
+    final String datefrom = (String) bundle.getParams().get("datefrom");
+    final String dateto = (String) bundle.getParams().get("dateto");
+    final String onlyinvoices = (String) bundle.getParams().get("onlyinvoices");
+    
+    // either yearid is filled or datefrom AND dateto
+    // if both are filled yearid is used
+    if(yearID.isEmpty() && (datefrom.isEmpty() || dateto.isEmpty())) {
+        throw new Exception("@downloadEitherYearOrDateFromTo@");
+    }
     
     String fileDir = OBPropertiesProvider.getInstance().getOpenbravoProperties().getProperty("attach.path");
     String lang=bundle.getContext().getLanguage();
@@ -50,12 +59,15 @@ private String processRequest(ProcessBundle bundle) throws Exception {
     FileOutputStream to = null; // Stream to write to destination
     String year=BprocessCommonData.getYear(connp, yearID);
     String filename="OpenzFiles-"+year+".zip";
+    if(year == null) {
+        filename = "OpenzFiles-" + datefrom + "-" + dateto + ".zip";
+    }
     FileUtils.deleteDirectory(new File(fileDir + "/tmp/"));
     File fi = new File(fileDir + "/tmp/content/");
     fi.mkdirs();
     FileOutputStream f = new FileOutputStream(fileDir + "/tmp/" + filename);
     ZipOutputStream zip = new ZipOutputStream(new BufferedOutputStream(f));
-    BprocessCommonData[] data = BprocessCommonData.selectFiles(connp, year);
+    BprocessCommonData[] data = BprocessCommonData.selectFiles(connp, year, datefrom, dateto, onlyinvoices);
     File fo;
     for (int i=0;i<data.length;i++) {
       fi = new File(fileDir + "/tmp/content/" + BprocessCommonData.getTableName(connp, bundle.getContext().getLanguage(), data[i].adTableId)+ "/");
@@ -78,7 +90,7 @@ private String processRequest(ProcessBundle bundle) throws Exception {
       }
       
     }
-    data = BprocessCommonData.selectFilesDeleted(connp, year);
+    data = BprocessCommonData.selectFilesDeleted(connp, year, datefrom, dateto, onlyinvoices);
     for (int i=0;i<data.length;i++) {
       fi = new File(fileDir + "/tmp/content/" + BprocessCommonData.getTableName(connp, bundle.getContext().getLanguage(), data[i].adTableId)+ "/deleted/");
       if (! fi.exists())

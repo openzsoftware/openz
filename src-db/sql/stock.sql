@@ -5900,7 +5900,7 @@ CREATE OR REPLACE FUNCTION pick_productionorder(pinstance_id character varying) 
                           where m_product_id=Cur_MovementLine.M_Product_ID
                             and m_warehouse_id=v_warehouse
                        order by qtyonhand desc limit 1;
-            if(v_locator is not null) then -- null -> no stock at all
+            if(v_locator is not null and v_qty > 0) then -- null -> no stock at all
               INSERT
               INTO M_MOVEMENTLINE
                 (

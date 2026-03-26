@@ -486,7 +486,11 @@ LANGUAGE plpgsql AS $body$
       END LOOP; -- For every Commission Line
     if v_count>0 then
         v_Message:='@CommissionRun@ = ' || v_DocumentNo || ' - ' || v_Name;
-        PERFORM mlm_createdependentCommissions(v_C_CommissionRun_ID,to_date(v_EndDate));
+        -- if mlm module is active
+        if(select coalesce(isactive,'N')='Y' from ad_module where ad_module_id = 'C2BB230037E4466996EF0917A7083FD8') then
+            PERFORM mlm_createdependentCommissions(v_C_CommissionRun_ID,to_date(v_EndDate));
+        end if;
+        perform c_commission_update_totals(v_C_CommissionRun_ID);
     else
         select count(*) into v_count from C_CommissionAmt a,C_CommissionDetail d 
                         where d.C_CommissionAmt_id=a.C_CommissionAmt_id
@@ -520,6 +524,65 @@ CREATE or replace FUNCTION c_commission_process_userexit(p_C_CommissionRun_ID va
 AS $_$
 DECLARE
   BEGIN
+  RETURN '';
+END;
+$_$  LANGUAGE 'plpgsql';
+
+-- updates the totals of c_commissionamt, c_commissionrun, c_commissionline, c_bpartner to speed up trigger c_commissiondetail_trg
+-- is only called after inserts
+CREATE or replace FUNCTION c_commission_update_totals(p_C_CommissionRun_ID varchar) RETURNS varchar
+AS $_$
+DECLARE
+  v_cur record;
+  v_commissionline_sum numeric;
+  BEGIN
+    -- update all c_commissionamt
+    for v_cur in (select c_commissionamt_id from c_commissionamt where c_commissionrun_id = p_C_CommissionRun_ID) loop
+      UPDATE C_CommissionAmt SET
+        ConvertedAmt = (select coalesce(sum(cd.convertedamt),0) from c_commissiondetail cd where cd.c_commissionamt_id = v_cur.c_commissionamt_id),
+        commissionamt = (select coalesce(sum(cd.commissionamt),0) from c_commissiondetail cd where cd.c_commissionamt_id = v_cur.c_commissionamt_id),
+        ActualQty = (select count(cd.*) from c_commissiondetail cd where cd.C_CommissionAmt_ID=v_cur.c_commissionamt_id)
+      WHERE c_commissionamt_id = v_cur.c_commissionamt_id;
+    end loop;
+
+    UPDATE C_CommissionRun
+      SET GrandTotal = (select coalesce(sum(a.CommissionAmt),0) from c_commissionamt a where a.c_commissionrun_id = p_C_CommissionRun_ID)
+    WHERE C_CommissionRun_ID=p_C_CommissionRun_ID;
+
+    -- do not count c_commissiondetal.structurecommssions='Y' for the following updates
+    update c_bpartner set salesvolume = coalesce(salesvolume,0)
+                                      + (select coalesce(sum(cd.convertedamt),0) from c_commissiondetail cd, c_commissionamt a
+                                                                                where cd.c_commissionamt_id = a.c_commissionamt_id
+                                                                                  and cd.isstructurecommission='N'
+                                                                                  and a.c_commissionrun_id = p_C_CommissionRun_ID)
+     where c_bpartner_id=(select c.c_bpartner_id from c_commission c, c_commissionrun r where c.c_commission_id = r.c_commission_id and r.c_commissionrun_id = p_C_CommissionRun_ID);
+
+    -- loop all commissionlines and add convertedturnover
+    for v_cur in (select l.* from c_commissionamt a, c_commissionline l where a.c_commissionrun_id = p_C_CommissionRun_ID and a.c_commissionline_id = l.c_commissionline_id)
+    loop
+      update c_commissionline set ConvertedTurnover = coalesce(ConvertedTurnover,0)
+                                                    + (select coalesce(sum(cd.convertedamt),0) from c_commissiondetail cd, c_commissionamt a, c_commissionline l
+                                                                                              where cd.c_commissionamt_id = a.c_commissionamt_id
+                                                                                                and cd.isstructurecommission = 'N'
+                                                                                                and a.c_commissionrun_id = p_C_CommissionRun_ID
+                                                                                                and a.c_commissionline_id = l.c_commissionline_id
+                                                                                                -- either the connected commissionline
+                                                                                                -- (exclusive) or commissionline with the same settings and the same commission parent
+                                                                                                and (
+                                                                                                    a.c_commissionline_id = v_cur.c_commissionline_id
+                                                                                                    OR
+                                                                                                    (   coalesce(l.m_product_category_id,'') = coalesce(v_cur.m_product_category_id,'')
+                                                                                                    and coalesce(l.m_product_id,'') = coalesce(v_cur.m_product_id,'')
+                                                                                                    and coalesce(l.c_bp_group_id,'') = coalesce(v_cur.c_bp_group_id,'')
+                                                                                                    and coalesce(l.c_bpartner_id,'') = coalesce(v_cur.c_bpartner_id,'')
+                                                                                                    and coalesce(l.c_salesregion_id,'') = coalesce(v_cur.c_salesregion_id,'')
+                                                                                                    and l.c_commission_id = v_cur.c_commission_id
+                                                                                                    and a.c_commissionline_id != v_cur.c_commissionline_id
+                                                                                                    )
+                                                                                                ))
+      where c_commissionline_id = v_cur.c_commissionline_id;
+    end loop;
+
   RETURN '';
 END;
 $_$  LANGUAGE 'plpgsql';
@@ -572,7 +635,6 @@ CREATE OR REPLACE FUNCTION c_commissiondetail_trg() RETURNS trigger
   v_agencyfee numeric;
   v_iscommissionInPrice varchar;
 BEGIN
-    
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
     END IF;
 
@@ -676,30 +738,33 @@ BEGIN
     END IF;
     new.CommissionAmt:=v_Result;  
     new.actualqty:=v_AmtMultiplier;
-    UPDATE C_CommissionAmt
-      SET ConvertedAmt=ConvertedAmt + new.ConvertedAmt,
-      commissionamt=commissionamt + new.CommissionAmt,
-      ActualQty=(select count(*) from c_commissiondetail where C_CommissionAmt_ID=new.C_CommissionAmt_ID)
-    WHERE C_CommissionAmt_ID=new.C_CommissionAmt_ID;
-    
-    UPDATE C_CommissionRun
-      SET GrandTotal=GrandTotal + new.CommissionAmt
-    WHERE C_CommissionRun_ID=v_commissionrun_id;
-    
-    
-    if new.isstructurecommission='N' then
-        -- Set Total Turnover on Emplaoyy
-        update c_bpartner set salesvolume = coalesce(salesvolume,0) + coalesce(new.ConvertedAmt,0) where c_bpartner_id=v_partner;
-        
-        select c_commission_id,  coalesce(m_product_category_id,'') ,  coalesce(m_product_id,''),  coalesce(c_bp_group_id,''),
-            coalesce(c_bpartner_id,'') , coalesce(c_salesregion_id,'') 
-        into v_commission_id,  v_product_category_id ,  v_product_id,  v_bp_group_id,  v_bpartner_id ,  v_salesregion_id 
-        from c_commissionline where c_commissionline_id=v_commissionline_id;
-        
-        update c_commissionline set ConvertedTurnover = ConvertedTurnover + coalesce(new.ConvertedAmt,0)  where 
-            c_commission_id= v_commission_id and  coalesce(m_product_category_id,'') =v_product_category_id
-            and coalesce(m_product_id,'')=v_product_id and   coalesce(c_bp_group_id,'')=v_bp_group_id and   
-            coalesce(c_bpartner_id,'')=v_bpartner_id and   coalesce(c_salesregion_id,'')= v_salesregion_id;
+
+    if(TG_OP = 'UPDATE') then -- speed up insert, total is updated in c_commission_update_totals for all inserts
+      UPDATE C_CommissionAmt
+        SET ConvertedAmt=ConvertedAmt + new.ConvertedAmt,
+        commissionamt=commissionamt + new.CommissionAmt,
+        ActualQty=(select count(*) from c_commissiondetail where C_CommissionAmt_ID=new.C_CommissionAmt_ID)
+      WHERE C_CommissionAmt_ID=new.C_CommissionAmt_ID;
+
+      UPDATE C_CommissionRun
+        SET GrandTotal=GrandTotal + new.CommissionAmt
+      WHERE C_CommissionRun_ID=v_commissionrun_id;
+
+
+      if new.isstructurecommission='N' then
+          -- Set Total Turnover on Emplaoyy
+          update c_bpartner set salesvolume = coalesce(salesvolume,0) + coalesce(new.ConvertedAmt,0) where c_bpartner_id=v_partner;
+
+          select c_commission_id,  coalesce(m_product_category_id,'') ,  coalesce(m_product_id,''),  coalesce(c_bp_group_id,''),
+              coalesce(c_bpartner_id,'') , coalesce(c_salesregion_id,'') 
+          into v_commission_id,  v_product_category_id ,  v_product_id,  v_bp_group_id,  v_bpartner_id ,  v_salesregion_id 
+          from c_commissionline where c_commissionline_id=v_commissionline_id;
+
+          update c_commissionline set ConvertedTurnover = ConvertedTurnover + coalesce(new.ConvertedAmt,0)  where 
+              c_commission_id= v_commission_id and  coalesce(m_product_category_id,'') =v_product_category_id
+              and coalesce(m_product_id,'')=v_product_id and   coalesce(c_bp_group_id,'')=v_bp_group_id and   
+              coalesce(c_bpartner_id,'')=v_bpartner_id and   coalesce(c_salesregion_id,'')= v_salesregion_id;
+      end if;
     end if;
   END IF;
   -- Prevent Delete if Invoice exists

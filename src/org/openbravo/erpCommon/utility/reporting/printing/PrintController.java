@@ -1132,6 +1132,21 @@ public class PrintController extends HttpSecureAppServlet {
   			}
   		}
   	  }
+      // For orders, add checked attachments of products in orderlines
+      if(tableId.equals("259")) { // c_order
+          userattch= EmailOptionsData.selectUserAddedAttachmentsFromProducts(this,report.getDocumentId());
+          if (userattch.length>0 && !multiReports) {
+            for (int i=0;i<userattch.length;i++) {
+                if (vars.getStringParameter(userattch[i].identifier).equals("Y")) {
+                    messageBodyPart = new MimeBodyPart();
+                    final File file = new File(globalParameters.strFTPDirectory + "/" + userattch[i].attachments);
+                    messageBodyPart.attachFile(file,userattch[i].mimetype,null);
+                    multipart.addBodyPart(messageBodyPart);
+                    allAttachments=allAttachments+userattch[i].document + ", ";
+                }
+            }
+          }
+      }
       //
       // Add aditional MANUAL attached documents
       if (object != null) {
@@ -1552,6 +1567,19 @@ public class PrintController extends HttpSecureAppServlet {
     		  	cloneVector.add(attachedContent);
     		}
     	}
+        // c_order add attachments of products in orderlines
+        if(tableId.equals("259")) { // c_order
+            EmailOptionsData[] userattch_products= EmailOptionsData.selectUserAddedAttachmentsFromProducts(this,strDocumentId.replace("('","").replace("')", ""));
+            if (userattch_products.length>0) {
+                for (int i=0;i<userattch_products.length;i++) {
+                    attachedContent = new AttachContent();
+                    attachedContent.setDocName(userattch_products[i].document + " (" + EmailOptionsData.getAttachmentText(this, vars.getLanguage()) + " " + userattch_products[i].productvalue + "-" + userattch_products[i].productname + ")");
+                    attachedContent.setVisible("checkbox");
+                    attachedContent.setId(userattch_products[i].identifier);
+                    cloneVector.add(attachedContent);
+                }
+            }
+        }
     }
     final AttachContent[] data = new AttachContent[vector.size()];
     final AttachContent[] data2 = new AttachContent[cloneVector.size()];
@@ -1621,6 +1649,10 @@ public class PrintController extends HttpSecureAppServlet {
     // remove default checked from einvoice pdf, depending on preference
     if(PrintControllerData.getPreferenceEinvoicePrintPdf(this).equals("N")) {
         output = output.replaceAll("name=\"DocumentEinvoice\" checked", "name=\"DocumentEinvoice\" value=\"N\"");
+    }
+    // remove default checked from attachments, inserted by products from c_orderlines
+    for(EmailOptionsData iter : EmailOptionsData.selectUserAddedAttachmentsFromProducts(this,strDocumentId.replace("('","").replace("')", ""))) {
+        output = output.replaceAll("name=\"" + iter.identifier + "\" checked", "name=\"" + iter.identifier + "\" value=\"N\"");
     }
     out.println(output);
     out.close();

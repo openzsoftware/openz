@@ -13,22 +13,44 @@ Contributor(s): ______________________________________.
 <SqlClass name="BprocessCommonData" package="org.openz.controller.businessprocess" accessModifier="public">
    
   <SqlMethod name="selectFiles" type="preparedStatement"  return="Multiple">
-    <SqlMethodComment></SqlMethodComment>
+    <SqlMethodComment>When year is filled pick year. Otherwise pick date range. Year has priority.</SqlMethodComment>
     <Sql>
       <![CDATA[
-        select ad_table_id,ad_record_id,name from c_file where extract (year from created) = to_number(?) 
+        select ad_table_id,ad_record_id,name from c_file
+          where
+          case when coalesce(?,'') != '' then
+            extract (year from created) = to_number(?)
+          else
+            created >= ? and created <= ?
+          end
+          and case when ? = 'Y' then ad_table_id = '318' else 1=1 end
       ]]>
     </Sql>
     <Parameter name="year"/>
+    <Parameter name="year"/>
+    <Parameter name="datefrom"/>
+    <Parameter name="dateto"/>
+    <Parameter name="onlyinvoices"/>
   </SqlMethod>
   <SqlMethod name="selectFilesDeleted" type="preparedStatement"  return="Multiple">
-    <SqlMethodComment></SqlMethodComment>
+    <SqlMethodComment>When year is filled pick year. Otherwise pick date range. Year has priority.</SqlMethodComment>
     <Sql>
       <![CDATA[
-        select ad_table_id,ad_record_id,name from c_filedeleted where extract (year from created) =to_number(?)  
+        select ad_table_id,ad_record_id,name from c_filedeleted
+          where
+          case when coalesce(?,'') != '' then
+            extract (year from created) = to_number(?)
+          else
+            created >= ? and created <= ?
+          end
+          and case when ? = 'Y' then ad_table_id = '318' else 1=1 end
       ]]>
     </Sql>
     <Parameter name="year"/>
+    <Parameter name="year"/>
+    <Parameter name="datefrom"/>
+    <Parameter name="dateto"/>
+    <Parameter name="onlyinvoices"/>
   </SqlMethod>
   <SqlMethod name="getYear" type="preparedStatement"  return="String">
     <SqlMethodComment></SqlMethodComment>

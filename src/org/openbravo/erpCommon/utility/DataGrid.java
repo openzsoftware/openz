@@ -361,9 +361,10 @@ public class DataGrid extends HttpSecureAppServlet {
     strRowsData.append("    <description>").append(description).append("</description>\n");
     strRowsData.append("  </status>\n");
     //strRowsData.append("  <rows numRows=\"").append(getTotalRows(vars, tableSQL)).append(
-    if (data.length==0)
+    if (data !=null && data.length==0)
     	relativeoffset=0;
-    strRowsData.append("  <rows numRows=\"").append(data.length + relativeoffset).append(
+    if (data !=null)
+    	strRowsData.append("  <rows numRows=\"").append(data.length + relativeoffset).append(
         "\" backendPage=\"" + page + "\">\n");
     String adReferenceId = "";
     String value = "";
@@ -436,10 +437,10 @@ public class DataGrid extends HttpSecureAppServlet {
                 e.printStackTrace();
               }
             }
-            strRowsData.append(value.replaceAll("<b>", "").replaceAll("<br />", "").replaceAll("<span", "<").replaceAll("<p>", "").replaceAll("</p>", "").replaceAll("<B>", "").replaceAll("</b>",
+            strRowsData.append(value.replaceAll("<b>", "").replaceAll("<br />", "").replaceAll("<span", "<").replaceAll("<p>", "").replaceAll("</p>", "").replaceAll("<div>", "&nbsp;").replaceAll("</div>", "&nbsp;").replaceAll("<B>", "").replaceAll("</b>",
                 "").replaceAll("</B>", "").replaceAll("<i>", "").replaceAll("<strong>", "").replaceAll("</strong>", "").replaceAll("<I>", "").replaceAll(
                 "</i>", "").replaceAll("</I>", "").replaceAll("<p>", "&nbsp;").replaceAll("<P>",
-                "&nbsp;").replaceAll("<br>", "&nbsp;").replaceAll("<BR>", "&nbsp;").replaceAll(
+                "&nbsp;").replaceAll("<br>", "&nbsp;").replaceAll("<BR>", "&nbsp;").replaceAll("<br/>", "&nbsp;").replaceAll(
                 "<h1>", "&nbsp;").replaceAll("<H1>", "&nbsp;").replaceAll("</h1>", "&nbsp;")
                 .replaceAll("</H1>", "").replaceAll("<h2>", "&nbsp;").replaceAll("<H2>", "&nbsp;")
                 .replaceAll("</h2>", "&nbsp;").replaceAll("</H2>", "").replaceAll("<h3>", "&nbsp;")
@@ -459,7 +460,8 @@ public class DataGrid extends HttpSecureAppServlet {
         strRowsData.append("    </tr>\n");
       }
     }
-    strRowsData.append("  </rows>\n");
+    if (data !=null)
+    	strRowsData.append("  </rows>\n");
     strRowsData.append("</xml-data>\n");
     response.setContentType("text/xml; charset=UTF-8");
     response.setHeader("Cache-Control", "no-cache");
