@@ -576,8 +576,8 @@ BEGIN
         pTEMPLATE:='REFCOMBO';
         pfieldreference:='47209D76F3EE4B6D84222C5BDF170AA2'; -- 'Yes/No search box';
         end if;
-        if pTEMPLATE in ('DATE','DECIMAL','EURO','INTEGER','PRICE','SQLFIELDDECIMAL','SQLFIELDEURO','SQLFIELDINTEGER','SQLFIELDPRICE') then
-            if pTEMPLATE = 'DATE' then
+        if pTEMPLATE in ('DATE','DECIMAL','EURO','INTEGER','PRICE','SQLFIELDDECIMAL','SQLFIELDEURO','SQLFIELDINTEGER','SQLFIELDPRICE','SQLFIELDDATE') then
+            if pTEMPLATE in ('DATE','SQLFIELDDATE') then
                 ptranslation:=v_cur.translation||' '||zssi_getElementTextByColumname('From',in_language);   
             else
                 ptranslation:=v_cur.translation||' '||zssi_getElementTextByColumname('FromNum',in_language);   

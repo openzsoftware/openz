@@ -181,7 +181,8 @@ SELECT
   prt.supply2vendor,
   prt.producecontinuously AS producecontinuously,
   prt.istestingworkstep AS istestingworkstep,
-  (select string_agg(m.name,',') from ma_machine m,zspm_ptaskmachineplan mp where mp.ma_machine_id=m.ma_machine_id and mp.c_projecttask_id=prt.c_projecttask_id) as workplace
+  (select string_agg(m.name,',') from ma_machine m,zspm_ptaskmachineplan mp where mp.ma_machine_id=m.ma_machine_id and mp.c_projecttask_id=prt.c_projecttask_id) as workplace,
+  'N'::varchar as setbomlocatorbutton -- fixed value only used for button
 FROM c_projecttask prt, c_project prj
 WHERE 1=1
  AND prt.c_project_id = prj.c_project_id
@@ -3968,3 +3969,72 @@ SELECT v.*,zssm_checkmatampel (v.zssm_workstep_v_id) as image,v.zssm_workstep_v_
 SELECT zsse_DropView ('zssm_workstepstatusactive_v');
 CREATE OR REPLACE VIEW zssm_workstepstatusactive_v AS
 SELECT v.*,zssm_checkmatampel (v.zssm_workstep_v_id) as image,v.zssm_workstep_v_id as zssm_workstepstatusactive_v_id from    zssm_workstep_v  v where v.iscomplete ='N'  and v.assembly='Y' and v.istaskcancelled='N' and v.taskbegun ='Y' and v.zssm_productionorder_v_id is not null;
+
+
+
+-- set the receiving locator the bom (all entries) to the given locator
+CREATE OR REPLACE FUNCTION zssm_workstep_v_set_bom_reclocator(p_pinstance_id character varying)
+  RETURNS void AS
+$BODY$ 
+DECLARE 
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+ 2012 Zimmermann_Software */
+v_Record_ID  VARCHAR;
+v_user_id    VARCHAR;
+v_ismanager  VARCHAR;
+v_message    VARCHAR := 'Success';
+v_currentstatus VARCHAR;
+v_count      NUMERIC;
+v_cur record;
+v_locator VARCHAR;
+BEGIN
+    --  Update AD_PInstance
+  PERFORM AD_UPDATE_PINSTANCE(p_PInstance_ID, NULL, 'Y', NULL, NULL) ;
+  SELECT i.Record_ID, i.AD_User_ID 
+  INTO v_Record_ID, v_user_id FROM AD_PINSTANCE i WHERE i.AD_PInstance_ID=p_PInstance_ID;
+  IF isempty(v_Record_ID) THEN
+     RAISE NOTICE '%=''%''','Pinstance not found-Using as RecordID', p_PInstance_ID;
+     v_Record_ID := p_PInstance_ID;
+     v_user_id := '0';
+  else 
+        FOR v_cur IN
+          (SELECT para.*
+           FROM ad_pinstance pi, ad_pinstance_Para para
+           WHERE 1=1
+            AND pi.ad_pinstance_ID = para.ad_pinstance_ID
+            AND pi.ad_pinstance_ID = p_pinstance_ID
+           ORDER BY para.SeqNo
+          )
+        LOOP
+          IF ( UPPER(v_cur.parametername) = UPPER('m_locator_id') ) THEN
+            v_locator := v_cur.p_string;
+          END IF;
+        END LOOP; -- Get Parameter
+  END IF;
+  
+  update zspm_projecttaskbom set receiving_locator = v_locator, updated=now(), updatedby = v_user_id where c_projecttask_id = v_Record_ID;
+  v_Message := '@zssm_workstep_v_set_bom_reclocator_success@';
+   
+  ---- <<FINISH_PROCESS>>
+  --  Update AD_PInstance
+  RAISE NOTICE '%','Updating PInstance - Finished ' || v_Message ;
+  PERFORM AD_UPDATE_PINSTANCE(p_PInstance_ID, NULL, 'N', 1, v_Message) ;
+  RETURN;
+EXCEPTION
+WHEN OTHERS THEN
+  v_message:= '@ERROR=' || SQLERRM;
+  RAISE NOTICE '%', v_message ;
+  PERFORM AD_UPDATE_PINSTANCE(p_PInstance_ID, NULL, 'N', 0, v_message) ;
+  RETURN;
+END ; 
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;

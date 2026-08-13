@@ -5763,11 +5763,13 @@ CREATE OR REPLACE FUNCTION pick_productionorder(pinstance_id character varying) 
     v_LineNo NUMERIC(10) := 0;
     v_description varchar;
     v_qty numeric;
+    v_qty_left numeric;
     v_qty_date timestamp without time zone;
     v_qty_destination_plan numeric;
     v_qty_date_destination timestamp without time zone;
     v_qtyneeded numeric;
     v_locator varchar(32);
+    cur_locator record;
     END_PROCESS BOOLEAN:=false;
   BEGIN
     --  Update AD_PInstance
@@ -5891,32 +5893,42 @@ CREATE OR REPLACE FUNCTION pick_productionorder(pinstance_id character varying) 
           if(v_qtyneeded < v_qty) then
             v_qty := v_qtyneeded;
           end if;
+          v_qty_left := v_qty; -- qty_left -> qty of needed stock - qty moved from one locator
           if(v_qty > 0) then
-            SELECT * INTO  v_MovementLine_ID FROM Ad_Sequence_Next('M_MovementLine', v_ClientID);
-            v_LineNo:=v_LineNo + 10;
-            -- use locator with most stock
-            -- and only use qtyonhand as maximum
-            select m_locator_id, case when qtyonhand < v_qty then qtyonhand else v_qty end into v_locator, v_qty from zssi_onhanqty
-                          where m_product_id=Cur_MovementLine.M_Product_ID
-                            and m_warehouse_id=v_warehouse
-                       order by qtyonhand desc limit 1;
-            if(v_locator is not null and v_qty > 0) then -- null -> no stock at all
-              INSERT
-              INTO M_MOVEMENTLINE
-                (
-                  M_MOVEMENTLINE_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE,
-                  CREATED, CREATEDBY, UPDATED, UPDATEDBY,
-                  M_MOVEMENT_ID, M_LOCATOR_ID, M_LOCATORTO_ID, M_PRODUCT_ID,
-                  LINE, MOVEMENTQTY, M_ATTRIBUTESETINSTANCE_ID
-                )
-                VALUES
-                (
-                  v_MovementLine_ID, v_ClientID, v_OrgID, 'Y',
-                  TO_DATE(NOW()), v_AD_User_ID, TO_DATE(NOW()), v_AD_User_ID,
-                  v_Record_ID, v_locator, Cur_MovementLine.receiving_locator, Cur_MovementLine.M_Product_ID,
-                  v_LineNo, v_qty, Cur_MovementLine.M_ATTRIBUTESETINSTANCE_ID
-                );
-            end if;
+            -- loop all available locators starting with the smallest stock. Clear locators until needed qty is met or no more stock is available
+            -- for when a product is stocked in multiple locators
+            for cur_locator in (select * from zssi_onhanqty
+                                 where m_product_id=Cur_MovementLine.M_Product_ID
+                                   and m_warehouse_id=v_warehouse
+                                 order by qtyonhand asc)
+            loop
+              v_locator := cur_locator.m_locator_id;
+              v_qty := case when cur_locator.qtyonhand < v_qty_left then cur_locator.qtyonhand else v_qty_left end;
+
+              if(v_locator is not null and v_qty > 0) then -- null -> no stock at all
+                SELECT * INTO  v_MovementLine_ID FROM Ad_Sequence_Next('M_MovementLine', v_ClientID);
+                v_LineNo:=v_LineNo + 10;
+                INSERT
+                INTO M_MOVEMENTLINE
+                  (
+                    M_MOVEMENTLINE_ID, AD_CLIENT_ID, AD_ORG_ID, ISACTIVE,
+                    CREATED, CREATEDBY, UPDATED, UPDATEDBY,
+                    M_MOVEMENT_ID, M_LOCATOR_ID, M_LOCATORTO_ID, M_PRODUCT_ID,
+                    LINE, MOVEMENTQTY, M_ATTRIBUTESETINSTANCE_ID
+                  )
+                  VALUES
+                  (
+                    v_MovementLine_ID, v_ClientID, v_OrgID, 'Y',
+                    TO_DATE(NOW()), v_AD_User_ID, TO_DATE(NOW()), v_AD_User_ID,
+                    v_Record_ID, v_locator, Cur_MovementLine.receiving_locator, Cur_MovementLine.M_Product_ID,
+                    v_LineNo, v_qty, Cur_MovementLine.M_ATTRIBUTESETINSTANCE_ID
+                  );
+              end if;
+              v_qty_left := v_qty_left - v_qty;
+              if(v_qty_left <= 0) then
+                exit; -- exit loop if no more stock is needed
+              end if;
+            end loop;
           end if;
         END LOOP;
     END IF;--END_PROCESS

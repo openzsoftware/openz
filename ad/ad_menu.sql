@@ -23,7 +23,7 @@
 103	0	0	Y	2009-11-25 19:40:14.921643	0	2009-11-25 19:40:14.921643	Conversion Rates	0	Define conversion rates to be used for currencies defined in the application.	N	W	116	\N	\N	\N	\N	\N	0
 104	0	0	Y	2009-11-25 19:40:14.927609	0	2009-11-25 19:40:14.927609	Fiscal Calendar	0	Create multiple fiscal calendars and periods for accounting purposes.	N	W	117	\N	\N	\N	\N	\N	0
 104D86591A99437D9DCAC01977DD4A0D	0	0	Y	2019-08-12 14:59:50.24023	100	2019-08-12 15:10:48.839462	Export BOM	100	\N	N	W	52EE03F3FFC14F1CA11386C7DB98E5A7	\N	\N	\N	\N	\N	0
-105	0	0	Y	2009-11-25 19:40:14.933594	0	2009-11-25 19:40:14.933594	Account Tree	0	Create and edit account elements and add them to your defined chart of accounts or account trees.	N	W	118	\N	\N	\N	\N	\N	0
+105	0	0	Y	2009-11-25 19:40:14.933594	0	2026-03-25 12:47:55.452323	Chart of Accounts	100	Create and edit account elements and add them to your defined chart of accounts or account trees.	N	W	118	\N	\N	\N	\N	\N	0
 106	0	0	Y	2009-11-25 19:40:14.939655	0	2009-11-25 19:40:14.939655	Account Combination	0	Create accounting combinations to be used in Openbravo's accounting process.	N	W	153	\N	\N	\N	\N	\N	0
 107	0	0	Y	2009-11-25 19:40:14.945591	0	2016-08-10 17:37:27.20373	Unit	100	Create units of measure and conversions rates to be applied to products.	N	W	120	\N	\N	\N	\N	\N	0
 108	0	0	Y	2009-11-25 19:40:14.95156	0	2009-11-25 19:40:14.95156	Location	0	Define addresses or service points of your organizations.	N	W	121	\N	\N	\N	\N	\N	0
@@ -292,7 +292,7 @@
 800105	0	0	Y	2009-11-25 19:40:16.728628	0	2009-11-25 19:40:16.728628	Month	0	Create and edit names of the month, assigning them to your quarterly and yearly calendar.	N	W	800019	\N	\N	\N	\N	\N	0
 800106	0	0	Y	2009-11-25 19:40:16.739758	0	2009-11-25 19:40:16.739758	Dimension	0	Define parameters to be used in making reports.	N	W	800020	\N	\N	\N	\N	\N	0
 800114	0	0	Y	2009-11-25 19:40:16.781725	0	2009-11-25 19:40:16.781725	Assets	0	Define assets owned by your company their amortization characteristics.	N	W	800027	\N	\N	\N	\N	\N	0
-800115	0	0	Y	2009-11-25 19:40:16.787727	0	2009-11-25 19:40:16.787727	Amortization	0	Create and edit amortization for a selected year.	N	W	800026	\N	\N	\N	\N	\N	0
+800115	0	0	Y	2009-11-25 19:40:16.787727	0	2026-03-20 11:09:59.003177	Depreciation	100	Create and edit amortization for a selected year.	N	W	800026	\N	\N	\N	\N	\N	0
 800117	0	0	Y	2009-11-25 19:40:16.793709	0	2009-11-25 19:40:16.793709	Price Adjustments	0	Create and edit price adjustments to be applied to business partners, products, or price lists.	N	W	800028	\N	\N	\N	\N	\N	0
 800121	0	0	Y	2009-11-25 19:40:16.811712	0	2010-09-27 08:40:06.178618	Production Management	100	Open a folder where you can create and edit your production process, production control, and analyze data.	Y	\N	\N	\N	\N	\N	\N	\N	DFC8AA991ADC45BA9CAB2A088B7D4980
 800123	0	0	N	2009-11-25 19:40:16.81767	0	2012-11-07 08:53:11.939876	Section	100	Edit the production area by dividing them into multiple sections.	N	W	800029	\N	\N	\N	\N	\N	C88636EED7994B7DB72237E5226564CF
@@ -352,7 +352,7 @@
 800254	0	0	Y	2009-11-25 19:40:17.334541	0	2009-11-25 19:40:17.334541	Transactions	0	Open a folder where you can create, edit, and add data to be used to complete a given transaction.	Y	\N	\N	\N	\N	\N	\N	\N	0
 800255	0	0	Y	2009-11-25 19:40:17.340651	0	2009-11-25 19:40:17.340651	Setup	0	Open a folder where you can define all information to be used in this module.	Y	\N	\N	\N	\N	\N	\N	\N	0
 800256	0	0	Y	2009-11-25 19:40:17.34657	0	2009-11-25 19:40:17.34657	Setup	0	Open a folder where you can define all information to be used in this module.	Y	\N	\N	\N	\N	\N	\N	\N	0
-800257	0	0	Y	2009-11-25 19:40:17.352827	0	2009-11-25 19:40:17.352827	Deprecated	0	Open a folder where you can find reports , windows, forma that are goign to be deprecated	Y	\N	\N	\N	\N	\N	\N	\N	0
+800257	0	0	Y	2009-11-25 19:40:17.352827	0	2026-03-20 11:27:56.494258	Deprecation	100	Open a folder where you can find reports , windows, forma that are goign to be deprecated	Y	\N	\N	\N	\N	\N	\N	\N	0
 800265	0	0	Y	2009-11-25 19:40:17.400756	0	2009-11-25 19:40:17.400756	Vendor Invoice Report	0	Report Invoice Vendor	N	R	\N	\N	\N	800180	\N	\N	0
 800266	0	0	Y	2009-11-25 19:40:17.40859	0	2009-11-25 19:40:17.40859	Purchase Dimensional Report	0	Purchase dimensional analyses	N	R	\N	\N	\N	800181	\N	\N	0
 800267	0	0	Y	2009-11-25 19:40:17.412747	0	2009-11-25 19:40:17.412747	Material Receipts Dimensional Report	0	Material receipt dimensional analyses	N	R	\N	\N	\N	800182	\N	\N	0

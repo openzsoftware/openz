@@ -239,16 +239,31 @@ public class ModelSQLGeneration {
 	            result.setData("Param" + prop.getProperty("ColumnName") + "_f", aux2);
         	}
         }
+        if(prop.getProperty("Template").equals("SQLFIELDDATE")) {
+            String aux2=vars.getRequestGlobalVariable("inpParam" + prop.getProperty("ColumnName") + "_f",
+                    tableSQL.getTabID() + "|param" + prop.getProperty("ColumnName") + "_f");
+            if (!aux.equals("")||!aux2.equals("")) {
+                if (aux.equals("")) aux="01-01-0001";
+                if (aux2.equals("")) aux2="01-01-9999";
+                String defaultstmt=prop.getProperty("DefaultValue");
+                filter.addElement(sqlFieldSearch(defaultstmt,tableSQL,vars,prop.getProperty("Template")));
+                filterParams.addElement("Param" + prop.getProperty("ColumnName"));
+                result.setData("Param" + prop.getProperty("ColumnName"), aux);
+                filterParams.addElement("Param" + prop.getProperty("ColumnName") + "_f");
+                result.setData("Param" + prop.getProperty("ColumnName") + "_f", aux2);
+            }
+        }
         // The filter is not applied if the parameter value is null or
         // parameter value is '%' for string references.
-        if (!aux.equals("")  && !isNumericSQLField(prop.getProperty("Template"))) {
+        if (!aux.equals("")  && !isNumericSQLField(prop.getProperty("Template")) && !prop.getProperty("Template").equals("SQLFIELDDATE")) {
           if (!aux.equals("%")
               || (!prop.getProperty("AD_Reference_ID").equals("10")
                   && !prop.getProperty("AD_Reference_ID").equals("14")
                   && !prop.getProperty("AD_Reference_ID").equals("34") 
                   && !prop.getProperty("AD_Reference_ID").equals("35"))) {
         	  tableSQL.isfilter=true;
-        	  if (prop.getProperty("Template").equals("SQLFIELD")) {
+              if (prop.getProperty("Template").equals("SQLFIELD")
+                  || prop.getProperty("Template").equals("SQLFIELDCHECKBOX")) {
         		  String defaultstmt=prop.getProperty("DefaultValue");		  
                   filter.addElement(sqlFieldSearch(defaultstmt,tableSQL,vars,prop.getProperty("Template")));
         	  } else
@@ -262,7 +277,7 @@ public class ModelSQLGeneration {
           }
         }
         if ((Utility.isDecimalNumber(adRefId) || Utility.isIntegerNumber(adRefId)
-            || Utility.isDateTime(adRefId)) && !isNumericSQLField(prop.getProperty("Template"))) {
+            || Utility.isDateTime(adRefId)) && !isNumericSQLField(prop.getProperty("Template")) && !prop.getProperty("Template").equals("SQLFIELDDATE")) {
           if (Utility.isDateTime(adRefId))
         	  aux = vars.getDateParameterGlobalVariable("inpParam" + prop.getProperty("ColumnName") + "_f",
                       tableSQL.getTabID() + "|param" + prop.getProperty("ColumnName") + "_f",conn);
@@ -306,15 +321,30 @@ public class ModelSQLGeneration {
 	            result.setData("Param" + prop.getProperty("ColumnName") + "_f", aux2);
         	}
         }
+        if(prop.getProperty("Template").equals("SQLFIELDDATE")) {
+            String aux2=vars.getRequestGlobalVariable("inpParam" + prop.getProperty("ColumnName") + "_f",
+                    tableSQL.getTabID() + "|param" + prop.getProperty("ColumnName") + "_f");
+            if (!aux.equals("")||!aux2.equals("")) {
+                if (aux.equals("")) aux="01-01-0001";
+                if (aux2.equals("")) aux2="01-01-9999";
+                String defaultstmt=prop.getProperty("DefaultValue");
+                filter.addElement(sqlFieldSearch(defaultstmt,tableSQL,vars,prop.getProperty("Template")));
+                filterParams.addElement("Param" + prop.getProperty("ColumnName"));
+                result.setData("Param" + prop.getProperty("ColumnName"), aux);
+                filterParams.addElement("Param" + prop.getProperty("ColumnName") + "_f");
+                result.setData("Param" + prop.getProperty("ColumnName") + "_f", aux2);
+            }
+        }
         // The filter is not applied if the parameter value is null or
         // parameter value is '%' for string references.
-        if (!aux.equals("") && !isNumericSQLField(prop.getProperty("Template"))) {
+        if (!aux.equals("") && !isNumericSQLField(prop.getProperty("Template")) && !prop.getProperty("Template").equals("SQLFIELDDATE")) {
           if (!aux.equals("%")
               || (!prop.getProperty("AD_Reference_ID").equals("10")
                   && !prop.getProperty("AD_Reference_ID").equals("14") && !prop.getProperty(
                   "AD_Reference_ID").equals("34"))) {
         	  tableSQL.isfilter=true;
-        	  if (prop.getProperty("Template").equals("SQLFIELD")) {
+              if (prop.getProperty("Template").equals("SQLFIELD")
+                  || prop.getProperty("Template").equals("SQLFIELDCHECKBOX")) {
         		  String defaultstmt=prop.getProperty("DefaultValue");		  
                   filter.addElement(sqlFieldSearch(defaultstmt,tableSQL,vars,prop.getProperty("Template")));
         	  } else
@@ -328,7 +358,7 @@ public class ModelSQLGeneration {
         }
         final String adRefId = prop.getProperty("AD_Reference_ID");
         if ((Utility.isDecimalNumber(adRefId) || Utility.isIntegerNumber(adRefId)
-            || Utility.isDateTime(adRefId))  && !isNumericSQLField(prop.getProperty("Template"))){
+            || Utility.isDateTime(adRefId))  && !isNumericSQLField(prop.getProperty("Template")) && !prop.getProperty("Template").equals("SQLFIELDDATE")){
           aux = vars.getSessionValue(tableSQL.getTabID() + "|param"
               + prop.getProperty("ColumnName") + "_f");
           if (!aux.equals("")) {
@@ -345,14 +375,21 @@ public class ModelSQLGeneration {
   }
  private static String sqlFieldSearch(String _defaultstmt, TableSQLData tableSQL,VariablesSecureApp vars,String _template) {
 	 String defaultstmt=_defaultstmt;
-	 if (defaultstmt.startsWith("@SQL=select ") && _template.equals("SQLFIELD")) {
+	 if (defaultstmt.startsWith("@SQL=select ")
+             && (_template.equals("SQLFIELD")
+                 || _template.equals("SQLFIELDCHECKBOX"))) {
 		  defaultstmt=Replace.replace(defaultstmt, "@SQL=select ","select upper(");
 		  defaultstmt=Replace.replace(defaultstmt, " as ",") as ");
 	  } else
 		  defaultstmt=Replace.replace(defaultstmt, "@SQL=",""); 
      defaultstmt=Replace.replace(defaultstmt, "@" + tableSQL.primaryKey.toLowerCase() + "@" ,tableSQL.getTableName()+"."+ tableSQL.primaryKey.toLowerCase());
-     if (_template.equals("SQLFIELD"))
+     if (_template.equals("SQLFIELD")
+         || _template.equals("SQLFIELDCHECKBOX"))
     	 defaultstmt="(" + defaultstmt + ") like upper(?)";
+     else if(_template.equals("SQLFIELDDATE")) {
+         String datformat = vars.getSessionValue("#AD_SqlDateFormat");
+         defaultstmt="to_date((" + defaultstmt + ")) between to_date(?,'"+datformat+"') and to_date(?,'"+datformat+"')";
+     }
      else // Numeric Types of SQL Field
     	 defaultstmt="(" + defaultstmt + ") between to_number(?) and to_number(?) ";
     	 //defaultstmt=defaultstmt;

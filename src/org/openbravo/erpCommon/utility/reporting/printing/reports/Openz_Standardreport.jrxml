@@ -2359,15 +2359,13 @@ AND M_INOUT.M_INOUT_ID IN ($P{DOCUMENT_ID})]]>
 					<textFieldExpression><![CDATA[$F{contact} == null ? "" : $F{contact}.equals($F{shipment_contactname})? "" :$F{contact}]]></textFieldExpression>
 				</textField>
 			</frame>
-			<componentElement>
-				<reportElement x="300" y="272" width="215" height="30" uuid="5149724f-1c24-4417-a86c-821b79a253af">
-					<property name="com.jaspersoft.studio.unit.barWidth" value="px"/>
+			<image scaleImage="FillFrame" hAlign="Center">
+				<reportElement x="376" y="250" width="60" height="60" uuid="d2c51273-a140-462c-b819-793979786daa">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
 					<printWhenExpression><![CDATA[Boolean.valueOf($F{barcode}.length()>0)]]></printWhenExpression>
 				</reportElement>
-				<jr:barbecue xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" type="Code39" drawText="false" checksumRequired="false">
-					<jr:codeExpression><![CDATA[$F{barcode}]]></jr:codeExpression>
-				</jr:barbecue>
-			</componentElement>
+				<imageExpression><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(new com.google.zxing.qrcode.QRCodeWriter().encode($F{barcode},com.google.zxing.BarcodeFormat.QR_CODE,300,300))]]></imageExpression>
+			</image>
 		</band>
 	</title>
 	<pageHeader>

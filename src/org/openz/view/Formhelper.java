@@ -224,6 +224,14 @@ public class Formhelper{
         data[i].template="DONOTGENERATE";
       // Used for Buscador
       if (isBuscador && ! data[i].template.equals("DONOTGENERATE")){
+          if(data[i].template.equals("SQLFIELDCHECKBOX")) {
+              // overwrite template for checkbox search field
+              // set it to yes/no box
+              data[i].template = "REFCOMBO";
+              data[i].fieldreference = "47209D76F3EE4B6D84222C5BDF170AA2"; // Yes/No search box
+          } else if(data[i].template.equals("SQLFIELDDATE")) {
+              data[i].template = "DATE";
+          }
         String value=vars.getSessionValue(buscadorTabId + "|param" + data[i].name);
         if (data[i].template.equals("TEXT") && value.isEmpty())
           value="%";
@@ -435,6 +443,14 @@ public class Formhelper{
         fieldvalue1=FormDisplayLogic.getSQLField(servlet,vars,data[i].adRefFieldcolumnId,idValue,keyFieldname);
         strTableCells=strTableCells.append(ConfigureTextbox.doConfigure(servlet,vars,script,Sqlc.TransformaNombreColumna(data[i].name),Integer.parseInt(data[i].leadingemptycols), Integer.parseInt(data[i].colstotal),Integer.parseInt(data[i].maxlength),required, true, onchangeevent ,fieldvalue1,tooltip,textelement, datastyle,isListBased));
       }
+      if (data[i].template.equals("SQLFIELDCHECKBOX") && ! isBuscador){
+        fieldvalue1=FormDisplayLogic.getSQLField(servlet,vars,data[i].adRefFieldcolumnId,idValue,keyFieldname);
+        strTableCells=strTableCells.append(ConfigureCheckbox.doConfigure(servlet,vars,script,Sqlc.TransformaNombreColumna(data[i].name), Integer.parseInt(data[i].leadingemptycols), Integer.parseInt(data[i].colstotal),  onchangeevent, "Y", fieldvalue1.equals("Y") ? true : false, true, tooltip,textelement,isListBased));
+      }
+      if (data[i].template.equals("SQLFIELDDATE") && ! isBuscador){
+          fieldvalue1=FormDisplayLogic.getSQLDateField(servlet,vars,data[i].adRefFieldcolumnId,idValue,keyFieldname);
+          strTableCells=strTableCells.append(ConfigureDatebox.doConfigure(servlet, vars,script, Sqlc.TransformaNombreColumna(data[i].name),Integer.parseInt(data[i].leadingemptycols), Integer.parseInt(data[i].colstotal), required, true,  fieldvalue1, onchangeevent,tooltip,textelement,datastyle,isListBased));
+        }
       if (data[i].template.equals("PASSWORDTEXT")){
         strTableCells=strTableCells.append(ConfigureTextboxPwd.doConfigure(servlet,vars,script,Sqlc.TransformaNombreColumna(data[i].name),Integer.parseInt(data[i].leadingemptycols), Integer.parseInt(data[i].colstotal),Integer.parseInt(data[i].maxlength),required, readonly, onchangeevent ,fieldvalue1,tooltip,textelement));
       }

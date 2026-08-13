@@ -830,6 +830,9 @@ DECLARE
   v_prj varchar;
   v_task varchar;
 BEGIN
+    if (select count(*) FROM information_schema.tables where table_name='ad_tempfilters')=0 then
+      return;
+    end if;
     for v_cur in (select columname,filtervalue from ad_tempfilters)
     LOOP
       if v_cur.columname='Workdate' then v_from:=v_cur.filtervalue; end if;

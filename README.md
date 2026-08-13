@@ -13,7 +13,7 @@ A full installation guide in German is available at [https://openz.de/wptsaentwi
 ### Requirements
 
 You will need to download and start the VirtualBox image from [https://sourceforge.net/projects/openz/files/VirtualAppliance/](https://sourceforge.net/projects/openz/files/VirtualAppliance/) to get a test database. Use the *.ova with the matching version number. 
-This is only needed once. The test database is located at ```/var/lib/postgresql/testcompany.sql```. Additionally an empty database without test data is located at ```/home/zisoft/openz/openz.sql```.
+This is only needed once. The database on the system is called ```openzdemo``` and can be exported using ```su - postgres``` and then ```pg_dump openzdemo > testcompany.sql```. Additionally an empty database for new live systems and without test data is located at ```/home/zisoft/openz/openz.sql```.
 
 
 - clone the repository

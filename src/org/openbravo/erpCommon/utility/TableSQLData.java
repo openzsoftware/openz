@@ -1574,6 +1574,10 @@ public  Vector<String> getOrderBySimpleFieldsString() {
 	          defaultstmt=defaultstmt.replaceAll("(?i)@" + primaryKey + "@" ,getTableName()+"."+ primaryKey);
 	       	  defaultstmt=FormDisplayLogic.tokenizeSQL(getPool(),vars,defaultstmt,"");
 	       	  defaultstmt="(" + defaultstmt + ")";
+              if(prop.getProperty("Template").equals("SQLFIELDDATE")) {
+                  String datformat = getVars().getSessionValue("#AD_SqlDateFormat");
+                  defaultstmt = "to_char(" + defaultstmt + ",'" + datformat + "')";
+              }
 	          addSelectField(defaultstmt, prop.getProperty("ColumnName"));
           }
         } else

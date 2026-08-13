@@ -230,6 +230,29 @@ public class FormDisplayLogic {
       return retval;
     }
     
+    public static String getSQLDateField(HttpSecureAppServlet servlet, VariablesSecureApp vars,String adFieldOREGColumnORFGColumnID, String IDValue, String keyFieldname) throws Exception  {
+        /* This Method can Complete a Firld Group wth dynamic Data in SQL Form
+         * It ececutes the following way:
+         * If an SQL-Default is set on a Field of TEMPLATE SQLField, it is executed and returned.
+         * Extra formating for SQLFIELDDATE
+         */
+        String retval="";
+        String defaultstmt=FormDisplayLogicData.fieldGetDefault(servlet, adFieldOREGColumnORFGColumnID);
+        if (defaultstmt.startsWith("@SQL=")){
+            defaultstmt=defaultstmt.replaceAll("(?i)@" + keyFieldname + "@", "'" + IDValue + "'") ;
+            //defaultstmt=Replace.replace(defaultstmt, "@" + keyFieldname.toLowerCase() + "@" , "'" + IDValue + "'");
+            defaultstmt = defaultstmt.replaceAll("@SQL=", "");
+            defaultstmt = "@SQL=select to_char((" + defaultstmt + "),'DD-MM-YYYY')";
+
+            String sql="";
+
+            sql=tokenizeSQL(servlet,vars,defaultstmt.substring(5, defaultstmt.length()),adFieldOREGColumnORFGColumnID);
+            retval=GenericFieldProviderData.getSQL(servlet,sql);
+            return retval;
+          }
+        return retval;
+      }
+
     public static String getSQLValueByStatement(HttpSecureAppServlet servlet, VariablesSecureApp vars,String statement, String IDValue, String keyFieldname) throws Exception  {
         /* This Method can Complete a Firld Group wth dynamic Data in SQL Form
          * It ececutes the following way:

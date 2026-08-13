@@ -1114,8 +1114,13 @@ public class CreateFrom extends HttpSecureAppServlet {
         if (! strDocTypeTargetId.equals("3CD24CAE0D074B8FA9918178780D50FB") && ! strDocTypeTargetId.equals("A4277AD679DF4DD8A9C2BB9F3C2F2C92") )
           data = CreateFromInvoiceData.selectFromPOUpdateSOTrx(conn, this, strClaves);
         // Creating Credit Memo 
-        if (strDocTypeTargetId.equals("3CD24CAE0D074B8FA9918178780D50FB") || strDocTypeTargetId.equals("A4277AD679DF4DD8A9C2BB9F3C2F2C92") )
-          data = CreateFromInvoiceData.selectLoopFromOrderCreditMemo(conn, this, strClaves);
+        if (strDocTypeTargetId.equals("3CD24CAE0D074B8FA9918178780D50FB") || strDocTypeTargetId.equals("A4277AD679DF4DD8A9C2BB9F3C2F2C92") ) {
+            data = CreateFromInvoiceData.selectLoopFromOrderCreditMemo(conn, this, strClaves);
+            // copy poreference from order linked in the copied invoiceline
+            if(data != null && data.length > 0) {
+                CreateFromInvoiceData.copyPoreferenceFromOrderline(conn, this, data[0].cOrderlineId, strKey);
+            }
+        }
       }
       if (data != null) {
         for (int i = 0; i < data.length; i++) {

@@ -574,4 +574,19 @@
     ]]></Sql>
     <Parameter name="cOrderLineId"/>
   </SqlMethod>
+  <SqlMethod name="copyPoreferenceFromOrderline" type="preparedStatement" connection="true" return="rowCount">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql><![CDATA[
+      UPDATE C_Invoice SET poreference = (
+          case when coalesce(poreference,'') = '' then
+              (select ord.poreference from c_order ord, c_orderline ordl where ord.c_order_id=ordl.c_order_id and ordl.c_orderline_id = ?)
+          else
+              poreference
+          end
+          )
+      where c_invoice_id = ?
+    ]]></Sql>
+    <Parameter name="cOrderlineId"/>
+    <Parameter name="cInvoiceId"/>
+  </SqlMethod>
 </SqlClass>

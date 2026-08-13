@@ -140,12 +140,15 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
                   datalines=GenerateMinoutmanualData.selectOptions(this, strBusinesspartnerId, strDateFrom, strDateTo,strdocno,strporeference, strcProjectId,strwh,strloc,orglist, strUserOrg,strProductId, strTypeOfProduct,strProductCategoryId,
                       stroptions,strCombineddelivery,strPartlydeliverable,strDateFormat,vars.getLanguage());
         	  } else {
-	              if (strCombineddelivery.equals("N")) {
+	              if (strCombineddelivery.equals("N") && strPartlydeliverable.equals("N")) {
                       datalines=GenerateMinoutmanualData.select(this,strDateFormat,vars.getLanguage(),strPartlydeliverable, strdocno, strporeference, strcProjectId, strDateFrom, strDateTo, strBusinesspartnerId,
                           strTypeOfProduct,strProductCategoryId,strwh, orglist, strUserOrg, strIsSOtrx, strProductId,strOnlydeliverable, strloc);
-	              }else
+	              }else {
+	            	  myMessage=Utility.translateError(this, vars, vars.getLanguage(), "@COMBINEDDELREQUREDOPTION@");
+	                  vars.setMessage(this.getClass().getName(), myMessage);	                  
                       datalines=GenerateMinoutmanualData.selectCombined(this,strDateFormat,strPartlydeliverable, vars.getLanguage(),strdocno,strporeference,strcProjectId, strDateFrom, strDateTo, strBusinesspartnerId,
                           strTypeOfProduct,strProductCategoryId,strwh, orglist, strUserOrg, strIsSOtrx, strProductId,strOnlydeliverable, strloc);
+	              }
         	  }
               strGrid1=grid.printGrid(this, vars, script, datalines);
           }
