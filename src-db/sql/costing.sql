@@ -1495,6 +1495,10 @@ BEGIN
        if v_cur.c_projecttask_id is null then
             EXIT;
        end if; 
+       if coalesce((select w.zerovalued from m_internal_consumptionline cl,m_locator l,m_warehouse w 
+           where cl.m_internal_consumptionline_id=v_cur.m_internal_consumptionline_id and cl.m_locator_id=l.m_locator_id and l.m_warehouse_id=w.m_warehouse_id),'N')='Y' then
+        EXIT;
+       end if;
        -- Get Cost of this Task itself
        select coalesce(actualcost,0), qty,qtyproduced,coalesce(materialcost,0) into v_costoftask,v_qty,v_qtyproduced,v_matcost from c_projecttask where c_projecttask_id=v_cur.c_projecttask_id;
        select returnquantity into v_openitems from pdc_PFeedbackUpperGrid(v_cur.c_projecttask_id,p_internalconsumption_id,null) where outtype='PROD' limit 1;
@@ -1616,6 +1620,10 @@ $BODY$ DECLARE
       LOOP
         FETCH v_cursor INTO v_cur_line;
         EXIT WHEN NOT FOUND;
+           if coalesce((select w.zerovalued from m_inoutline cl,m_locator l,m_warehouse w 
+              where cl.m_inoutline_id=coalesce(v_cur_line.m_inoutline_id,'') and cl.m_locator_id=l.m_locator_id and l.m_warehouse_id=w.m_warehouse_id),'N')='Y' then
+                 EXIT;
+           end if;
            -- Get Transction -Org and its Currency
            select c_currency_id into v_org_currency from ad_org_acctschema,c_acctschema where ad_org_acctschema.c_acctschema_id=c_acctschema.c_acctschema_id and ad_org_acctschema.ad_org_id=v_cur_line.ad_org_id;
            -- Get Current Values

@@ -1241,8 +1241,14 @@ SELECT
 	c_project.expenses AS expenses,
 	c_project.reopenproject AS reopenproject,
 	c_project.isapproved,
-  c_project.prpreference
+    c_project.prpreference,
+    c_project.state,
+    case when mm.zssm_productionorder_v_id is not null then 'Y' else 'N' end as materialmovement
 FROM c_project
+LEFT JOIN (
+    SELECT DISTINCT zssm_productionorder_v_id
+    FROM zspm_materialmovements_view
+) mm ON mm.zssm_productionorder_v_id = c_project.c_project_id
 WHERE c_project.projectcategory = 'PRO';
 
 CREATE OR REPLACE RULE zssm_productionorder_v_insert AS
@@ -1326,7 +1332,9 @@ INSERT INTO c_project (
 	machinecost,
 	expenses,
 	reopenproject,
-  prpreference,isapproved
+    prpreference,
+    isapproved,
+    state
   )
  VALUES (
 	NEW.zssm_productionorder_v_id,
@@ -1407,7 +1415,9 @@ INSERT INTO c_project (
 	NEW.machinecost,
 	NEW.expenses,
 	COALESCE(NEW.reopenproject, 'N'),
-  NEW.prpreference,new.isapproved);
+    NEW.prpreference,
+    new.isapproved,
+    new.state);
 
 CREATE OR REPLACE RULE zssm_productionorder_v_update AS
 ON UPDATE TO zssm_productionorder_v DO INSTEAD
@@ -1490,8 +1500,9 @@ UPDATE c_project SET
 	machinecost = NEW.machinecost,
 	expenses = NEW.expenses,
 	reopenproject = NEW.reopenproject,
-  prpreference = NEW.prpreference,
-  isapproved=new.isapproved
+    prpreference = NEW.prpreference,
+    isapproved = new.isapproved,
+    state = new.state
 WHERE
 	c_project.c_project_id = NEW.c_project_id;
 
