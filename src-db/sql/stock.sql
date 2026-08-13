@@ -2594,6 +2594,7 @@ $BODY$ DECLARE
     Cur_MoveLine RECORD;
     NextNo VARCHAR(32);
     v_stockedattribute varchar;
+    v_cost numeric;
   BEGIN
     --  Update AD_PInstance
     RAISE NOTICE '%','Updating PInstance - Processing ' || PInstance_ID ;
@@ -2712,6 +2713,11 @@ $BODY$ DECLARE
           END IF;
           -- SZ Update BOM of Project-Task if any to indicate that Material is fetched from stock
           if (Cur_MoveLine.c_projecttask_id is not null and v_type='I') then
+                if (select w.zerovalued from m_warehouse w, m_locator l where l.m_warehouse_id=w.m_warehouse_id and l.m_locator_id=Cur_MoveLine.m_locator_id)='N' then
+                  v_cost:=m_get_product_cost(Cur_MoveLine.m_product_id,to_date(now()),null,Cur_MoveLine.AD_Org_ID);
+                else
+                  v_cost:=0;
+                end if;
                 -- Produktion
                 if v_movementtype='P+' then
                     -- Update Produced Quantity
@@ -2732,7 +2738,7 @@ $BODY$ DECLARE
                     insert into zspm_projecttaskbom (zspm_projecttaskbom_id, c_projecttask_id,  ad_client_id, ad_org_id,createdby,updatedby, m_product_id, quantity, description,
                             actualcosamount,qtyreceived, date_plan,isreturnafteruse,m_locator_id,line)
                     values ( v_bom_id, Cur_MoveLine.c_projecttask_id, Cur_MoveLine.ad_client_id,Cur_MoveLine.ad_org_id,v_User, v_User, Cur_MoveLine.m_product_id,
-                            0, Cur_MoveLine.description,(m_get_product_cost(Cur_MoveLine.m_product_id, to_date(now()), null, Cur_MoveLine.ad_org_id) * (v_movqty*-1)),
+                            0, Cur_MoveLine.description,case when v_cost>0 then (v_cost*(qtyreceived-v_movqty)) else actualcosamount end,
                             v_movqty*-1,to_date(now()),case when v_count=1 then 'Y' else 'N' end,Cur_MoveLine.M_Locator_ID,
                             (select coalesce(max(line)+10,10) from zspm_projecttaskbom where c_projecttask_id=Cur_MoveLine.c_projecttask_id));
                 else -- update
@@ -2749,7 +2755,7 @@ $BODY$ DECLARE
 
                 if v_movementtype!='P+' then
                         update zspm_projecttaskbom set qtyreceived=qtyreceived-v_movqty,
-                                actualcosamount=(m_get_product_cost(Cur_MoveLine.m_product_id,to_date(now()),null,Cur_MoveLine.AD_Org_ID)*(qtyreceived-v_movqty)),
+                                actualcosamount=case when v_cost>0 then (v_cost*(qtyreceived-v_movqty)) else actualcosamount end,
                                 updated = now(), updatedby = v_User
                         where zspm_projecttaskbom_id=v_bom_id; 
                         --raise notice '%','--------------------------Ask Cost:'||(select to_char(sum(cost)) from m_costing where m_product_id=Cur_MoveLine.m_product_id);

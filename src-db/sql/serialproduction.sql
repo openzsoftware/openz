@@ -1243,12 +1243,8 @@ SELECT
 	c_project.isapproved,
     c_project.prpreference,
     c_project.state,
-    case when mm.zssm_productionorder_v_id is not null then 'Y' else 'N' end as materialmovement
+    case when (select count(*) from m_internal_consumptionline where c_project_id=c_project.c_project_id)>0 then 'Y' else 'N' end as materialmovement
 FROM c_project
-LEFT JOIN (
-    SELECT DISTINCT zssm_productionorder_v_id
-    FROM zspm_materialmovements_view
-) mm ON mm.zssm_productionorder_v_id = c_project.c_project_id
 WHERE c_project.projectcategory = 'PRO';
 
 CREATE OR REPLACE RULE zssm_productionorder_v_insert AS
