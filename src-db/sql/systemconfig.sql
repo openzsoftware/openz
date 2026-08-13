@@ -152,6 +152,10 @@ BEGIN
         PERFORM zsse_schedule('AlertProcess', '2', '10', now(), 'N'); --Einplanen des Prozess falls nicht vorhanden
     END IF;
     
+    IF((SELECT count(*) FROM ad_process_request where ad_process_id='15D5647D36AE49B89BB3CB2A7114197C')=0) then --Abfrage ob Prozess vorhanden
+        PERFORM zsse_schedule('zssm_updateproductionrequiredBG', '2', '5', now(), 'N'); --Einplanen des Prozess falls nicht vorhanden
+    END IF;
+
     IF((SELECT count(*) FROM ad_process_request where ad_process_id='800064')=0) then --Abfrage ob Prozess vorhanden
         INSERT INTO ad_process_request (ad_process_request_id, ad_client_id, createdby, updatedby, ad_org_id, ad_process_id, timing_option, channel)
         VALUES (get_uuid(), v_clientid, v_userid, v_userid, '0', '800064', 'I', 'Process Scheduler'); --Anlegen des Prozess falls nicht vorhanden
@@ -162,6 +166,8 @@ BEGIN
     
     update c_paymentterm set documentnote=name where documentnote is null;
     update c_paymentterm_trl set documentnote=name where documentnote is null;
+
+    update ad_system set tad_theme='OpenZCleanCSS';
     
     v_return:='Ersteinrichtung erfolgreich abgeschlossen';
     

@@ -41,6 +41,7 @@ public class XmlDocument implements XmlComponentValue {
   // document CHX (Change to
   // Hashtable of
   // XmlComponentValue
+  Vector<String> subrepnames=new Vector<String>();
   public boolean ignoreTranslation = false;
   // it store pairs of XmlComponentTemplate (key), XmlComponentValue (value)
 
@@ -179,7 +180,8 @@ public class XmlDocument implements XmlComponentValue {
     if (xmlDocument == null) {
       log4jXmlDocument.warn("Subdocument: " + subXmlDocumentName + " not found in "
           + xmlTemplate.strName);
-    }
+    } else
+    	subrepnames.add(subXmlDocumentName);
     xmlDocument.setData(dataName, data);
   }
 
@@ -293,8 +295,20 @@ public class XmlDocument implements XmlComponentValue {
     }
 
     final StringBuffer strPrint = xmlVectorValue.printStringBuffer();
-
-    return strPrint.toString();
+    String strSanitize=strPrint.toString();
+    if (strSanitize.startsWith("<div id=\"sectionDetail\"><option")) {
+    	strSanitize=strSanitize.replace("<div id=\"sectionDetail\"><option", "<option");
+    	strSanitize=strSanitize.substring(0, strSanitize.length() - 6);
+    }
+    if (subrepnames.size()>0) {
+    	for (int i=0; i<subrepnames.size(); i++) {
+    		if (strSanitize.contains("<DIV id=\"" + subrepnames.get(i) + "\"><option")) {
+    			strSanitize=strSanitize.replace("<DIV id=\"" + subrepnames.get(i) + "\"><option", "<option");
+    			strSanitize=strSanitize.replace("</option></DIV>","</option>");
+    		}
+    	}
+    }
+    return strSanitize;
   }
 
   /**

@@ -621,9 +621,16 @@ Direct call variant (overloaded)
     v_needbydate timestamp without time zone;
     v_lateststartdate timestamp without time zone;
     v_cur record;
+    v_product varchar;
+    v_qty numeric;
+    v_qtydone numeric;
+    v_qtyonhand numeric;
+    v_ampel varchar;
+    v_materialmovement varchar;
 BEGIN
     -- Call the Proc
-    delete from  zssm_productionrequireddates;
+    delete from zssm_productionrequireddates;
+    delete from zssm_productionorder_v_materialstatus;
     for v_cur in (select * from zssm_productionrequired_v)
     LOOP
         if v_cur.cause != 'STOCKMIN' then
@@ -641,6 +648,30 @@ BEGIN
         v_needbydate:=null;
         v_lateststartdate:=null;
     END LOOP;
+
+    FOR v_cur IN (SELECT * FROM Zssm_Productionorder_V WHERE isactive = 'Y' AND projectstatus <> 'CL') LOOP
+        select p_product_id, p_qty, p_qtydone, p_qtyonhand
+          into v_product, v_qty, v_qtydone, v_qtyonhand from zssm_getprodorderoutput(v_cur.Zssm_Productionorder_V_id);
+        select zssm_checkmatampel(v_cur.Zssm_Productionorder_V_id) into v_ampel;
+        select case when count(*)>0 then 'Y' else 'N' end into v_materialmovement from m_internal_consumptionline where c_project_id=v_cur.c_project_id;
+        -- cache material status for projects not completed
+        insert into zssm_productionorder_v_materialstatus (zssm_productionorder_v_materialstatus_id,
+                                                           c_project_id,
+                                                           p_product_id,
+                                                           p_qty,
+                                                           p_qtydone,
+                                                           p_qtyonhand,
+                                                           ampel,materialmovement)
+                                                    values(v_cur.Zssm_Productionorder_V_id,
+                                                           v_cur.Zssm_Productionorder_V_id,
+                                                           v_product,
+                                                           v_qty,
+                                                           v_qtydone,
+                                                           v_qtyonhand,
+                                                           v_ampel,v_materialmovement);
+
+    END LOOP;
+
     RETURN;
 END ; $BODY$
   LANGUAGE 'plpgsql' VOLATILE

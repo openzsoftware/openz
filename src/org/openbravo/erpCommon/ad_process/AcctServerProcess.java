@@ -36,8 +36,10 @@ import org.openbravo.model.ad.system.Client;
 import org.openbravo.scheduling.ProcessBundle;
 import org.openbravo.scheduling.ProcessContext;
 import org.openbravo.scheduling.ProcessLogger;
+import org.openbravo.scheduling.ProcessRunData;
 import org.openbravo.scheduling.ProcessBundle.Channel;
 import org.openbravo.service.db.DalBaseProcess;
+import org.openz.util.UtilsData;
 import org.openbravo.erpCommon.utility.OBError;
 
 
@@ -65,6 +67,10 @@ public class AcctServerProcess extends DalBaseProcess {
     connection = bundle.getConnection();
 
     VariablesSecureApp vars = bundle.getContext().toVars();
+    String pinstance = UtilsData.getUUID(connection);
+    if (bundle.getChannel() == Channel.DIRECT) {
+    	ProcessRunData.UpdateMonitorManual(connection, pinstance, vars.getUser(), vars.getOrg(), "800064", null, null);
+    }
     if (vars.getClient().equals(SYSTEM_CLIENT_ID)) {
       OBCriteria<Client> obc = OBDal.getInstance().createCriteria(Client.class);
       obc.add(Expression.not(Expression.eq(Client.PROPERTY_ID, SYSTEM_CLIENT_ID)));
@@ -86,6 +92,7 @@ public class AcctServerProcess extends DalBaseProcess {
     		msg.setType("Warning");
     		msg.setTitle("Fehler Buchungsprotokoll prüfen!");
     	}
+    	ProcessRunData.UpdateMonitorManual(connection, pinstance, vars.getUser(), vars.getOrg(), "800064", "SUC", msg.getMessage());
     	bundle.setResult(msg);
     }
   }

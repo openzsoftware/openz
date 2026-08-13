@@ -8263,14 +8263,13 @@ a.Menu_ToolBar_Button:active {
 }
 /*Custom Menu Advertising dh*/
 #childelF804E3071F464DC2B4BDF128DE2AC533 {
-    background-color: #274897 !important;
+    background-color: #eab843 !important;
     height: 36px !important;
     font-size: 18px;
     font-weight: bold !important;
 }
 #childelF804E3071F464DC2B4BDF128DE2AC533:hover {
-    background-color: #7891cb !important;
-    color:#ffffff!important;
+    background-color: #eab843 !important;
 
 }
 #childelCCA0371DB3404C2EA5A9C60316520306{
@@ -11657,9 +11656,42 @@ td.MessageBox_bg {
 	/* Hintergrund an Rundung anpassen */
 }
 
-/* Ausschluss: keine Rundung, wenn beide Klassen gesetzt sind */
-td.MessageBox_BottomTrans.MessageBox_bg {
+/* Kunden-Bugfix: MessageBox-Unterkante vollständig ausblenden. */
+.MessageBox_BottomLeft,
+.MessageBox_BottomTrans,
+.MessageBox_BottomRight,
+.MessageBox_Bottom {
 	display: none !important;
+}
+
+/* Links in Hinweis- und Warnmeldungen müssen bedienbar bleiben. */
+.MessageBox_TextDescription a {
+	position: relative !important;
+	z-index: 1 !important;
+	pointer-events: auto !important;
+}
+
+/* Kunden-Bugfix: Processing muss auch editierbare Grids abdecken. */
+.Main_Status_Processing_Container,
+#Processing_Container {
+	position: fixed !important;
+	inset: 0 !important;
+	width: 100vw !important;
+	height: 100vh !important;
+	z-index: 2147483647 !important;
+	background-color: rgba(0, 0, 0, 0.65) !important;
+	pointer-events: auto !important;
+}
+
+/* Kunden-Bugfix: Scrollposition und sichtbare Grid-Zeile synchron halten. */
+#grid,
+#grid * {
+	scrollbar-width: thin !important;
+}
+
+#grid *::-webkit-scrollbar {
+	width: 10px !important;
+	height: 10px !important;
 }
 
 /* OPENZND_HEADER_CLIP_FIX */

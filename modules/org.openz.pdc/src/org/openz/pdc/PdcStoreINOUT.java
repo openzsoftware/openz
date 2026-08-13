@@ -133,7 +133,15 @@ public class PdcStoreINOUT extends HttpSecureAppServlet {
             	  vars.setSessionValue("PDCSTATUSTEXT",Utility.messageBD(this, "cannotchangelocator",vars.getLanguage())+"\r\n"+barcode);    
         	  }
    
-          } else if (bctype.equals("PRODUCT")  && usecase.equals("FULL")) {
+          } else if (
+                  // barcode is PRODUCT and FULL
+                  (bctype.equals("PRODUCT") && usecase.equals("FULL"))
+                  // or barcode is KOMBI and FULL and serialnumber and batchnumber are empty
+               || (bctype.equals("KOMBI")
+                    && usecase.equals("FULL")
+                    && FormatUtils.isNix(bar.serialnumber)
+                    && FormatUtils.isNix(bar.lotnumber))
+               ) {
     		  String qty=bar.qty; 
     		// 	Erste Zeile mit Artikel, die noch nicht abgearbeitet ist finden, wenn alle Fertig, einfach erste Zeile mit Artikel
     		  String inoutLineId=PdcINOUTData.getInOutLinefromProduct(this, GlobalINOUTID, bcid); 

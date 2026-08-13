@@ -18,7 +18,7 @@
  ************************************************************************
 -->
 
-<SqlClass name="ProcessRunData" package="org.openbravo.scheduling">
+<SqlClass name="ProcessRunData" package="org.openbravo.scheduling" accessModifier="public">
    <SqlMethod name="select" type="preparedStatement" return="single">
       <SqlMethodComment></SqlMethodComment>
       <Sql><![CDATA[
@@ -73,5 +73,17 @@
       <Sql><![CDATA[
         update AD_Process_Run  set Status='ERR' where status ='PRC'
     ]]></Sql>
+   </SqlMethod>
+   <SqlMethod name="UpdateMonitorManual" type="preparedStatement" return="string">
+      <SqlMethodComment></SqlMethodComment>
+      <Sql><![CDATA[
+        select ad_update_processmonitor(?, ?, ?, ?,?,?) as retve from dual
+    ]]></Sql>
+    <Parameter name="RequestId"/>
+    <Parameter name="UserId"/>
+    <Parameter name="OrgId"/>
+    <Parameter name="ProcessId"/>
+    <Parameter name="pStatus"/>
+    <Parameter name="pMessage"/>
    </SqlMethod>
 </SqlClass>

@@ -56,6 +56,12 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
       
       // INIT by AD
       try{
+    	// Prevent Parallel Execution 
+	    while (getServletContext().getAttribute(this.getClass().getName() +"|isrunning")!= null &&
+	      		getServletContext().getAttribute(this.getClass().getName() +"|isrunning").equals("Y")) {
+	      	Thread.sleep(500);        	
+	    }
+      	getServletContext().setAttribute(this.getClass().getName() +"|isrunning", "Y");  
         if (vars.commandIn("FIND")||vars.commandIn("DEFAULT") ){
           if (vars.commandIn("FIND"))
             // New Filter defined: Remove old Session Vars
@@ -198,15 +204,16 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
 	           ordlineComplete=grid.getValue(this, vars, retval.elementAt(i), "completed");
 	           // In SEts Relevant BOM Product while Order is SET product... Product ID is only Filled by Option DELBYLOCATOR or DELBYPRIORITY
 	           mProductID=grid.getValue(this, vars, retval.elementAt(i), "m_product_id"); 
-               GenerateMinoutmanualData.insert(conn,this, 
-                  ordline,
-                  strOrderId,
-                  vars.getClient(), vars.getOrg(), vars.getUser(), vars.getUser(),
-                  ordlineQty,
-                  ordlineLocatorId,
-                  ordlineAttributesetId,
-                  ordlineComplete,
-                  pinstance,mProductID.equals("null")?null:mProductID); 
+	           if (GenerateMinoutmanualData.stillExpected(this,ordline).equals("Y")) 
+	               GenerateMinoutmanualData.insert(conn,this, 
+	                  ordline,
+	                  strOrderId,
+	                  vars.getClient(), vars.getOrg(), vars.getUser(), vars.getUser(),
+	                  ordlineQty,
+	                  ordlineLocatorId,
+	                  ordlineAttributesetId,
+	                  ordlineComplete,
+	                  pinstance,mProductID.equals("null")?null:mProductID); 
             } else { // Combined Delivery - is determined by Order in GRID / Exception DELBYLOCATOR: Combined is done with m_inout_create
             	ordline=retval.elementAt(i);
             	String strDateFormat = vars.getSessionValue("#AD_SqlDateFormat");
@@ -225,7 +232,8 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
             			if ((Double.parseDouble(toDo) + qty)>Double.parseDouble(ordlineQty))
             				toDo=Double.valueOf(Double.parseDouble(ordlineQty)-qty).toString();
             			qty=qty+Double.parseDouble(toDo);
-            			GenerateMinoutmanualData.insert(conn,this, 
+            			if (GenerateMinoutmanualData.stillExpected(this,datalines[ii].cOrderlineId).equals("Y")) 
+            				GenerateMinoutmanualData.insert(conn,this, 
             				  datalines[ii].cOrderlineId,
             				  datalines[ii].cOrderId,
   	                          vars.getClient(), vars.getOrg(), vars.getUser(), vars.getUser(),
@@ -267,10 +275,12 @@ public class GenerateMinoutmanual  extends HttpSecureAppServlet {
          response.sendRedirect(strDireccion + request.getServletPath());
          GenerateMinoutmanualData.deleteerror(this, pinstance);
        }
+       getServletContext().removeAttribute(this.getClass().getName() +"|isrunning");
       } 
       catch (Exception e) { 
         log4j.error("Error in : " + this.getClass().getName() +"\n" + e.getMessage());
         e.printStackTrace();
+        getServletContext().removeAttribute(this.getClass().getName() +"|isrunning");
         try {
             releaseRollbackConnection(conn);
         } catch (final Exception ignored) {

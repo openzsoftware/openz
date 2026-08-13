@@ -30,7 +30,6 @@
 746DD11482F84B1AB6011CA5CECE1016	0	0	Y	2019-05-23 14:09:55.354829	100	2019-06-17 09:13:48.151479	100	Address	\N	\N	7	org.openz.sysconfig.Address	80CC706C9EA546B08B370401B89B384E	\N
 7912B7E2CEF34B1FB0E36E5C85B0B6C9	0	0	Y	2019-05-23 14:10:43.274421	100	2019-05-23 14:10:43.274421	100	Acctschema	\N	\N	7	com.openz.sysconfig.Acctschema	80CC706C9EA546B08B370401B89B384E	\N
 7E95D1AFC96A4CAD8F22293B577FBC30	0	0	Y	2013-04-24 13:18:59.799578	100	2013-04-24 13:18:59.799578	100	InternalConsumption	\N	\N	7	org.openz.internallogistic.InternalConsumption	F2101ADEF06E45CAA2A50B714B738F61	\N
-800000	0	0	Y	2009-11-25 19:41:51.245435	0	2009-11-25 19:41:51.245435	0	In-Out Report	\N	\N	3	org.openbravo.erpCommon.ad_forms.InformeInOut	0	\N
 800002	0	0	N	2009-11-25 19:41:51.251401	0	2009-11-25 19:41:51.251401	0	Payments Selection (Bank)	\N	\N	1	org.openbravo.erpCommon.ad_forms.PaymentsSelectionBank	0	\N
 800007	0	0	Y	2009-11-25 19:41:51.263411	0	2009-11-25 19:41:51.263411	0	Background Process	Edit predefined processes made by the user.	\N	3	org.openbravo.erpCommon.ad_forms.BackgroundProcessList	0	\N
 800009	0	0	Y	2009-11-25 19:41:51.281486	0	2009-11-25 19:41:51.281486	0	Pending Goods Receipts	Edit existing goods receipts as requests are carried out.	\N	3	org.openbravo.erpCommon.ad_forms.MaterialReceiptPending	0	\N

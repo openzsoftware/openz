@@ -37,6 +37,7 @@
         AND P.AD_ORG_ID IN ('1') 
         AND P.ISACTIVE = 'Y' 
         AND P.projectcategory!='PRP'
+        AND case when (select coalesce(value,'Y')='N' from ad_preference where attribute='PROJECTSELECTORWITHPRODORDER' limit 1) then P.ProjectCategory not in ( 'B','C','PRO','PRP') else 1=1 end
         ORDER BY P.VALUE
 		)  B
 		WHERE 1=1
@@ -71,6 +72,7 @@
         AND P.AD_ORG_ID IN ('1') 
         AND P.ISACTIVE = 'Y' 
         AND P.projectcategory!='PRP'
+        AND case when (select coalesce(value,'Y')='N' from ad_preference where attribute='PROJECTSELECTORWITHPRODORDER' limit 1) then P.ProjectCategory not in ( 'B','C','PRO','PRP') else 1=1 end
         AND 1=1
 		) B
       ]]></Sql>     

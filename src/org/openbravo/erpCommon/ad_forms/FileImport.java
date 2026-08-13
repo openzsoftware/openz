@@ -274,6 +274,10 @@ public class FileImport extends HttpSecureAppServlet {
           String strAD_Org_ID = vars.getStringParameter("inpadOrgId");
           return FileImportData.i_import_erp2go_invoicing(this, uploadedFilePath,vars.getUser(), strAD_Org_ID,Delimiter);
       }
+      // MB Custom Import Time Feedback
+      if (strAdImpformatId.equals("D1267BAC318C40C8BE603CD6FDFE3B18")){ // TimeFeedback Import
+          return FileImportData.i_import_time_feedback(this, uploadedFilePath,vars.getUser(), ";");
+        }
 
       throw new ServletException ("Unsupported ImpformatId: " + strAdImpformatId);
   }

@@ -2734,11 +2734,11 @@ $BODY$ DECLARE
                     -- Look if this is a mashine, that schould be returned after consumption
                     select count(*) into v_count from snr_internal_consumptionline snl,snr_masterdata snr,ma_machine m where m.snr_masterdata_id=snr.snr_masterdata_id
                                                         and snl.serialnumber=snr.serialnumber and m.ismovedinprojects='Y' and snl.m_internal_consumptionline_id=Cur_MoveLine.M_Internal_ConsumptionLine_ID;
-                    --                                 
+                    --
                     insert into zspm_projecttaskbom (zspm_projecttaskbom_id, c_projecttask_id,  ad_client_id, ad_org_id,createdby,updatedby, m_product_id, quantity, description,
                             actualcosamount,qtyreceived, date_plan,isreturnafteruse,m_locator_id,line)
                     values ( v_bom_id, Cur_MoveLine.c_projecttask_id, Cur_MoveLine.ad_client_id,Cur_MoveLine.ad_org_id,v_User, v_User, Cur_MoveLine.m_product_id,
-                            0, Cur_MoveLine.description,case when v_cost>0 then (v_cost*(qtyreceived-v_movqty)) else actualcosamount end,
+                            0, Cur_MoveLine.description,case when v_cost>0 then (v_cost*v_movqty*-1) else 0 end,
                             v_movqty*-1,to_date(now()),case when v_count=1 then 'Y' else 'N' end,Cur_MoveLine.M_Locator_ID,
                             (select coalesce(max(line)+10,10) from zspm_projecttaskbom where c_projecttask_id=Cur_MoveLine.c_projecttask_id));
                 else -- update
@@ -5838,13 +5838,16 @@ CREATE OR REPLACE FUNCTION pick_productionorder(pinstance_id character varying) 
         LOOP
           -- planned materialmovement
           -- only take stock that is available and prevent negative stock
-          -- take minimum of estimated stock and subtract all planned positive material movements (purchase, ...)
+          -- take first estimated stock of dataset before (or same day) the planned productionorder and subtract all planned positive material movements (purchase, ...)
+          -- (multiple datasets on one day do not matter. they use the same estimated stock)
           select mrp_inoutplan_v.estimated_stock_qty, mrp_inoutplan_v.planneddate into v_qty, v_qty_date from mrp_inoutplan_v
            where mrp_inoutplan_v.m_product_id = Cur_MovementLine.M_Product_ID
              and coalesce(mrp_inoutplan_v.m_attributesetinstance_id,'') = coalesce(Cur_MovementLine.M_ATTRIBUTESETINSTANCE_ID,'')
              and mrp_inoutplan_v.m_warehouse_id = v_warehouse
-           order by mrp_inoutplan_v.estimated_stock_qty asc
+             and mrp_inoutplan_v.planneddate <= Cur_MovementLine.date_plan
+           order by mrp_inoutplan_v.planneddate desc
            limit 1;
+
           if(v_qty is not null and v_qty > 0) then
             v_qty = v_qty -
               (select coalesce(sum(mrp_inoutplan_v.movementqty),0) from mrp_inoutplan_v
@@ -5852,7 +5855,7 @@ CREATE OR REPLACE FUNCTION pick_productionorder(pinstance_id character varying) 
                   and coalesce(mrp_inoutplan_v.m_attributesetinstance_id,'') = coalesce(Cur_MovementLine.M_ATTRIBUTESETINSTANCE_ID,'')
                   and mrp_inoutplan_v.m_warehouse_id = v_warehouse
                   and mrp_inoutplan_v.movementqty > 0
-                  and mrp_inoutplan_v.planneddate < v_qty_date);
+                  and mrp_inoutplan_v.planneddate <= v_qty_date); -- can also be the same data set as the first query if the only one is a purchase order
           end if;
           -- edge case no planned materialmovement, use stock
           if(v_qty is null) then
@@ -5878,8 +5881,7 @@ CREATE OR REPLACE FUNCTION pick_productionorder(pinstance_id character varying) 
                  and coalesce(mrp_inoutplan_v.m_attributesetinstance_id,'') = coalesce(Cur_MovementLine.M_ATTRIBUTESETINSTANCE_ID,'')
                  and mrp_inoutplan_v.m_warehouse_id = (select m_locator.m_warehouse_id from m_locator where m_locator.m_locator_id = Cur_MovementLine.receiving_locator)
                  and mrp_inoutplan_v.movementqty > 0
-                 and mrp_inoutplan_v.planneddate < v_qty_date_destination);
-
+                 and mrp_inoutplan_v.planneddate <= v_qty_date_destination);
           -- enough planned stock at destination -> no movement needed
           if(v_qty_destination_plan >= 0) then
             v_qtyneeded := 0;

@@ -76,4 +76,14 @@
       <SqlMethodComment></SqlMethodComment>
       <Sql></Sql>
   </SqlMethod>
+  <SqlMethod name="isConsignmentWH" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+        SELECT zerovalued from m_warehouse where m_warehouse_id=?
+        union
+        SELECT 'N' as zerovalued from dual
+        order by zerovalued desc limit 1
+    </Sql>
+    <Parameter name="warehouse"/>
+  </SqlMethod>
 </SqlClass>

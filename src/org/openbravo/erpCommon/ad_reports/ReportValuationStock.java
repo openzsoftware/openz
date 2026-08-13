@@ -47,7 +47,9 @@ public class ReportValuationStock extends HttpSecureAppServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException,
       ServletException {
     VariablesSecureApp vars = new VariablesSecureApp(request);
-
+    String strWh=vars.getStringParameter("inpmWarehouseId");
+    if (ReportValuationStockData.isConsignmentWH(this, strWh).equals("Y"))
+		throw new ServletException("@CONSIGNMENTHASNOVALUE@");
     // Get user Client's base currency
     String strUserCurrencyId = Utility.stringBaseCurrencyId(this, vars.getClient());
     if (vars.commandIn("DEFAULT", "RELATION")) {

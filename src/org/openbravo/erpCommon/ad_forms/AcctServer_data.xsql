@@ -176,7 +176,7 @@
     <SqlMethodComment></SqlMethodComment>
     <Sql>
       <![CDATA[
-        UPDATE DUAL SET Posted= ? ,Processing='N'
+        UPDATE DUAL SET Posted= ? ,Processing='N', updated=updated+interval '1 second'
         WHERE CLAVE_ID = ?
      ]]>
      </Sql>

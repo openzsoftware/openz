@@ -293,7 +293,7 @@ public class ReportGeneralLedgerJournal extends HttpSecureAppServlet {
 
         int intRecordRangeUsed;
         if (dataCountLines.length != acctEntries - 1) {
-          if (i == 2) {
+          if (i <= 2) {
             // The first entry is bigger than the predefined range
             intRecordRangeUsed = groupedLines[i - 1];
             acctEntries++;

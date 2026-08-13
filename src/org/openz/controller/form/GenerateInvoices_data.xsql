@@ -258,4 +258,13 @@ FROM (
     </Sql>
     <Parameter name="pInstanceId"/>
   </SqlMethod>
+  <SqlMethod name="stilltoInvoice" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      select  case when count(*)>0 then 'Y' else 'N' end as retbva from c_invoice_candidate_lines_v where c_orderline_id = ?
+    </Sql>
+    <Parameter name="corderLineId"/>
+  </SqlMethod>
+  
+  
   </SqlClass>

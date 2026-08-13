@@ -6595,10 +6595,35 @@ CREATE OR REPLACE FUNCTION c_order_requisition_restriction_trg ()
 RETURNS trigger AS $BODY$ 
 DECLARE
 	v_orderrequisitionrestriction character varying;
+	v_netamt numeric;
+	v_grossamt numeric;
+	v_netamtonetime numeric;
+	v_grossamtonetime numeric;
+	v_taxamt numeric;
+	v_taxamtonetime numeric;
 BEGIN
 IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
 END IF;
 if tg_op = 'UPDATE' then
+    -- New for 12301 -> Checking sums in the header
+    select coalesce((select sum(linenetamt) from c_orderline where isonetimeposition='N' and isoptional='N' and c_order_id=new.c_order_id),0) into v_netamt;
+    select coalesce((select sum(linegrossamt) from c_orderline where isonetimeposition='N' and isoptional='N' and c_order_id=new.c_order_id),0) into v_grossamt;
+    select coalesce((select sum(linenetamt) from c_orderline where isonetimeposition='Y' and isoptional='N' and c_order_id=new.c_order_id),0) into v_netamtonetime;
+    select coalesce((select sum(linegrossamt) from c_orderline where isonetimeposition='Y' and isoptional='N' and c_order_id=new.c_order_id),0) into v_grossamtonetime;
+    select coalesce((select sum(taxamt)  from C_OrderTax where isonetimeposition='N' and c_order_id=new.c_order_id),0) into v_taxamt;
+    select coalesce((select sum(taxamt)  from C_OrderTax where isonetimeposition='Y' and c_order_id=new.c_order_id),0) into v_taxamtonetime;
+    if (v_netamt>0 and v_netamt!=new.totallines) or (v_netamtonetime>0 and  v_netamtonetime!=new.totallinesonetime) then
+        new.totallines:=v_netamt;
+        new.totallinesonetime:=v_netamtonetime;
+        new.grandtotal:=v_taxamt+v_netamt;
+        new.grandtotalonetime:=v_taxamtonetime+v_netamtonetime;
+    end if;
+    if (v_grossamt>0 and v_grossamt!=new.grandtotal) or (v_grossamtonetime>0 and  v_grossamtonetime!=new.grandtotalonetime) then
+        new.grandtotal:=v_grossamt;
+        new.grandtotalonetime:=v_grossamtonetime;
+        new.totallines:=v_grossamt-v_taxamt;
+        new.totallinesonetime:=v_grossamtonetime-v_taxamtonetime;
+    end if;
 	select c_getconfigoption('orderrequisitionrestriction', new.ad_org_id) into v_orderrequisitionrestriction;
 	if(
 		coalesce(v_orderrequisitionrestriction, 'N') = 'Y' and

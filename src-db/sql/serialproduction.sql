@@ -181,6 +181,7 @@ SELECT
   prt.supply2vendor,
   prt.producecontinuously AS producecontinuously,
   prt.istestingworkstep AS istestingworkstep,
+  prt.feedbackfinished,
   (select string_agg(m.name,',') from ma_machine m,zspm_ptaskmachineplan mp where mp.ma_machine_id=m.ma_machine_id and mp.c_projecttask_id=prt.c_projecttask_id) as workplace,
   'N'::varchar as setbomlocatorbutton -- fixed value only used for button
 FROM c_projecttask prt, c_project prj
@@ -266,7 +267,8 @@ insert into c_projecttask (
   m_attributesetinstance_id,
   simplyfiedmanufacturing,
   producecontinuously,
-  istestingworkstep
+  istestingworkstep,
+  feedbackfinished
 )
 values (
   NEW.zssm_workstep_v_id,
@@ -340,7 +342,8 @@ values (
   NEW.m_attributesetinstance_id,
   NEW.simplyfiedmanufacturing,
   NEW.producecontinuously,
-  NEW.istestingworkstep
+  NEW.istestingworkstep,
+  NEW.feedbackfinished
 );
 
 create or replace rule zssm_workstep_v_update as
@@ -417,7 +420,8 @@ update c_projecttask set
   m_attributesetinstance_id=NEW.m_attributesetinstance_id,
   simplyfiedmanufacturing=NEW.simplyfiedmanufacturing,
   producecontinuously = NEW.producecontinuously,
-  istestingworkstep = NEW.istestingworkstep
+  istestingworkstep = NEW.istestingworkstep,
+  feedbackfinished = NEW.feedbackfinished
 where
   c_projecttask.c_projecttask_id = NEW.c_projecttask_id;
 
@@ -1243,8 +1247,14 @@ SELECT
 	c_project.isapproved,
     c_project.prpreference,
     c_project.state,
-    case when (select count(*) from m_internal_consumptionline where c_project_id=c_project.c_project_id)>0 then 'Y' else 'N' end as materialmovement
+    zssm_productionorder_v_materialstatus.materialmovement,
+    zssm_productionorder_v_materialstatus.p_product_id,
+    zssm_productionorder_v_materialstatus.p_qty,
+    zssm_productionorder_v_materialstatus.p_qtydone,
+    zssm_productionorder_v_materialstatus.p_qtyonhand,
+    zssm_productionorder_v_materialstatus.ampel
 FROM c_project
+LEFT JOIN zssm_productionorder_v_materialstatus on zssm_productionorder_v_materialstatus_id = c_project.c_project_id
 WHERE c_project.projectcategory = 'PRO';
 
 CREATE OR REPLACE RULE zssm_productionorder_v_insert AS

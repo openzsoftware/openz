@@ -557,7 +557,7 @@ BEGIN
                                            -- and planneddate<=v_scheddeliverydate and inouttrxtype not in ('IQ','OS','MS','SF');
         -- The System should Plan the greatest of all data or demand till next possible delivery
         v_correction:=0;
-        if   v_NeededQtyInTimeNOStock< v_neededQty_New then
+        if   v_NeededQtyInTimeNOStock < v_neededQty_New then
             -- Hier folgen Lieferungen noch am oder nach dem jetzt zu beliefernden Datum.
             -- Wir schauen, ob der Gesamtbedarf oder der im Zeitpunkt liegende Bedarf kleiner ist. Der kleinere wäre ggf. zu beschaffen.
             -- Eventuell müssen wir zu diesem Zeitpunkt wir auch an den Lagerbedarf denken und diesen auch beschaffen. So gleicht man auch z.B. spontane Lagerentnahmen aus.
@@ -573,8 +573,12 @@ BEGIN
                                              and coalesce(m_attributesetinstance_id,'')=coalesce(Cur_PlanProduct.m_attributesetinstance_id,'')
                                              and planneddate<=v_scheddeliverydate and inouttrxtype not in ('IQ','OS','MS','SF');
                                             -- raise exception '%',v_NeededQtyInTimeWITHStock||'#'||v_neededQty_New||'#'|| v_NeededQtyInFuture;
-                    select least(sum(qty),  v_NeededQtyInTimeWITHStock) into  v_neededQty_New from MRP_RUN_PURCHASELINE where MRP_RUN_PURCHASE_ID = p_Run_ID  and M_PRODUCT_ID=Cur_PlanProduct.M_PRODUCT_ID
-                                            and coalesce(m_attributesetinstance_id,'')=coalesce(Cur_PlanProduct.m_attributesetinstance_id,'');
+		            -- v_QtyStockMin ist negativ
+		            -- Wenn geplante Lagermenge noch über Mindestwert liegt, nicht neu berechnen
+		            if((v_NeededQtyInTimeWITHStock + v_QtyStockMin) < 0) then
+                        select least(sum(qty),  v_NeededQtyInTimeWITHStock) into  v_neededQty_New from MRP_RUN_PURCHASELINE where MRP_RUN_PURCHASE_ID = p_Run_ID  and M_PRODUCT_ID=Cur_PlanProduct.M_PRODUCT_ID
+                                                and coalesce(m_attributesetinstance_id,'')=coalesce(Cur_PlanProduct.m_attributesetinstance_id,'');
+                    end if;
             end if;        
         else 
              -- Nur wenn keine Folgenden Lieferungen sind, Optimalen Lagerbestand auffüllen

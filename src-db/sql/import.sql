@@ -1629,6 +1629,14 @@ END;
 $_$  LANGUAGE 'plpgsql';
 
 
+CREATE or replace FUNCTION  i_import_time_feedback(p_filename varchar,p_user varchar, p_delimiter varchar) RETURNS varchar
+AS $_$
+DECLARE
+BEGIN
+    return '';
+END;
+$_$  LANGUAGE 'plpgsql';
+
 -- abort import process with exception, when expected duration is longer than preference
 CREATE or replace FUNCTION i_checkimportduration(p_starttime timestamp with time zone, p_importedlines numeric, p_numoflines numeric) RETURNS varchar
 AS $_$

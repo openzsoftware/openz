@@ -1889,6 +1889,7 @@ $BODY$ DECLARE
           UPDATE C_BANKSTATEMENT
              SET PROCESSED = 'N',
                  PROCESSING = 'N',
+                 Updated=NOW(),
                  sepacollectioniscreated ='N'
           WHERE C_BANKSTATEMENT_ID = v_Record_ID;
           FINISH_PROCESS := true;
@@ -2193,7 +2194,7 @@ $BODY$ DECLARE
             SET StatementDifference=v_Total,
             EndingBalance=v_Total,
             Processed='Y',
-            Updated=TO_DATE(NOW()),
+            Updated=NOW(),
             Processing='N'
             WHERE C_BankStatement_ID=v_Record_ID;
         -- The following code is creating a settlenment before the real bank transaction is done
@@ -2397,18 +2398,27 @@ BEGIN
     select s.c_currency_id into v_glcurrency  from ad_org_acctschema o,c_acctschema s where o.ad_org_id=new.ad_org_id and o.c_acctschema_id=s.c_acctschema_id;
     -- Discount on Foreign Currency is not supported yet.
     -- if coalesce(new.discountamt,0)!=0 and (v_glcurrency!=new.c_currency_id or new.c_currency_id!=v_bankcurrency) then
-        --   raise exception '%','@DiscountonForeignCurrencyNotSupported@'; 
+        --   raise exception '%','@DiscountonForeignCurrencyNotSupported@';
     -- end if;
     -- Foreign Currency Convert
     -- Due to exiting structure we change the position here: Foreign Currency is in an extra field, Account Currency is the tranaction amt.
     -- in the field foreigncurrencyamt is the Account Currency filled in by the GUI, so the change is nbesessary here.
     --raise exception '%',new.c_currency_id||'-'||coalesce(v_bankcurrency,new.c_currency_id)||'-'||coalesce(new.foreigncurrencyamt,99999999)||coalesce(new.trxamt,1111111111);
     if new.c_currency_id!=v_bankcurrency then
-        new.foreigncurrency:=v_bankcurrency;
-        v_temp:=new.trxamt;
-        new.trxamt:=new.foreigncurrencyamt ;
-        new.foreigncurrencyamt:=v_temp;
-        new.foreigncurrencyrate:=abs(round(new.foreigncurrencyamt/new.trxamt,4));
+        if TG_OP = 'INSERT' then
+          new.foreigncurrency:=v_bankcurrency;
+          v_temp:=new.trxamt;
+          new.trxamt:=new.foreigncurrencyamt ;
+          new.foreigncurrencyamt:=v_temp;
+        end if;
+        -- Correction for changed dateacct (12234)
+        new.foreigncurrencyrate:=C_Currency_Rate(new.foreigncurrency, v_glcurrency, new.dateacct, 'S', new.ad_Client_ID, new.ad_Org_ID);
+        if v_isreceipt='Y' and new.trxamt!=c_currency_convert(coalesce(new.discountamt,0)+coalesce(new.foreigncurrencyamt,0),new.foreigncurrency,v_glcurrency,new.dateacct) then
+            new.trxamt=c_currency_convert(coalesce(new.discountamt,0)+coalesce(new.foreigncurrencyamt,0),new.foreigncurrency,v_glcurrency,new.dateacct);
+        end if;
+        if v_isreceipt='N' and new.trxamt!=c_currency_convert(coalesce(new.foreigncurrencyamt,0)-coalesce(new.discountamt,0),new.foreigncurrency,v_glcurrency,new.dateacct) then
+            new.trxamt=c_currency_convert(coalesce(new.foreigncurrencyamt,0)-coalesce(new.discountamt,0),new.foreigncurrency,v_glcurrency,new.dateacct);
+        end if;
     end if;
   END IF;
 
@@ -2439,6 +2449,17 @@ BEGIN
 
 
     IF TG_OP = 'UPDATE' THEN
+     -- 12320
+     if old.Processed='Y' and new.Processed='N' then
+      if (SELECT count(*)  FROM C_DEBT_PAYMENT d,c_bankstatementline l WHERE  l.c_bankstatementline_id=d.c_bankstatementline_id and l.c_bankstatement_id=new.c_bankstatement_id)
+            =
+            (select count(*) from c_bankstatementline where c_bankstatement_id=new.c_bankstatement_id)
+      then
+        --- already processed....
+        new.Processed:='Y';
+      end if;
+     end if;
+
      IF (old.Processed='Y'
         AND ((COALESCE(old.STATEMENTDATE, v_DateNull) <> COALESCE(new.STATEMENTDATE, v_DateNull))
         OR(COALESCE(old.C_BANKACCOUNT_ID, '0') <> COALESCE(new.C_BANKACCOUNT_ID, '0'))

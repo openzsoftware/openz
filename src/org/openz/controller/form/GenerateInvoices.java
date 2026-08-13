@@ -55,11 +55,17 @@ public class GenerateInvoices  extends HttpSecureAppServlet {
       String strIsSOtrx=vars.getSessionValue("issotrx");
       Scripthelper script= new Scripthelper();
       response.setContentType("text/html; charset=UTF-8");
-     
       OBError myMessage = new OBError();
       String stradorgid = vars.getGlobalVariable("inpadOrgId",this.getClass().getName() +"|AD_ORG_ID",vars.getOrg());
       // Query and GUI
-      try{ if (vars.commandIn("FIND")||vars.commandIn("DEFAULT") ){
+      try {
+    	// Prevent Parallel Execution 
+        while (getServletContext().getAttribute(this.getClass().getName() +"|isrunning")!= null &&
+          		getServletContext().getAttribute(this.getClass().getName() +"|isrunning").equals("Y")) {
+        	Thread.sleep(500);        	
+       }
+       getServletContext().setAttribute(this.getClass().getName() +"|isrunning", "Y");
+       if (vars.commandIn("FIND")||vars.commandIn("DEFAULT") ){
         //Delete the SessionVariables
     	  if (vars.commandIn("FIND"))
     	       removeSessionValues(vars);
@@ -77,12 +83,7 @@ public class GenerateInvoices  extends HttpSecureAppServlet {
         String strButtonFG="";
         //Initializing the Template Structure
         String strSkeleton=""; //Structure
-        String strOutput ="" ; //The html-code as Output
-        // Prevent Parallel Execution in same Session
-        while (vars.getSessionValue(this.getClass().getName() +"|isrunning").equals("Y")) {
-        	Thread.sleep(500);
-        }
-        vars.setSessionValue(this.getClass().getName() +"|isrunning","Y"); 
+        String strOutput ="" ; //The html-code as Output        
         EditableGrid grid = new EditableGrid("Generate Invoices Manual SO", vars, this);
         String strGrid1="";
         if (!(vars.commandIn("DEFAULT") && UtilsData.getOrgConfigOption(this, "alwaysfilterocreatetrxs", vars.getOrg()).equals("Y"))) {
@@ -143,8 +144,8 @@ public class GenerateInvoices  extends HttpSecureAppServlet {
        out.println(strOutput);
        out.close();
        
-      }       
-        if (vars.commandIn("SAVE")) {
+      }     
+        if (vars.commandIn("SAVE")) {        	
             conn= this.getTransactionConnection();
             EditableGrid grid = new EditableGrid("Generate Invoices Manual SO", vars, this);
                                 
@@ -177,8 +178,8 @@ public class GenerateInvoices  extends HttpSecureAppServlet {
                   ordlineIgnoreResDue="N";
               //variables insert
               String strCGenerateInvoicesmanualId = SequenceIdData.getUUID();
-                            
-                            GenerateInvoicesData.insert(conn,this, strCGenerateInvoicesmanualId,
+                  if  (GenerateInvoicesData.stilltoInvoice(this, orderline).equals("Y"))         
+                         GenerateInvoicesData.insert(conn,this, strCGenerateInvoicesmanualId,
                    	 	 orderline,
                 		 strOrderId,
                 		 vars.getClient(), stradorgid, vars.getUser(), vars.getUser(),
@@ -188,7 +189,7 @@ public class GenerateInvoices  extends HttpSecureAppServlet {
                 		 ordlineIgnoreResDue, 
                 		 ordlinemInoutlineId,
                 		 ordlineAttributes,
-                		 pinstance); 
+                		 pinstance);                 	  
             }   
             releaseCommitConnection(conn);
             
@@ -217,21 +218,17 @@ public class GenerateInvoices  extends HttpSecureAppServlet {
             response.sendRedirect(strDireccion + request.getServletPath());
             GenerateInvoicesData.deleteerror(this, pinstance);
           }
-
-      }
-        
+        getServletContext().removeAttribute(this.getClass().getName() +"|isrunning");
+      }       
       catch (Exception e) { 
         log4j.error("Error in : " + this.getClass().getName() +"\n" + e.getMessage());
         e.printStackTrace();
+        getServletContext().removeAttribute(this.getClass().getName() +"|isrunning");
         try {
             releaseRollbackConnection(conn);
-        } catch (final Exception ignored) {
-        }
-         throw new ServletException(e);
- 
-      } finally {
-    	  vars.removeSessionValue(this.getClass().getName() +"|isrunning");
-      }
+        } catch (final Exception ignored) {}
+         throw new ServletException(e); 
+      } 
 }
     
     private void removeSessionValues(VariablesSecureApp vars) { //Removing the Sessionvariables

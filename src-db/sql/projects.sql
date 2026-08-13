@@ -1091,6 +1091,11 @@ BEGIN
         new.expensesplan:=coalesce(v_expenseamt,0);
         new.externalserviceplan:=coalesce(v_extserviceamt,0);
         
+        -- when task complete, feedback finished. but can be overwritten manually
+        if(old.iscomplete = 'N' and new.iscomplete = 'Y') then
+            new.feedbackfinished := 'Y';
+        end if;
+        
       END IF;
       RETURN NEW;
   -- Deleting
@@ -4238,19 +4243,19 @@ BEGIN
             if v_revenue is null then v_revenue:=v_cur.invoicedamt; end if;
             if v_commited is null then v_commited:=v_cur.committedamt; end if;
             if v_cur.cost_type='S' then
-                v_IRRevCost:=round(coalesce(v_revenue,0)*v_IRevCostfact/100,2);
-                v_IPRevCost:=round(coalesce(v_commited,0)*v_IRevCostplan/100,2);
+                v_IRRevCost:=round(coalesce(v_IRRevCost,0) + (coalesce(v_revenue,0)*v_IRevCostfact/100),2);
+                v_IPRevCost:=round(coalesce(v_IPRevCost,0) + (coalesce(v_commited,0)*v_IRevCostplan/100),2);
                 --raise notice '%','S'||v_IPRevCost;
             end if;
             if v_cur.cost_type='M' then
-                v_IRMatCost:= round(coalesce(v_revenue,0)*v_IRevCostfact/100,2);
-                v_IPMatCost:= round(coalesce(v_commited,0)*v_IRevCostplan/100,2);
+                v_IRMatCost:= round(coalesce(v_IRMatCost,0) + (coalesce(v_revenue,0)*v_IRevCostfact/100),2);
+                v_IPMatCost:= round(coalesce(v_IPMatCost,0) + (coalesce(v_commited,0)*v_IRevCostplan/100),2);
                 v_inc4mat:='Y';
                 --raise notice '%','M'||v_IPMatCost;
             end if;
             if v_cur.cost_type='MA' then
-                v_IRMachCost:= round(coalesce(v_revenue,0)*v_IRevCostfact/100,2); 
-                v_IPMachCost:= round(coalesce(v_commited,0)*v_IRevCostplan/100,2); 
+                v_IRMachCost:= round(coalesce(v_IRMachCost,0) + (coalesce(v_revenue,0)*v_IRevCostfact/100),2);
+                v_IPMachCost:= round(coalesce(v_IPMachCost,0) + (coalesce(v_commited,0)*v_IRevCostplan/100),2);
                 v_inc4masch:='Y';
                 --raise notice '%','MA'||v_IPMachCost;
             end if;

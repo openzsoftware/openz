@@ -227,4 +227,12 @@
     </Sql>
     <Parameter name="pInstanceID"/>
   </SqlMethod>
+  <SqlMethod name="stillExpected" type="preparedStatement" return="string">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      select  case when count(*)>0 then 'Y' else 'N' end as retbva from m_inout_candidate_v where c_orderline_id = ?
+    </Sql>
+    <Parameter name="corderLineId"/>
+  </SqlMethod>
+  
   </SqlClass>

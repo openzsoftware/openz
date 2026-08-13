@@ -531,7 +531,7 @@ CREATE OR REPLACE FUNCTION fact_acct_reset(p_pinstance_id character varying) RET
             RAISE EXCEPTION '%', '@zspr_NoOpenPeriod@' ;
             return;
     end if;
-   
+
     --SZ: BUGFIX : Always RESET Accounting Entrys - Otherwise there is CAOS in the GL !
     -- Manual Accounting will not be resetted Automatically
     FOR Cur_Fact_Acct IN (
@@ -550,8 +550,8 @@ CREATE OR REPLACE FUNCTION fact_acct_reset(p_pinstance_id character varying) RET
         
         -- SZ Delete the FACTS
         select TableName into v_TableName FROM AD_Table  WHERE AD_Table_ID=Cur_Fact_Acct.ad_table_id;
-        v_Cmd:='UPDATE ' || v_TableName  || ' SET Posted=''N'', Processing=''N'' WHERE AD_Client_ID='''  || v_AD_Client_ID
-                || ''' AND (Posted<>''N'' OR Posted IS NULL OR Processing<>''N'' OR Processing IS NULL) AND '   ||
+        v_Cmd:='UPDATE ' || v_TableName  || ' SET Posted=''N'', updated=updated+interval ''1 second'',Processing=''N'' WHERE AD_Client_ID='''  || v_AD_Client_ID
+                || '''  AND '   ||
                 v_TableName||'_ID = '''||Cur_Fact_Acct.Record_ID||'''';
         -- DBMS_OUTPUT.PUT_LINE('  executing: ' || v_Cmd);
         EXECUTE v_Cmd;
@@ -566,6 +566,23 @@ CREATE OR REPLACE FUNCTION fact_acct_reset(p_pinstance_id character varying) RET
             v_Deleted:=v_Deleted + v_rowcount;
             RAISE NOTICE '%','  deleted=' || v_rowcount ; 
         END LOOP;
+    END LOOP;
+    -- Gebuchte Dokumente ohne Buchungssätze zurücksetzen
+    for Cur_Fact_Acct in (select c_invoice_id from c_invoice where totallines!=0 and posted='Y' and not exists (select 0 from fact_acct where record_id=c_invoice.c_invoice_id) and
+                          dateacct between v_datefrom and coalesce(v_dateto,to_date('01.01.9999','dd.mm.yyyy')))
+    LOOP
+        update c_invoice set posted='N', updated=updated+interval '1 second' where c_invoice_id=Cur_Fact_Acct.c_invoice_id;
+    END LOOP;
+    for Cur_Fact_Acct in (select c_settlement_id from c_settlement where  posted='Y' and not exists (select 0 from fact_acct where record_id=c_settlement.c_settlement_id) and
+                          dateacct between v_datefrom and coalesce(v_dateto,to_date('01.01.9999','dd.mm.yyyy')))
+    LOOP
+        update c_settlement set posted='N', updated=updated+interval '1 second' where c_settlement_id=Cur_Fact_Acct.c_settlement_id;
+    END LOOP;
+    for Cur_Fact_Acct in (select distinct b.c_bankstatement_id from c_bankstatementline l,c_bankstatement b
+                                  where  b.c_bankstatement_id=l.c_bankstatement_id and b.posted='Y' and not exists (select 0 from fact_acct where record_id=b.c_bankstatement_id) and
+                          l.dateacct between v_datefrom and coalesce(v_dateto,to_date('01.01.9999','dd.mm.yyyy')))
+    LOOP
+        update c_bankstatement set posted='N', updated=updated+interval '1 second'  where c_bankstatement_id=Cur_Fact_Acct.c_bankstatement_id;
     END LOOP;
     --
     -- Summary info
@@ -3316,7 +3333,8 @@ v_bstdate         timestamp without time zone;
 BEGIN
     for v_cur in (SELECT DISTINCT(C_DEBT_PAYMENT.C_INVOICE_ID) AS c_invoice_id FROM C_DEBT_PAYMENT WHERE  C_SETTLEMENT_CANCEL_ID= p_settlement_id OR C_SETTLEMENT_GENERATE_ID= p_settlement_id)
     LOOP
-      UPDATE C_INVOICE SET  OUTSTANDINGAMT=Q.OUTSTANDINGAMT,TOTALPAID=Q.TOTALPAID,WRITEOFFAMT=Q.WRITEOFFAMT,DISCOUNTAMT=Q.DISCOUNTAMT,ISPAID=Q.ISPAID, transactiondate=trunc(now()) FROM
+      UPDATE C_INVOICE SET  OUTSTANDINGAMT=Q.OUTSTANDINGAMT,TOTALPAID=Q.TOTALPAID,WRITEOFFAMT=Q.WRITEOFFAMT,DISCOUNTAMT=Q.DISCOUNTAMT,ISPAID=Q.ISPAID,
+                            transactiondate=case when Q.TOTALPAID=0 then null else trunc(now()) end FROM
                 (SELECT SUM(OPENAMT) AS OUTSTANDINGAMT,SUM(PAIDAMT) AS TOTALPAID,SUM(WRITEOFFAMT) AS WRITEOFFAMT, SUM(DISCOUNTAMT) AS DISCOUNTAMT, MAX(ISPAID) AS ISPAID FROM 
                         (SELECT 0 AS OPENAMT,SUM(AMOUNT) AS PAIDAMT,0 AS WRITEOFFAMT, 0 AS DISCOUNTAMT, ' ' AS ISPAID FROM C_DEBT_PAYMENT WHERE CANCEL_PROCESSED='Y' 
                                      AND ISPAID='Y' AND ISVALID='Y' AND C_INVOICE_ID = v_cur.C_INVOICE_ID

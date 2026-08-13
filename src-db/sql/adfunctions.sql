@@ -3648,6 +3648,40 @@ END ;
 $body$
 LANGUAGE 'plpgsql';
 
+
+CREATE OR REPLACE FUNCTION ad_update_processmonitor(p_request_id varchar, p_ad_user_id varchar, p_orgid varchar, p_processId varchar, p_status varchar,p_message varchar) RETURNS void
+    LANGUAGE plpgsql
+    AS $_$ DECLARE
+/***************************************************************************************************************************************************
+* The contents of this file are subject to the Openbravo  Public  License Version  1.0  (the  "License"),  being   the  Mozilla   Public  License
+* Version 1.1  with a permitted attribution clause; you may not  use this file except in compliance with the License. You  may  obtain  a copy of
+* the License at http://www.openbravo.com/legal/license.html. Software distributed under the License  is  distributed  on  an "AS IS"
+* basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the specific  language  governing  rights  and  limitations
+* under the License. The Original Code is Openbravo ERP.
+* The Initial Developer of the Original Code is Openbravo SL. Parts created by Openbravo are Copyright (C) 2001-2009 Openbravo SL
+* All Rights Reserved.
+* Contributor(s): Stefan Zimmermann, 07/2026, sz@openz.de (SZ) Contributions are Copyright (C) 2026 OpenZ Software GmbH
+*
+* Logging for Manual Executed Java Processes
+*
+****************************************************************************************************************************************************/
+v_count numeric;
+
+BEGIN
+  --
+  if isEmpty(p_request_id) then
+    return;
+  end if;
+  if (select count(*) from ad_process_request where ad_process_request_id=p_request_id)=0 then
+      insert into ad_process_request(ad_process_request_id, ad_client_id, ad_org_id, createdby, updatedby, ad_process_id, ad_user_id, isrolesecurity,status,channel)
+             values (p_request_id,'C726FEC915A54A0995C568555DA5BB3C',p_orgid,p_ad_user_id,p_ad_user_id,p_processId,p_ad_user_id,'Y','COM','Direct');
+      INSERT INTO AD_Process_Run (AD_Org_ID, AD_Client_ID, Createdby, Updatedby,  AD_Process_Run_ID, Status, Start_Time, AD_Process_Request_ID)
+        VALUES (p_orgid,'C726FEC915A54A0995C568555DA5BB3C',p_ad_user_id,p_ad_user_id,get_uuid(),'PRC',now(),p_request_id);
+  else
+    update AD_Process_Run set end_time=now(),runtime=now()-start_time,Status=p_status,log=p_message where AD_Process_Request_ID=p_request_id;
+  end if;
+END ; $_$;
+
 CREATE OR REPLACE FUNCTION ad_update_pinstance(p_pinstance_id character varying, p_ad_user_id character varying, p_isprocessing character, p_result numeric, p_message character varying) RETURNS void
     LANGUAGE plpgsql
     AS $_$ DECLARE 

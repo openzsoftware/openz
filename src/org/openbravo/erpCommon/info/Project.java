@@ -230,8 +230,8 @@ public class Project extends HttpSecureAppServlet {
 
     xmlDocument.setParameter("grid", "20");
     xmlDocument.setParameter("grid_Offset", "");
-    xmlDocument.setParameter("grid_SortCols", "1");
-    xmlDocument.setParameter("grid_SortDirs", "ASC");
+    xmlDocument.setParameter("grid_SortCols", "1,2");
+    xmlDocument.setParameter("grid_SortDirs", "ASC,DESC");
     xmlDocument.setParameter("grid_Default", "0");
     xmlDocument.setParameter("grid_IsMulti", isMulti ? "true" : "false");
 
