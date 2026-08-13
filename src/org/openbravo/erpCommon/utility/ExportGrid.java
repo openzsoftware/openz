@@ -152,7 +152,7 @@ public class ExportGrid extends HttpSecureAppServlet {
             new Vector<String>(), new Vector<String>(), 0, 0);
         if (log4j.isDebugEnabled())
           log4j.debug("SQL: " + strSQL);
-        ExecuteQuery execquery = new ExecuteQuery(this, strSQL, tableSQL.getParameterValues());
+        ExecuteQuery execquery = new ExecuteQuery(this, strSQL, tableSQL.getParameterValues(), strTabId, vars);
         data = execquery.select();
         if (!ignMaxRows)
         	if (data.length>Integer.parseInt(vars.getSessionValue("P|MAXEXCELROWS")))

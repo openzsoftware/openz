@@ -2507,8 +2507,8 @@ BEGIN
 
   --SPropagate SEPA-Bankdate to lines
   IF(TG_OP = 'UPDATE') THEN
-    if coalesce(new.sepapaintype,'NON')!='NON' and coalesce(new.sepabankdate,trunc(now()))!=coalesce(old.sepabankdate,trunc(now())) then
-        update c_bankstatementline set valutadate=new.sepabankdate,dateacct=new.sepabankdate where c_bankstatement_id=new.c_bankstatement_id;
+    if coalesce(new.sepabankdate,trunc(now()))!=coalesce(old.sepabankdate,trunc(now())) then
+        update c_bankstatementline set valutadate=coalesce(new.sepabankdate,trunc(now())),dateacct=coalesce(new.sepabankdate,trunc(now())) where c_bankstatement_id=new.c_bankstatement_id;
     end if;
     if new.ad_org_id!=old.ad_org_id then
          update c_bankstatementline set ad_org_id=new.ad_org_id where c_bankstatement_id=new.c_bankstatement_id;

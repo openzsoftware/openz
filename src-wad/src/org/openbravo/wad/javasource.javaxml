@@ -1271,6 +1271,11 @@ public class <PARAMETER_TMP id="class">Almacen</PARAMETER_TMP> extends HttpSecur
 		     if(type == 'I') {
 		       total = data.insert(con, this);
 		     } else {
+               //Check the version of the record we are saving is the one in DB
+		       if (<PARAMETER_TMP id="class">Almacen</PARAMETER_TMP>Data.getCurrentDBTimestamp(this, data.<KEY_TMP id="keyData">Almacen</KEY_TMP>).equals(
+                vars.getStringParameter("updatedTimestamp"))) {
+/*
+Error result of 12001
 		       // Check the version of the record we are saving is the one in DB
 		       // also check updatedTimestampAndId, if it matches the given id and timestamp is greater than timestamp string parameter (old DB value)
 		       // -> autosave occured and page was not refreshed
@@ -1285,6 +1290,7 @@ public class <PARAMETER_TMP id="class">Almacen</PARAMETER_TMP> extends HttpSecur
 		           }
 		       }
 		       if (<PARAMETER_TMP id="class">Almacen</PARAMETER_TMP>Data.getCurrentDBTimestamp(this, data.<KEY_TMP id="keyData">Almacen</KEY_TMP>).equals(timeToCompareTo)) {
+*/
                 total = data.update(con, this);
                } else {
                  myError.setMessage(Replace.replace(Replace.replace(Utility.messageBD(this,
@@ -1302,6 +1308,8 @@ public class <PARAMETER_TMP id="class">Almacen</PARAMETER_TMP> extends HttpSecur
           CrudOperations.UpdateCustomFields(tabId, data.<KEY_TMP id="keyData">Almacen</KEY_TMP>, vars, this,con);
           <PARAMETER_TMP id="paramManualServletSave">xx</PARAMETER_TMP>
            releaseCommitConnection(con);
+/*
+Error result of 12001
            // set sessionvalue for every save (only on success)
            // for autosave page is not reloaded but can be saved again with help of this sessionvalue (timestamp|dataset_id)
            if(myError.isEmpty()) {
@@ -1310,6 +1318,7 @@ public class <PARAMETER_TMP id="class">Almacen</PARAMETER_TMP> extends HttpSecur
                                     + "|"
                                     + data.<KEY_TMP id="keyData">Almacen</KEY_TMP>);
            }
+*/
         } catch(Exception ex) {
             OBError newError = Utility.translateError(this, vars, vars.getLanguage(), ex.getMessage());
             myError.setError(newError);   

@@ -449,6 +449,16 @@
     </Sql>
     <Parameter name="cKeyvalueId"/>
   </SqlMethod>
+  
+  <SqlMethod name="getBanktrxDate" type="preparedStatement" return="String">
+    <SqlMethodComment></SqlMethodComment>
+    <Sql>
+      <![CDATA[
+        select to_char(coalesce(sepabankdate,statementdate),'DD-MM-YYYY') as rv  from c_bankstatement where c_bankstatement_id = ?
+      ]]>
+    </Sql>
+    <Parameter name="cKeyvalueId"/>
+  </SqlMethod>
  
   <SqlMethod name="deleteMacctLineafterBST" connection="true" type="preparedStatement" return="rowCount">
     <SqlMethodComment></SqlMethodComment>

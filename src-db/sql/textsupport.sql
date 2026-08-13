@@ -2804,7 +2804,7 @@ BEGIN
     v_return:=v_return||zssi_getframecontracttext(p_docline_id, p_language , p_language2);
     v_return:=v_return||zssi_getpartialdeliverytext(p_docline_id, p_language , p_language2);
     v_return:=v_return||zssi_getsubscriptionfrequencetext(p_docline_id, p_language , p_language2);
-    v_return:=v_return||zspr_getproductprintouttext_userexit(p_docline_id, p_language, p_language2);
+    v_return:=zspr_getproductprintouttext_userexit(v_return, p_docline_id, p_language, p_language2);
     if v_desc>0 and substr(v_return,length(v_return)-4,5)!='<br/>' then v_return:=v_return||'<br/>'; end if;
     if (v_return='' or v_return='<br/>') then
         RETURN '';
@@ -2817,6 +2817,14 @@ LANGUAGE plpgsql VOLATILE
 COST 100;
 
 -- User Exit to zspr_getproductprintouttext
+CREATE or replace FUNCTION zspr_getproductprintouttext_userexit(p_return varchar, p_docline_id varchar, p_language varchar, p_language2 varchar) RETURNS varchar
+AS $_$
+DECLARE
+  BEGIN
+  RETURN coalesce(p_return,'')||zspr_getproductprintouttext_userexit(p_docline_id, p_language, p_language2);
+END;
+$_$  LANGUAGE 'plpgsql';
+-- User Exit to zspr_getproductprintouttext
 CREATE or replace FUNCTION zspr_getproductprintouttext_userexit(p_docline_id varchar, p_language varchar, p_language2 varchar) RETURNS varchar
 AS $_$
 DECLARE
@@ -2824,6 +2832,7 @@ DECLARE
   RETURN '';
 END;
 $_$  LANGUAGE 'plpgsql';
+
 
 CREATE OR REPLACE FUNCTION zssi_getsubscriptionfrequencetext(p_docline_id character varying, p_language character varying, p_language2 character varying) RETURNS character varying
 AS $_$

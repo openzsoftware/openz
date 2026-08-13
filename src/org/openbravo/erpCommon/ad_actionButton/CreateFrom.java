@@ -280,6 +280,7 @@ public class CreateFrom extends HttpSecureAppServlet {
     final String strCurrency = vars.getStringParameter("inpcCurrencyId");
     final String strCharge = vars.getStringParameter("inpCharge");
     final String strIsapproved = vars.getStringParameter("inpIsapproved");
+    strStatementDate=CreateFromBankData.getBanktrxDate(this, strKey);
     String strPlannedDate = vars.getDateParameter("inpplanneddate", this);
     if (!strPlannedDate.isEmpty()) 
     	strStatementDate=strPlannedDate;

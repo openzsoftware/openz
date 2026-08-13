@@ -31,7 +31,41 @@ $_$
   LANGUAGE 'plpgsql' VOLATILE
   COST 100;
 
-
+CREATE or replace FUNCTION zsdv_strDocDate(v_record character varying) RETURNS character varying
+AS $_$
+/***************************************************************************************************************************************************
+The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/MPL-1.1.html
+Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations under the License.
+The Original Code is OpenZ. The Initial Developer of the Original Code is Stefan Zimmermann (sz@zimmermann-software.de)
+Copyright (C) 2011 Stefan Zimmermann All Rights Reserved.
+Contributor(s): ______________________________________.
+***************************************************************************************************************************************************
+Ermittlung des Belegdatums
+*****************************************************/
+DECLARE
+-- Simple Types
+v_dat  character varying;
+v_pref varchar:='N';
+BEGIN
+   if (select count(*) from ad_preference where attribute='DATEVUSEDOCDATE' and value='Y')>0 then
+      v_pref:='Y';
+   end if;
+   if v_pref='Y' then
+      select to_char(dateinvoiced,'DDMM') into v_dat from c_invoice where c_invoice_id=v_record;
+      if v_dat is null then
+        select to_char(coalesce(sepabankdate,statementdate),'DDMM') into v_dat from c_bankstatement where c_bankstatement_id=v_record;
+      end if;
+   end if;
+   if v_dat is null then
+      select to_char(dateacct,'DDMM') into v_dat from fact_acct where record_id=v_record;
+   end if;
+  RETURN v_dat;
+END;
+$_$
+  LANGUAGE 'plpgsql' VOLATILE
+  COST 100;
 
 SELECT zsse_dropfunction('zsdv_insertDatevExport');
 CREATE OR REPLACE FUNCTION zsdv_insertDatevExport(p_OrgID character varying,p_DateFrom character varying, p_DateTo character varying, p_user character varying,p_exuid character varying,  p_complete  character varying, p_allnew character varying, p_DateLaterThan character varying)
@@ -290,7 +324,7 @@ BEGIN
                        and (p.c_settlement_cancel_id=s.c_settlement_id or p.c_settlement_generate_id=s.c_settlement_id) and i.c_invoice_id=p.c_invoice_id
                        and p.c_debt_payment_id=v_cur2.line_id;
                 if v_belegfeld1 is null then v_belegfeld1:=''; end if; if v_ziart3text is null then v_ziart3text:=''; end if; 
-                v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||zsdv_strDocDate(v_cur2.record_id)||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                 v_line:=v_line+1;
                 if v_satz is null then
                    raise exception '%','Datensatz ist NULL a: '||v_cur2.fact_acct_id;
@@ -322,7 +356,7 @@ BEGIN
                     v_shStz:=v_sollhaben;
                     v_korrektur:='';
                     v_uid:='';
-                    v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                    v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||zsdv_strDocDate(v_cur2.record_id)||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                     insert into ZSDV_Datev_ExportLines (ZSDV_Datev_ExportLines_id,ZSDV_DATEV_EXPORT_ID, AD_CLIENT_ID, AD_ORG_ID, CREATEDBY, UPDATEDBY, dateacct,fact_acct_group, lineno,export_data )
                         values(get_uuid(),p_exuid,v_client, p_OrgID,p_user,p_user,v_cur2.dateacct,v_cur2.fact_acct_group_id,v_line,v_satz);
                 end if;
@@ -381,7 +415,7 @@ BEGIN
                     v_shStz:=v_sollhaben;
                     v_korrektur:='';
                     v_uid:='';
-                    v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                    v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||zsdv_strDocDate(v_cur2.record_id)||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                     v_line:=v_line+1;
                     if v_satz is null then
                         raise exception '%','Datensatz ist NULL b: '||v_cur2.fact_acct_id;
@@ -482,7 +516,7 @@ BEGIN
                         v_shStz:=v_sollhaben;
                         v_korrektur:='';
                         v_uid:='';
-                        v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                        v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||zsdv_strDocDate(v_cur2.record_id)||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                         v_line:=v_line+1;
                         if v_satz is null then
                         raise exception '%','Datensatz ist NULL c: '||v_cur2.fact_acct_id;
@@ -547,7 +581,7 @@ BEGIN
                     v_shStz:=v_sollhaben;
                     v_korrektur:='';
                     v_uid:='';
-                    v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                    v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||zsdv_strDocDate(v_cur2.record_id)||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                     v_line:=v_line+1;
                     if v_satz is null then
                        raise exception '%','Datensatz ist NULL d: '||v_cur2.fact_acct_id;
@@ -639,7 +673,7 @@ BEGIN
                                     where  t.c_tax_id=v_cur2.c_tax_id and i.c_invoice_id=v_cur2.record_id;
                              end if;
                              if v_belegfeld1 is null then v_belegfeld1:=''; end if; if v_kost2 is null then v_kost2:=''; end if; if v_kost1 is null then v_kost1:=''; end if; if v_belegfeld2 is null then v_belegfeld2:=''; end if; if v_ziart3text is null then v_ziart3text:=''; end if; if v_ziart4text is null then v_ziart4text:=''; end if; if v_ziart5text is null then v_ziart5text:=''; end if; if v_ziart6text is null then v_ziart6text:=''; end if; 
-                             v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||coalesce(v_cur2.uidnumber,'')||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                             v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||zsdv_strDocDate(v_cur2.record_id)||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||coalesce(v_cur2.uidnumber,'')||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                              v_line:=v_line+1;
                              if v_satz is null then
                                 raise exception '%','Datensatz ist NULL UAZ: '||v_cur2.fact_acct_id;
@@ -842,7 +876,7 @@ BEGIN
                             end if;
                             --OLD v_satz:= ';'||v_source||';'||v_stramt||';'||v_korrektur||';'||v_dracct||';'||v_belegfeld1||';'||v_belegfeld2||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_cracct||';;;;0,00;'||v_desc||';'||v_uid||';0,00;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;';
                             v_shStz:=v_source;
-                            v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                            v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||zsdv_strDocDate(v_cur2.record_id)||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                             if v_satz is null then
                                 raise exception '%','Datensatz ist NULL e: '||v_cur2.fact_acct_id;
                             end if;
@@ -994,7 +1028,7 @@ BEGIN
                                     end if;
                                     --OLD v_satz:= ';'||v_xsource||';'||v_stramt||';'||v_korrektur||';'||v_dracct||';'||v_belegfeld1||';'||v_belegfeld2||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_cracct||';;;;0,00;'||v_desc||';'||v_uid||';0,00;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;';
                                     v_shStz:=v_xsource;
-                                    v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                                    v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||zsdv_strDocDate(v_cur2.record_id)||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                                     if v_satz is null then
                                         raise exception '%','Datensatz ist NULL e: '||v_cur2.fact_acct_id;
                                     end if;
@@ -1045,7 +1079,7 @@ BEGIN
                             end if;
                             --OLD v_satz:= ';'||v_source||';'||v_stramt||';'||v_korrektur||';'||v_dracct||';'||v_belegfeld1||';'||v_belegfeld2||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_cracct||';;;;0,00;'||v_desc||';'||v_uid||';0,00;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;';
                             v_shStz:=v_source;
-                            v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                            v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||zsdv_strDocDate(v_cur2.record_id)||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                             if v_satz is null then
                                 raise exception '%','Datensatz ist NULL ef: '||v_cur2.fact_acct_id;
                             end if;
@@ -1088,7 +1122,7 @@ BEGIN
                             --OLD v_satz:= ';'||v_sollhaben||';'||v_stramt||';;'||v_taxdracct||';;;'||to_char(v_cur2.dateacct,'DDMM')||';'||v_taxcracct||';;;;0,00;'||v_desc||';'||v_uid||';0,00;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;';
                             v_shStz:=v_sollhaben;
                             -- Be arware of TAX-ACCOUNTS!!!
-                            v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_taxcracct||';'||v_taxdracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                            v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_taxcracct||';'||v_taxdracct||';'||v_korrektur||';'||zsdv_strDocDate(v_cur2.record_id)||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                             if v_satz is null then
                                 raise exception '%','Datensatz ist NULL f: '||v_cur2.fact_acct_id||'-'||v_cur1.fact_acct_group_id;
                             end if;
@@ -1182,7 +1216,7 @@ BEGIN
                             -- Bei Umsätzen auf Umsatzkonten - Steuerschlüssel 40 (Automatikbuchung im Datev abschalten)
                             --OLD v_satz:= ';'||v_sollhaben||';'||v_stramt||';'||v_korrektur||';'||v_dracct||';'||v_belegfeld1||';'||v_belegfeld2||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_cracct||';;;;0,00;'||v_desc||';'||v_uid||';0,00;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;';
                             v_shStz:=v_sollhaben;
-                            v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||to_char(v_cur2.dateacct,'DDMM')||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
+                            v_satz:=v_stramt||';'||v_shStz||';'||v_wkzumsatz||';'||v_kurs_str||';'||v_basisumsatz_str||';'||v_wkzbasisumsatz||';'||v_cracct||';'||v_dracct||';'||v_korrektur||';'||zsdv_strDocDate(v_cur2.record_id)||';'||v_belegfeld1||';'||v_belegfeld2||';0,00;'||v_desc||';;;;;;;;;;;;;;;;;;;;;;;'||v_kost1||';'||v_kost2||';;'||v_uid||';0,00;;;;;;;'||v_ziart1||';'||v_ldesc||';'||v_ziart2||';'||v_ziart2text||';'||v_ziart3||';'||v_ziart3text||';'||v_ziart4||';'||v_ziart4text||';'||v_ziart5||';'||v_ziart5text||';'||v_ziart6||';'||v_ziart6text||';;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;'||v_fest||';;';
                             v_line:=v_line+1;
                             if v_satz is null then
                             raise exception '%','Datensatz ist NULL g: '||v_cur2.fact_acct_id;

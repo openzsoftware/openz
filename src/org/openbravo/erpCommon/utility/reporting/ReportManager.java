@@ -334,6 +334,13 @@ public class ReportManager {
       FormhelperData[] fhd = FormhelperData.select(_connectionProvider, refid);
       for (int i=0; i< fhd.length; i++) {
         String test=variables.getStringParameter("inp" + Sqlc.TransformaNombreColumna(fhd[i].name));
+        if(test.isEmpty()) {
+            // if the parameter is empty, check for sessionvalue with the same name
+            // this way you can pass arguments to the report with the help of a reference (with fieldgroup columns not displayed)
+            // for example the direct search parameters of a tab
+            test = variables.getSessionValue("inp" + Sqlc.TransformaNombreColumna(fhd[i].name));
+            variables.removeSessionValue("inp" + Sqlc.TransformaNombreColumna(fhd[i].name));
+        }
         designParameters.put(fhd[i].name.toUpperCase(),test);
       }
     } catch (final Exception e) {

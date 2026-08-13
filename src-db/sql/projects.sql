@@ -45,6 +45,7 @@ Hochdrehen der Sequenz -Erst bei echtem Abspeichen
 
 *****************************************************/
 v_isincremented BOOLEAN:=false;
+v_days INTEGER;
 BEGIN
     IF AD_isTriggerEnabled()='N' THEN IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF; 
     END IF; 
@@ -66,6 +67,15 @@ BEGIN
         if new.c_bpartner_location_id is not null and ((TG_OP = 'UPDATE' and new.c_bpartner_location_id!=coalesce(old.c_bpartner_location_id,'')) or TG_OP = 'INSERT') then
             select c_salesregion_id into new.c_salesregion_id from c_bpartner_location where c_bpartner_location_id=new.c_bpartner_location_id;
         end if;
+        IF NEW.startdate IS NOT NULL AND NEW.datefinish IS NOT NULL THEN
+          SELECT TO_NUMBER(value) INTO v_days  FROM ad_preference WHERE attribute = 'MAXPROJECTDAYS';
+          IF v_days IS NULL THEN
+            v_days := 1278;
+          END IF;
+          IF (NEW.datefinish::date - NEW.startdate::date) > v_days THEN
+            RAISE EXCEPTION '%', '@maxprojektduration@';
+         END IF;
+    END IF;
    END IF;
 RETURN NEW;
 END; $BODY$
